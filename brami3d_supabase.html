@@ -253,24 +253,32 @@ async function bootApp(){
   $('user-av').textContent = name.charAt(0).toUpperCase();
   $('user-lbl').textContent = name;
   buildNav();
-  await loadAll();
-  goTo('dashboard');
+  $('content').innerHTML='<p style="color:#60a5fa;padding:20px">Cargando datos...</p>';
+  try {
+    await loadAll();
+    $('content').innerHTML='<p style="color:#34d399;padding:20px">✅ Datos cargados: '+_cache.clientes.length+' clientes, '+_cache.pedidos.length+' pedidos</p>';
+    setTimeout(()=>goTo('dashboard'),1500);
+  } catch(e) {
+    $('content').innerHTML='<p style="color:#f87171;padding:20px">❌ Error: '+e.message+'</p>';
+  }
 }
 
 // ═══════════════════════════════════════════════
 //  DATA LAYER — Supabase CRUD
 // ═══════════════════════════════════════════════
 async function loadAll(){
-  const uid=CU.id;
+  const userId=CU.id;
   const [c,p,im,fi,pz,ar,cfg]=await Promise.all([
-    sb.from('clientes').select('*').eq('user_id',uid).order('created_at'),
-    sb.from('pedidos').select('*').eq('user_id',uid).order('created_at'),
-    sb.from('impresoras').select('*').eq('user_id',uid).order('created_at'),
-    sb.from('filamentos').select('*').eq('user_id',uid).order('created_at'),
-    sb.from('piezas').select('*').eq('user_id',uid).order('created_at'),
-    sb.from('archivos').select('*').eq('user_id',uid).order('created_at'),
-    sb.from('config').select('*').eq('user_id',uid).single(),
+    sb.from('clientes').select('*').eq('user_id',userId).order('created_at'),
+    sb.from('pedidos').select('*').eq('user_id',userId).order('created_at'),
+    sb.from('impresoras').select('*').eq('user_id',userId).order('created_at'),
+    sb.from('filamentos').select('*').eq('user_id',userId).order('created_at'),
+    sb.from('piezas').select('*').eq('user_id',userId).order('created_at'),
+    sb.from('archivos').select('*').eq('user_id',userId).order('created_at'),
+    sb.from('config').select('*').eq('user_id',userId).single(),
   ]);
+  if(c.error) throw new Error('clientes: '+c.error.message);
+  if(p.error) throw new Error('pedidos: '+p.error.message);
   _cache.clientes   = c.data||[];
   _cache.pedidos    = mapPedidos(p.data||[]);
   _cache.impresoras = mapImpresoras(im.data||[]);
