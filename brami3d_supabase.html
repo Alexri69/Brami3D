@@ -310,10 +310,19 @@ function mapCfg(r){ return {
   margen:r.margen,moneda:r.moneda,empresa:r.empresa,telefono:r.telefono,email:r.email
 };}
 
-// Generic save (insert or update)
 async function dbSave(table, data){
-  const {error}=await sb.from(table).upsert({...data,user_id:CU.id},{onConflict:'id'});
-  if(error) showToast('Error al guardar: '+error.message,'err');
+  const payload = {...data, user_id: CU.id};
+  let error;
+  // Check if record exists (has id that's already saved)
+  const existing = _cache[table]?.find?.(x=>x.id===data.id);
+  if(data.id && existing){
+    const res = await sb.from(table).update(payload).eq('id', data.id).eq('user_id', CU.id);
+    error = res.error;
+  } else {
+    const res = await sb.from(table).insert(payload);
+    error = res.error;
+  }
+  if(error){ showToast('Error: '+error.message,'err'); console.error(table, error); }
   return !error;
 }
 
