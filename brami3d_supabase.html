@@ -11,6 +11,27 @@
 <meta name="theme-color" content="#1d4ed8">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIj4KICA8cmVjdCB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgcng9IjQyIiBmaWxsPSIjMWQ0ZWQ4Ii8+CiAgPHRleHQgeD0iOTYiIHk9IjEyOCIgZm9udC1mYW1pbHk9IkFyaWFsIEJsYWNrLCBBcmlhbCIgZm9udC13ZWlnaHQ9IjkwMCIgZm9udC1zaXplPSI3MiIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGxldHRlci1zcGFjaW5nPSItMyI+QjNEPC90ZXh0Pgo8L3N2Zz4=">
 <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIj4KICA8cmVjdCB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgcng9IjQyIiBmaWxsPSIjMWQ0ZWQ4Ii8+CiAgPHRleHQgeD0iOTYiIHk9IjEyOCIgZm9udC1mYW1pbHk9IkFyaWFsIEJsYWNrLCBBcmlhbCIgZm9udC13ZWlnaHQ9IjkwMCIgZm9udC1zaXplPSI3MiIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGxldHRlci1zcGFjaW5nPSItMyI+QjNEPC90ZXh0Pgo8L3N2Zz4=">
+<script>
+// Inject PWA manifest dynamically
+const manifest = {
+  name: 'B3D Print Studio',
+  short_name: 'B3D',
+  start_url: window.location.href,
+  display: 'standalone',
+  background_color: '#070e1c',
+  theme_color: '#1d4ed8',
+  icons: [{
+    src: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTkyIj4KICA8cmVjdCB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgcng9IjQyIiBmaWxsPSIjMWQ0ZWQ4Ii8+CiAgPHRleHQgeD0iOTYiIHk9IjEyOCIgZm9udC1mYW1pbHk9IkFyaWFsIEJsYWNrLCBBcmlhbCIgZm9udC13ZWlnaHQ9IjkwMCIgZm9udC1zaXplPSI3MiIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGxldHRlci1zcGFjaW5nPSItMyI+QjNEPC90ZXh0Pgo8L3N2Zz4=',
+    sizes: '192x192',
+    type: 'image/svg+xml'
+  }]
+};
+const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
+const url = URL.createObjectURL(blob);
+const link = document.createElement('link');
+link.rel = 'manifest'; link.href = url;
+document.head.appendChild(link);
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -717,6 +738,30 @@ function pgDashboard(){
 
   const recent6=recent.map(o=>{const c=calcOrderCosts(o,cfg);return`<tr><td><span class="num-badge">${esc(o.presNum||'—')}</span></td><td><span style="color:#e2e8f0;font-weight:700">${esc(o.proyecto)}</span></td><td style="color:#7a9ab8">${esc(o.material)}</td><td style="color:#34d399;font-weight:800">${c.fp.toFixed(2)}${cfg.moneda||'€'}</td><td>${mkBadge(o.estado)}</td><td style="color:#2e4a6a">${esc(o.fecha)}</td></tr>`;}).join('');
 
+  // Filament alerts — less than 200g remaining
+  const lowFils=_cache.filamentos.filter(f=>parseFloat(f.pesoRestante)<200);
+  const filAlert=lowFils.length===0?'':
+    `<div class="card" style="margin-top:18px;border-color:rgba(245,158,11,.3);background:linear-gradient(145deg,#1a1200,#0f0d00)">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <span style="font-size:20px">🧵</span>
+        <span style="font-size:10px;font-weight:800;color:#f59e0b;text-transform:uppercase;letter-spacing:1.4px">Stock bajo de filamento</span>
+      </div>
+      ${lowFils.map(f=>{
+        const pct=Math.max(0,Math.min((parseFloat(f.pesoRestante)/1000)*100,100));
+        const col=parseFloat(f.pesoRestante)<50?'#ef4444':'#f59e0b';
+        return`<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;background:rgba(255,255,255,.03);border:1px solid #1a1a00;border-radius:10px;padding:10px 14px">
+          <span style="width:12px;height:12px;border-radius:50%;background:${esc(f.color||'#888')};flex-shrink:0;display:inline-block;border:1px solid rgba(255,255,255,.2)"></span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:700;color:#e2eaf4">${esc(f.tipo)} · ${esc(f.marca)}</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+              <div style="flex:1;height:5px;background:#1e293b;border-radius:99px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${col};border-radius:99px"></div></div>
+              <span style="font-size:11px;color:${col};font-weight:700;white-space:nowrap">${parseFloat(f.pesoRestante).toFixed(0)}g restantes</span>
+            </div>
+          </div>
+          <button onclick="goTo('filamentos')" style="background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:#f59e0b;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;white-space:nowrap">Reponer</button>
+        </div>`;}).join('')}
+    </div>`;
+
   return`<div style="margin-bottom:28px"><h2 class="page-title">Dashboard</h2><div class="page-subtitle">Resumen de tu negocio</div></div>
 <div class="flexwrap" style="margin-bottom:22px">
   ${stC('Ingresos cobrados',totI.toFixed(2)+(cfg.moneda||'€'),'💰','#34d399',`${paid.length} pedido${paid.length!==1?'s':''} pagados`)}
@@ -724,7 +769,8 @@ function pgDashboard(){
   ${stC('Beneficio neto',ben.toFixed(2)+(cfg.moneda||'€'),'📈',ben>=0?'#34d399':'#f87171',ben>=0?'Margen positivo ✓':'Revisar precios')}
   ${stC('Total pedidos',orders.length,'🖨️','#93c5fd',`${pendCount} pendiente${pendCount!==1?'s':''} · ${impCount} imprimiendo`)}
 </div>
-<div class="flexwrap">
+${filAlert}
+<div class="flexwrap" style="margin-top:18px">
   <div class="card" style="flex:2;min-width:260px"><div class="card-title">Ingresos por mes</div>${bars}</div>
   <div class="card" style="flex:1;min-width:200px"><div class="card-title" style="margin-bottom:12px">Por estado <span style="font-size:9px;color:#2e4a6a;font-weight:600;text-transform:none;letter-spacing:0;margin-left:4px">— toca para filtrar</span></div>${eList}</div>
 </div>
