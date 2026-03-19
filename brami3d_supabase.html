@@ -115,6 +115,42 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
 .toast{position:fixed;bottom:24px;right:24px;background:#0d1e36;border:1px solid #132540;border-radius:12px;padding:12px 18px;font-size:13px;color:#e2eaf4;box-shadow:0 8px 32px rgba(0,0,0,.5);z-index:9999;animation:slideUp .25s ease;max-width:320px}
 .toast.ok{border-color:rgba(34,197,94,.4);color:#4ade80}
 .toast.err{border-color:rgba(239,68,68,.4);color:#f87171}
+
+/* ─── MOBILE ─── */
+#mob-nav{display:none}
+@media(max-width:768px){
+  #sidebar{display:none!important}
+  #mob-nav{
+    display:flex;position:fixed;bottom:0;left:0;right:0;
+    background:#070e1c;border-top:1px solid #132540;
+    z-index:100;padding:6px 0 max(6px,env(safe-area-inset-bottom));
+  }
+  #mob-nav button{
+    flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+    background:none;border:none;color:#3d5a7a;font-size:9px;font-weight:600;
+    padding:6px 2px;transition:color .18s;letter-spacing:.3px;text-transform:uppercase;
+  }
+  #mob-nav button .mico{font-size:20px;line-height:1}
+  #mob-nav button.active{color:#60a5fa}
+  #mob-nav button.active .mico{filter:drop-shadow(0 0 6px rgba(96,165,250,.6))}
+  #mob-logout{color:#f87171!important}
+  #content{padding:16px;padding-bottom:80px!important}
+  #topbar{padding:10px 16px}
+  .page-title{font-size:20px}
+  .page-header{margin-bottom:16px}
+  /* Cards for mobile lists */
+  .mob-card{background:linear-gradient(145deg,#0d1e36,#0a1828);border:1px solid #132540;border-radius:14px;padding:16px;margin-bottom:10px}
+  .mob-card-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .mob-card-label{font-size:10px;color:#2e4a6a;text-transform:uppercase;letter-spacing:.8px;font-weight:700}
+  .mob-card-val{font-size:13px;color:#7a9ab8;text-align:right}
+  .mob-card-actions{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid #132540}
+  .mob-card-actions button{flex:1;padding:10px;font-size:13px;border-radius:10px}
+  /* Bigger touch targets */
+  .btn-icon{padding:10px!important;font-size:18px!important;opacity:.7!important}
+  input,select,textarea{font-size:16px!important} /* prevents iOS zoom */
+  .modal{max-width:100%!important;border-radius:18px 18px 0 0!important;position:fixed!important;bottom:0!important;left:0!important;right:0!important;max-height:90vh!important}
+  .overlay{align-items:flex-end!important;padding:0!important}
+}
 </style>
 </head>
 <body>
@@ -164,6 +200,13 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
     </div>
     <div id="content"></div>
   </div>
+</div>
+<div id="mob-nav" class="hidden">
+  <button onclick="goTo('dashboard')" id="mn-dashboard"><span class="mico">📊</span>Inicio</button>
+  <button onclick="goTo('clientes')" id="mn-clientes"><span class="mico">👥</span>Clientes</button>
+  <button onclick="goTo('pedidos')" id="mn-pedidos"><span class="mico">📋</span>Pedidos</button>
+  <button onclick="goTo('filamentos')" id="mn-filamentos"><span class="mico">🧵</span>Stock</button>
+  <button onclick="mobMore()" id="mn-more"><span class="mico">☰</span>Más</button>
 </div>
 <div id="modal-root"></div>
 
@@ -284,6 +327,8 @@ async function logout(){
 async function bootApp(){
   $('auth-screen').className='hidden';
   $('app').className='';
+  // Show mobile nav on small screens
+  if(window.innerWidth<=768) $('mob-nav').className='';
   buildNav();
   $('content').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:60vh"><div style="text-align:center"><div class="loading-spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto 16px"></div><div style="color:#3d5a7a;font-size:13px">Cargando...</div></div></div>';
   try {
@@ -439,8 +484,30 @@ function buildNav(){
   refreshAlerts();
 }
 
-function goTo(page){ PAGE=page; document.querySelectorAll('.nav-btn').forEach(e=>e.classList.remove('active')); const nb=$('nb-'+page);if(nb)nb.classList.add('active'); render(); }
+function goTo(page){
+  PAGE=page;
+  document.querySelectorAll('.nav-btn').forEach(e=>e.classList.remove('active'));
+  const nb=$('nb-'+page);if(nb)nb.classList.add('active');
+  // Mobile nav highlight
+  document.querySelectorAll('#mob-nav button').forEach(e=>e.classList.remove('active'));
+  const mb=$('mn-'+page);if(mb)mb.classList.add('active');
+  render();
+}
+
 function goToEstado(e){ _pFilt=e;_pSearch=''; goTo('pedidos'); }
+
+function mobMore(){
+  // Show a bottom sheet with remaining nav items
+  openModal(msh('Menú',`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
+      ${[{id:'impresoras',lbl:'Impresoras',ico:'🖨️'},{id:'piezas',lbl:'Piezas',ico:'🧩'},{id:'archivos',lbl:'Archivos',ico:'📁'},{id:'configuracion',lbl:'Configuración',ico:'⚙️'}].map(n=>`
+        <button onclick="goTo('${n.id}');closeModal()" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px;background:#0f1e35;border:1.5px solid #132540;border-radius:14px;color:#7a9ab8;font-size:13px;font-weight:600">
+          <span style="font-size:28px">${n.ico}</span>${n.lbl}
+        </button>`).join('')}
+    </div>
+    <button onclick="logout()" style="width:100%;padding:14px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:12px;color:#f87171;font-size:14px;font-weight:700;margin-top:4px">🚪 Cerrar sesión</button>
+  `));
+}
 
 function toggleSb(){
   SB_OPEN=!SB_OPEN;
@@ -786,10 +853,32 @@ ${filAlert}
 let _cSearch='';
 function pgClientes(){
   const items=_cache.clientes.filter(i=>[i.nombre,i.empresa,i.email,i.telefono].join(' ').toLowerCase().includes(_cSearch.toLowerCase()));
-  const rows=items.length===0?'<tr><td colspan="6" style="text-align:center;color:#2e4a6a;padding:28px">Sin clientes</td></tr>':items.map(c=>`<tr><td><span style="color:#e2eaf4;font-weight:700">${esc(c.nombre)}</span></td><td>${esc(c.empresa)}</td><td>${esc(c.telefono)}</td><td>${esc(c.email)}</td><td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.notas)}</td><td style="text-align:right;white-space:nowrap"><button class="btn-icon" onclick="editC('${c.id}')">✏️</button><button class="btn-icon" onclick="delC('${c.id}')">🗑️</button></td></tr>`).join('');
-  return`<div class="page-header"><h2 class="page-title">Clientes</h2><button class="btn-primary" onclick="editC(null)">+ Nuevo cliente</button></div>
+  const isMob=window.innerWidth<=768;
+
+  const rows=items.length===0
+    ? (isMob?'<p style="color:#2e4a6a;text-align:center;padding:32px">Sin clientes</p>':'<tr><td colspan="6" style="text-align:center;color:#2e4a6a;padding:28px">Sin clientes</td></tr>')
+    : isMob
+      ? items.map(c=>`
+          <div class="mob-card">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+              <div><div style="font-size:16px;font-weight:800;color:#e2eaf4">${esc(c.nombre)}</div>${c.empresa?`<div style="font-size:12px;color:#3d5a7a;margin-top:2px">${esc(c.empresa)}</div>`:''}</div>
+              <div style="display:flex;gap:6px">
+                <button class="btn-icon" onclick="editC('${c.id}')">✏️</button>
+                <button class="btn-icon" onclick="delC('${c.id}')">🗑️</button>
+              </div>
+            </div>
+            ${c.telefono?`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-size:14px">📞</span><a href="tel:${esc(c.telefono)}" style="color:#60a5fa;font-size:14px;text-decoration:none">${esc(c.telefono)}</a></div>`:''}
+            ${c.email?`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-size:14px">✉️</span><span style="color:#7a9ab8;font-size:13px">${esc(c.email)}</span></div>`:''}
+            ${c.notas?`<div style="font-size:12px;color:#3d5a7a;margin-top:6px;font-style:italic">${esc(c.notas)}</div>`:''}
+          </div>`).join('')
+      : items.map(c=>`<tr><td><span style="color:#e2eaf4;font-weight:700">${esc(c.nombre)}</span></td><td>${esc(c.empresa)}</td><td>${esc(c.telefono)}</td><td>${esc(c.email)}</td><td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.notas)}</td><td style="text-align:right;white-space:nowrap"><button class="btn-icon" onclick="editC('${c.id}')">✏️</button><button class="btn-icon" onclick="delC('${c.id}')">🗑️</button></td></tr>`).join('');
+
+  return`<div class="page-header"><h2 class="page-title">Clientes</h2><button class="btn-primary" onclick="editC(null)">+ Nuevo</button></div>
 <input style="margin-bottom:14px" placeholder="🔍 Buscar…" value="${esc(_cSearch)}" oninput="_cSearch=this.value;render()">
-<div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table><thead><tr><th>Nombre</th><th>Empresa</th><th>Teléfono</th><th>Email</th><th>Notas</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+${isMob
+  ? `<div>${rows}</div>`
+  : `<div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table><thead><tr><th>Nombre</th><th>Empresa</th><th>Teléfono</th><th>Email</th><th>Notas</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`
+}`;
 }
 function clienteFrm(x={}){ return fld('Nombre *','nombre',x.nombre||'')+fld('Empresa','empresa',x.empresa||'')+fld('Teléfono','telefono',x.telefono||'')+fld('Email','email',x.email||'','email')+fld('Notas','notas',x.notas||'','textarea'); }
 function editC(id){
@@ -957,9 +1046,44 @@ function pgPedidos(){
       +'</td></tr>';
   }).join('');
 
-  return`<div class="page-header"><div><h2 class="page-title">Pedidos</h2><div class="page-subtitle">${orders.length} pedido${orders.length!==1?'s':''} en total</div></div><button class="btn-primary" onclick="editO(null)">+ Nuevo pedido</button></div>
-<div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center">${chips}<input style="flex:1;min-width:160px" placeholder="🔍 Buscar proyecto…" value="${esc(_pSearch)}" oninput="_pSearch=this.value;render()"></div>
-<div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table><thead><tr><th>Nº / Factura</th><th>Proyecto</th><th>Cliente</th><th>Material</th><th>Peso</th><th>Precio</th><th>Estado</th><th>Fecha</th><th style="min-width:140px"></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  const isMob=window.innerWidth<=768;
+
+  const mobCards=fl.length===0?'<p style="color:#2e4a6a;text-align:center;padding:32px">Sin pedidos — crea tu primer pedido 👆</p>':fl.map(o=>{
+    const cl=clients.find(x=>x.id===o.clienteId)||{};
+    const c=calcOrderCosts(o,cfg);
+    const isPagado=o.estado==='pagado';
+    const hasFactura=!!o.facturaNum;
+    return`<div class="mob-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+        <div style="flex:1;min-width:0;margin-right:8px">
+          <div style="font-size:15px;font-weight:800;color:#e2eaf4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(o.proyecto)}</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:4px">${mkBadge(o.estado)}<span class="num-badge" style="font-size:10px">${esc(o.presNum||'—')}</span></div>
+        </div>
+        <div style="font-size:20px;font-weight:900;color:#34d399;white-space:nowrap">${c.fp.toFixed(2)}${cfg.moneda||'€'}</div>
+      </div>
+      <div style="display:flex;gap:16px;font-size:12px;color:#3d5a7a;margin-bottom:10px">
+        ${cl.nombre?`<span>👤 ${esc(cl.nombre)}</span>`:''}
+        ${o.fecha?`<span>📅 ${esc(o.fecha)}</span>`:''}
+        ${o.material?`<span>🧵 ${esc(o.material)}</span>`:''}
+      </div>
+      ${hasFactura?`<div style="margin-bottom:10px"><span style="background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800;font-family:monospace">🧾 ${esc(o.facturaNum)}</span></div>`:''}
+      <div style="display:flex;gap:8px;padding-top:10px;border-top:1px solid #132540">
+        <button onclick="genPDF('${o.id}')" style="flex:1;padding:10px;background:#0f1e35;border:1px solid #132540;border-radius:10px;color:#7a9ab8;font-size:13px">📄 PDF</button>
+        <button onclick="sendWA('${o.id}')" style="flex:1;padding:10px;background:#0f1e35;border:1px solid #132540;border-radius:10px;color:#7a9ab8;font-size:13px">💬 WA</button>
+        ${isPagado?`<button onclick="genFactura('${o.id}')" style="flex:1;padding:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;color:#4ade80;font-size:13px">🧾</button>`:''}
+        <button onclick="editO('${o.id}')" style="padding:10px 14px;background:#0f1e35;border:1px solid #132540;border-radius:10px;color:#7a9ab8;font-size:16px">✏️</button>
+        <button onclick="delO('${o.id}')" style="padding:10px 14px;background:#0f1e35;border:1px solid #132540;border-radius:10px;color:#f87171;font-size:16px">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  return`<div class="page-header"><div><h2 class="page-title">Pedidos</h2><div class="page-subtitle">${orders.length} pedido${orders.length!==1?'s':''} en total</div></div><button class="btn-primary" onclick="editO(null)">+ Nuevo</button></div>
+<div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center">${chips}${!isMob?`<input style="flex:1;min-width:160px" placeholder="🔍 Buscar…" value="${esc(_pSearch)}" oninput="_pSearch=this.value;render()">`:''}</div>
+${isMob?`<input style="margin-bottom:12px" placeholder="🔍 Buscar proyecto…" value="${esc(_pSearch)}" oninput="_pSearch=this.value;render()">`:``}
+${isMob
+  ? `<div>${mobCards}</div>`
+  : `<div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table><thead><tr><th>Nº / Factura</th><th>Proyecto</th><th>Cliente</th><th>Material</th><th>Peso</th><th>Precio</th><th>Estado</th><th>Fecha</th><th style="min-width:140px"></th></tr></thead><tbody>${rows}</tbody></table></div></div>`
+}`;
 }
 
 // ─── MULTI-PIEZA ───────────────────────────────
