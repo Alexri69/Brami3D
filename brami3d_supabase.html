@@ -268,24 +268,39 @@ async function bootApp(){
 // ═══════════════════════════════════════════════
 async function loadAll(){
   const userId=CU.id;
-  const [c,p,im,fi,pz,ar,cfg]=await Promise.all([
-    sb.from('clientes').select('*').eq('user_id',userId).order('created_at'),
-    sb.from('pedidos').select('*').eq('user_id',userId).order('created_at'),
-    sb.from('impresoras').select('*').eq('user_id',userId).order('created_at'),
-    sb.from('filamentos').select('*').eq('user_id',userId).order('created_at'),
-    sb.from('piezas').select('*').eq('user_id',userId).order('created_at'),
-    sb.from('archivos').select('*').eq('user_id',userId).order('created_at'),
-    sb.from('config').select('*').eq('user_id',userId).single(),
-  ]);
+
+  const show = msg => { const el=$('content'); if(el) el.innerHTML='<p style="color:#60a5fa;padding:20px">'+msg+'</p>'; };
+
+  show('Cargando clientes...');
+  const c = await sb.from('clientes').select('*').eq('user_id',userId).order('created_at');
   if(c.error) throw new Error('clientes: '+c.error.message);
+  _cache.clientes = c.data||[];
+
+  show('Cargando pedidos...');
+  const p = await sb.from('pedidos').select('*').eq('user_id',userId).order('created_at');
   if(p.error) throw new Error('pedidos: '+p.error.message);
-  _cache.clientes   = c.data||[];
-  _cache.pedidos    = mapPedidos(p.data||[]);
+  _cache.pedidos = mapPedidos(p.data||[]);
+
+  show('Cargando impresoras...');
+  const im = await sb.from('impresoras').select('*').eq('user_id',userId).order('created_at');
   _cache.impresoras = mapImpresoras(im.data||[]);
+
+  show('Cargando filamentos...');
+  const fi = await sb.from('filamentos').select('*').eq('user_id',userId).order('created_at');
   _cache.filamentos = mapFilamentos(fi.data||[]);
-  _cache.piezas     = mapPiezas(pz.data||[]);
-  _cache.archivos   = ar.data||[];
-  _cache.cfg        = cfg.data ? mapCfg(cfg.data) : {costePorGramo:0.03,costePorHora:0.15,margen:30,moneda:'€',empresa:'',telefono:'',email:''};
+
+  show('Cargando piezas...');
+  const pz = await sb.from('piezas').select('*').eq('user_id',userId).order('created_at');
+  _cache.piezas = mapPiezas(pz.data||[]);
+
+  show('Cargando archivos...');
+  const ar = await sb.from('archivos').select('*').eq('user_id',userId).order('created_at');
+  _cache.archivos = ar.data||[];
+
+  show('Cargando configuración...');
+  const cfg = await sb.from('config').select('*').eq('user_id',userId).single();
+  _cache.cfg = cfg.data ? mapCfg(cfg.data) : {costePorGramo:0.03,costePorHora:0.15,margen:30,moneda:'€',empresa:'',telefono:'',email:''};
+
   refreshBizHeader();
 }
 
