@@ -348,7 +348,12 @@ function mapCfg(r){ return {
 
 // Generic save (insert or update)
 async function dbSave(table, data){
-  const payload = {...data, user_id: CU.id};
+  // Convert empty strings to null for numeric/date fields
+  const cleaned = {};
+  for(const [k,v] of Object.entries(data)){
+    cleaned[k] = (v===''||v===undefined) ? null : v;
+  }
+  const payload = {...cleaned, user_id: CU.id};
   const {error} = await sb.from(table).upsert(payload, {onConflict: 'id'});
   if(error){ showToast('Error: '+error.message,'err'); console.error(table, error); }
   return !error;
