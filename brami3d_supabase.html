@@ -239,6 +239,15 @@ sb.auth.onAuthStateChange(async (event, session)=>{
   }
 });
 
+// Also check session on load immediately
+(async()=>{
+  const {data:{session}}=await sb.auth.getSession();
+  if(session?.user && !CU){
+    CU=session.user;
+    await bootApp();
+  }
+})();
+
 async function logout(){
   await sb.auth.signOut();
 }
@@ -268,37 +277,42 @@ async function bootApp(){
 // ═══════════════════════════════════════════════
 async function loadAll(){
   const userId=CU.id;
-
   const show = msg => { const el=$('content'); if(el) el.innerHTML='<p style="color:#60a5fa;padding:20px">'+msg+'</p>'; };
 
+  // Helper with timeout
+  const qry = (promise, name) => Promise.race([
+    promise,
+    new Promise((_,reject)=>setTimeout(()=>reject(new Error(name+' timeout (10s)')),10000))
+  ]);
+
   show('Cargando clientes...');
-  const c = await sb.from('clientes').select('*').eq('user_id',userId).order('created_at');
+  const c = await qry(sb.from('clientes').select('*').eq('user_id',userId).order('created_at'), 'clientes');
   if(c.error) throw new Error('clientes: '+c.error.message);
   _cache.clientes = c.data||[];
 
   show('Cargando pedidos...');
-  const p = await sb.from('pedidos').select('*').eq('user_id',userId).order('created_at');
+  const p = await qry(sb.from('pedidos').select('*').eq('user_id',userId).order('created_at'), 'pedidos');
   if(p.error) throw new Error('pedidos: '+p.error.message);
   _cache.pedidos = mapPedidos(p.data||[]);
 
   show('Cargando impresoras...');
-  const im = await sb.from('impresoras').select('*').eq('user_id',userId).order('created_at');
+  const im = await qry(sb.from('impresoras').select('*').eq('user_id',userId).order('created_at'), 'impresoras');
   _cache.impresoras = mapImpresoras(im.data||[]);
 
   show('Cargando filamentos...');
-  const fi = await sb.from('filamentos').select('*').eq('user_id',userId).order('created_at');
+  const fi = await qry(sb.from('filamentos').select('*').eq('user_id',userId).order('created_at'), 'filamentos');
   _cache.filamentos = mapFilamentos(fi.data||[]);
 
   show('Cargando piezas...');
-  const pz = await sb.from('piezas').select('*').eq('user_id',userId).order('created_at');
+  const pz = await qry(sb.from('piezas').select('*').eq('user_id',userId).order('created_at'), 'piezas');
   _cache.piezas = mapPiezas(pz.data||[]);
 
   show('Cargando archivos...');
-  const ar = await sb.from('archivos').select('*').eq('user_id',userId).order('created_at');
+  const ar = await qry(sb.from('archivos').select('*').eq('user_id',userId).order('created_at'), 'archivos');
   _cache.archivos = ar.data||[];
 
   show('Cargando configuración...');
-  const cfg = await sb.from('config').select('*').eq('user_id',userId).single();
+  const cfg = await qry(sb.from('config').select('*').eq('user_id',userId).single(), 'config');
   _cache.cfg = cfg.data ? mapCfg(cfg.data) : {costePorGramo:0.03,costePorHora:0.15,margen:30,moneda:'€',empresa:'',telefono:'',email:''};
 
   refreshBizHeader();
