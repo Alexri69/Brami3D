@@ -263,8 +263,6 @@ async function logout(){
 async function bootApp(){
   $('auth-screen').className='hidden';
   $('app').className='';
-  const name = CU.user_metadata?.name || CU.email?.split('@')[0] || 'Usuario';
-  $('user-av').textContent = name.charAt(0).toUpperCase();
   buildNav();
   $('content').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:60vh"><div style="text-align:center"><div class="loading-spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto 16px"></div><div style="color:#3d5a7a;font-size:13px">Cargando...</div></div></div>';
   try {
