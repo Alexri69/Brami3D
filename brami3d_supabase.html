@@ -262,13 +262,12 @@ async function bootApp(){
   $('user-av').textContent = name.charAt(0).toUpperCase();
   $('user-lbl').textContent = name;
   buildNav();
-  $('content').innerHTML='<p style="color:#60a5fa;padding:20px">Cargando datos...</p>';
+  $('content').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:60vh"><div style="text-align:center"><div class="loading-spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto 16px"></div><div style="color:#3d5a7a;font-size:13px">Cargando...</div></div></div>';
   try {
     await loadAll();
-    $('content').innerHTML='<p style="color:#34d399;padding:20px">✅ Datos cargados: '+_cache.clientes.length+' clientes, '+_cache.pedidos.length+' pedidos</p>';
-    setTimeout(()=>goTo('dashboard'),1500);
+    goTo('dashboard');
   } catch(e) {
-    $('content').innerHTML='<p style="color:#f87171;padding:20px">❌ Error: '+e.message+'</p>';
+    $('content').innerHTML='<div style="padding:32px;color:#f87171;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:12px;margin:24px">❌ Error al cargar: '+e.message+'<br><br><button class="btn-primary" onclick="bootApp()">🔄 Reintentar</button></div>';
   }
 }
 
