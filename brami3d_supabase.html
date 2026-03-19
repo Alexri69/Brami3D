@@ -1007,19 +1007,16 @@ async function saveO(id){
   if(!d.proyecto.trim()){alert('Proyecto obligatorio');return;}
   if(_lineas.length===0){alert('Añade al menos una pieza');return;}
   setLoading('save-o-btn',true);
-  showToast('Paso 1: calculando...','ok',10000);
 
   const {pesoTotal,tiempoTotal}=calcLineasTotals(_lineas);
   const firstLinea=_lineas[0]||{};
   const mainMat=firstLinea.material||'PLA';
   const mainFilId=firstLinea.filamentoId&&firstLinea.filamentoId!=='__manual__'?firstLinea.filamentoId:null;
 
-  showToast('Paso 2: número presupuesto...','ok',10000);
   const prevOrder=_cache.pedidos.find(o=>o.id===id);
   let presNum=prevOrder?.presNum||'';
   if(!id) presNum=await nextPresNum();
 
-  showToast('Paso 3: guardando pedido...','ok',10000);
   const row={
     proyecto:d.proyecto,
     cliente_id:d.clienteId||null,
@@ -1039,7 +1036,6 @@ async function saveO(id){
   if(id)row.id=id;else row.id=uid();
   const ok=await dbSave('pedidos',row);
   if(ok){
-    showToast('Paso 4: actualizando cache...','ok',5000);
     const mapped={id:row.id,clienteId:d.clienteId,proyecto:d.proyecto,material:mainMat,peso:pesoTotal,tiempoImpresion:tiempoTotal,estado:d.estado,notas:d.notas,fecha:d.fecha,gananciaManual:d.gananciaManual,costePostprocesado:d.costePostprocesado,presNum:presNum,facturaNum:prevOrder?.facturaNum||null,facturaFecha:prevOrder?.facturaFecha||null,lineas:_lineas};
     if(id)_cache.pedidos=_cache.pedidos.map(o=>o.id===id?mapped:o);else _cache.pedidos.push(mapped);
     closeModal();render();refreshAlerts();showToast('✅ Pedido guardado','ok');
