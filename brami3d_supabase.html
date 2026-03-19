@@ -1007,32 +1007,42 @@ async function saveO(id){
   if(!d.proyecto.trim()){alert('Proyecto obligatorio');return;}
   if(_lineas.length===0){alert('Añade al menos una pieza');return;}
   setLoading('save-o-btn',true);
+  showToast('Paso 1: calculando...','ok',10000);
 
   const {pesoTotal,tiempoTotal}=calcLineasTotals(_lineas);
   const firstLinea=_lineas[0]||{};
   const mainMat=firstLinea.material||'PLA';
   const mainFilId=firstLinea.filamentoId&&firstLinea.filamentoId!=='__manual__'?firstLinea.filamentoId:null;
 
-  // Discount filament stock
+  showToast('Paso 2: número presupuesto...','ok',10000);
   const prevOrder=_cache.pedidos.find(o=>o.id===id);
-  const prevPeso=prevOrder?parseFloat(prevOrder.peso)||0:0;
-  const diff=pesoTotal-prevPeso;
-  if(diff>0){
-    const filId=mainFilId||null;
-    if(filId){const f=_cache.filamentos.find(x=>x.id===filId);if(f){const nv=Math.max(0,parseFloat(f.pesoRestante)-diff);await dbSave('filamentos',{id:f.id,peso_restante:nv});_cache.filamentos=_cache.filamentos.map(x=>x.id===f.id?{...x,pesoRestante:nv}:x);}}
-    else if(mainMat){const f=_cache.filamentos.find(x=>x.tipo===mainMat);if(f){const nv=Math.max(0,parseFloat(f.pesoRestante)-diff);await dbSave('filamentos',{id:f.id,peso_restante:nv});_cache.filamentos=_cache.filamentos.map(x=>x.id===f.id?{...x,pesoRestante:nv}:x);}}
-  }
-
   let presNum=prevOrder?.presNum||'';
-  if(!id)presNum=await nextPresNum();
+  if(!id) presNum=await nextPresNum();
 
-  const row={proyecto:d.proyecto,cliente_id:d.clienteId||null,material:mainMat,peso:pesoTotal.toFixed(1),tiempo_impresion:tiempoTotal.toFixed(2),estado:d.estado,notas:d.notas,fecha:d.fecha||null,ganancia_manual:d.gananciaManual||null,coste_postprocesado:d.costePostprocesado||0,pres_num:presNum,lineas:_lineas,factura_num:prevOrder?.facturaNum||null,factura_fecha:prevOrder?.facturaFecha||null};
+  showToast('Paso 3: guardando pedido...','ok',10000);
+  const row={
+    proyecto:d.proyecto,
+    cliente_id:d.clienteId||null,
+    material:mainMat,
+    peso:pesoTotal||null,
+    tiempo_impresion:tiempoTotal||null,
+    estado:d.estado,
+    notas:d.notas||null,
+    fecha:d.fecha||null,
+    ganancia_manual:d.gananciaManual||null,
+    coste_postprocesado:d.costePostprocesado||0,
+    pres_num:presNum,
+    lineas:_lineas,
+    factura_num:prevOrder?.facturaNum||null,
+    factura_fecha:prevOrder?.facturaFecha||null
+  };
   if(id)row.id=id;else row.id=uid();
   const ok=await dbSave('pedidos',row);
   if(ok){
-    const mapped={id:row.id,clienteId:d.clienteId,proyecto:d.proyecto,material:mainMat,peso:pesoTotal.toFixed(1),tiempoImpresion:tiempoTotal.toFixed(2),estado:d.estado,notas:d.notas,fecha:d.fecha,gananciaManual:d.gananciaManual,costePostprocesado:d.costePostprocesado,presNum:presNum,facturaNum:prevOrder?.facturaNum||null,facturaFecha:prevOrder?.facturaFecha||null,lineas:_lineas};
+    showToast('Paso 4: actualizando cache...','ok',5000);
+    const mapped={id:row.id,clienteId:d.clienteId,proyecto:d.proyecto,material:mainMat,peso:pesoTotal,tiempoImpresion:tiempoTotal,estado:d.estado,notas:d.notas,fecha:d.fecha,gananciaManual:d.gananciaManual,costePostprocesado:d.costePostprocesado,presNum:presNum,facturaNum:prevOrder?.facturaNum||null,facturaFecha:prevOrder?.facturaFecha||null,lineas:_lineas};
     if(id)_cache.pedidos=_cache.pedidos.map(o=>o.id===id?mapped:o);else _cache.pedidos.push(mapped);
-    closeModal();render();refreshAlerts();showToast('Pedido guardado','ok');
+    closeModal();render();refreshAlerts();showToast('✅ Pedido guardado','ok');
   }
 }
 
