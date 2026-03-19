@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>B3D — Gestión de Impresión 3D</title>
+<meta name="application-name" content="B3D Print Studio">
+<meta name="apple-mobile-web-app-title" content="B3D">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#070e1c">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 38 38'><rect width='38' height='38' rx='9' fill='%231d4ed8'/><polygon points='19,7 30,13 30,25 19,31 8,25 8,13' fill='none' stroke='%2393c5fd' stroke-width='1.5'/><polygon points='19,7 30,13 19,19 8,13' fill='%233b82f6' opacity='0.8'/><polygon points='8,13 19,19 19,31 8,25' fill='%232563eb'/><polygon points='30,13 19,19 19,31 30,25' fill='%231d4ed8'/></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 38 38'><rect width='38' height='38' rx='9' fill='%231d4ed8'/><polygon points='19,7 30,13 30,25 19,31 8,25 8,13' fill='none' stroke='%2393c5fd' stroke-width='1.5'/><polygon points='19,7 30,13 19,19 8,13' fill='%233b82f6' opacity='0.8'/><polygon points='8,13 19,19 19,31 8,25' fill='%232563eb'/><polygon points='30,13 19,19 19,31 30,25' fill='%231d4ed8'/></svg>">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -133,7 +140,6 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
       </div>
       <div style="display:flex;align-items:center;gap:10px">
         <div class="avatar" id="user-av"></div>
-        <span id="user-lbl" style="color:#7a9ab8;font-size:14px"></span>
       </div>
     </div>
     <div id="content"></div>
