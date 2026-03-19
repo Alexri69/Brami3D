@@ -1109,7 +1109,20 @@ ${fld('Email de contacto','biz_email',cfg.email||'')}
 </div>
 </div>`;
 }
-
+async function dbSave(table, data){
+  const payload = {...data, user_id: CU.id};
+  let error;
+  // Check if record exists (has id that's already saved)
+  const existing = _cache[table]?.find?.(x=>x.id===data.id);
+  if(data.id && existing){
+    const res = await sb.from(table).update(payload).eq('id', data.id).eq('user_id', CU.id);
+    error = res.error;
+  } else {
+    const res = await sb.from(table).insert(payload);
+    error = res.error;
+  }
+  if(error){ showToast('Error: '+error.message,'err'); console.error(table, error); }
+  return
 async function saveConfig(){
   const d=gfd(['costePorGramo','costePorHora','margen','moneda']);
   const row={user_id:CU.id,coste_por_gramo:d.costePorGramo,coste_por_hora:d.costePorHora,margen:d.margen,moneda:d.moneda,empresa:_cache.cfg.empresa||'',telefono:_cache.cfg.telefono||'',email:_cache.cfg.email||''};
