@@ -370,23 +370,26 @@ async function dbDel(table, id){
 // ═══════════════════════════════════════════════
 async function nextPresNum(){
   const year=new Date().getFullYear();
-  const {data,error}=await sb.rpc('increment_counter',{p_user_id:CU.id,p_tipo:'presnum',p_anio:year}).single().catch(()=>({data:null,error:true}));
-  // fallback if RPC not available
-  if(error||!data){
-    const {data:row}=await sb.from('contadores').select('valor').eq('user_id',CU.id).eq('tipo','presnum').eq('anio',year).single();
+  try {
+    const {data:row}=await sb.from('contadores').select('valor').eq('user_id',CU.id).eq('tipo','presnum').eq('anio',year).maybeSingle();
     const n=(row?.valor||0)+1;
     await sb.from('contadores').upsert({user_id:CU.id,tipo:'presnum',anio:year,valor:n},{onConflict:'user_id,tipo,anio'});
     return `B3D-${year}-${String(n).padStart(3,'0')}`;
+  } catch(e) {
+    return `B3D-${year}-${String(Date.now()).slice(-3)}`;
   }
-  return `B3D-${year}-${String(data).padStart(3,'0')}`;
 }
 
 async function nextFacturaNum(){
   const year=new Date().getFullYear();
-  const {data:row}=await sb.from('contadores').select('valor').eq('user_id',CU.id).eq('tipo','factnum').eq('anio',year).single();
-  const n=(row?.valor||0)+1;
-  await sb.from('contadores').upsert({user_id:CU.id,tipo:'factnum',anio:year,valor:n},{onConflict:'user_id,tipo,anio'});
-  return `B3D-F-${year}-${String(n).padStart(3,'0')}`;
+  try {
+    const {data:row}=await sb.from('contadores').select('valor').eq('user_id',CU.id).eq('tipo','factnum').eq('anio',year).maybeSingle();
+    const n=(row?.valor||0)+1;
+    await sb.from('contadores').upsert({user_id:CU.id,tipo:'factnum',anio:year,valor:n},{onConflict:'user_id,tipo,anio'});
+    return `B3D-F-${year}-${String(n).padStart(3,'0')}`;
+  } catch(e) {
+    return `B3D-F-${year}-${String(Date.now()).slice(-3)}`;
+  }
 }
 
 // ═══════════════════════════════════════════════
