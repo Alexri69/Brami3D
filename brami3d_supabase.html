@@ -391,7 +391,7 @@ function mapPedidos(rows){ return rows.map(r=>({
   peso:r.peso, tiempoImpresion:r.tiempo_impresion, estado:r.estado, notas:r.notas,
   fecha:r.fecha, gananciaManual:r.ganancia_manual, costePostprocesado:r.coste_postprocesado,
   presNum:r.pres_num, facturaNum:r.factura_num, facturaFecha:r.factura_fecha,
-  lineas:r.lineas||[]
+  lineas:r.lineas||[], fotoUrl:r.foto_url||null, fotoPath:r.foto_path||null
 }));}
 
 function mapImpresoras(rows){ return rows.map(r=>({
@@ -1054,6 +1054,7 @@ function pgPedidos(){
     const isPagado=o.estado==='pagado';
     const hasFactura=!!o.facturaNum;
     return`<div class="mob-card">
+      ${o.fotoUrl?`<img src="${esc(o.fotoUrl)}" style="width:100%;max-height:140px;object-fit:cover;border-radius:10px;margin-bottom:12px;border:1px solid #132540">`:''}
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
         <div style="flex:1;min-width:0;margin-right:8px">
           <div style="font-size:15px;font-weight:800;color:#e2eaf4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(o.proyecto)}</div>
@@ -1154,6 +1155,19 @@ ${fld('Nombre del proyecto *','proyecto',x.proyecto||'')}${fld('Cliente','client
 ${fld('Estado','estado',x.estado||'pendiente','text',estOpts)}${fld('Fecha','fecha',x.fecha||today(),'date')}
 ${fld('Coste postprocesado (€)','costePostprocesado',x.costePostprocesado||'0','number')}${fld('Ganancia manual (€) — vacío = margen','gananciaManual',x.gananciaManual||'','number')}
 </div>${fld('Notas','notas',x.notas||'','textarea')}
+
+<div style="margin:16px 0 12px">
+  <div style="font-size:12px;font-weight:800;color:#2e4a6a;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">📷 Foto de referencia</div>
+  <div id="foto-preview" style="${x.fotoUrl?'':'display:none'}margin-bottom:10px">
+    ${x.fotoUrl?`<div style="position:relative;display:inline-block"><img src="${esc(x.fotoUrl)}" style="max-width:100%;max-height:180px;border-radius:10px;border:1px solid #132540;display:block"><button onclick="clearFoto()" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.7);border:none;border-radius:50%;width:28px;height:28px;color:#f87171;font-size:14px;cursor:pointer">✕</button></div>`:''}
+  </div>
+  <label for="foto-input" style="display:flex;align-items:center;gap:10px;background:#0f1e35;border:2px dashed #1a2e4a;border-radius:12px;padding:14px 18px;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='#3b82f6'" onmouseout="this.style.borderColor='#1a2e4a'">
+    <span style="font-size:28px">📷</span>
+    <div><div style="color:#7a9ab8;font-size:14px;font-weight:600">Añadir foto de referencia</div><div style="color:#3d5a7a;font-size:12px;margin-top:2px">JPG, PNG, WebP — máx. 10MB</div></div>
+  </label>
+  <input type="file" id="foto-input" accept="image/*" style="display:none" onchange="previewFoto(this)">
+</div>
+
 <div style="display:flex;justify-content:space-between;align-items:center;margin:18px 0 12px">
 <div><div style="font-size:12px;font-weight:800;color:#2e4a6a;text-transform:uppercase;letter-spacing:1px">Piezas del pedido</div><div style="font-size:11px;color:#3d5a7a;margin-top:2px">Cada pieza se imprime por separado.</div></div>
 <button class="btn-secondary" style="font-size:12px;padding:7px 14px;white-space:nowrap" onclick="addLinea()">+ Añadir pieza</button></div>
@@ -1166,10 +1180,61 @@ ${fld('Coste postprocesado (€)','costePostprocesado',x.costePostprocesado||'0'
 <div class="cost-box"><div style="font-size:10px;color:#3d5a7a;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Vista previa de costes</div><div class="cost-grid" id="cprev">${costPrevHTML(c)}</div></div>`;
 }
 
+// ─── FOTO DE REFERENCIA ───────────────────────
+let _fotoFile = null;   // File selected but not yet uploaded
+let _fotoUrl  = null;   // Current URL (existing or newly uploaded)
+let _fotoPath = null;   // Storage path of current foto
+
+function previewFoto(input){
+  const f = input.files[0]; if(!f) return;
+  if(f.size > 10*1024*1024){ showToast('La foto supera 10MB','err'); return; }
+  _fotoFile = f;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const prev = $('foto-preview');
+    if(prev){
+      prev.style.display = '';
+      prev.innerHTML = `<div style="position:relative;display:inline-block">
+        <img src="${e.target.result}" style="max-width:100%;max-height:180px;border-radius:10px;border:1px solid #132540;display:block">
+        <button onclick="clearFoto()" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.7);border:none;border-radius:50%;width:28px;height:28px;color:#f87171;font-size:14px;cursor:pointer">✕</button>
+      </div>`;
+    }
+  };
+  reader.readAsDataURL(f);
+}
+
+function clearFoto(){
+  _fotoFile = null; _fotoUrl = null;
+  const prev = $('foto-preview');
+  if(prev){ prev.style.display='none'; prev.innerHTML=''; }
+  const inp = $('foto-input');
+  if(inp) inp.value='';
+}
+
+async function uploadFotoIfNeeded(orderId){
+  if(!_fotoFile) return _fotoUrl; // return existing URL or null
+  const ext = _fotoFile.name.split('.').pop();
+  const path = `${CU.id}/pedidos/${orderId}_ref.${ext}`;
+  // Delete old foto if exists
+  if(_fotoPath && _fotoPath !== path){
+    await sb.storage.from('archivos').remove([_fotoPath]);
+  }
+  const {error} = await sb.storage.from('archivos').upload(path, _fotoFile, {upsert:true});
+  if(error){ showToast('Error subiendo foto: '+error.message,'err'); return _fotoUrl; }
+  const {data} = await sb.storage.from('archivos').createSignedUrl(path, 60*60*24*365); // 1 year
+  _fotoPath = path;
+  _fotoFile = null;
+  return data?.signedUrl || null;
+}
+
 function attachPedidoEvents(){setTimeout(()=>{renderLineas();document.querySelectorAll('[name="costePostprocesado"],[name="gananciaManual"]').forEach(el=>el.addEventListener('input',refreshCostPreview));},60);}
 
 function editO(id){
   const x=id?_cache.pedidos.find(o=>o.id===id)||{}:{};
+  // Init foto state
+  _fotoFile = null;
+  _fotoUrl  = x.fotoUrl || null;
+  _fotoPath = x.fotoPath || null;
   openModal(msh(id?'Editar pedido':'Nuevo pedido',`${pedidoFrm(x)}<div style="display:flex;gap:10px;margin-top:16px"><button class="btn-primary" id="save-o-btn" onclick="saveO('${id||''}')">💾 Guardar pedido</button><button class="btn-secondary" onclick="closeModal()">Cancelar</button></div>`),true);
   attachPedidoEvents();
 }
@@ -1189,6 +1254,10 @@ async function saveO(id){
   let presNum=prevOrder?.presNum||'';
   if(!id) presNum=await nextPresNum();
 
+  const rowId = id || uid();
+  // Upload foto if selected
+  const fotoUrl = await uploadFotoIfNeeded(rowId);
+
   const row={
     proyecto:d.proyecto,
     cliente_id:d.clienteId||null,
@@ -1203,12 +1272,14 @@ async function saveO(id){
     pres_num:presNum,
     lineas:_lineas,
     factura_num:prevOrder?.facturaNum||null,
-    factura_fecha:prevOrder?.facturaFecha||null
+    factura_fecha:prevOrder?.facturaFecha||null,
+    foto_url:fotoUrl||null,
+    foto_path:_fotoPath||null,
   };
-  if(id)row.id=id;else row.id=uid();
+  row.id = rowId;
   const ok=await dbSave('pedidos',row);
   if(ok){
-    const mapped={id:row.id,clienteId:d.clienteId,proyecto:d.proyecto,material:mainMat,peso:pesoTotal,tiempoImpresion:tiempoTotal,estado:d.estado,notas:d.notas,fecha:d.fecha,gananciaManual:d.gananciaManual,costePostprocesado:d.costePostprocesado,presNum:presNum,facturaNum:prevOrder?.facturaNum||null,facturaFecha:prevOrder?.facturaFecha||null,lineas:_lineas};
+    const mapped={id:row.id,clienteId:d.clienteId,proyecto:d.proyecto,material:mainMat,peso:pesoTotal,tiempoImpresion:tiempoTotal,estado:d.estado,notas:d.notas,fecha:d.fecha,gananciaManual:d.gananciaManual,costePostprocesado:d.costePostprocesado,presNum:presNum,facturaNum:prevOrder?.facturaNum||null,facturaFecha:prevOrder?.facturaFecha||null,lineas:_lineas,fotoUrl:fotoUrl||null,fotoPath:_fotoPath||null};
     if(id)_cache.pedidos=_cache.pedidos.map(o=>o.id===id?mapped:o);else _cache.pedidos.push(mapped);
     closeModal();render();refreshAlerts();showToast('✅ Pedido guardado','ok');
   }
