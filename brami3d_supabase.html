@@ -1109,6 +1109,47 @@ function pgDashboard(){
         </div>`;}).join('')}
     </div>`;
 
+  // Pedidos pendientes hace más de 3 días
+  const hoy = new Date();
+  const pendOld = orders.filter(o=>{
+    if(o.estado!=='pendiente'&&o.estado!=='imprimiendo') return false;
+    if(!o.fecha) return false;
+    const dias = Math.floor((hoy - new Date(o.fecha)) / (1000*60*60*24));
+    return dias >= 3;
+  }).sort((a,b)=>a.fecha.localeCompare(b.fecha));
+
+  const pendAlert = pendOld.length===0 ? '' :
+    `<div class="card" style="margin-top:18px;border-color:rgba(239,68,68,.3);background:linear-gradient(145deg,#1a0a0a,#0f0808)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:20px">⏰</span>
+          <div>
+            <div style="font-size:10px;font-weight:800;color:#f87171;text-transform:uppercase;letter-spacing:1.4px">Pedidos sin actualizar</div>
+            <div style="font-size:11px;color:#7f1d1d;margin-top:1px">Llevan más de 3 días en el mismo estado</div>
+          </div>
+        </div>
+        <span style="background:rgba(239,68,68,.2);color:#f87171;border:1px solid rgba(239,68,68,.4);border-radius:99px;padding:2px 10px;font-size:12px;font-weight:800">${pendOld.length}</span>
+      </div>
+      ${pendOld.map(o=>{
+        const cl=_cache.clientes.find(x=>x.id===o.clienteId)||{};
+        const dias=Math.floor((hoy-new Date(o.fecha))/(1000*60*60*24));
+        const c=calcOrderCosts(o,cfg);
+        return`<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;background:rgba(255,255,255,.02);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:10px 14px">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:700;color:#e2eaf4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(o.proyecto)}</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:3px">
+              ${mkBadge(o.estado)}
+              ${cl.nombre?`<span style="font-size:11px;color:#3d5a7a">${esc(cl.nombre)}</span>`:''}
+              <span style="font-size:11px;color:#f87171;font-weight:700">⏱ ${dias} día${dias!==1?'s':''}</span>
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:13px;font-weight:800;color:#34d399">${c.fp.toFixed(2)}${cfg.moneda||'€'}</div>
+            <button onclick="editO('${o.id}')" style="margin-top:4px;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#f87171;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700">Actualizar</button>
+          </div>
+        </div>`;}).join('')}
+    </div>`;
+
   return`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;flex-wrap:wrap;gap:12px">
   <div><h2 class="page-title">Dashboard</h2><div class="page-subtitle">Resumen de tu negocio</div></div>
   <button class="btn-secondary" onclick="abrirInforme()" style="display:flex;align-items:center;gap:8px;white-space:nowrap">
@@ -1121,6 +1162,7 @@ function pgDashboard(){
   ${stC('Beneficio neto',ben.toFixed(2)+(cfg.moneda||'€'),'📈',ben>=0?'#34d399':'#f87171',ben>=0?'Margen positivo ✓':'Revisar precios')}
   ${stC('Total pedidos',orders.length,'🖨️','#93c5fd',`${pendCount} pendiente${pendCount!==1?'s':''} · ${impCount} imprimiendo`)}
 </div>
+${pendAlert}
 ${filAlert}
 <div class="flexwrap" style="margin-top:18px">
   <div class="card" style="flex:2;min-width:260px"><div class="card-title">Ingresos por mes</div>${bars}</div>
