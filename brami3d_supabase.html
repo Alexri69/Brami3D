@@ -358,7 +358,7 @@ async function loadAll(){
   _cache.clientes = c.data||[];
 
   show('Cargando pedidos...');
-  const p = await qry(sb.from('pedidos').select('*').eq('user_id',userId).order('created_at'), 'pedidos');
+  const p = await qry(sb.from('pedidos').select('*').eq('user_id',userId).order('created_at', {ascending:false}), 'pedidos');
   if(p.error) throw new Error('pedidos: '+p.error.message);
   _cache.pedidos = mapPedidos(p.data||[]);
 
