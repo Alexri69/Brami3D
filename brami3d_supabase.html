@@ -795,6 +795,197 @@ ${o.notas?`<div class="notas-box"><b>Notas:</b> ${o.notas}</div>`:''}
 }
 
 // ═══════════════════════════════════════════════
+//  INFORME MENSUAL PDF
+// ═══════════════════════════════════════════════
+function abrirInforme(){
+  const now = new Date();
+  const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const mesOpts = meses.map((m,i)=>`<option value="${String(i+1).padStart(2,'0')}"${i===now.getMonth()?' selected':''}>${m}</option>`).join('');
+  const anioActual = now.getFullYear();
+  const anioOpts = [anioActual-1, anioActual].map(y=>`<option value="${y}"${y===anioActual?' selected':''}>${y}</option>`).join('');
+  openModal(msh('Exportar informe mensual',`
+    <p style="color:#3d5a7a;font-size:13px;margin-bottom:20px">Selecciona el mes y año para generar el informe en PDF.</p>
+    <div class="grid2">
+      <div class="field"><label>Mes</label><select name="inf-mes">${mesOpts}</select></div>
+      <div class="field"><label>Año</label><select name="inf-anio">${anioOpts}</select></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn-primary" onclick="generarInforme()" style="flex:1;justify-content:center">📊 Generar PDF</button>
+      <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+    </div>
+  `));
+}
+
+function generarInforme(){
+  const mes  = document.querySelector('[name="inf-mes"]')?.value;
+  const anio = document.querySelector('[name="inf-anio"]')?.value;
+  if(!mes||!anio) return;
+  const cfg = _cache.cfg; const biz = cfg;
+  const mon = cfg.moneda||'€';
+  const prefix = `${anio}-${mes}`;
+  const meses = ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const mesNombre = meses[parseInt(mes)];
+
+  // Filter orders for this month
+  const ordenes = _cache.pedidos.filter(o=>(o.fecha||'').startsWith(prefix));
+  const pagados = ordenes.filter(o=>o.estado==='pagado');
+  const pendientes = ordenes.filter(o=>o.estado==='pendiente');
+  const imprimiendo = ordenes.filter(o=>o.estado==='imprimiendo');
+
+  const totIngresos = pagados.reduce((s,o)=>s+calcOrderCosts(o,cfg).fp,0);
+  const totCostes   = pagados.reduce((s,o)=>s+calcOrderCosts(o,cfg).tc,0);
+  const beneficio   = totIngresos - totCostes;
+
+  // Filament consumption this month (from paid orders)
+  const filConsumo = {};
+  pagados.forEach(o=>{
+    (o.lineas||[]).forEach(l=>{
+      const peso = (parseFloat(l.peso)||0)*(parseInt(l.qty)||1);
+      const key = l.material||'—';
+      filConsumo[key]=(filConsumo[key]||0)+peso;
+    });
+    if(!o.lineas||o.lineas.length===0){
+      const key=o.material||'—';
+      filConsumo[key]=(filConsumo[key]||0)+(parseFloat(o.peso)||0);
+    }
+  });
+
+  const dateStr = new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
+  const logoSVG = `<svg width="40" height="40" viewBox="0 0 38 38" fill="none"><rect width="38" height="38" rx="9" fill="#1d4ed8"/><polygon points="19,7 30,13 30,25 19,31 8,25 8,13" fill="none" stroke="#93c5fd" stroke-width="1.5"/><polygon points="19,7 30,13 19,19 8,13" fill="#3b82f6" opacity="0.8"/><polygon points="8,13 19,19 19,31 8,25" fill="#2563eb"/><polygon points="30,13 19,19 19,31 30,25" fill="#1d4ed8"/></svg>`;
+
+  const pedidosRows = ordenes.length===0
+    ? `<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:20px">Sin pedidos este mes</td></tr>`
+    : ordenes.map(o=>{
+        const cl=_cache.clientes.find(x=>x.id===o.clienteId)||{};
+        const c=calcOrderCosts(o,cfg);
+        const estadoColor={pagado:'#15803d',pendiente:'#b45309',imprimiendo:'#1d4ed8',terminado:'#065f46',entregado:'#5b21b6'}[o.estado]||'#475569';
+        return`<tr style="border-bottom:1px solid #f1f5f9">
+          <td style="padding:8px 10px;font-size:12px;font-weight:600;color:#0f172a">${o.proyecto}</td>
+          <td style="padding:8px 10px;font-size:12px;color:#64748b">${cl.nombre||'—'}</td>
+          <td style="padding:8px 10px;font-size:12px;color:#64748b">${o.fecha||'—'}</td>
+          <td style="padding:8px 10px;font-size:12px;text-align:right;color:#0f172a;font-weight:700">${c.fp.toFixed(2)} ${mon}</td>
+          <td style="padding:8px 10px;font-size:11px;text-align:center"><span style="background:${estadoColor}22;color:${estadoColor};border:1px solid ${estadoColor}44;border-radius:99px;padding:2px 8px;font-weight:700">${o.estado}</span></td>
+        </tr>`;
+      }).join('');
+
+  const filRows = Object.entries(filConsumo).length===0
+    ? `<tr><td colspan="2" style="text-align:center;color:#94a3b8;padding:12px">Sin consumo registrado</td></tr>`
+    : Object.entries(filConsumo).map(([mat,peso])=>`
+        <tr style="border-bottom:1px solid #f1f5f9">
+          <td style="padding:7px 10px;font-size:12px;font-weight:600;color:#0f172a">${mat}</td>
+          <td style="padding:7px 10px;font-size:12px;color:#475569;text-align:right">${peso.toFixed(1)} g</td>
+        </tr>`).join('');
+
+  const html=`<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+<title>Informe ${mesNombre} ${anio}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#0f172a;max-width:720px;margin:0 auto;padding:40px 36px}
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:24px;border-bottom:3px solid #2563eb;margin-bottom:32px}
+.hdr-left{display:flex;align-items:center;gap:12px}
+.brand{font-size:20px;font-weight:900;color:#0f172a;letter-spacing:-1.5px}
+.brand-sub{font-size:8px;color:#3b82f6;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-top:2px}
+.biz{text-align:right;font-size:11px;color:#64748b;line-height:1.8}
+.biz-name{font-size:14px;font-weight:800;color:#0f172a;margin-bottom:2px}
+.title-band{background:#0f172a;border-radius:12px;padding:20px 28px;margin-bottom:28px;display:flex;justify-content:space-between;align-items:center}
+.title-band h1{font-size:22px;font-weight:900;color:#fff;letter-spacing:-.5px}
+.title-band .sub{font-size:12px;color:#94a3b8;margin-top:4px}
+.title-band .date{font-size:11px;color:#475569;text-align:right}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:28px}
+.stat{border-radius:10px;padding:16px 18px;border:1px solid #e2e8f0}
+.stat-lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#94a3b8;margin-bottom:8px}
+.stat-val{font-size:24px;font-weight:900;letter-spacing:-1px;font-family:'Courier New',monospace}
+.stat-sub{font-size:11px;color:#94a3b8;margin-top:4px}
+.section{margin-bottom:28px}
+.section-title{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#94a3b8;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid #e2e8f0}
+table{width:100%;border-collapse:collapse}
+thead tr{background:#f8fafc}
+th{text-align:left;padding:8px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#94a3b8}
+th:last-child{text-align:right}
+.summary{background:#f8fafc;border-radius:10px;padding:16px 20px;margin-bottom:28px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.sum-item{text-align:center}
+.sum-lbl{font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.sum-val{font-size:16px;font-weight:800;color:#0f172a}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;font-size:10px;color:#94a3b8}
+@media print{body{padding:24px}@page{margin:.5cm}}
+</style></head><body>
+
+<div class="hdr">
+  <div class="hdr-left">
+    ${logoSVG}
+    <div><div class="brand">B3D</div><div class="brand-sub">Print Studio</div></div>
+  </div>
+  <div class="biz">
+    ${biz.empresa?`<div class="biz-name">${biz.empresa}</div>`:''}
+    ${biz.email?`<div>✉ ${biz.email}</div>`:''}
+    ${biz.telefono?`<div>📞 ${biz.telefono}</div>`:''}
+  </div>
+</div>
+
+<div class="title-band">
+  <div>
+    <h1>Informe mensual</h1>
+    <div class="sub">${mesNombre} ${anio}</div>
+  </div>
+  <div class="date">Generado el<br><b style="color:#e2e8f0">${dateStr}</b></div>
+</div>
+
+<div class="stats">
+  <div class="stat" style="background:#f0fdf4;border-color:#bbf7d0">
+    <div class="stat-lbl">Ingresos</div>
+    <div class="stat-val" style="color:#15803d">${totIngresos.toFixed(2)} ${mon}</div>
+    <div class="stat-sub">${pagados.length} pedido${pagados.length!==1?'s':''} cobrado${pagados.length!==1?'s':''}</div>
+  </div>
+  <div class="stat" style="background:#fffbeb;border-color:#fde68a">
+    <div class="stat-lbl">Costes</div>
+    <div class="stat-val" style="color:#b45309">${totCostes.toFixed(2)} ${mon}</div>
+    <div class="stat-sub">Producción</div>
+  </div>
+  <div class="stat" style="background:${beneficio>=0?'#f0fdf4':'#fef2f2'};border-color:${beneficio>=0?'#bbf7d0':'#fecaca'}">
+    <div class="stat-lbl">Beneficio neto</div>
+    <div class="stat-val" style="color:${beneficio>=0?'#15803d':'#dc2626'}">${beneficio.toFixed(2)} ${mon}</div>
+    <div class="stat-sub">${beneficio>=0?'✓ Positivo':'⚠ Negativo'}</div>
+  </div>
+</div>
+
+<div class="summary">
+  <div class="sum-item"><div class="sum-lbl">Total pedidos</div><div class="sum-val">${ordenes.length}</div></div>
+  <div class="sum-item"><div class="sum-lbl">Pendientes</div><div class="sum-val" style="color:#b45309">${pendientes.length}</div></div>
+  <div class="sum-item"><div class="sum-lbl">Imprimiendo</div><div class="sum-val" style="color:#1d4ed8">${imprimiendo.length}</div></div>
+</div>
+
+<div class="section">
+  <div class="section-title">Pedidos del mes</div>
+  <table>
+    <thead><tr><th>Proyecto</th><th>Cliente</th><th>Fecha</th><th style="text-align:right">Precio</th><th style="text-align:center">Estado</th></tr></thead>
+    <tbody>${pedidosRows}</tbody>
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-title">Consumo de filamento (pedidos cobrados)</div>
+  <table>
+    <thead><tr><th>Material</th><th style="text-align:right">Consumido</th></tr></thead>
+    <tbody>${filRows}</tbody>
+  </table>
+</div>
+
+<div class="footer">
+  <span>B3D Print Studio · Informe ${mesNombre} ${anio}</span>
+  <span>Generado con B3D · ${dateStr}</span>
+</div>
+
+<script>setTimeout(()=>window.print(),500)<\/script>
+</body></html>`;
+
+  closeModal();
+  const w=window.open('','_blank');
+  if(!w){alert('Permite ventanas emergentes para generar el informe');return;}
+  w.document.write(html);
+  w.document.close();
+}
+
+// ═══════════════════════════════════════════════
 //  DASHBOARD
 // ═══════════════════════════════════════════════
 function pgDashboard(){
@@ -844,7 +1035,12 @@ function pgDashboard(){
         </div>`;}).join('')}
     </div>`;
 
-  return`<div style="margin-bottom:28px"><h2 class="page-title">Dashboard</h2><div class="page-subtitle">Resumen de tu negocio</div></div>
+  return`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;flex-wrap:wrap;gap:12px">
+  <div><h2 class="page-title">Dashboard</h2><div class="page-subtitle">Resumen de tu negocio</div></div>
+  <button class="btn-secondary" onclick="abrirInforme()" style="display:flex;align-items:center;gap:8px;white-space:nowrap">
+    <span>📊</span> Exportar informe mensual
+  </button>
+</div>
 <div class="flexwrap" style="margin-bottom:22px">
   ${stC('Ingresos cobrados',totI.toFixed(2)+(cfg.moneda||'€'),'💰','#34d399',`${paid.length} pedido${paid.length!==1?'s':''} pagados`)}
   ${stC('Costes producción',totC.toFixed(2)+(cfg.moneda||'€'),'📦','#fbbf24','')}
