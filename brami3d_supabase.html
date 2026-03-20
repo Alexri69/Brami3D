@@ -171,9 +171,10 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
   #mob-nav button.active .mico{filter:drop-shadow(0 0 6px rgba(96,165,250,.6))}
   #mob-logout{color:#f87171!important}
   #content{padding:16px;padding-bottom:80px!important}
-  #topbar{padding:8px 12px;gap:8px}
-  #tb-company{display:none}
-  #global-search{font-size:14px!important}
+  #topbar{padding:8px 12px;gap:8px;min-height:48px}
+  #search-wrap-desk{display:none!important}
+  #mob-search-btn{display:flex!important}
+  #tb-company{font-size:14px!important;max-width:140px!important}
   .page-title{font-size:20px}
   .page-header{margin-bottom:16px}
   /* Cards for mobile lists */
@@ -231,21 +232,35 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
   <div id="main">
     <div id="topbar">
       <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
-        <div id="tb-company" style="font-size:16px;font-weight:700;color:#60a5fa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;max-width:160px"></div>
-        <div style="flex:1;max-width:380px;position:relative">
+        <div id="tb-company" style="font-size:16px;font-weight:700;color:#60a5fa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;max-width:200px"></div>
+        <!-- Desktop search -->
+        <div id="search-wrap-desk" style="flex:1;max-width:380px;position:relative">
           <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none">🔍</span>
           <input id="global-search" type="text" placeholder="Buscar clientes, pedidos, piezas…"
-            style="padding:9px 14px 9px 36px;font-size:13px;background:#0f1e35;border:1.5px solid #1a2e4a;border-radius:10px;color:#e2eaf4;width:100%"
+            style="padding:9px 14px 9px 36px;font-size:13px;background:var(--bg4);border:1.5px solid var(--border2);border-radius:10px;color:var(--text2);width:100%"
             oninput="onGlobalSearch(this.value)"
             onfocus="this.style.borderColor='#3b82f6'"
-            onblur="if(!this.value)this.style.borderColor='#1a2e4a'">
-          <div id="search-results" style="display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;background:#0d1e36;border:1px solid #132540;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.6);z-index:999;max-height:380px;overflow-y:auto"></div>
+            onblur="if(!this.value)this.style.borderColor=''">
+          <div id="search-results" style="display:none;position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.6);z-index:999;max-height:380px;overflow-y:auto"></div>
         </div>
       </div>
-      <button onclick="toggleTheme()" id="theme-btn" title="Cambiar tema"
-        style="background:#0f1e35;border:1.5px solid #1a2e4a;border-radius:10px;padding:8px 12px;font-size:18px;color:#7a9ab8;flex-shrink:0;line-height:1">
-        🌙
-      </button>
+      <div style="display:flex;align-items:center;gap:8px">
+        <!-- Mobile search icon -->
+        <button id="mob-search-btn" onclick="toggleMobSearch()" style="display:none;background:var(--bg4);border:1.5px solid var(--border2);border-radius:10px;padding:8px 12px;font-size:18px;line-height:1">🔍</button>
+        <button onclick="toggleTheme()" id="theme-btn" title="Cambiar tema"
+          style="background:var(--bg4);border:1.5px solid var(--border2);border-radius:10px;padding:8px 12px;font-size:18px;color:var(--text3);flex-shrink:0;line-height:1">
+          🌙
+        </button>
+      </div>
+    </div>
+    <!-- Mobile search bar (hidden by default) -->
+    <div id="mob-search-bar" style="display:none;padding:8px 12px;border-bottom:1px solid var(--border);position:relative">
+      <span style="position:absolute;left:24px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none">🔍</span>
+      <input id="global-search-mob" type="text" placeholder="Buscar…"
+        style="padding:9px 14px 9px 36px;font-size:16px;background:var(--bg4);border:1.5px solid #3b82f6;border-radius:10px;color:var(--text2);width:100%"
+        oninput="onGlobalSearch(this.value)"
+        onblur="if(!this.value)setTimeout(()=>{$('mob-search-bar').style.display='none'},200)">
+      <div id="search-results-mob" style="display:none;position:absolute;top:calc(100% + 2px);left:12px;right:12px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.6);z-index:999;max-height:340px;overflow-y:auto"></div>
     </div>
     <div id="content"></div>
   </div>
@@ -594,67 +609,79 @@ function refreshBizHeader(){
   el.textContent=_cache.cfg.empresa||'';
 }
 
+function toggleMobSearch(){
+  const bar=$('mob-search-bar');
+  if(!bar) return;
+  if(bar.style.display==='none'||!bar.style.display){
+    bar.style.display='block';
+    setTimeout(()=>{ const inp=$('global-search-mob');if(inp)inp.focus(); },50);
+  } else {
+    bar.style.display='none';
+    const inp=$('global-search-mob');if(inp)inp.value='';
+    const res=$('search-results-mob');if(res)res.style.display='none';
+  }
+}
+
 function onGlobalSearch(q){
-  const box=$('search-results');
+  // Work out which results box to use
+  const isMob = window.innerWidth<=768;
+  const box = isMob ? $('search-results-mob') : $('search-results');
   if(!box) return;
   q=q.trim();
   if(!q){ box.style.display='none'; return; }
   const ql=q.toLowerCase();
   const cfg=_cache.cfg;
 
-  // Search clientes
   const cls=_cache.clientes.filter(c=>[c.nombre,c.empresa,c.email,c.telefono].join(' ').toLowerCase().includes(ql)).slice(0,4);
-  // Search pedidos
   const peds=_cache.pedidos.filter(o=>[o.proyecto,o.presNum,o.material,o.notas].join(' ').toLowerCase().includes(ql)).slice(0,5);
-  // Search piezas
   const pzs=_cache.piezas.filter(p=>[p.nombre,p.material].join(' ').toLowerCase().includes(ql)).slice(0,3);
 
   if(!cls.length&&!peds.length&&!pzs.length){
     box.style.display='block';
-    box.innerHTML='<div style="padding:16px;text-align:center;color:#2e4a6a;font-size:13px">Sin resultados para "'+esc(q)+'"</div>';
+    box.innerHTML='<div style="padding:16px;text-align:center;color:var(--text5);font-size:13px">Sin resultados para "'+esc(q)+'"</div>';
     return;
   }
 
   let html='';
-
   if(cls.length){
-    html+=`<div style="padding:8px 14px;font-size:9px;font-weight:800;color:#2e4a6a;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #132540">👥 Clientes</div>`;
-    html+=cls.map(c=>`<div onclick="closeSearch();goTo('clientes')" style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-bottom:1px solid #0f1e35;transition:background .15s" onmouseover="this.style.background='rgba(59,130,246,.08)'" onmouseout="this.style.background=''">
+    html+=`<div style="padding:8px 14px;font-size:9px;font-weight:800;color:var(--text5);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border)">👥 Clientes</div>`;
+    html+=cls.map(c=>`<div onclick="closeSearch();goTo('clientes')" style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s" onmouseover="this.style.background='rgba(59,130,246,.08)'" onmouseout="this.style.background=''">
       <div style="width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#3b82f6,#1d4ed8);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;color:#fff;flex-shrink:0">${esc(c.nombre?.charAt(0)||'?').toUpperCase()}</div>
-      <div><div style="font-size:13px;font-weight:700;color:#e2eaf4">${esc(c.nombre)}</div>${c.empresa?`<div style="font-size:11px;color:#3d5a7a">${esc(c.empresa)}</div>`:''}</div>
+      <div><div style="font-size:13px;font-weight:700;color:var(--text2)">${esc(c.nombre)}</div>${c.empresa?`<div style="font-size:11px;color:var(--text4)">${esc(c.empresa)}</div>`:''}</div>
     </div>`).join('');
   }
-
   if(peds.length){
-    html+=`<div style="padding:8px 14px;font-size:9px;font-weight:800;color:#2e4a6a;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #132540;border-top:1px solid #132540">📋 Pedidos</div>`;
+    html+=`<div style="padding:8px 14px;font-size:9px;font-weight:800;color:var(--text5);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border);border-top:1px solid var(--border)">📋 Pedidos</div>`;
     html+=peds.map(o=>{
       const c=calcOrderCosts(o,cfg);
-      return`<div onclick="closeSearch();goTo('pedidos')" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;border-bottom:1px solid #0f1e35;transition:background .15s" onmouseover="this.style.background='rgba(59,130,246,.08)'" onmouseout="this.style.background=''">
-        <div><div style="font-size:13px;font-weight:700;color:#e2eaf4">${esc(o.proyecto)}</div><div style="font-size:11px;color:#3d5a7a">${esc(o.presNum||'—')} · ${esc(o.fecha||'')}</div></div>
+      return`<div onclick="closeSearch();goTo('pedidos')" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s" onmouseover="this.style.background='rgba(59,130,246,.08)'" onmouseout="this.style.background=''">
+        <div><div style="font-size:13px;font-weight:700;color:var(--text2)">${esc(o.proyecto)}</div><div style="font-size:11px;color:var(--text4)">${esc(o.presNum||'—')} · ${esc(o.fecha||'')}</div></div>
         <div style="text-align:right"><div style="font-size:13px;font-weight:800;color:#34d399">${c.fp.toFixed(2)}${cfg.moneda||'€'}</div>${mkBadge(o.estado)}</div>
       </div>`;}).join('');
   }
-
   if(pzs.length){
-    html+=`<div style="padding:8px 14px;font-size:9px;font-weight:800;color:#2e4a6a;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid #132540;border-top:1px solid #132540">🧩 Piezas</div>`;
-    html+=pzs.map(p=>`<div onclick="closeSearch();goTo('piezas')" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;border-bottom:1px solid #0f1e35;transition:background .15s" onmouseover="this.style.background='rgba(59,130,246,.08)'" onmouseout="this.style.background=''">
-      <div><div style="font-size:13px;font-weight:700;color:#e2eaf4">${esc(p.nombre)}</div><div style="font-size:11px;color:#3d5a7a">${esc(p.material)} · ${esc(p.peso)}g</div></div>
+    html+=`<div style="padding:8px 14px;font-size:9px;font-weight:800;color:var(--text5);text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border);border-top:1px solid var(--border)">🧩 Piezas</div>`;
+    html+=pzs.map(p=>`<div onclick="closeSearch();goTo('piezas')" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s" onmouseover="this.style.background='rgba(59,130,246,.08)'" onmouseout="this.style.background=''">
+      <div><div style="font-size:13px;font-weight:700;color:var(--text2)">${esc(p.nombre)}</div><div style="font-size:11px;color:var(--text4)">${esc(p.material)} · ${esc(p.peso)}g</div></div>
     </div>`).join('');
   }
 
   box.style.display='block';
   box.innerHTML=html;
+  if(isMob) $('search-results-mob').style.display='block';
 }
 
 function closeSearch(){
-  const inp=$('global-search'); if(inp){inp.value='';inp.style.borderColor='#1a2e4a';}
-  const box=$('search-results'); if(box)box.style.display='none';
+  [$('global-search'),$('global-search-mob')].forEach(inp=>{if(inp){inp.value='';inp.style.borderColor='';}});
+  [$('search-results'),$('search-results-mob')].forEach(box=>{if(box)box.style.display='none';});
+  const bar=$('mob-search-bar');if(bar)bar.style.display='none';
 }
 
-// Close search when clicking outside
 document.addEventListener('click', e=>{
-  const sr=$('search-results'); const gs=$('global-search');
-  if(sr&&gs&&!sr.contains(e.target)&&e.target!==gs) sr.style.display='none';
+  const els=[$('search-results'),$('search-results-mob'),$('global-search'),$('global-search-mob'),$('mob-search-btn'),$('mob-search-bar')];
+  if(!els.some(el=>el&&el.contains(e.target))){
+    [$('search-results'),$('search-results-mob')].forEach(b=>{if(b)b.style.display='none';});
+  }
 });
 
 // ═══════════════════════════════════════════════
