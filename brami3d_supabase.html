@@ -478,7 +478,8 @@ function mapPedidos(rows){ return rows.map(r=>({
   peso:r.peso, tiempoImpresion:r.tiempo_impresion, estado:r.estado, notas:r.notas,
   fecha:r.fecha, gananciaManual:r.ganancia_manual, costePostprocesado:r.coste_postprocesado,
   presNum:r.pres_num, facturaNum:r.factura_num, facturaFecha:r.factura_fecha,
-  lineas:r.lineas||[], fotoUrl:r.foto_url||null, fotoPath:r.foto_path||null
+  lineas:r.lineas||[], fotoUrl:r.foto_url||null, fotoPath:r.foto_path||null,
+  impresoraId:r.impresora_id||null
 }));}
 
 function mapImpresoras(rows){ return rows.map(r=>({
@@ -499,7 +500,8 @@ function mapPiezas(rows){ return rows.map(r=>({
 
 function mapCfg(r){ return {
   costePorGramo:r.coste_por_gramo,costePorHora:r.coste_por_hora,
-  margen:r.margen,moneda:r.moneda,empresa:r.empresa,telefono:r.telefono,email:r.email
+  margen:r.margen,moneda:r.moneda,empresa:r.empresa,telefono:r.telefono,email:r.email,
+  nif:r.nif||''
 };}
 
 // Generic save (insert or update)
@@ -761,7 +763,16 @@ function calcOrderCosts(order,cfg){
   } else {
     mc=(parseFloat(order.peso)||0)*(parseFloat(cfg.costePorGramo)||0.03);
   }
-  const ec=(parseFloat(order.tiempoImpresion)||0)*(parseFloat(cfg.costePorHora)||0.15);
+  // Coste eléctrico correcto: kW × horas × €/kWh
+  // cfg.costePorHora = precio del kWh en €
+  // Usamos consumoW de la impresora si está disponible en las lineas, si no usamos valor medio
+  let consumoKW = 0.2; // 200W por defecto si no hay impresora asignada
+  const impresora = _cache.impresoras.find(i=>i.id===order.impresoraId);
+  if(impresora && parseFloat(impresora.consumoW)>0){
+    consumoKW = parseFloat(impresora.consumoW)/1000;
+  }
+  const kwhPrice = parseFloat(cfg.costePorHora)||0.15;
+  const ec = (parseFloat(order.tiempoImpresion)||0) * consumoKW * kwhPrice;
   const pp=parseFloat(order.costePostprocesado||0);
   const tc=mc+ec+pp;
   const fp=order.gananciaManual?tc+parseFloat(order.gananciaManual):tc*(1+(parseFloat(cfg.margen)||30)/100);
@@ -1175,7 +1186,7 @@ function pgDashboard(){
   const recent6=recent.map(o=>{const c=calcOrderCosts(o,cfg);return`<tr><td><span class="num-badge">${esc(o.presNum||'—')}</span></td><td><span style="color:#e2e8f0;font-weight:700">${esc(o.proyecto)}</span></td><td style="color:#7a9ab8">${esc(o.material)}</td><td style="color:#34d399;font-weight:800">${c.fp.toFixed(2)}${cfg.moneda||'€'}</td><td>${mkBadge(o.estado)}</td><td style="color:#2e4a6a">${esc(o.fecha)}</td></tr>`;}).join('');
 
   // Filament alerts — less than 200g remaining
-  const lowFils=_cache.filamentos.filter(f=>parseFloat(f.pesoRestante)<200);
+  const lowFils=_cache.filamentos.filter(f=>parseFloat(f.pesoRestante)<250);
   const filAlert=lowFils.length===0?'':
     `<div class="card" style="margin-top:18px;border-color:rgba(245,158,11,.3);background:linear-gradient(145deg,#1a1200,#0f0d00)">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
@@ -1277,35 +1288,37 @@ function pgClientes(){
       ? items.map(c=>`
           <div class="mob-card">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
-              <div><div style="font-size:16px;font-weight:800;color:#e2eaf4">${esc(c.nombre)}</div>${c.empresa?`<div style="font-size:12px;color:#3d5a7a;margin-top:2px">${esc(c.empresa)}</div>`:''}</div>
+              <div><div style="font-size:16px;font-weight:800;color:var(--text2)">${esc(c.nombre)}</div>${c.empresa?`<div style="font-size:12px;color:var(--text4);margin-top:2px">${esc(c.empresa)}</div>`:''}</div>
               <div style="display:flex;gap:6px">
                 <button class="btn-icon" onclick="editC('${c.id}')">✏️</button>
                 <button class="btn-icon" onclick="delC('${c.id}')">🗑️</button>
               </div>
             </div>
+            ${c.nif?`<div style="font-size:12px;color:var(--text4);margin-bottom:6px">NIF/CIF: <b style="color:var(--text3)">${esc(c.nif)}</b></div>`:''}
             ${c.telefono?`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-size:14px">📞</span><a href="tel:${esc(c.telefono)}" style="color:#60a5fa;font-size:14px;text-decoration:none">${esc(c.telefono)}</a></div>`:''}
-            ${c.email?`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-size:14px">✉️</span><span style="color:#7a9ab8;font-size:13px">${esc(c.email)}</span></div>`:''}
-            ${c.notas?`<div style="font-size:12px;color:#3d5a7a;margin-top:6px;font-style:italic">${esc(c.notas)}</div>`:''}
+            ${c.email?`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-size:14px">✉️</span><span style="color:var(--text3);font-size:13px">${esc(c.email)}</span></div>`:''}
+            ${c.notas?`<div style="font-size:12px;color:var(--text4);margin-top:4px;font-style:italic">${esc(c.notas)}</div>`:''}
+            <button onclick="verHistorial('${c.id}')" style="margin-top:10px;width:100%;padding:9px;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);border-radius:10px;color:#60a5fa;font-size:13px;font-weight:600">📋 Historial de compras</button>
           </div>`).join('')
-      : items.map(c=>`<tr><td><span style="color:#e2eaf4;font-weight:700">${esc(c.nombre)}</span></td><td>${esc(c.empresa)}</td><td>${esc(c.telefono)}</td><td>${esc(c.email)}</td><td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.notas)}</td><td style="text-align:right;white-space:nowrap"><button class="btn-icon" onclick="editC('${c.id}')">✏️</button><button class="btn-icon" onclick="delC('${c.id}')">🗑️</button></td></tr>`).join('');
+      : items.map(c=>`<tr><td><span style="color:var(--text2);font-weight:700">${esc(c.nombre)}</span></td><td style="color:var(--text4);font-size:12px">${esc(c.nif||'—')}</td><td>${esc(c.empresa)}</td><td>${esc(c.telefono)}</td><td>${esc(c.email)}</td><td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.notas)}</td><td style="text-align:right;white-space:nowrap"><button class="btn-icon" title="Historial" onclick="verHistorial('${c.id}')">📋</button><button class="btn-icon" onclick="editC('${c.id}')">✏️</button><button class="btn-icon" onclick="delC('${c.id}')">🗑️</button></td></tr>`).join('');
 
   return`<div class="page-header"><h2 class="page-title">Clientes</h2><button class="btn-primary" onclick="editC(null)">+ Nuevo</button></div>
 <input style="margin-bottom:14px" placeholder="🔍 Buscar…" value="${esc(_cSearch)}" oninput="_cSearch=this.value;render()">
 ${isMob
   ? `<div>${rows}</div>`
-  : `<div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table><thead><tr><th>Nombre</th><th>Empresa</th><th>Teléfono</th><th>Email</th><th>Notas</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`
+  : `<div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table><thead><tr><th>Nombre</th><th>NIF/CIF</th><th>Empresa</th><th>Teléfono</th><th>Email</th><th>Notas</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`
 }`;
 }
-function clienteFrm(x={}){ return fld('Nombre *','nombre',x.nombre||'')+fld('Empresa','empresa',x.empresa||'')+fld('Teléfono','telefono',x.telefono||'')+fld('Email','email',x.email||'','email')+fld('Notas','notas',x.notas||'','textarea'); }
+function clienteFrm(x={}){ return fld('Nombre *','nombre',x.nombre||'')+fld('NIF / CIF','nif',x.nif||'')+fld('Empresa','empresa',x.empresa||'')+fld('Teléfono','telefono',x.telefono||'')+fld('Email','email',x.email||'','email')+fld('Notas','notas',x.notas||'','textarea'); }
 function editC(id){
   const x=id?_cache.clientes.find(c=>c.id===id)||{}:{};
   openModal(msh(id?'Editar cliente':'Nuevo cliente',`${clienteFrm(x)}<div style="display:flex;gap:10px;margin-top:8px"><button class="btn-primary" id="save-c-btn" onclick="saveC('${id||''}')">Guardar</button><button class="btn-secondary" onclick="closeModal()">Cancelar</button></div>`));
 }
 async function saveC(id){
-  const d=gfd(['nombre','empresa','telefono','email','notas']);
+  const d=gfd(['nombre','nif','empresa','telefono','email','notas']);
   if(!d.nombre.trim()){alert('Nombre obligatorio');return;}
   setLoading('save-c-btn',true);
-  const row={nombre:d.nombre,empresa:d.empresa,telefono:d.telefono,email:d.email,notas:d.notas};
+  const row={nombre:d.nombre,nif:d.nif||'',empresa:d.empresa,telefono:d.telefono,email:d.email,notas:d.notas};
   if(id){row.id=id;}else{row.id=uid();}
   const ok=await dbSave('clientes',row);
   if(ok){
@@ -1316,6 +1329,40 @@ async function saveC(id){
 }
 function delC(id){ confirmDel('¿Eliminar este cliente?',`doDelC('${id}')`); }
 async function doDelC(id){ if(await dbDel('clientes',id)){_cache.clientes=_cache.clientes.filter(x=>x.id!==id);render();showToast('Eliminado','ok');} }
+
+function verHistorial(clienteId){
+  const cl=_cache.clientes.find(c=>c.id===clienteId)||{};
+  const cfg=_cache.cfg;
+  const pedidos=_cache.pedidos.filter(o=>o.clienteId===clienteId);
+  const pagados=pedidos.filter(o=>o.estado==='pagado');
+  const total=pagados.reduce((s,o)=>s+calcOrderCosts(o,cfg).fp,0);
+
+  const rows=pedidos.length===0
+    ?'<p style="color:var(--text4);text-align:center;padding:24px">Sin pedidos registrados</p>'
+    :pedidos.map(o=>{
+      const c=calcOrderCosts(o,cfg);
+      return`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)">
+        <div>
+          <div style="font-size:13px;font-weight:700;color:var(--text2)">${esc(o.proyecto)}</div>
+          <div style="font-size:11px;color:var(--text4);margin-top:2px">${esc(o.fecha||'—')} · ${mkBadge(o.estado)}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;margin-left:12px">
+          <div style="font-size:14px;font-weight:800;color:${o.estado==='pagado'?'#34d399':'var(--text3)'}">${c.fp.toFixed(2)}${cfg.moneda||'€'}</div>
+          ${o.presNum?`<div style="font-size:10px;color:var(--text5)">${esc(o.presNum)}</div>`:''}
+        </div>
+      </div>`;
+    }).join('');
+
+  openModal(msh(`📋 ${cl.nombre}`,`
+    <div style="display:flex;gap:20px;margin-bottom:16px;background:var(--bg);border-radius:10px;padding:12px 16px">
+      <div style="text-align:center"><div style="font-size:10px;color:var(--text5);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Pedidos</div><div style="font-size:20px;font-weight:800;color:#60a5fa">${pedidos.length}</div></div>
+      <div style="text-align:center"><div style="font-size:10px;color:var(--text5);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Pagados</div><div style="font-size:20px;font-weight:800;color:#34d399">${pagados.length}</div></div>
+      <div style="text-align:center"><div style="font-size:10px;color:var(--text5);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px">Total cobrado</div><div style="font-size:20px;font-weight:800;color:#34d399">${total.toFixed(2)}${cfg.moneda||'€'}</div></div>
+    </div>
+    <div style="max-height:320px;overflow-y:auto">${rows}</div>
+    <button class="btn-secondary" style="width:100%;margin-top:14px;justify-content:center" onclick="closeModal()">Cerrar</button>
+  `));
+}
 
 // ═══════════════════════════════════════════════
 //  IMPRESORAS
@@ -1391,16 +1438,48 @@ async function doDelP(id){ if(await dbDel('impresoras',id)){_cache.impresoras=_c
 const MATS=['PLA','PETG','ABS','ASA','TPU','Nylon','Resina','PLA+','Otro'];
 function pgFilamentos(){
   const items=_cache.filamentos;
-  const rows=items.length===0?'<tr><td colspan="8" style="text-align:center;color:#2e4a6a;padding:28px">Sin filamentos</td></tr>':items.map(f=>{
-    const pct=Math.min((parseFloat(f.pesoRestante)/1000)*100,100);const low=parseFloat(f.pesoRestante)<100;
-    return`<tr><td><span style="font-weight:700;color:#e2eaf4">${esc(f.tipo)}</span></td><td>${esc(f.marca)}</td>
+  const isMob=window.innerWidth<=768;
+
+  const mobCards=items.length===0?'<p style="color:var(--text4);text-align:center;padding:32px">Sin filamentos</p>':items.map(f=>{
+    const pct=Math.min((parseFloat(f.pesoRestante)/1000)*100,100);
+    const low=parseFloat(f.pesoRestante)<250;
+    const col=parseFloat(f.pesoRestante)<100?'#ef4444':low?'#f59e0b':'#3b82f6';
+    return`<div class="mob-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="width:18px;height:18px;border-radius:50%;background:${esc(f.color)};border:2px solid rgba(255,255,255,.2);flex-shrink:0;display:inline-block"></span>
+          <div>
+            <div style="font-size:15px;font-weight:800;color:var(--text2)">${esc(f.tipo)} · ${esc(f.marca)}</div>
+            <div style="font-size:12px;color:var(--text4);margin-top:2px">${esc(f.precioPorKg)}€/kg · ${(f.precioPorKg/1000).toFixed(2)}€/g</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn-icon" onclick="editF('${f.id}')">✏️</button>
+          <button class="btn-icon" onclick="delF('${f.id}')">🗑️</button>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="flex:1;height:8px;background:var(--bg4);border-radius:99px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:${col};border-radius:99px"></div>
+        </div>
+        <span style="font-size:12px;color:${col};font-weight:700;white-space:nowrap">${parseFloat(f.pesoRestante).toFixed(0)}g ${low?'⚠️':''}</span>
+      </div>
+    </div>`;}).join('');
+
+  const rows=items.length===0?'<tr><td colspan="8" style="text-align:center;color:var(--text5);padding:28px">Sin filamentos</td></tr>':items.map(f=>{
+    const pct=Math.min((parseFloat(f.pesoRestante)/1000)*100,100);const low=parseFloat(f.pesoRestante)<250;
+    return`<tr><td><span style="font-weight:700;color:var(--text2)">${esc(f.tipo)}</span></td><td>${esc(f.marca)}</td>
 <td><span style="display:inline-flex;align-items:center;gap:6px"><span style="width:14px;height:14px;border-radius:50%;background:${esc(f.color)};border:1px solid #334155;display:inline-block"></span>${esc(f.color)}</span></td>
-<td style="color:${low?'#ef4444':'#94a3b8'}">${esc(f.pesoRestante)}g ${low?'⚠️':''}</td>
+<td style="color:${low?'#f59e0b':'var(--text3)'}">${esc(f.pesoRestante)}g ${low?'⚠️':''}</td>
 <td>${esc(f.precioPorKg)}€</td><td>${(f.precioPorKg/1000).toFixed(2)}€</td>
-<td><div style="display:flex;align-items:center;gap:8px"><div style="width:70px;height:6px;background:#0f1e35;border-radius:99px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${low?'#ef4444':'#3b82f6'};border-radius:99px"></div></div><span style="font-size:11px;color:#2e4a6a">${pct.toFixed(0)}%</span></div></td>
+<td><div style="display:flex;align-items:center;gap:8px"><div style="width:70px;height:6px;background:var(--bg4);border-radius:99px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${low?'#f59e0b':'#3b82f6'};border-radius:99px"></div></div><span style="font-size:11px;color:var(--text5)">${pct.toFixed(0)}%</span></div></td>
 <td style="text-align:right"><button class="btn-icon" onclick="editF('${f.id}')">✏️</button><button class="btn-icon" onclick="delF('${f.id}')">🗑️</button></td></tr>`;}).join('');
-  return`<div class="page-header"><h2 class="page-title">Filamentos</h2><button class="btn-primary" onclick="editF(null)">+ Nuevo filamento</button></div>
-<div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table><thead><tr><th>Tipo</th><th>Marca</th><th>Color</th><th>Restante</th><th>€/kg</th><th>€/g</th><th>Stock</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+
+  return`<div class="page-header"><h2 class="page-title">Filamentos</h2><button class="btn-primary" onclick="editF(null)">+ Nuevo</button></div>
+${isMob
+  ? `<div>${mobCards}</div>`
+  : `<div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table><thead><tr><th>Tipo</th><th>Marca</th><th>Color</th><th>Restante</th><th>€/kg</th><th>€/g</th><th>Stock</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`
+}`;
 }
 function filamentoFrm(x={}){ return fld('Tipo','tipo',x.tipo||'PLA','text',MATS)+fld('Marca *','marca',x.marca||'')+fld('Color','color',x.color||'#1d4ed8','color')+fld('Peso restante (g)','pesoRestante',x.pesoRestante??1000,'number')+fld('Precio por kg (€)','precioPorKg',x.precioPorKg||20,'number'); }
 function editF(id){
@@ -1580,7 +1659,12 @@ function refreshCostPreview(){
   const gm=document.querySelector('[name="gananciaManual"]')?.value||'';
   let mc=0,pesoTotal=0,tiempoTotal=0;
   for(const l of _lineas){const qty=parseInt(l.qty)||1;const peso=(parseFloat(l.peso)||0)*qty;const tiempo=(parseFloat(l.tiempoImpresion)||0)*qty;pesoTotal+=peso;tiempoTotal+=tiempo;let cg=parseFloat(cfg.costePorGramo)||0.03;if(l.filamentoId&&l.filamentoId!=='__manual__'){const fil=_cache.filamentos.find(f=>f.id===l.filamentoId);if(fil)cg=(parseFloat(fil.precioPorKg)||0)/1000;}mc+=peso*cg;}
-  const ec=tiempoTotal*(parseFloat(cfg.costePorHora)||0.15);
+  const kwhPrice=parseFloat(cfg.costePorHora)||0.15;
+  // Impresora seleccionada en el formulario
+  const impSel=document.querySelector('[name="impresoraId"]')?.value;
+  const imp=_cache.impresoras.find(i=>i.id===impSel);
+  const consumoKW=imp&&parseFloat(imp.consumoW)>0?parseFloat(imp.consumoW)/1000:0.2;
+  const ec=tiempoTotal*consumoKW*kwhPrice;
   const tc=mc+ec+pp;const fp=gm?tc+parseFloat(gm):tc*(1+(parseFloat(cfg.margen)||30)/100);
   const c={mc,ec,pp,tc,fp,profit:fp-tc};
   const tp=$('total-peso');const tt=$('total-tiempo');const tpz=$('total-piezas');
@@ -1601,10 +1685,12 @@ function pedidoFrm(x={}){
   for(const l of _lineas){const qty=parseInt(l.qty)||1;const p=(parseFloat(l.peso)||0)*qty;const t=(parseFloat(l.tiempoImpresion)||0)*qty;pesoInit+=p;tiempoInit+=t;let cg=parseFloat(cfg.costePorGramo)||0.03;if(l.filamentoId&&l.filamentoId!=='__manual__'){const fil=filaments.find(f=>f.id===l.filamentoId);if(fil)cg=(parseFloat(fil.precioPorKg)||0)/1000;}mcInit+=p*cg;}
   const ecInit=tiempoInit*(parseFloat(cfg.costePorHora)||0.15);const ppInit=parseFloat(x.costePostprocesado||0);const tcInit=mcInit+ecInit+ppInit;const fpInit=x.gananciaManual?tcInit+parseFloat(x.gananciaManual):tcInit*(1+(parseFloat(cfg.margen)||30)/100);
   const c={mc:mcInit,ec:ecInit,pp:ppInit,tc:tcInit,fp:fpInit,profit:fpInit-tcInit};
+  const impOpts=[{value:'',label:'Sin impresora (200W por defecto)'},..._cache.impresoras.filter(i=>i.estado==='activa').map(i=>({value:i.id,label:`${i.nombre}${i.consumoW?' · '+i.consumoW+'W':''}`}))];
   return`<div class="grid2" style="margin-bottom:4px">
 ${fld('Nombre del proyecto *','proyecto',x.proyecto||'')}${fld('Cliente','clienteId',x.clienteId||'','text',cliOpts)}
 ${fld('Estado','estado',x.estado||'pendiente','text',estOpts)}${fld('Fecha','fecha',x.fecha||today(),'date')}
-${fld('Coste postprocesado (€)','costePostprocesado',x.costePostprocesado||'0','number')}${fld('Ganancia manual (€) — vacío = margen','gananciaManual',x.gananciaManual||'','number')}
+${fld('Impresora','impresoraId',x.impresoraId||'','text',impOpts)}${fld('Coste postprocesado (€)','costePostprocesado',x.costePostprocesado||'0','number')}
+${fld('Ganancia manual (€) — vacío = margen','gananciaManual',x.gananciaManual||'','number')}
 </div>${fld('Notas','notas',x.notas||'','textarea')}
 
 <div style="margin:16px 0 12px">
@@ -1691,7 +1777,7 @@ function editO(id){
 }
 
 async function saveO(id){
-  const d=gfd(['clienteId','proyecto','estado','notas','fecha','gananciaManual','costePostprocesado']);
+  const d=gfd(['clienteId','proyecto','estado','notas','fecha','gananciaManual','costePostprocesado','impresoraId']);
   if(!d.proyecto.trim()){alert('Proyecto obligatorio');return;}
   if(_lineas.length===0){alert('Añade al menos una pieza');return;}
   setLoading('save-o-btn',true);
@@ -1744,13 +1830,14 @@ async function saveO(id){
     lineas:_lineas,
     factura_num:prevOrder?.facturaNum||null,
     factura_fecha:prevOrder?.facturaFecha||null,
+    impresora_id:d.impresoraId||null,
     foto_url:fotoUrl||null,
     foto_path:_fotoPath||null,
   };
   row.id = rowId;
   const ok=await dbSave('pedidos',row);
   if(ok){
-    const mapped={id:row.id,clienteId:d.clienteId,proyecto:d.proyecto,material:mainMat,peso:pesoTotal,tiempoImpresion:tiempoTotal,estado:d.estado,notas:d.notas,fecha:d.fecha,gananciaManual:d.gananciaManual,costePostprocesado:d.costePostprocesado,presNum:presNum,facturaNum:prevOrder?.facturaNum||null,facturaFecha:prevOrder?.facturaFecha||null,lineas:_lineas,fotoUrl:fotoUrl||null,fotoPath:_fotoPath||null};
+    const mapped={id:row.id,clienteId:d.clienteId,proyecto:d.proyecto,material:mainMat,peso:pesoTotal,tiempoImpresion:tiempoTotal,estado:d.estado,notas:d.notas,fecha:d.fecha,gananciaManual:d.gananciaManual,costePostprocesado:d.costePostprocesado,presNum:presNum,facturaNum:prevOrder?.facturaNum||null,facturaFecha:prevOrder?.facturaFecha||null,lineas:_lineas,fotoUrl:fotoUrl||null,fotoPath:_fotoPath||null,impresoraId:d.impresoraId||null};
     if(id)_cache.pedidos=_cache.pedidos.map(o=>o.id===id?mapped:o);else _cache.pedidos.push(mapped);
     closeModal();render();refreshAlerts();showToast('✅ Pedido guardado','ok');
   }
@@ -1842,32 +1929,33 @@ function pgConfig(){
 <div class="flexwrap">
 <div class="card" style="flex:1;min-width:280px">
 <div class="card-title">⚙️ Parámetros de coste</div>
-${fld('Coste por gramo (€/g)','costePorGramo',cfg.costePorGramo,'number')}
-${fld('Coste eléctrico por hora (€/h)','costePorHora',cfg.costePorHora,'number')}
+${fld('Coste por gramo por defecto (€/g)','costePorGramo',cfg.costePorGramo,'number')}
+${fld('Precio kWh electricidad (€/kWh)','costePorHora',cfg.costePorHora,'number')}
 ${fld('Margen de beneficio (%)','margen',cfg.margen,'number')}
 ${fld('Moneda','moneda',cfg.moneda,'text',[{value:'€',label:'Euro (€)'},{value:'$',label:'Dólar ($)'},{value:'£',label:'Libra (£)'}])}
 <button class="btn-primary" id="scb" onclick="saveConfig()">Guardar configuración</button>
 </div>
 <div class="card" style="flex:1;min-width:280px">
 <div class="card-title">🏢 Datos de empresa</div>
-<p style="font-size:12px;color:#3d5a7a;margin-bottom:14px;line-height:1.5">Aparecen en PDFs y en la barra superior.</p>
+<p style="font-size:12px;color:var(--text4);margin-bottom:14px;line-height:1.5">Aparecen en PDFs, facturas y en la barra superior.</p>
 ${fld('Nombre de empresa','biz_empresa',cfg.empresa||'')}
+${fld('NIF / CIF empresa','biz_nif',cfg.nif||'')}
 ${fld('Teléfono (Bizum)','biz_telefono',cfg.telefono||'')}
 ${fld('Email de contacto','biz_email',cfg.email||'')}
 <button class="btn-primary" id="scb2" onclick="saveBiz()">Guardar datos empresa</button>
 </div>
 <div class="card" style="flex:1;min-width:240px">
 <div class="card-title">👤 Mi cuenta</div>
-<div style="color:#3d5a7a;font-size:13px;margin-bottom:6px">Email: <b style="color:#e2eaf4">${esc(CU.email)}</b></div>
-<div style="background:#070e1c;border-radius:8px;padding:10px 14px;font-size:12px;color:#3d5a7a;line-height:1.6;margin-bottom:16px">☁️ Datos guardados en Supabase.<br>Accede desde cualquier dispositivo.</div>
+<div style="color:var(--text4);font-size:13px;margin-bottom:6px">Email: <b style="color:var(--text2)">${esc(CU.email)}</b></div>
+<div style="background:var(--bg);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--text4);line-height:1.6;margin-bottom:16px">☁️ Datos guardados en Supabase.<br>Accede desde cualquier dispositivo.</div>
 <button class="btn-danger" onclick="logout()">🚪 Cerrar sesión</button>
 </div>
 <div class="card" style="flex:1;min-width:240px">
 <div class="card-title">💡 Fórmula de precios</div>
-<div style="font-size:13px;color:#3d5a7a;line-height:1.9">
-<b style="color:#7a9ab8">Coste material</b> = peso × €/g del filamento<br>
-<b style="color:#7a9ab8">Coste eléctrico</b> = tiempo × €/h<br>
-<b style="color:#7a9ab8">Coste total</b> = mat + elec + postprocesado<br><br>
+<div style="font-size:13px;color:var(--text4);line-height:1.9">
+<b style="color:var(--text3)">Coste material</b> = peso × (€/kg filamento ÷ 1000)<br>
+<b style="color:var(--text3)">Coste eléctrico</b> = kW impresora × horas × €/kWh<br>
+<b style="color:var(--text3)">Coste total</b> = mat + elec + postprocesado<br><br>
 <b style="color:#3b82f6">Con ganancia manual:</b><br>Precio = coste + ganancia<br><br>
 <b style="color:#3b82f6">Con margen:</b><br>Precio = coste × (1 + margen%)
 </div>
@@ -1886,11 +1974,11 @@ async function saveConfig(){
 }
 
 async function saveBiz(){
-  const d=gfd(['biz_empresa','biz_telefono','biz_email']);
-  const row={user_id:CU.id,empresa:d.biz_empresa||'',telefono:d.biz_telefono||'',email:d.biz_email||'',coste_por_gramo:_cache.cfg.costePorGramo,coste_por_hora:_cache.cfg.costePorHora,margen:_cache.cfg.margen,moneda:_cache.cfg.moneda};
+  const d=gfd(['biz_empresa','biz_nif','biz_telefono','biz_email']);
+  const row={user_id:CU.id,empresa:d.biz_empresa||'',nif:d.biz_nif||'',telefono:d.biz_telefono||'',email:d.biz_email||'',coste_por_gramo:_cache.cfg.costePorGramo,coste_por_hora:_cache.cfg.costePorHora,margen:_cache.cfg.margen,moneda:_cache.cfg.moneda};
   const {error}=await sb.from('config').upsert(row,{onConflict:'user_id'});
   if(error){showToast('Error: '+error.message,'err');return;}
-  _cache.cfg={..._cache.cfg,empresa:d.biz_empresa,telefono:d.biz_telefono,email:d.biz_email};
+  _cache.cfg={..._cache.cfg,empresa:d.biz_empresa,nif:d.biz_nif,telefono:d.biz_telefono,email:d.biz_email};
   refreshBizHeader();
   const b=$('scb2');if(b){b.textContent='✅ Guardado';setTimeout(()=>{b.textContent='Guardar datos empresa';},2000);}
   showToast('Datos de empresa guardados','ok');
