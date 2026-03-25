@@ -1302,7 +1302,12 @@ function pgClientes(){
           </div>`).join('')
       : items.map(c=>`<tr><td><span style="color:var(--text2);font-weight:700">${esc(c.nombre)}</span></td><td style="color:var(--text4);font-size:12px">${esc(c.nif||'—')}</td><td>${esc(c.empresa)}</td><td>${esc(c.telefono)}</td><td>${esc(c.email)}</td><td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.notas)}</td><td style="text-align:right;white-space:nowrap"><button class="btn-icon" title="Historial" onclick="verHistorial('${c.id}')">📋</button><button class="btn-icon" onclick="editC('${c.id}')">✏️</button><button class="btn-icon" onclick="delC('${c.id}')">🗑️</button></td></tr>`).join('');
 
-  return`<div class="page-header"><h2 class="page-title">Clientes</h2><button class="btn-primary" onclick="editC(null)">+ Nuevo</button></div>
+  return`<div class="page-header"><h2 class="page-title">Clientes</h2>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+  <button class="btn-secondary" onclick="exportClientesExcel()" style="display:flex;align-items:center;gap:6px">📊 Exportar Excel</button>
+  <button class="btn-primary" onclick="editC(null)">+ Nuevo</button>
+</div>
+</div>
 <input style="margin-bottom:14px" placeholder="🔍 Buscar…" value="${esc(_cSearch)}" oninput="_cSearch=this.value;render()">
 ${isMob
   ? `<div>${rows}</div>`
@@ -1327,6 +1332,33 @@ async function saveC(id){
     closeModal(); render(); showToast('Cliente guardado','ok');
   }
 }
+function exportClientesExcel(){
+  const cfg=_cache.cfg;
+  const clientes=_cache.clientes;
+  if(!clientes.length){showToast('No hay clientes para exportar','err');return;}
+
+  // Build CSV with BOM for Excel UTF-8
+  const cols=['Nombre','NIF/CIF','Empresa','Teléfono','Email','Notas','Total pedidos','Total cobrado ('+( cfg.moneda||'€')+')','Último pedido'];
+  const rows=clientes.map(c=>{
+    const pedidos=_cache.pedidos.filter(o=>o.clienteId===c.id);
+    const pagados=pedidos.filter(o=>o.estado==='pagado');
+    const total=pagados.reduce((s,o)=>s+calcOrderCosts(o,cfg).fp,0);
+    const ultimo=pedidos.map(o=>o.fecha||'').filter(Boolean).sort().reverse()[0]||'';
+    const cel=v=>'"'+String(v||'').replace(/"/g,'""')+'"';
+    return[cel(c.nombre),cel(c.nif||''),cel(c.empresa||''),cel(c.telefono||''),cel(c.email||''),cel(c.notas||''),pedidos.length,total.toFixed(2),cel(ultimo)].join(';');
+  });
+
+  const csv='\uFEFF'+cols.map(c=>'"'+c+'"').join(';')+'\n'+rows.join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`Clientes_B3D_${today()}.csv`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+  showToast('Excel exportado ✓','ok');
+}
+
 function delC(id){ confirmDel('¿Eliminar este cliente?',`doDelC('${id}')`); }
 async function doDelC(id){ if(await dbDel('clientes',id)){_cache.clientes=_cache.clientes.filter(x=>x.id!==id);render();showToast('Eliminado','ok');} }
 
