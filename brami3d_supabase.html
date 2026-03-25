@@ -405,7 +405,46 @@ sb.auth.onAuthStateChange(async (event, session)=>{
 })();
 
 async function logout(){
+  clearLocalCache();
   await sb.auth.signOut();
+}
+
+// ═══════════════════════════════════════════════
+//  CACHE LOCAL
+// ═══════════════════════════════════════════════
+const CACHE_KEY = 'b3d_cache_v1';
+
+function saveLocalCache(){
+  try {
+    localStorage.setItem(CACHE_KEY+'_'+CU.id, JSON.stringify({
+      clientes:_cache.clientes, pedidos:_cache.pedidos,
+      impresoras:_cache.impresoras, filamentos:_cache.filamentos,
+      piezas:_cache.piezas, cfg:_cache.cfg,
+      ts: Date.now()
+    }));
+  } catch(e){}
+}
+
+function loadLocalCache(){
+  try {
+    const raw = localStorage.getItem(CACHE_KEY+'_'+CU.id);
+    if(!raw) return false;
+    const data = JSON.parse(raw);
+    // Use cache if less than 24h old
+    if(Date.now()-data.ts > 24*60*60*1000) return false;
+    _cache.clientes   = data.clientes   || [];
+    _cache.pedidos    = data.pedidos    || [];
+    _cache.impresoras = data.impresoras || [];
+    _cache.filamentos = data.filamentos || [];
+    _cache.piezas     = data.piezas     || [];
+    _cache.archivos   = _cache.archivos || [];
+    _cache.cfg        = data.cfg        || {costePorGramo:0.03,costePorHora:0.15,margen:30,moneda:'€',empresa:'',telefono:'',email:''};
+    return true;
+  } catch(e){ return false; }
+}
+
+function clearLocalCache(){
+  try { localStorage.removeItem(CACHE_KEY+'_'+CU.id); } catch(e){}
 }
 
 // ═══════════════════════════════════════════════
@@ -414,24 +453,38 @@ async function logout(){
 async function bootApp(){
   $('auth-screen').className='hidden';
   $('app').className='';
-  // Show mobile nav on small screens
   if(window.innerWidth<=768) $('mob-nav').className='';
   buildNav();
-  $('content').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:60vh"><div style="text-align:center"><div class="loading-spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto 16px"></div><div style="color:#3d5a7a;font-size:13px">Cargando...</div></div></div>';
-  try {
-    await loadAll();
+
+  // Load from local cache instantly if available
+  const hasCached = loadLocalCache();
+  if(hasCached){
+    refreshBizHeader();
     goTo('dashboard');
-  } catch(e) {
-    $('content').innerHTML='<div style="padding:32px;color:#f87171;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:12px;margin:24px">❌ Error al cargar: '+e.message+'<br><br><button class="btn-primary" onclick="bootApp()">🔄 Reintentar</button></div>';
+    // Refresh in background silently
+    loadAll(true).then(()=>{
+      saveLocalCache();
+      render();
+      refreshAlerts();
+    }).catch(()=>{});
+  } else {
+    $('content').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:60vh"><div style="text-align:center"><div class="loading-spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto 16px"></div><div style="color:#3d5a7a;font-size:13px">Cargando...</div></div></div>';
+    try {
+      await loadAll(false);
+      saveLocalCache();
+      goTo('dashboard');
+    } catch(e) {
+      $('content').innerHTML='<div style="padding:32px;color:#f87171;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:12px;margin:24px">❌ Error al cargar: '+e.message+'<br><br><button class="btn-primary" onclick="bootApp()">🔄 Reintentar</button></div>';
+    }
   }
 }
 
 // ═══════════════════════════════════════════════
 //  DATA LAYER — Supabase CRUD
 // ═══════════════════════════════════════════════
-async function loadAll(){
+async function loadAll(silent=false){
   const userId=CU.id;
-  const show = msg => { const el=$('content'); if(el) el.innerHTML='<p style="color:#60a5fa;padding:20px">'+msg+'</p>'; };
+  const show = msg => { if(silent) return; const el=$('content'); if(el) el.innerHTML='<p style="color:#60a5fa;padding:20px">'+msg+'</p>'; };
 
   // Helper with timeout
   const qry = (promise, name) => Promise.race([
@@ -506,7 +559,6 @@ function mapCfg(r){ return {
 
 // Generic save (insert or update)
 async function dbSave(table, data){
-  // Convert empty strings to null for numeric/date fields
   const cleaned = {};
   for(const [k,v] of Object.entries(data)){
     cleaned[k] = (v===''||v===undefined) ? null : v;
@@ -514,12 +566,14 @@ async function dbSave(table, data){
   const payload = {...cleaned, user_id: CU.id};
   const {error} = await sb.from(table).upsert(payload, {onConflict: 'id'});
   if(error){ showToast('Error: '+error.message,'err'); console.error(table, error); }
+  else { setTimeout(saveLocalCache, 100); }
   return !error;
 }
 
 async function dbDel(table, id){
   const {error}=await sb.from(table).delete().eq('id',id).eq('user_id',CU.id);
   if(error) showToast('Error al eliminar: '+error.message,'err');
+  else { setTimeout(saveLocalCache, 100); }
   return !error;
 }
 
