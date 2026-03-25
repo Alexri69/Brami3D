@@ -952,11 +952,11 @@ async function genFactura(id){
 @media print{html,body{width:210mm;height:297mm;margin:0;padding:0;overflow:hidden}.page{height:297mm;overflow:hidden}@page{size:A4 portrait;margin:0}}</style></head><body>
 <div class="page">
 <div class="hdr"><div class="hdr-brand">${logoSVG}<div><div class="brand-name">B3D</div><div class="brand-sub">Print Studio</div></div></div>
-<div class="hdr-biz"><div class="hdr-biz-name">${biz.empresa||'B3D Print Studio'}</div>${biz.email?`<div>✉ ${biz.email}</div>`:''}${biz.telefono?`<div>📞 ${biz.telefono}</div>`:''}</div></div>
+<div class="hdr-biz"><div class="hdr-biz-name">${biz.empresa||'B3D Print Studio'}</div>${biz.nif?`<div>NIF/CIF: ${biz.nif}</div>`:''}${biz.email?`<div>✉ ${biz.email}</div>`:''}${biz.telefono?`<div>📞 ${biz.telefono}</div>`:''}</div></div>
 <div class="fact-band"><div><div class="fact-label">Número de factura</div><div class="fact-value">${o.facturaNum}</div></div><div style="text-align:center"><div class="fact-label">Fecha de factura</div><div class="fact-value">${factDateStr}</div></div><div style="text-align:right"><div class="fact-label">Presupuesto ref.</div><div class="fact-value">${o.presNum||'—'}</div></div></div>
 <div class="body">
 <div class="stamp"><span>✅</span><span class="stamp-text">PAGADO</span></div>
-<div class="meta-row"><div style="flex:1"><div class="slbl">Facturar a</div><div class="client-card"><div class="client-name">${cl.nombre||'—'}</div><div class="client-sub">${cl.empresa?`<div>${cl.empresa}</div>`:''}${cl.email?`<div>${cl.email}</div>`:''}${cl.telefono?`<div>${cl.telefono}</div>`:''}</div></div></div>
+<div class="meta-row"><div style="flex:1"><div class="slbl">Facturar a</div><div class="client-card"><div class="client-name">${cl.nombre||'—'}</div><div class="client-sub">${cl.nif?`<div><b>NIF/CIF: ${cl.nif}</b></div>`:''}${cl.empresa?`<div>${cl.empresa}</div>`:''}${cl.email?`<div>${cl.email}</div>`:''}${cl.telefono?`<div>${cl.telefono}</div>`:''}</div></div></div>
 <div><div class="slbl">Datos del pedido</div><div class="info-card"><div class="info-row"><span class="info-lbl">Proyecto</span><span class="info-val">${o.proyecto}</span></div><div class="info-row"><span class="info-lbl">Fecha</span><span class="info-val">${o.fecha||'—'}</span></div><div class="info-row"><span class="info-lbl">Peso total</span><span class="info-val">${o.peso||'—'}g</span></div><div class="info-row"><span class="info-lbl">Tiempo</span><span class="info-val">${o.tiempoImpresion||'—'}h</span></div></div></div></div>
 <div class="items-section"><div class="slbl">Detalle del servicio</div><div class="items-wrap">${lineasHTML}</div></div>
 <div class="totals-wrap"><div class="totals"><div class="totals-row"><span class="totals-lbl">Coste filamentos</span><span class="totals-val">${c.mc.toFixed(2)} ${mon}</span></div><div class="totals-row"><span class="totals-lbl">Coste eléctrico</span><span class="totals-val">${c.ec.toFixed(2)} ${mon}</span></div>${c.pp>0?`<div class="totals-row"><span class="totals-lbl">Postprocesado</span><span class="totals-val">${c.pp.toFixed(2)} ${mon}</span></div>`:''}<div class="total-final"><span class="total-final-lbl">Total facturado</span><div style="display:flex;align-items:baseline"><span class="total-final-amt">${c.fp.toFixed(2)}</span><span class="total-final-mon">${mon}</span></div></div></div></div>
@@ -1686,11 +1686,22 @@ function pedidoFrm(x={}){
   const ecInit=tiempoInit*(parseFloat(cfg.costePorHora)||0.15);const ppInit=parseFloat(x.costePostprocesado||0);const tcInit=mcInit+ecInit+ppInit;const fpInit=x.gananciaManual?tcInit+parseFloat(x.gananciaManual):tcInit*(1+(parseFloat(cfg.margen)||30)/100);
   const c={mc:mcInit,ec:ecInit,pp:ppInit,tc:tcInit,fp:fpInit,profit:fpInit-tcInit};
   const impOpts=[{value:'',label:'Sin impresora (200W por defecto)'},..._cache.impresoras.filter(i=>i.estado==='activa').map(i=>({value:i.id,label:`${i.nombre}${i.consumoW?' · '+i.consumoW+'W':''}`}))];
+  const impSelVal=x.impresoraId||'';
+  const impSelObj=_cache.impresoras.find(i=>i.id===impSelVal);
+  const impPreviewTxt=impSelObj&&parseFloat(impSelObj.consumoW)>0
+    ?`⚡ ${impSelObj.consumoW}W → <b style="color:#60a5fa">${((parseFloat(impSelObj.consumoW)/1000)*(parseFloat(_cache.cfg.costePorHora)||0.15)).toFixed(4)}€/h</b>`
+    :'';
   return`<div class="grid2" style="margin-bottom:4px">
 ${fld('Nombre del proyecto *','proyecto',x.proyecto||'')}${fld('Cliente','clienteId',x.clienteId||'','text',cliOpts)}
 ${fld('Estado','estado',x.estado||'pendiente','text',estOpts)}${fld('Fecha','fecha',x.fecha||today(),'date')}
-${fld('Impresora','impresoraId',x.impresoraId||'','text',impOpts)}${fld('Coste postprocesado (€)','costePostprocesado',x.costePostprocesado||'0','number')}
-${fld('Ganancia manual (€) — vacío = margen','gananciaManual',x.gananciaManual||'','number')}
+</div>
+<div class="field">
+  <label>Impresora</label>
+  <select name="impresoraId">${impOpts.map(o=>`<option value="${esc(o.value)}"${o.value===impSelVal?' selected':''}>${esc(o.label)}</option>`).join('')}</select>
+  <div id="imp-preview" style="font-size:11px;color:var(--text4);margin-top:5px;${impPreviewTxt?'':'display:none'}">${impPreviewTxt}</div>
+</div>
+<div class="grid2">
+${fld('Coste postprocesado (€)','costePostprocesado',x.costePostprocesado||'0','number')}${fld('Ganancia manual (€) — vacío = margen','gananciaManual',x.gananciaManual||'','number')}
 </div>${fld('Notas','notas',x.notas||'','textarea')}
 
 <div style="margin:16px 0 12px">
@@ -1764,7 +1775,28 @@ async function uploadFotoIfNeeded(orderId){
   return data?.signedUrl || null;
 }
 
-function attachPedidoEvents(){setTimeout(()=>{renderLineas();document.querySelectorAll('[name="costePostprocesado"],[name="gananciaManual"]').forEach(el=>el.addEventListener('input',refreshCostPreview));},60);}
+function attachPedidoEvents(){setTimeout(()=>{
+  renderLineas();
+  document.querySelectorAll('[name="costePostprocesado"],[name="gananciaManual"]').forEach(el=>el.addEventListener('input',refreshCostPreview));
+  const impSel=document.querySelector('[name="impresoraId"]');
+  if(impSel) impSel.addEventListener('change',()=>{
+    refreshCostPreview();
+    // Show impresora info
+    const imp=_cache.impresoras.find(i=>i.id===impSel.value);
+    const prev=document.getElementById('imp-preview');
+    if(prev){
+      if(imp&&parseFloat(imp.consumoW)>0){
+        const kwhPrice=parseFloat(_cache.cfg.costePorHora)||0.15;
+        const costH=(parseFloat(imp.consumoW)/1000)*kwhPrice;
+        prev.innerHTML=`⚡ ${imp.consumoW}W → <b style="color:#60a5fa">${costH.toFixed(4)}€/h</b>`;
+        prev.style.display='block';
+      } else {
+        prev.innerHTML='⚡ Sin consumo definido — usando 200W por defecto';
+        prev.style.display='block';
+      }
+    }
+  });
+},60);}
 
 function editO(id){
   const x=id?_cache.pedidos.find(o=>o.id===id)||{}:{};
