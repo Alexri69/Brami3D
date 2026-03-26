@@ -554,7 +554,7 @@ function mapPiezas(rows){ return rows.map(r=>({
 function mapCfg(r){ return {
   costePorGramo:r.coste_por_gramo,costePorHora:r.coste_por_hora,
   margen:r.margen,moneda:r.moneda,empresa:r.empresa,telefono:r.telefono,email:r.email,
-  nif:r.nif||''
+  nif:r.nif||'', direccion:r.direccion||''
 };}
 
 // Generic save (insert or update)
@@ -902,13 +902,15 @@ function buildPDFHtml(id){
 .footer{padding-top:20px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;font-size:11px;color:#94a3b8}
 @media print{body{padding:24px 28px}@page{margin:.5cm}}</style></head><body>
 <div class="hdr"><div class="hdr-left">${logoSVG}<div><div class="brand-name">B3D</div><div class="brand-sub">Print Studio</div></div></div>
-<div class="biz-info">${biz.empresa?`<div class="biz-name">${biz.empresa}</div>`:'<div class="biz-name">B3D Print Studio</div>'}${biz.email?`<div>✉ ${biz.email}</div>`:''}${biz.telefono?`<div>📞 ${biz.telefono}</div>`:''}</div></div>
+<div class="biz-info">${biz.empresa?`<div class="biz-name">${biz.empresa}</div>`:'<div class="biz-name">B3D Print Studio</div>'}${biz.nif?`<div>NIF/CIF: ${biz.nif}</div>`:''}${biz.direccion?`<div>📍 ${biz.direccion}</div>`:''}${biz.email?`<div>✉ ${biz.email}</div>`:''}${biz.telefono?`<div>📞 ${biz.telefono}</div>`:''}</div></div>
 <div class="doc-meta"><div><div class="doc-label">Documento</div><div class="doc-title">Presupuesto</div></div>
 <div class="doc-num"><div><b>Nº:</b> ${o.presNum||'—'}</div><div><b>Proyecto:</b> ${o.proyecto}</div><div><b>Fecha:</b> ${dateStr}</div>${o.fecha&&o.fecha!==today()?`<div><b>Fecha pedido:</b> ${o.fecha}</div>`:''}</div></div>
 <div class="two-col">
 <div class="section"><div class="section-title">Cliente</div>
 ${cl.nombre?`<div class="row"><span class="lbl">Nombre</span><span class="val">${cl.nombre}</span></div>`:'<div class="row"><span class="lbl">Cliente</span><span class="val">—</span></div>'}
+${cl.nif?`<div class="row"><span class="lbl">NIF/CIF</span><span class="val">${cl.nif}</span></div>`:''}
 ${cl.empresa?`<div class="row"><span class="lbl">Empresa</span><span class="val">${cl.empresa}</span></div>`:''}
+${cl.direccion?`<div class="row"><span class="lbl">Dirección</span><span class="val">${cl.direccion}</span></div>`:''}
 ${cl.email?`<div class="row"><span class="lbl">Email</span><span class="val">${cl.email}</span></div>`:''}
 ${cl.telefono?`<div class="row"><span class="lbl">Teléfono</span><span class="val">${cl.telefono}</span></div>`:''}</div>
 <div class="section"><div class="section-title">Detalles</div>${lineasHTML}${o.notas?`<div class="row" style="margin-top:8px"><span class="lbl">Notas</span><span class="val">${o.notas}</span></div>`:''}</div></div>
@@ -1006,11 +1008,11 @@ async function genFactura(id){
 @media print{html,body{width:210mm;height:297mm;margin:0;padding:0;overflow:hidden}.page{height:297mm;overflow:hidden}@page{size:A4 portrait;margin:0}}</style></head><body>
 <div class="page">
 <div class="hdr"><div class="hdr-brand">${logoSVG}<div><div class="brand-name">B3D</div><div class="brand-sub">Print Studio</div></div></div>
-<div class="hdr-biz"><div class="hdr-biz-name">${biz.empresa||'B3D Print Studio'}</div>${biz.nif?`<div>NIF/CIF: ${biz.nif}</div>`:''}${biz.email?`<div>✉ ${biz.email}</div>`:''}${biz.telefono?`<div>📞 ${biz.telefono}</div>`:''}</div></div>
+<div class="hdr-biz"><div class="hdr-biz-name">${biz.empresa||'B3D Print Studio'}</div>${biz.nif?`<div>NIF/CIF: ${biz.nif}</div>`:''}${biz.direccion?`<div>📍 ${biz.direccion}</div>`:''}${biz.email?`<div>✉ ${biz.email}</div>`:''}${biz.telefono?`<div>📞 ${biz.telefono}</div>`:''}</div></div>
 <div class="fact-band"><div><div class="fact-label">Número de factura</div><div class="fact-value">${o.facturaNum}</div></div><div style="text-align:center"><div class="fact-label">Fecha de factura</div><div class="fact-value">${factDateStr}</div></div><div style="text-align:right"><div class="fact-label">Presupuesto ref.</div><div class="fact-value">${o.presNum||'—'}</div></div></div>
 <div class="body">
 <div class="stamp"><span>✅</span><span class="stamp-text">PAGADO</span></div>
-<div class="meta-row"><div style="flex:1"><div class="slbl">Facturar a</div><div class="client-card"><div class="client-name">${cl.nombre||'—'}</div><div class="client-sub">${cl.nif?`<div><b>NIF/CIF: ${cl.nif}</b></div>`:''}${cl.empresa?`<div>${cl.empresa}</div>`:''}${cl.email?`<div>${cl.email}</div>`:''}${cl.telefono?`<div>${cl.telefono}</div>`:''}</div></div></div>
+<div class="meta-row"><div style="flex:1"><div class="slbl">Facturar a</div><div class="client-card"><div class="client-name">${cl.nombre||'—'}</div><div class="client-sub">${cl.nif?`<div><b>NIF/CIF: ${cl.nif}</b></div>`:''}${cl.empresa?`<div>${cl.empresa}</div>`:''}${cl.direccion?`<div>📍 ${cl.direccion}</div>`:''}${cl.email?`<div>${cl.email}</div>`:''}${cl.telefono?`<div>${cl.telefono}</div>`:''}</div></div></div>
 <div><div class="slbl">Datos del pedido</div><div class="info-card"><div class="info-row"><span class="info-lbl">Proyecto</span><span class="info-val">${o.proyecto}</span></div><div class="info-row"><span class="info-lbl">Fecha</span><span class="info-val">${o.fecha||'—'}</span></div><div class="info-row"><span class="info-lbl">Peso total</span><span class="info-val">${o.peso||'—'}g</span></div><div class="info-row"><span class="info-lbl">Tiempo</span><span class="info-val">${o.tiempoImpresion||'—'}h</span></div></div></div></div>
 <div class="items-section"><div class="slbl">Detalle del servicio</div><div class="items-wrap">${lineasHTML}</div></div>
 <div class="totals-wrap"><div class="totals">${c.pp>0?`<div class="totals-row"><span class="totals-lbl">Postprocesado</span><span class="totals-val">${c.pp.toFixed(2)} ${mon}</span></div>`:''}<div class="total-final"><span class="total-final-lbl">Total facturado</span><div style="display:flex;align-items:baseline"><span class="total-final-amt">${c.fp.toFixed(2)}</span><span class="total-final-mon">${mon}</span></div></div></div></div>
@@ -1368,16 +1370,16 @@ ${isMob
   : `<div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table><thead><tr><th>Nombre</th><th>NIF/CIF</th><th>Empresa</th><th>Teléfono</th><th>Email</th><th>Notas</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`
 }`;
 }
-function clienteFrm(x={}){ return fld('Nombre *','nombre',x.nombre||'')+fld('NIF / CIF','nif',x.nif||'')+fld('Empresa','empresa',x.empresa||'')+fld('Teléfono','telefono',x.telefono||'')+fld('Email','email',x.email||'','email')+fld('Notas','notas',x.notas||'','textarea'); }
+function clienteFrm(x={}){ return fld('Nombre *','nombre',x.nombre||'')+fld('NIF / CIF','nif',x.nif||'')+fld('Empresa','empresa',x.empresa||'')+fld('Dirección','direccion',x.direccion||'')+fld('Teléfono','telefono',x.telefono||'')+fld('Email','email',x.email||'','email')+fld('Notas','notas',x.notas||'','textarea'); }
 function editC(id){
   const x=id?_cache.clientes.find(c=>c.id===id)||{}:{};
   openModal(msh(id?'Editar cliente':'Nuevo cliente',`${clienteFrm(x)}<div style="display:flex;gap:10px;margin-top:8px"><button class="btn-primary" id="save-c-btn" onclick="saveC('${id||''}')">Guardar</button><button class="btn-secondary" onclick="closeModal()">Cancelar</button></div>`));
 }
 async function saveC(id){
-  const d=gfd(['nombre','nif','empresa','telefono','email','notas']);
+  const d=gfd(['nombre','nif','empresa','direccion','telefono','email','notas']);
   if(!d.nombre.trim()){alert('Nombre obligatorio');return;}
   setLoading('save-c-btn',true);
-  const row={nombre:d.nombre,nif:d.nif||'',empresa:d.empresa,telefono:d.telefono,email:d.email,notas:d.notas};
+  const row={nombre:d.nombre,nif:d.nif||'',empresa:d.empresa,direccion:d.direccion||'',telefono:d.telefono,email:d.email,notas:d.notas};
   if(id){row.id=id;}else{row.id=uid();}
   const ok=await dbSave('clientes',row);
   if(ok){
@@ -2058,6 +2060,7 @@ ${fld('Moneda','moneda',cfg.moneda,'text',[{value:'€',label:'Euro (€)'},{val
 <p style="font-size:12px;color:var(--text4);margin-bottom:14px;line-height:1.5">Aparecen en PDFs, facturas y en la barra superior.</p>
 ${fld('Nombre de empresa','biz_empresa',cfg.empresa||'')}
 ${fld('NIF / CIF empresa','biz_nif',cfg.nif||'')}
+${fld('Dirección','biz_direccion',cfg.direccion||'')}
 ${fld('Teléfono (Bizum)','biz_telefono',cfg.telefono||'')}
 ${fld('Email de contacto','biz_email',cfg.email||'')}
 <button class="btn-primary" id="scb2" onclick="saveBiz()">Guardar datos empresa</button>
@@ -2092,11 +2095,11 @@ async function saveConfig(){
 }
 
 async function saveBiz(){
-  const d=gfd(['biz_empresa','biz_nif','biz_telefono','biz_email']);
-  const row={user_id:CU.id,empresa:d.biz_empresa||'',nif:d.biz_nif||'',telefono:d.biz_telefono||'',email:d.biz_email||'',coste_por_gramo:_cache.cfg.costePorGramo,coste_por_hora:_cache.cfg.costePorHora,margen:_cache.cfg.margen,moneda:_cache.cfg.moneda};
+  const d=gfd(['biz_empresa','biz_nif','biz_direccion','biz_telefono','biz_email']);
+  const row={user_id:CU.id,empresa:d.biz_empresa||'',nif:d.biz_nif||'',direccion:d.biz_direccion||'',telefono:d.biz_telefono||'',email:d.biz_email||'',coste_por_gramo:_cache.cfg.costePorGramo,coste_por_hora:_cache.cfg.costePorHora,margen:_cache.cfg.margen,moneda:_cache.cfg.moneda};
   const {error}=await sb.from('config').upsert(row,{onConflict:'user_id'});
   if(error){showToast('Error: '+error.message,'err');return;}
-  _cache.cfg={..._cache.cfg,empresa:d.biz_empresa,nif:d.biz_nif,telefono:d.biz_telefono,email:d.biz_email};
+  _cache.cfg={..._cache.cfg,empresa:d.biz_empresa,nif:d.biz_nif,direccion:d.biz_direccion,telefono:d.biz_telefono,email:d.biz_email};
   refreshBizHeader();
   const b=$('scb2');if(b){b.textContent='✅ Guardado';setTimeout(()=>{b.textContent='Guardar datos empresa';},2000);}
   showToast('Datos de empresa guardados','ok');
