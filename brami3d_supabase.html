@@ -532,7 +532,8 @@ function mapPedidos(rows){ return rows.map(r=>({
   fecha:r.fecha, gananciaManual:r.ganancia_manual, costePostprocesado:r.coste_postprocesado,
   presNum:r.pres_num, facturaNum:r.factura_num, facturaFecha:r.factura_fecha,
   lineas:r.lineas||[], fotoUrl:r.foto_url||null, fotoPath:r.foto_path||null,
-  impresoraId:r.impresora_id||null
+  impresoraId:r.impresora_id||null,
+  cobrado:r.cobrado||false, fechaCobrado:r.fecha_cobrado||null
 }));}
 
 function mapImpresoras(rows){ return rows.map(r=>({
@@ -837,7 +838,7 @@ function calcOrderCosts(order,cfg){
 //  BADGE
 // ═══════════════════════════════════════════════
 function mkBadge(val){
-  const map={pendiente:{bg:'rgba(245,158,11,.15)',color:'#fbbf24',border:'rgba(245,158,11,.3)'},imprimiendo:{bg:'rgba(59,130,246,.15)',color:'#60a5fa',border:'rgba(59,130,246,.3)'},terminado:{bg:'rgba(16,185,129,.15)',color:'#34d399',border:'rgba(16,185,129,.3)'},entregado:{bg:'rgba(139,92,246,.15)',color:'#a78bfa',border:'rgba(139,92,246,.3)'},pagado:{bg:'rgba(34,197,94,.15)',color:'#4ade80',border:'rgba(34,197,94,.3)'},activa:{bg:'rgba(16,185,129,.15)',color:'#34d399',border:'rgba(16,185,129,.3)'},mantenimiento:{bg:'rgba(245,158,11,.15)',color:'#fbbf24',border:'rgba(245,158,11,.3)'},averiada:{bg:'rgba(239,68,68,.15)',color:'#f87171',border:'rgba(239,68,68,.3)'}};
+  const map={pendiente:{bg:'rgba(245,158,11,.15)',color:'#fbbf24',border:'rgba(245,158,11,.3)'},imprimiendo:{bg:'rgba(59,130,246,.15)',color:'#60a5fa',border:'rgba(59,130,246,.3)'},terminado:{bg:'rgba(16,185,129,.15)',color:'#34d399',border:'rgba(16,185,129,.3)'},entregado:{bg:'rgba(139,92,246,.15)',color:'#a78bfa',border:'rgba(139,92,246,.3)'},cobrado:{bg:'rgba(34,197,94,.15)',color:'#4ade80',border:'rgba(34,197,94,.3)'},pagado:{bg:'rgba(34,197,94,.15)',color:'#4ade80',border:'rgba(34,197,94,.3)'},activa:{bg:'rgba(16,185,129,.15)',color:'#34d399',border:'rgba(16,185,129,.3)'},mantenimiento:{bg:'rgba(245,158,11,.15)',color:'#fbbf24',border:'rgba(245,158,11,.3)'},averiada:{bg:'rgba(239,68,68,.15)',color:'#f87171',border:'rgba(239,68,68,.3)'}};
   const s=map[val]||{bg:'rgba(148,163,184,.12)',color:'#64748b',border:'rgba(100,116,139,.25)'};
   return`<span class="badge" style="background:${s.bg};color:${s.color};border:1px solid ${s.border}">${esc(val)}</span>`;
 }
@@ -955,7 +956,7 @@ function sendWA(id){
 // ═══════════════════════════════════════════════
 async function genFactura(id){
   let o=_cache.pedidos.find(x=>x.id===id);if(!o)return;
-  if(o.estado!=='pagado'){alert('Solo pedidos pagados');return;}
+  if(!o.cobrado){alert('Solo pedidos cobrados');return;}
   if(!o.facturaNum){
     const fn=await nextFacturaNum();
     const fd=today();
@@ -1058,7 +1059,7 @@ function generarInforme(){
 
   // Filter orders for this month
   const ordenes = _cache.pedidos.filter(o=>(o.fecha||'').startsWith(prefix));
-  const pagados = ordenes.filter(o=>o.estado==='pagado');
+  const pagados = ordenes.filter(o=>o.cobrado===true);
   const pendientes = ordenes.filter(o=>o.estado==='pendiente');
   const imprimiendo = ordenes.filter(o=>o.estado==='imprimiendo');
 
@@ -1220,12 +1221,12 @@ th:last-child{text-align:right}
 // ═══════════════════════════════════════════════
 function pgDashboard(){
   const orders=_cache.pedidos; const cfg=_cache.cfg;
-  const paid=orders.filter(o=>o.estado==='pagado');
+  const paid=orders.filter(o=>o.cobrado===true);
   const totI=paid.reduce((s,o)=>s+calcOrderCosts(o,cfg).fp,0);
   const totC=paid.reduce((s,o)=>s+calcOrderCosts(o,cfg).tc,0);
   const ben=totI-totC;
   const months={};
-  orders.forEach(o=>{const m=(o.fecha||'').slice(0,7);if(!m)return;if(!months[m])months[m]={i:0};if(o.estado==='pagado')months[m].i+=calcOrderCosts(o,cfg).fp;});
+  orders.forEach(o=>{const m=(o.fecha||'').slice(0,7);if(!m)return;if(!months[m])months[m]={i:0};if(o.cobrado===true)months[m].i+=calcOrderCosts(o,cfg).fp;});
   const mks=Object.keys(months).sort().slice(-7);
   const maxI=Math.max(...mks.map(m=>months[m].i),1);
   const byE={};orders.forEach(o=>{byE[o.estado]=(byE[o.estado]||0)+1;});
@@ -1397,7 +1398,7 @@ function exportClientesExcel(){
   const cols=['Nombre','NIF/CIF','Empresa','Teléfono','Email','Notas','Total pedidos','Total cobrado ('+( cfg.moneda||'€')+')','Último pedido'];
   const rows=clientes.map(c=>{
     const pedidos=_cache.pedidos.filter(o=>o.clienteId===c.id);
-    const pagados=pedidos.filter(o=>o.estado==='pagado');
+    const pagados=pedidos.filter(o=>o.cobrado===true);
     const total=pagados.reduce((s,o)=>s+calcOrderCosts(o,cfg).fp,0);
     const ultimo=pedidos.map(o=>o.fecha||'').filter(Boolean).sort().reverse()[0]||'';
     const cel=v=>'"'+String(v||'').replace(/"/g,'""')+'"';
@@ -1422,7 +1423,7 @@ function verHistorial(clienteId){
   const cl=_cache.clientes.find(c=>c.id===clienteId)||{};
   const cfg=_cache.cfg;
   const pedidos=_cache.pedidos.filter(o=>o.clienteId===clienteId);
-  const pagados=pedidos.filter(o=>o.estado==='pagado');
+  const pagados=pedidos.filter(o=>o.cobrado===true);
   const total=pagados.reduce((s,o)=>s+calcOrderCosts(o,cfg).fp,0);
 
   const rows=pedidos.length===0
@@ -1435,7 +1436,7 @@ function verHistorial(clienteId){
           <div style="font-size:11px;color:var(--text4);margin-top:2px">${esc(o.fecha||'—')} · ${mkBadge(o.estado)}</div>
         </div>
         <div style="text-align:right;flex-shrink:0;margin-left:12px">
-          <div style="font-size:14px;font-weight:800;color:${o.estado==='pagado'?'#34d399':'var(--text3)'}">${c.fp.toFixed(2)}${cfg.moneda||'€'}</div>
+          <div style="font-size:14px;font-weight:800;color:${o.cobrado===true?'#34d399':'var(--text3)'}">${c.fp.toFixed(2)}${cfg.moneda||'€'}</div>
           ${o.presNum?`<div style="font-size:10px;color:var(--text5)">${esc(o.presNum)}</div>`:''}
         </div>
       </div>`;
@@ -1627,8 +1628,8 @@ async function doDelPz(id){ if(await dbDel('piezas',id)){_cache.piezas=_cache.pi
 let _pFilt='todos',_pSearch='';
 function pgPedidos(){
   const orders=_cache.pedidos; const clients=_cache.clientes; const cfg=_cache.cfg;
-  const ESTADOS=['todos','pendiente','imprimiendo','terminado','entregado','pagado'];
-  const rowHl={pendiente:'rgba(245,158,11,.06)',imprimiendo:'rgba(59,130,246,.06)',pagado:'rgba(34,197,94,.06)',terminado:'rgba(16,185,129,.04)',entregado:'rgba(139,92,246,.05)'};
+  const ESTADOS=['todos','pendiente','imprimiendo','terminado','entregado','cobrado'];
+  const rowHl={pendiente:'rgba(245,158,11,.06)',imprimiendo:'rgba(59,130,246,.06)',terminado:'rgba(16,185,129,.04)',entregado:'rgba(139,92,246,.05)',cobrado:'rgba(34,197,94,.06)'};
   const chips=ESTADOS.map(e=>`<button class="chip${_pFilt===e?' active':''}" onclick="_pFilt='${e}';render()">${e}</button>`).join('');
   const fl=orders.filter(o=>{
     if(_pFilt!=='todos'&&o.estado!==_pFilt)return false;
@@ -1639,7 +1640,7 @@ function pgPedidos(){
     const cl=clients.find(x=>x.id===o.clienteId)||{};
     const c=calcOrderCosts(o,cfg);
     const bg=rowHl[o.estado]||'';
-    const isPagado=o.estado==='pagado';
+    const isPagado=o.cobrado===true;
     const hasFactura=!!o.facturaNum;
     const piezasCount=(o.lineas||[]).reduce((s,l)=>s+(parseInt(l.qty)||1),0)||'—';
     let factBtn;
@@ -1669,29 +1670,35 @@ function pgPedidos(){
   const mobCards=fl.length===0?'<p style="color:#2e4a6a;text-align:center;padding:32px">Sin pedidos — crea tu primer pedido 👆</p>':fl.map(o=>{
     const cl=clients.find(x=>x.id===o.clienteId)||{};
     const c=calcOrderCosts(o,cfg);
-    const isPagado=o.estado==='pagado';
     const hasFactura=!!o.facturaNum;
     return`<div class="mob-card">
-      ${o.fotoUrl?`<img src="${esc(o.fotoUrl)}" style="width:100%;max-height:140px;object-fit:cover;border-radius:10px;margin-bottom:12px;border:1px solid #132540">`:''}
+      ${o.fotoUrl?`<img src="${esc(o.fotoUrl)}" style="width:100%;max-height:140px;object-fit:cover;border-radius:10px;margin-bottom:12px;border:1px solid var(--border)">`:''}
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
         <div style="flex:1;min-width:0;margin-right:8px">
-          <div style="font-size:15px;font-weight:800;color:#e2eaf4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(o.proyecto)}</div>
-          <div style="display:flex;align-items:center;gap:6px;margin-top:4px">${mkBadge(o.estado)}<span class="num-badge" style="font-size:10px">${esc(o.presNum||'—')}</span></div>
+          <div style="font-size:15px;font-weight:800;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(o.proyecto)}</div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap">
+            ${mkBadge(o.estado)}
+            ${o.cobrado?`<span style="background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3);border-radius:99px;padding:2px 8px;font-size:10px;font-weight:700">💰 Cobrado${o.fechaCobrado?' '+o.fechaCobrado:''}</span>`:''}
+            <span class="num-badge" style="font-size:10px">${esc(o.presNum||'—')}</span>
+          </div>
         </div>
-        <div style="font-size:20px;font-weight:900;color:#34d399;white-space:nowrap">${c.fp.toFixed(2)}${cfg.moneda||'€'}</div>
+        <div style="font-size:20px;font-weight:900;color:${o.cobrado?'#4ade80':'#34d399'};white-space:nowrap">${c.fp.toFixed(2)}${cfg.moneda||'€'}</div>
       </div>
-      <div style="display:flex;gap:16px;font-size:12px;color:#3d5a7a;margin-bottom:10px">
+      <div style="display:flex;gap:16px;font-size:12px;color:var(--text4);margin-bottom:10px">
         ${cl.nombre?`<span>👤 ${esc(cl.nombre)}</span>`:''}
         ${o.fecha?`<span>📅 ${esc(o.fecha)}</span>`:''}
         ${o.material?`<span>🧵 ${esc(o.material)}</span>`:''}
       </div>
       ${hasFactura?`<div style="margin-bottom:10px"><span style="background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800;font-family:monospace">🧾 ${esc(o.facturaNum)}</span></div>`:''}
-      <div style="display:flex;gap:8px;padding-top:10px;border-top:1px solid #132540">
-        <button onclick="genPDF('${o.id}')" style="flex:1;padding:10px;background:#0f1e35;border:1px solid #132540;border-radius:10px;color:#7a9ab8;font-size:13px">📄 PDF</button>
-        <button onclick="sendWA('${o.id}')" style="flex:1;padding:10px;background:#0f1e35;border:1px solid #132540;border-radius:10px;color:#7a9ab8;font-size:13px">💬 WA</button>
-        ${isPagado?`<button onclick="genFactura('${o.id}')" style="flex:1;padding:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;color:#4ade80;font-size:13px">🧾</button>`:''}
-        <button onclick="editO('${o.id}')" style="padding:10px 14px;background:#0f1e35;border:1px solid #132540;border-radius:10px;color:#7a9ab8;font-size:16px">✏️</button>
-        <button onclick="delO('${o.id}')" style="padding:10px 14px;background:#0f1e35;border:1px solid #132540;border-radius:10px;color:#f87171;font-size:16px">🗑️</button>
+      <div style="display:flex;gap:8px;padding-top:10px;border-top:1px solid var(--border)">
+        <button onclick="genPDF('${o.id}')" style="flex:1;padding:10px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:13px">📄 PDF</button>
+        <button onclick="sendWA('${o.id}')" style="flex:1;padding:10px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:13px">💬 WA</button>
+        ${!o.cobrado
+          ?`<button onclick="marcarCobrado('${o.id}')" style="flex:1;padding:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;color:#4ade80;font-size:12px;font-weight:700">💰 Cobrar</button>`
+          :`<button onclick="genFactura('${o.id}')" style="flex:1;padding:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;color:#4ade80;font-size:13px">🧾</button>`
+        }
+        <button onclick="editO('${o.id}')" style="padding:10px 14px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:16px">✏️</button>
+        <button onclick="delO('${o.id}')" style="padding:10px 14px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:#f87171;font-size:16px">🗑️</button>
       </div>
     </div>`;
   }).join('');
@@ -1765,7 +1772,7 @@ function costPrevHTML(c){return[['Coste filamentos',c.mc.toFixed(2)+'€','#7a9a
 function pedidoFrm(x={}){
   const cfg=_cache.cfg;
   const cliOpts=[{value:'',label:'Sin cliente'},..._cache.clientes.map(c=>({value:c.id,label:c.nombre}))];
-  const estOpts=['pendiente','imprimiendo','terminado','entregado','pagado'];
+  const estOpts=['pendiente','imprimiendo','terminado','entregado'];
   if(x.lineas&&x.lineas.length>0)_lineas=[...x.lineas.map(l=>({...l,id:l.id||uid(),filamentoId:l.filamentoId||'__manual__'}))];
   else _lineas=[lineaEmpty()];
   const filaments=_cache.filamentos;
@@ -1951,13 +1958,15 @@ async function saveO(id){
     factura_num:prevOrder?.facturaNum||null,
     factura_fecha:prevOrder?.facturaFecha||null,
     impresora_id:d.impresoraId||null,
+    cobrado:prevOrder?.cobrado||false,
+    fecha_cobrado:prevOrder?.fechaCobrado||null,
     foto_url:fotoUrl||null,
     foto_path:_fotoPath||null,
   };
   row.id = rowId;
   const ok=await dbSave('pedidos',row);
   if(ok){
-    const mapped={id:row.id,clienteId:d.clienteId,proyecto:d.proyecto,material:mainMat,peso:pesoTotal,tiempoImpresion:tiempoTotal,estado:d.estado,notas:d.notas,fecha:d.fecha,gananciaManual:d.gananciaManual,costePostprocesado:d.costePostprocesado,presNum:presNum,facturaNum:prevOrder?.facturaNum||null,facturaFecha:prevOrder?.facturaFecha||null,lineas:_lineas,fotoUrl:fotoUrl||null,fotoPath:_fotoPath||null,impresoraId:d.impresoraId||null};
+    const mapped={id:row.id,clienteId:d.clienteId,proyecto:d.proyecto,material:mainMat,peso:pesoTotal,tiempoImpresion:tiempoTotal,estado:d.estado,notas:d.notas,fecha:d.fecha,gananciaManual:d.gananciaManual,costePostprocesado:d.costePostprocesado,presNum:presNum,facturaNum:prevOrder?.facturaNum||null,facturaFecha:prevOrder?.facturaFecha||null,lineas:_lineas,fotoUrl:fotoUrl||null,fotoPath:_fotoPath||null,impresoraId:d.impresoraId||null,cobrado:prevOrder?.cobrado||false,fechaCobrado:prevOrder?.fechaCobrado||null};
     if(id)_cache.pedidos=_cache.pedidos.map(o=>o.id===id?mapped:o);else _cache.pedidos.push(mapped);
     closeModal();render();refreshAlerts();showToast('✅ Pedido guardado','ok');
   }
@@ -1965,6 +1974,27 @@ async function saveO(id){
 
 function delO(id){ confirmDel('¿Eliminar este pedido?',`doDelO('${id}')`); }
 async function doDelO(id){ if(await dbDel('pedidos',id)){_cache.pedidos=_cache.pedidos.filter(x=>x.id!==id);render();showToast('Eliminado','ok');} }
+
+async function marcarCobrado(id){
+  const o=_cache.pedidos.find(x=>x.id===id); if(!o) return;
+  const ahora=today();
+  const row={id:o.id,cobrado:true,fecha_cobrado:ahora,user_id:CU.id,
+    proyecto:o.proyecto,estado:o.estado,material:o.material,
+    peso:o.peso,tiempo_impresion:o.tiempoImpresion,
+    cliente_id:o.clienteId,notas:o.notas,fecha:o.fecha,
+    ganancia_manual:o.gananciaManual,coste_postprocesado:o.costePostprocesado,
+    pres_num:o.presNum,lineas:o.lineas,
+    factura_num:o.facturaNum,factura_fecha:o.facturaFecha,
+    impresora_id:o.impresoraId,foto_url:o.fotoUrl,foto_path:o.fotoPath
+  };
+  const ok=await dbSave('pedidos',row);
+  if(ok){
+    _cache.pedidos=_cache.pedidos.map(x=>x.id===id?{...x,cobrado:true,fechaCobrado:ahora}:x);
+    render();showToast('✅ Marcado como cobrado','ok');
+    // Generar factura automáticamente
+    setTimeout(()=>genFactura(id),400);
+  }
+}
 
 // ═══════════════════════════════════════════════
 //  ARCHIVOS
