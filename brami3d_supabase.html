@@ -925,7 +925,24 @@ ${biz.telefono?`<div class="payment-num">${biz.telefono}</div><div class="paymen
 <script>setTimeout(()=>window.print(),500)<\/script></body></html>`;
 }
 
-function genPDF(id){
+async function genPDF(id){
+  // If no presNum yet, assign one and save
+  let o=_cache.pedidos.find(x=>x.id===id);if(!o)return;
+  if(!o.presNum){
+    const pn=await nextPresNum();
+    const ok=await dbSave('pedidos',{id:o.id,pres_num:pn,user_id:CU.id,
+      proyecto:o.proyecto,estado:o.estado,material:o.material,peso:o.peso,
+      tiempo_impresion:o.tiempoImpresion,cliente_id:o.clienteId,notas:o.notas,
+      fecha:o.fecha,ganancia_manual:o.gananciaManual,coste_postprocesado:o.costePostprocesado,
+      coste_diseno:o.costeDiseno||0,lineas:o.lineas,cobrado:o.cobrado,fecha_cobrado:o.fechaCobrado,
+      factura_num:o.facturaNum,factura_fecha:o.facturaFecha,impresora_id:o.impresoraId
+    });
+    if(ok){
+      o={...o,presNum:pn};
+      _cache.pedidos=_cache.pedidos.map(x=>x.id===id?o:x);
+      render();
+    }
+  }
   const html=buildPDFHtml(id);if(!html)return;
   const w=window.open('','_blank');if(!w){alert('Permite ventanas emergentes');return;}
   w.document.write(html);w.document.close();
@@ -943,14 +960,26 @@ function downloadPDFFile(id){
 }
 
 function sendWA(id){
-  const o=downloadPDFFile(id);if(!o)return;
+  const o=_cache.pedidos.find(x=>x.id===id);if(!o)return;
   const cfg=_cache.cfg;
   const cl=_cache.clientes.find(x=>x.id===o.clienteId)||{};
   const c=calcOrderCosts(o,cfg);
   const mon=cfg.moneda||'€';
-  const msg=`¡Hola${cl.nombre?' '+cl.nombre:''}! 👋\n\nTe adjunto el presupuesto en PDF.\n\n📋 *${o.proyecto}*\n💰 *Precio total: ${c.fp.toFixed(2)} ${mon}*\n\n_El archivo PDF se ha descargado. Adjúntalo a este mensaje._\n\n_Generado con B3D Print Studio_`;
+  // Generate and open PDF first
+  genPDF(id);
+  // Build WhatsApp message
+  const msg=`¡Hola${cl.nombre?' '+cl.nombre:''}! 👋
+
+Te envío el presupuesto para tu pedido:
+
+📋 *${o.proyecto}*
+💰 *Precio total: ${c.fp.toFixed(2)} ${mon}*${o.presNum?'\n🔢 Presupuesto Nº: '+o.presNum:''}
+
+El PDF se ha abierto en tu pantalla — puedes guardarlo y adjuntarlo aquí.
+
+_¿Tienes alguna pregunta? Estoy a tu disposición._`;
   const ph=(cl.telefono||'').replace(/[^\d+]/g,'');
-  setTimeout(()=>window.open(`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`,'_blank'),400);
+  setTimeout(()=>window.open(`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`,'_blank'),800);
 }
 
 // ═══════════════════════════════════════════════
