@@ -1764,7 +1764,7 @@ function refreshCostPreview(){
   const consumoKW=imp&&parseFloat(imp.consumoW)>0?parseFloat(imp.consumoW)/1000:0.2;
   const ec=tiempoTotal*consumoKW*kwhPrice;
   const tc=mc+ec+pp+pd;const fp=gm?tc+parseFloat(gm):tc*(1+(parseFloat(cfg.margen)||30)/100);
-  const c={mc,ec,pp,tc,fp,profit:fp-tc};
+  const c={mc,ec,pp,pd,tc,fp,profit:fp-tc};
   const tp=$('total-peso');const tt=$('total-tiempo');const tpz=$('total-piezas');
   if(tp)tp.textContent=pesoTotal.toFixed(1)+'g';if(tt)tt.textContent=tiempoTotal.toFixed(2)+'h';if(tpz)tpz.textContent=_lineas.reduce((s,l)=>s+(parseInt(l.qty)||1),0);
   const el=document.getElementById('cprev');if(el)el.innerHTML=costPrevHTML(c);
