@@ -978,7 +978,12 @@ Te envío el presupuesto para tu pedido:
 El PDF se ha abierto en tu pantalla — puedes guardarlo y adjuntarlo aquí.
 
 _¿Tienes alguna pregunta? Estoy a tu disposición._`;
-  const ph=(cl.telefono||'').replace(/[^\d+]/g,'');
+  let ph=(cl.telefono||'').replace(/[^\d+]/g,'');
+  // Add Spain prefix if no country code
+  if(ph && !ph.startsWith('+')){
+    if(ph.startsWith('34')) ph='+'+ph;
+    else ph='+34'+ph;
+  }
   setTimeout(()=>window.open(`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`,'_blank'),800);
 }
 
