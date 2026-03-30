@@ -530,6 +530,7 @@ function mapPedidos(rows){ return rows.map(r=>({
   id:r.id, clienteId:r.cliente_id, proyecto:r.proyecto, material:r.material,
   peso:r.peso, tiempoImpresion:r.tiempo_impresion, estado:r.estado, notas:r.notas,
   fecha:r.fecha, gananciaManual:r.ganancia_manual, costePostprocesado:r.coste_postprocesado,
+  costeDiseno:r.coste_diseno||0,
   presNum:r.pres_num, facturaNum:r.factura_num, facturaFecha:r.factura_fecha,
   lineas:r.lineas||[], fotoUrl:r.foto_url||null, fotoPath:r.foto_path||null,
   impresoraId:r.impresora_id||null,
@@ -829,9 +830,10 @@ function calcOrderCosts(order,cfg){
   const kwhPrice = parseFloat(cfg.costePorHora)||0.15;
   const ec = (parseFloat(order.tiempoImpresion)||0) * consumoKW * kwhPrice;
   const pp=parseFloat(order.costePostprocesado||0);
-  const tc=mc+ec+pp;
+  const pd=parseFloat(order.costeDiseno||0);
+  const tc=mc+ec+pp+pd;
   const fp=order.gananciaManual?tc+parseFloat(order.gananciaManual):tc*(1+(parseFloat(cfg.margen)||30)/100);
-  return{mc,ec,pp,tc,fp,profit:fp-tc};
+  return{mc,ec,pp,pd,tc,fp,profit:fp-tc};
 }
 
 // ═══════════════════════════════════════════════
@@ -1016,7 +1018,7 @@ async function genFactura(id){
 <div class="meta-row"><div style="flex:1"><div class="slbl">Facturar a</div><div class="client-card"><div class="client-name">${cl.nombre||'—'}</div><div class="client-sub">${cl.nif?`<div><b>NIF/CIF: ${cl.nif}</b></div>`:''}${cl.empresa?`<div>${cl.empresa}</div>`:''}${cl.direccion?`<div>📍 ${cl.direccion}</div>`:''}${cl.email?`<div>${cl.email}</div>`:''}${cl.telefono?`<div>${cl.telefono}</div>`:''}</div></div></div>
 <div><div class="slbl">Datos del pedido</div><div class="info-card"><div class="info-row"><span class="info-lbl">Proyecto</span><span class="info-val">${o.proyecto}</span></div><div class="info-row"><span class="info-lbl">Fecha</span><span class="info-val">${o.fecha||'—'}</span></div><div class="info-row"><span class="info-lbl">Peso total</span><span class="info-val">${o.peso||'—'}g</span></div><div class="info-row"><span class="info-lbl">Tiempo</span><span class="info-val">${o.tiempoImpresion||'—'}h</span></div></div></div></div>
 <div class="items-section"><div class="slbl">Detalle del servicio</div><div class="items-wrap">${lineasHTML}</div></div>
-<div class="totals-wrap"><div class="totals">${c.pp>0?`<div class="totals-row"><span class="totals-lbl">Postprocesado</span><span class="totals-val">${c.pp.toFixed(2)} ${mon}</span></div>`:''}<div class="total-final"><span class="total-final-lbl">Total facturado</span><div style="display:flex;align-items:baseline"><span class="total-final-amt">${c.fp.toFixed(2)}</span><span class="total-final-mon">${mon}</span></div></div></div></div>
+<div class="totals-wrap"><div class="totals">${c.pd>0?`<div class="totals-row"><span class="totals-lbl">Diseño</span><span class="totals-val">${c.pd.toFixed(2)} ${mon}</span></div>`:''}${c.pp>0?`<div class="totals-row"><span class="totals-lbl">Postprocesado</span><span class="totals-val">${c.pp.toFixed(2)} ${mon}</span></div>`:''}<div class="total-final"><span class="total-final-lbl">Total facturado</span><div style="display:flex;align-items:baseline"><span class="total-final-amt">${c.fp.toFixed(2)}</span><span class="total-final-mon">${mon}</span></div></div></div></div>
 ${o.notas?`<div class="notas-box"><b>Notas:</b> ${o.notas}</div>`:''}
 </div>
 <div class="footer"><div class="footer-thanks">¡Gracias por su confianza! 🙏</div><div class="footer-note"><div>Factura generada el ${dateStr}</div><div>${biz.empresa||'B3D Print Studio'}</div></div></div>
@@ -1751,6 +1753,7 @@ function applyFilamento(lid,fid){const l=_lineas.find(x=>x.id===lid);if(!l)retur
 function refreshCostPreview(){
   const cfg=_cache.cfg; const filaments=_cache.filaments||_cache.filamentos;
   const pp=parseFloat(document.querySelector('[name="costePostprocesado"]')?.value||0);
+  const pd=parseFloat(document.querySelector('[name="costeDiseno"]')?.value||0);
   const gm=document.querySelector('[name="gananciaManual"]')?.value||'';
   let mc=0,pesoTotal=0,tiempoTotal=0;
   for(const l of _lineas){const qty=parseInt(l.qty)||1;const peso=(parseFloat(l.peso)||0)*qty;const tiempo=(parseFloat(l.tiempoImpresion)||0)*qty;pesoTotal+=peso;tiempoTotal+=tiempo;let cg=parseFloat(cfg.costePorGramo)||0.03;if(l.filamentoId&&l.filamentoId!=='__manual__'){const fil=_cache.filamentos.find(f=>f.id===l.filamentoId);if(fil)cg=(parseFloat(fil.precioPorKg)||0)/1000;}mc+=peso*cg;}
@@ -1760,14 +1763,14 @@ function refreshCostPreview(){
   const imp=_cache.impresoras.find(i=>i.id===impSel);
   const consumoKW=imp&&parseFloat(imp.consumoW)>0?parseFloat(imp.consumoW)/1000:0.2;
   const ec=tiempoTotal*consumoKW*kwhPrice;
-  const tc=mc+ec+pp;const fp=gm?tc+parseFloat(gm):tc*(1+(parseFloat(cfg.margen)||30)/100);
+  const tc=mc+ec+pp+pd;const fp=gm?tc+parseFloat(gm):tc*(1+(parseFloat(cfg.margen)||30)/100);
   const c={mc,ec,pp,tc,fp,profit:fp-tc};
   const tp=$('total-peso');const tt=$('total-tiempo');const tpz=$('total-piezas');
   if(tp)tp.textContent=pesoTotal.toFixed(1)+'g';if(tt)tt.textContent=tiempoTotal.toFixed(2)+'h';if(tpz)tpz.textContent=_lineas.reduce((s,l)=>s+(parseInt(l.qty)||1),0);
   const el=document.getElementById('cprev');if(el)el.innerHTML=costPrevHTML(c);
 }
 
-function costPrevHTML(c){return[['Coste filamentos',c.mc.toFixed(2)+'€','#7a9ab8'],['Electricidad',c.ec.toFixed(2)+'€','#7a9ab8'],['Postprocesado',c.pp.toFixed(2)+'€','#7a9ab8'],['Coste total',c.tc.toFixed(2)+'€','#fbbf24'],['Beneficio',c.profit.toFixed(2)+'€',c.profit>=0?'#34d399':'#f87171'],['PRECIO FINAL',c.fp.toFixed(2)+'€','#60a5fa']].map(([l,v,col])=>`<div class="cost-item"><div class="cost-lbl">${l}</div><div class="cost-val" style="color:${col}">${v}</div></div>`).join('');}
+function costPrevHTML(c){return[['Coste filamentos',c.mc.toFixed(2)+'€','#7a9ab8'],['Electricidad',c.ec.toFixed(2)+'€','#7a9ab8'],['Postprocesado',c.pp.toFixed(2)+'€','#7a9ab8'],['Diseño',c.pd.toFixed(2)+'€','#7a9ab8'],['Coste total',c.tc.toFixed(2)+'€','#fbbf24'],['Beneficio',c.profit.toFixed(2)+'€',c.profit>=0?'#34d399':'#f87171'],['PRECIO FINAL',c.fp.toFixed(2)+'€','#60a5fa']].map(([l,v,col])=>`<div class="cost-item"><div class="cost-lbl">${l}</div><div class="cost-val" style="color:${col}">${v}</div></div>`).join('');}
 
 function pedidoFrm(x={}){
   const cfg=_cache.cfg;
@@ -1778,7 +1781,7 @@ function pedidoFrm(x={}){
   const filaments=_cache.filamentos;
   let mcInit=0,pesoInit=0,tiempoInit=0;
   for(const l of _lineas){const qty=parseInt(l.qty)||1;const p=(parseFloat(l.peso)||0)*qty;const t=(parseFloat(l.tiempoImpresion)||0)*qty;pesoInit+=p;tiempoInit+=t;let cg=parseFloat(cfg.costePorGramo)||0.03;if(l.filamentoId&&l.filamentoId!=='__manual__'){const fil=filaments.find(f=>f.id===l.filamentoId);if(fil)cg=(parseFloat(fil.precioPorKg)||0)/1000;}mcInit+=p*cg;}
-  const ecInit=tiempoInit*(parseFloat(cfg.costePorHora)||0.15);const ppInit=parseFloat(x.costePostprocesado||0);const tcInit=mcInit+ecInit+ppInit;const fpInit=x.gananciaManual?tcInit+parseFloat(x.gananciaManual):tcInit*(1+(parseFloat(cfg.margen)||30)/100);
+  const ecInit=tiempoInit*(parseFloat(cfg.costePorHora)||0.15);const ppInit=parseFloat(x.costePostprocesado||0);const pdInit=parseFloat(x.costeDiseno||0);const tcInit=mcInit+ecInit+ppInit+pdInit;const fpInit=x.gananciaManual?tcInit+parseFloat(x.gananciaManual):tcInit*(1+(parseFloat(cfg.margen)||30)/100);
   const c={mc:mcInit,ec:ecInit,pp:ppInit,tc:tcInit,fp:fpInit,profit:fpInit-tcInit};
   const impOpts=[{value:'',label:'Sin impresora (200W por defecto)'},..._cache.impresoras.filter(i=>i.estado==='activa').map(i=>({value:i.id,label:`${i.nombre}${i.consumoW?' · '+i.consumoW+'W':''}`}))];
   const impSelVal=x.impresoraId||'';
@@ -1796,7 +1799,7 @@ ${fld('Estado','estado',x.estado||'pendiente','text',estOpts)}${fld('Fecha','fec
   <div id="imp-preview" style="font-size:11px;color:var(--text4);margin-top:5px;${impPreviewTxt?'':'display:none'}">${impPreviewTxt}</div>
 </div>
 <div class="grid2">
-${fld('Coste postprocesado (€)','costePostprocesado',x.costePostprocesado||'0','number')}${fld('Ganancia manual (€) — vacío = margen','gananciaManual',x.gananciaManual||'','number')}
+${fld('Coste diseño (€)','costeDiseno',x.costeDiseno||'0','number')}${fld('Coste postprocesado (€)','costePostprocesado',x.costePostprocesado||'0','number')}${fld('Ganancia manual (€) — vacío = margen','gananciaManual',x.gananciaManual||'','number')}
 </div>${fld('Notas','notas',x.notas||'','textarea')}
 
 <div style="margin:16px 0 12px">
@@ -1872,7 +1875,7 @@ async function uploadFotoIfNeeded(orderId){
 
 function attachPedidoEvents(){setTimeout(()=>{
   renderLineas();
-  document.querySelectorAll('[name="costePostprocesado"],[name="gananciaManual"]').forEach(el=>el.addEventListener('input',refreshCostPreview));
+  document.querySelectorAll('[name="costePostprocesado"],[name="costeDiseno"],[name="gananciaManual"]').forEach(el=>el.addEventListener('input',refreshCostPreview));
   const impSel=document.querySelector('[name="impresoraId"]');
   if(impSel) impSel.addEventListener('change',()=>{
     refreshCostPreview();
@@ -1904,7 +1907,7 @@ function editO(id){
 }
 
 async function saveO(id){
-  const d=gfd(['clienteId','proyecto','estado','notas','fecha','gananciaManual','costePostprocesado','impresoraId']);
+  const d=gfd(['clienteId','proyecto','estado','notas','fecha','gananciaManual','costePostprocesado','costeDiseno','impresoraId']);
   if(!d.proyecto.trim()){alert('Proyecto obligatorio');return;}
   if(_lineas.length===0){alert('Añade al menos una pieza');return;}
   setLoading('save-o-btn',true);
@@ -1953,6 +1956,7 @@ async function saveO(id){
     fecha:d.fecha||null,
     ganancia_manual:d.gananciaManual||null,
     coste_postprocesado:d.costePostprocesado||0,
+    coste_diseno:d.costeDiseno||0,
     pres_num:presNum,
     lineas:_lineas,
     factura_num:prevOrder?.facturaNum||null,
@@ -1966,7 +1970,7 @@ async function saveO(id){
   row.id = rowId;
   const ok=await dbSave('pedidos',row);
   if(ok){
-    const mapped={id:row.id,clienteId:d.clienteId,proyecto:d.proyecto,material:mainMat,peso:pesoTotal,tiempoImpresion:tiempoTotal,estado:d.estado,notas:d.notas,fecha:d.fecha,gananciaManual:d.gananciaManual,costePostprocesado:d.costePostprocesado,presNum:presNum,facturaNum:prevOrder?.facturaNum||null,facturaFecha:prevOrder?.facturaFecha||null,lineas:_lineas,fotoUrl:fotoUrl||null,fotoPath:_fotoPath||null,impresoraId:d.impresoraId||null,cobrado:prevOrder?.cobrado||false,fechaCobrado:prevOrder?.fechaCobrado||null};
+    const mapped={id:row.id,clienteId:d.clienteId,proyecto:d.proyecto,material:mainMat,peso:pesoTotal,tiempoImpresion:tiempoTotal,estado:d.estado,notas:d.notas,fecha:d.fecha,gananciaManual:d.gananciaManual,costePostprocesado:d.costePostprocesado,costeDiseno:d.costeDiseno||0,presNum:presNum,facturaNum:prevOrder?.facturaNum||null,facturaFecha:prevOrder?.facturaFecha||null,lineas:_lineas,fotoUrl:fotoUrl||null,fotoPath:_fotoPath||null,impresoraId:d.impresoraId||null,cobrado:prevOrder?.cobrado||false,fechaCobrado:prevOrder?.fechaCobrado||null};
     if(id)_cache.pedidos=_cache.pedidos.map(o=>o.id===id?mapped:o);else _cache.pedidos.push(mapped);
     closeModal();render();refreshAlerts();showToast('✅ Pedido guardado','ok');
   }
@@ -2106,7 +2110,7 @@ ${fld('Email de contacto','biz_email',cfg.email||'')}
 <div style="font-size:13px;color:var(--text4);line-height:1.9">
 <b style="color:var(--text3)">Coste material</b> = peso × (€/kg filamento ÷ 1000)<br>
 <b style="color:var(--text3)">Coste eléctrico</b> = kW impresora × horas × €/kWh<br>
-<b style="color:var(--text3)">Coste total</b> = mat + elec + postprocesado<br><br>
+<b style="color:var(--text3)">Coste total</b> = mat + elec + diseño + postprocesado<br><br>
 <b style="color:#3b82f6">Con ganancia manual:</b><br>Precio = coste + ganancia<br><br>
 <b style="color:#3b82f6">Con margen:</b><br>Precio = coste × (1 + margen%)
 </div>
