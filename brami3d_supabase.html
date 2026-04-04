@@ -2030,7 +2030,6 @@ async function saveO(id){
   const fotoUrl = await uploadFotoIfNeeded(rowId);
 
   // Descontar filamento del stock — SOLO en pedidos nuevos (no al editar)
-  // Editar un pedido no cambia el stock para evitar dobles descuentos
   if(!id && pesoTotal > 0){
     if(mainFilId){
       const f=_cache.filamentos.find(x=>x.id===mainFilId);
@@ -2045,6 +2044,20 @@ async function saveO(id){
         const nv=Math.max(0, parseFloat(f.pesoRestante)-pesoTotal);
         await dbSave('filamentos',{id:f.id, peso_restante:nv});
         _cache.filamentos=_cache.filamentos.map(x=>x.id===f.id?{...x,pesoRestante:nv}:x);
+      }
+    }
+  }
+
+  // Sumar horas de impresión a la impresora — SOLO en pedidos nuevos
+  if(!id && tiempoTotal > 0 && d.impresoraId){
+    const imp=_cache.impresoras.find(x=>x.id===d.impresoraId);
+    if(imp){
+      const nuevasHoras=Math.round(((parseFloat(imp.horasUso)||0)+tiempoTotal)*100)/100;
+      await dbSave('impresoras',{id:imp.id,nombre:imp.nombre,modelo:imp.modelo,estado:imp.estado,horas_uso:nuevasHoras,desgaste:imp.desgaste,consumo_w:imp.consumoW||0});
+      _cache.impresoras=_cache.impresoras.map(x=>x.id===imp.id?{...x,horasUso:nuevasHoras}:x);
+      // Alerta si supera 500h
+      if(nuevasHoras>=500&&(parseFloat(imp.horasUso)||0)<500){
+        showToast(`⚠️ ${imp.nombre} ha superado 500h — revisa el mantenimiento`,'err',6000);
       }
     }
   }
