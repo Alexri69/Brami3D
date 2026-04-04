@@ -1686,6 +1686,7 @@ function pgPedidos(){
   const rowHl={pendiente:'rgba(245,158,11,.06)',imprimiendo:'rgba(59,130,246,.06)',terminado:'rgba(16,185,129,.04)',entregado:'rgba(139,92,246,.05)',cobrado:'rgba(34,197,94,.06)'};
   const chips=ESTADOS.map(e=>`<button class="chip${_pFilt===e?' active':''}" onclick="_pFilt='${e}';render()">${e}</button>`).join('');
   const fl=orders.filter(o=>{
+    if(_pFilt==='cobrado') return o.cobrado===true;
     if(_pFilt!=='todos'&&o.estado!==_pFilt)return false;
     if(_pSearch&&!o.proyecto?.toLowerCase().includes(_pSearch.toLowerCase()))return false;
     return true;
@@ -1853,7 +1854,19 @@ ${fld('Estado','estado',x.estado||'pendiente','text',estOpts)}${fld('Fecha','fec
 <div class="grid2">
 ${fld('Coste diseño (€)','costeDiseno',x.costeDiseno||'0','number')}${fld('Coste postprocesado (€)','costePostprocesado',x.costePostprocesado||'0','number')}
 </div>
-${fld('Ganancia manual (€) — vacío = margen','gananciaManual',x.gananciaManual||'','number')}${fld('Notas','notas',x.notas||'','textarea')}
+${fld('Ganancia manual (€) — vacío = margen','gananciaManual',x.gananciaManual||'','number')}
+<div style="background:var(--bg4);border:1.5px solid ${x.cobrado?'rgba(34,197,94,.4)':'var(--border2)'};border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
+  <div>
+    <div style="font-size:14px;font-weight:700;color:${x.cobrado?'#4ade80':'var(--text2)'}">${x.cobrado?'💰 Pedido cobrado':'💰 Marcar como cobrado'}</div>
+    ${x.cobrado&&x.fechaCobrado?`<div style="font-size:11px;color:var(--text4);margin-top:2px">Cobrado el ${x.fechaCobrado}</div>`:'<div style="font-size:11px;color:var(--text4);margin-top:2px">Al marcar como cobrado se generará la factura</div>'}
+  </div>
+  <label style="position:relative;display:inline-block;width:44px;height:24px;flex-shrink:0">
+    <input type="checkbox" name="cobradoCheck" ${x.cobrado?'checked':''} style="opacity:0;width:0;height:0">
+    <span style="position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:${x.cobrado?'#22c55e':'#1a2e4a'};border-radius:24px;transition:.3s"></span>
+    <span style="position:absolute;content:'';height:18px;width:18px;left:${x.cobrado?'23px':'3px'};bottom:3px;background:white;border-radius:50%;transition:.3s"></span>
+  </label>
+</div>
+${fld('Notas','notas',x.notas||'','textarea')}
 
 <div style="margin:16px 0 12px">
   <div style="font-size:12px;font-weight:800;color:#2e4a6a;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">📷 Foto de referencia</div>
@@ -1961,6 +1974,11 @@ function editO(id){
 
 async function saveO(id){
   const d=gfd(['clienteId','proyecto','estado','notas','fecha','gananciaManual','costePostprocesado','costeDiseno','impresoraId']);
+  const cobradoCheck=document.querySelector('[name="cobradoCheck"]')?.checked||false;
+  const eraYaCobrado=prevOrder?.cobrado||false;
+  const ahora=today();
+  const nuevoCobrado=cobradoCheck;
+  const fechaCobradoFinal=nuevoCobrado?(eraYaCobrado?prevOrder?.fechaCobrado:ahora):null;
   if(!d.proyecto.trim()){alert('Proyecto obligatorio');return;}
   if(_lineas.length===0){alert('Añade al menos una pieza');return;}
   setLoading('save-o-btn',true);
@@ -2015,17 +2033,19 @@ async function saveO(id){
     factura_num:prevOrder?.facturaNum||null,
     factura_fecha:prevOrder?.facturaFecha||null,
     impresora_id:d.impresoraId||null,
-    cobrado:prevOrder?.cobrado||false,
-    fecha_cobrado:prevOrder?.fechaCobrado||null,
+    cobrado:nuevoCobrado,
+    fecha_cobrado:fechaCobradoFinal,
     foto_url:fotoUrl||null,
     foto_path:_fotoPath||null,
   };
   row.id = rowId;
   const ok=await dbSave('pedidos',row);
   if(ok){
-    const mapped={id:row.id,clienteId:d.clienteId,proyecto:d.proyecto,material:mainMat,peso:pesoTotal,tiempoImpresion:tiempoTotal,estado:d.estado,notas:d.notas,fecha:d.fecha,gananciaManual:d.gananciaManual,costePostprocesado:d.costePostprocesado,costeDiseno:d.costeDiseno||0,presNum:presNum,facturaNum:prevOrder?.facturaNum||null,facturaFecha:prevOrder?.facturaFecha||null,lineas:_lineas,fotoUrl:fotoUrl||null,fotoPath:_fotoPath||null,impresoraId:d.impresoraId||null,cobrado:prevOrder?.cobrado||false,fechaCobrado:prevOrder?.fechaCobrado||null};
+    const mapped={id:row.id,clienteId:d.clienteId,proyecto:d.proyecto,material:mainMat,peso:pesoTotal,tiempoImpresion:tiempoTotal,estado:d.estado,notas:d.notas,fecha:d.fecha,gananciaManual:d.gananciaManual,costePostprocesado:d.costePostprocesado,costeDiseno:d.costeDiseno||0,presNum:presNum,facturaNum:prevOrder?.facturaNum||null,facturaFecha:prevOrder?.facturaFecha||null,lineas:_lineas,fotoUrl:fotoUrl||null,fotoPath:_fotoPath||null,impresoraId:d.impresoraId||null,cobrado:nuevoCobrado,fechaCobrado:fechaCobradoFinal};
     if(id)_cache.pedidos=_cache.pedidos.map(o=>o.id===id?mapped:o);else _cache.pedidos.unshift(mapped);
     closeModal();render();refreshAlerts();showToast('✅ Pedido guardado','ok');
+    // Si se acaba de marcar como cobrado, generar factura
+    if(nuevoCobrado&&!eraYaCobrado) setTimeout(()=>genFactura(row.id),400);
   }
 }
 
