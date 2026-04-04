@@ -79,12 +79,32 @@ body.light{
   --border2:   #cbd5e1;
   --text:      #334155;
   --text2:     #0f172a;
-  --text3:     #64748b;
-  --text4:     #94a3b8;
+  --text3:     #475569;
+  --text4:     #64748b;
   --text5:     #94a3b8;
   --accent:    #2563eb;
   --topbar-bg: rgba(248,250,252,.95);
 }
+
+body.light table th{background:var(--bg3);color:var(--text4)}
+body.light table td{color:var(--text3)}
+body.light .mob-card{background:#ffffff;border-color:#e2e8f0}
+body.light .card{background:#ffffff;border-color:#e2e8f0;box-shadow:0 2px 12px rgba(0,0,0,.06)}
+body.light .nav-btn{color:var(--text4)}
+body.light .nav-btn.active{color:#2563eb;background:rgba(37,99,235,.08)}
+body.light #sidebar{background:#f8fafc;border-right-color:#e2e8f0}
+body.light .chip{border-color:#e2e8f0;color:var(--text4)}
+body.light .num-badge{background:rgba(37,99,235,.1);color:#2563eb}
+body.light input,body.light select,body.light textarea{background:#f8fafc;border-color:#e2e8f0;color:#0f172a}
+body.light .modal{background:#ffffff;border-color:#e2e8f0}
+body.light .cost-item{background:#f8fafc;border-color:#e2e8f0}
+body.light .cost-box{background:#f1f5f9;border-color:#e2e8f0}
+body.light .dropzone{background:#f8fafc;border-color:#e2e8f0}
+body.light .progress-track{background:#e2e8f0}
+body.light .warn-box{background:rgba(239,68,68,.08)}
+body.light #mob-nav{background:#ffffff;border-top-color:#e2e8f0}
+body.light #mob-nav button{color:#94a3b8}
+body.light #mob-nav button.active{color:#2563eb}
 
 body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
 ::-webkit-scrollbar{width:5px;height:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#1e3352;border-radius:99px}
@@ -180,12 +200,12 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
   #sidebar{display:none!important}
   #mob-nav{
     display:flex;position:fixed;bottom:0;left:0;right:0;
-    background:#070e1c;border-top:1px solid #132540;
+    background:var(--bg);border-top:1px solid var(--border);
     z-index:100;padding:6px 0 max(6px,env(safe-area-inset-bottom));
   }
   #mob-nav button{
     flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
-    background:none;border:none;color:#3d5a7a;font-size:9px;font-weight:600;
+    background:none;border:none;color:var(--text4);font-size:9px;font-weight:600;
     padding:6px 2px;transition:color .18s;letter-spacing:.3px;text-transform:uppercase;
   }
   #mob-nav button .mico{font-size:20px;line-height:1}
@@ -200,11 +220,11 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
   .page-title{font-size:20px}
   .page-header{margin-bottom:16px}
   /* Cards for mobile lists */
-  .mob-card{background:linear-gradient(145deg,#0d1e36,#0a1828);border:1px solid #132540;border-radius:14px;padding:16px;margin-bottom:10px}
+  .mob-card{background:linear-gradient(145deg,#0d1e36,#0a1828);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px}
   .mob-card-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-  .mob-card-label{font-size:10px;color:#2e4a6a;text-transform:uppercase;letter-spacing:.8px;font-weight:700}
-  .mob-card-val{font-size:13px;color:#7a9ab8;text-align:right}
-  .mob-card-actions{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid #132540}
+  .mob-card-label{font-size:10px;color:var(--text5);text-transform:uppercase;letter-spacing:.8px;font-weight:700}
+  .mob-card-val{font-size:13px;color:var(--text3);text-align:right}
+  .mob-card-actions{display:flex;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
   .mob-card-actions button{flex:1;padding:10px;font-size:13px;border-radius:10px}
   /* Bigger touch targets */
   .btn-icon{padding:10px!important;font-size:18px!important;opacity:.7!important}
@@ -226,7 +246,7 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
       <svg width="38" height="38" viewBox="0 0 38 38" fill="none"><rect width="38" height="38" rx="9" fill="#1d4ed8"/><polygon points="19,7 30,13 30,25 19,31 8,25 8,13" fill="none" stroke="#93c5fd" stroke-width="1.5"/><polygon points="19,7 30,13 19,19 8,13" fill="#3b82f6" opacity="0.8"/><polygon points="8,13 19,19 19,31 8,25" fill="#2563eb"/><polygon points="30,13 19,19 19,31 30,25" fill="#1d4ed8"/></svg>
       <div><div style="font-size:24px;font-weight:900;color:#f1f5f9;letter-spacing:-1.5px">B3D</div><div style="font-size:10px;color:#3b82f6;font-weight:600;letter-spacing:2px;text-transform:uppercase">Print Studio</div></div>
     </div>
-    <p style="color:#3d5a7a;font-size:13px;margin-bottom:28px">Gestión profesional de impresión 3D</p>
+    <p style="color:var(--text4);font-size:13px;margin-bottom:28px">Gestión profesional de impresión 3D</p>
     <div class="tabs">
       <button class="tab active" id="tab-login" onclick="switchTab('login')">Iniciar sesión</button>
       <button class="tab" id="tab-signup" onclick="switchTab('signup')">Registrarse</button>
@@ -237,7 +257,7 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
     <div id="a-err" class="err-msg hidden"></div>
     <button class="btn-primary" style="width:100%;margin-top:4px;justify-content:center" id="auth-btn" onclick="doAuth()">Entrar</button>
     <div id="reset-wrap" style="text-align:center;margin-top:14px">
-      <button onclick="doReset()" style="background:none;border:none;color:#3d5a7a;font-size:12px;cursor:pointer;text-decoration:underline">¿Olvidaste tu contraseña?</button>
+      <button onclick="doReset()" style="background:none;border:none;color:var(--text4);font-size:12px;cursor:pointer;text-decoration:underline">¿Olvidaste tu contraseña?</button>
     </div>
   </div>
 </div>
@@ -487,7 +507,7 @@ async function bootApp(){
       refreshAlerts();
     }).catch(()=>{});
   } else {
-    $('content').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:60vh"><div style="text-align:center"><div class="loading-spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto 16px"></div><div style="color:#3d5a7a;font-size:13px">Cargando...</div></div></div>';
+    $('content').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:60vh"><div style="text-align:center"><div class="loading-spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto 16px"></div><div style="color:var(--text4);font-size:13px">Cargando...</div></div></div>';
     try {
       await loadAll(false);
       saveLocalCache();
@@ -671,7 +691,7 @@ function mobMore(){
   openModal(msh('Menú',`
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
       ${[{id:'impresoras',lbl:'Impresoras',ico:'🖨️'},{id:'piezas',lbl:'Piezas',ico:'🧩'},{id:'gastos',lbl:'Gastos',ico:'💸'},{id:'archivos',lbl:'Archivos',ico:'📁'},{id:'configuracion',lbl:'Configuración',ico:'⚙️'}].map(n=>`
-        <button onclick="goTo('${n.id}');closeModal()" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px;background:#0f1e35;border:1.5px solid #132540;border-radius:14px;color:#7a9ab8;font-size:13px;font-weight:600">
+        <button onclick="goTo('${n.id}');closeModal()" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px;background:var(--bg4);border:1.5px solid #132540;border-radius:14px;color:var(--text3);font-size:13px;font-weight:600">
           <span style="font-size:28px">${n.ico}</span>${n.lbl}
         </button>`).join('')}
     </div>
@@ -780,7 +800,7 @@ document.addEventListener('click', e=>{
 function render(){
   const map={dashboard:pgDashboard,clientes:pgClientes,pedidos:pgPedidos,impresoras:pgImpresoras,filamentos:pgFilamentos,piezas:pgPiezas,archivos:pgArchivos,gastos:pgGastos,configuracion:pgConfig};
   const fn=map[PAGE];
-  $('content').innerHTML=fn?fn():'<p style="color:#3d5a7a">Página no encontrada</p>';
+  $('content').innerHTML=fn?fn():'<p style="color:var(--text4)">Página no encontrada</p>';
   if(PAGE==='archivos') initDZ();
 }
 
@@ -803,7 +823,7 @@ function fld(label,name,val,type='text',opts=null){
   const id='ff_'+name;
   if(opts){const o=opts.map(o=>`<option value="${esc(o.value??o)}"${(o.value??o)==String(val??'')?' selected':''}>${esc(o.label??o)}</option>`).join('');return`<div class="field"><label for="${id}">${esc(label)}</label><select id="${id}" name="${name}">${o}</select></div>`;}
   if(type==='textarea')return`<div class="field"><label for="${id}">${esc(label)}</label><textarea id="${id}" name="${name}">${esc(val)}</textarea></div>`;
-  if(type==='color')return`<div class="field"><label for="${id}">${esc(label)}</label><input id="${id}" name="${name}" type="color" value="${esc(val)}" style="width:100%;height:42px;padding:2px 4px;border-radius:8px;background:#0f1e35;border:1.5px solid #1a2e4a;cursor:pointer"></div>`;
+  if(type==='color')return`<div class="field"><label for="${id}">${esc(label)}</label><input id="${id}" name="${name}" type="color" value="${esc(val)}" style="width:100%;height:42px;padding:2px 4px;border-radius:8px;background:var(--bg4);border:1.5px solid var(--border2);cursor:pointer"></div>`;
   return`<div class="field"><label for="${id}">${esc(label)}</label><input id="${id}" name="${name}" type="${type}" value="${esc(val??'')}"></div>`;
 }
 function gfd(fields){
@@ -1095,7 +1115,7 @@ function abrirInforme(){
   const anioActual = now.getFullYear();
   const anioOpts = [anioActual-1, anioActual].map(y=>`<option value="${y}"${y===anioActual?' selected':''}>${y}</option>`).join('');
   openModal(msh('Exportar informe mensual',`
-    <p style="color:#3d5a7a;font-size:13px;margin-bottom:20px">Selecciona el mes y año para generar el informe en PDF.</p>
+    <p style="color:var(--text4);font-size:13px;margin-bottom:20px">Selecciona el mes y año para generar el informe en PDF.</p>
     <div class="grid2">
       <div class="field"><label>Mes</label><select name="inf-mes">${mesOpts}</select></div>
       <div class="field"><label>Año</label><select name="inf-anio">${anioOpts}</select></div>
@@ -1218,7 +1238,7 @@ th:last-child{text-align:right}
     <h1>Informe mensual</h1>
     <div class="sub">${mesNombre} ${anio}</div>
   </div>
-  <div class="date">Generado el<br><b style="color:#e2e8f0">${dateStr}</b></div>
+  <div class="date">Generado el<br><b style="color:var(--text2)">${dateStr}</b></div>
 </div>
 
 <div class="stats">
@@ -1295,13 +1315,13 @@ function pgDashboard(){
   const impCount=orders.filter(o=>o.estado==='imprimiendo').length;
   const recent=[...orders].sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||'')).slice(0,6);
 
-  const stC=(lbl,val,ico,col,sub)=>`<div class="card stat-card" style="position:relative;overflow:hidden;padding:22px 24px"><div style="position:absolute;top:0;left:0;right:0;height:3px;background:${col};opacity:.6;border-radius:16px 16px 0 0"></div><div style="font-size:10px;font-weight:800;color:#2e4a6a;text-transform:uppercase;letter-spacing:1.4px;margin-bottom:12px">${lbl}</div><div style="color:${col};font-size:28px;font-weight:900;letter-spacing:-1.5px;font-family:'Courier New',monospace;line-height:1">${val}</div>${sub?`<div style="font-size:11px;color:#3d5a7a;margin-top:8px;font-weight:500">${sub}</div>`:''}</div>`;
+  const stC=(lbl,val,ico,col,sub)=>`<div class="card stat-card" style="position:relative;overflow:hidden;padding:22px 24px"><div style="position:absolute;top:0;left:0;right:0;height:3px;background:${col};opacity:.6;border-radius:16px 16px 0 0"></div><div style="font-size:10px;font-weight:800;color:var(--text5);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:12px">${lbl}</div><div style="color:${col};font-size:28px;font-weight:900;letter-spacing:-1.5px;font-family:'Courier New',monospace;line-height:1">${val}</div>${sub?`<div style="font-size:11px;color:var(--text4);margin-top:8px;font-weight:500">${sub}</div>`:''}</div>`;
 
-  const bars=mks.length===0?'<p style="color:#2e4a6a;font-size:13px">Sin pedidos pagados aún</p>':`<div class="bar-chart">${mks.map(m=>`<div class="bar-col"><div style="font-size:10px;color:#2e4a6a;font-family:monospace">${months[m].i>0?months[m].i.toFixed(0):''}</div><div class="bar" style="height:${Math.max(4,(months[m].i/maxI)*88)}px"></div></div>`).join('')}</div><div style="display:flex;gap:8px;margin-top:8px">${mks.map(m=>`<div style="flex:1;text-align:center;font-size:9px;color:#2e4a6a">${m.slice(5)}/${m.slice(2,4)}</div>`).join('')}</div>`;
+  const bars=mks.length===0?'<p style="color:var(--text5);font-size:13px">Sin pedidos pagados aún</p>':`<div class="bar-chart">${mks.map(m=>`<div class="bar-col"><div style="font-size:10px;color:var(--text5);font-family:monospace">${months[m].i>0?months[m].i.toFixed(0):''}</div><div class="bar" style="height:${Math.max(4,(months[m].i/maxI)*88)}px"></div></div>`).join('')}</div><div style="display:flex;gap:8px;margin-top:8px">${mks.map(m=>`<div style="flex:1;text-align:center;font-size:9px;color:var(--text5)">${m.slice(5)}/${m.slice(2,4)}</div>`).join('')}</div>`;
 
-  const eList=Object.entries(byE).length===0?'<p style="color:#2e4a6a;font-size:13px">Sin pedidos</p>':Object.entries(byE).map(([k,v])=>`<button onclick="goToEstado('${k}')" style="display:flex;justify-content:space-between;align-items:center;width:100%;padding:10px 12px;margin-bottom:6px;background:rgba(255,255,255,.02);border:1px solid #132540;border-radius:10px;cursor:pointer;transition:all .18s;text-align:left" onmouseover="this.style.background='rgba(59,130,246,.08)';this.style.borderColor='#2563eb40'" onmouseout="this.style.background='rgba(255,255,255,.02)';this.style.borderColor='#132540'">${mkBadge(k)}<span style="color:#93c5fd;font-weight:800;font-size:18px;font-family:monospace">${v}</span></button>`).join('');
+  const eList=Object.entries(byE).length===0?'<p style="color:var(--text5);font-size:13px">Sin pedidos</p>':Object.entries(byE).map(([k,v])=>`<button onclick="goToEstado('${k}')" style="display:flex;justify-content:space-between;align-items:center;width:100%;padding:10px 12px;margin-bottom:6px;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:all .18s;text-align:left" onmouseover="this.style.background='rgba(59,130,246,.08)';this.style.borderColor='#2563eb40'" onmouseout="this.style.background='rgba(255,255,255,.02)';this.style.borderColor='#132540'">${mkBadge(k)}<span style="color:#93c5fd;font-weight:800;font-size:18px;font-family:monospace">${v}</span></button>`).join('');
 
-  const recent6=recent.map(o=>{const c=calcOrderCosts(o,cfg);return`<tr><td><span class="num-badge">${esc(o.presNum||'—')}</span></td><td><span style="color:#e2e8f0;font-weight:700">${esc(o.proyecto)}</span></td><td style="color:#7a9ab8">${esc(o.material)}</td><td style="color:#34d399;font-weight:800">${c.fp.toFixed(2)}${cfg.moneda||'€'}</td><td>${mkBadge(o.estado)}</td><td style="color:#2e4a6a">${esc(o.fecha)}</td></tr>`;}).join('');
+  const recent6=recent.map(o=>{const c=calcOrderCosts(o,cfg);return`<tr><td><span class="num-badge">${esc(o.presNum||'—')}</span></td><td><span style="color:var(--text2);font-weight:700">${esc(o.proyecto)}</span></td><td style="color:var(--text3)">${esc(o.material)}</td><td style="color:#34d399;font-weight:800">${c.fp.toFixed(2)}${cfg.moneda||'€'}</td><td>${mkBadge(o.estado)}</td><td style="color:var(--text5)">${esc(o.fecha)}</td></tr>`;}).join('');
 
   // Filament alerts — less than 200g remaining
   const lowFils=_cache.filamentos.filter(f=>parseFloat(f.pesoRestante)<250);
@@ -1317,7 +1337,7 @@ function pgDashboard(){
         return`<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px;background:rgba(255,255,255,.03);border:1px solid #1a1a00;border-radius:10px;padding:10px 14px">
           <span style="width:12px;height:12px;border-radius:50%;background:${esc(f.color||'#888')};flex-shrink:0;display:inline-block;border:1px solid rgba(255,255,255,.2)"></span>
           <div style="flex:1;min-width:0">
-            <div style="font-size:13px;font-weight:700;color:#e2eaf4">${esc(f.tipo)} · ${esc(f.marca)}</div>
+            <div style="font-size:13px;font-weight:700;color:var(--text2)">${esc(f.tipo)} · ${esc(f.marca)}</div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
               <div style="flex:1;height:5px;background:#1e293b;border-radius:99px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${col};border-radius:99px"></div></div>
               <span style="font-size:11px;color:${col};font-weight:700;white-space:nowrap">${parseFloat(f.pesoRestante).toFixed(0)}g restantes</span>
@@ -1354,10 +1374,10 @@ function pgDashboard(){
         const c=calcOrderCosts(o,cfg);
         return`<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;background:rgba(255,255,255,.02);border:1px solid rgba(239,68,68,.15);border-radius:10px;padding:10px 14px">
           <div style="flex:1;min-width:0">
-            <div style="font-size:13px;font-weight:700;color:#e2eaf4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(o.proyecto)}</div>
+            <div style="font-size:13px;font-weight:700;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(o.proyecto)}</div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:3px">
               ${mkBadge(o.estado)}
-              ${cl.nombre?`<span style="font-size:11px;color:#3d5a7a">${esc(cl.nombre)}</span>`:''}
+              ${cl.nombre?`<span style="font-size:11px;color:var(--text4)">${esc(cl.nombre)}</span>`:''}
               <span style="font-size:11px;color:#f87171;font-weight:700">⏱ ${dias} día${dias!==1?'s':''}</span>
             </div>
           </div>
@@ -1385,11 +1405,11 @@ ${pendAlert}
 ${filAlert}
 <div class="flexwrap" style="margin-top:18px">
   <div class="card" style="flex:2;min-width:260px"><div class="card-title">Ingresos por mes</div>${bars}</div>
-  <div class="card" style="flex:1;min-width:200px"><div class="card-title" style="margin-bottom:12px">Por estado <span style="font-size:9px;color:#2e4a6a;font-weight:600;text-transform:none;letter-spacing:0;margin-left:4px">— toca para filtrar</span></div>${eList}</div>
+  <div class="card" style="flex:1;min-width:200px"><div class="card-title" style="margin-bottom:12px">Por estado <span style="font-size:9px;color:var(--text5);font-weight:600;text-transform:none;letter-spacing:0;margin-left:4px">— toca para filtrar</span></div>${eList}</div>
 </div>
 <div class="card" style="margin-top:18px;padding:0;overflow:hidden">
-  <div style="padding:18px 22px;border-bottom:1px solid #0f1e35;display:flex;align-items:center;gap:10px"><span>🕐</span><span class="card-title" style="margin:0">Últimos pedidos</span></div>
-  <div style="overflow-x:auto"><table><thead><tr><th>Nº</th><th>Proyecto</th><th>Material</th><th>Precio</th><th>Estado</th><th>Fecha</th></tr></thead><tbody>${recent6.length?recent6:'<tr><td colspan="6" style="text-align:center;color:#2e4a6a;padding:32px">Sin pedidos aún</td></tr>'}</tbody></table></div>
+  <div style="padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px"><span>🕐</span><span class="card-title" style="margin:0">Últimos pedidos</span></div>
+  <div style="overflow-x:auto"><table><thead><tr><th>Nº</th><th>Proyecto</th><th>Material</th><th>Precio</th><th>Estado</th><th>Fecha</th></tr></thead><tbody>${recent6.length?recent6:'<tr><td colspan="6" style="text-align:center;color:var(--text5);padding:32px">Sin pedidos aún</td></tr>'}</tbody></table></div>
 </div>`;
 }
 
@@ -1402,7 +1422,7 @@ function pgClientes(){
   const isMob=window.innerWidth<=768;
 
   const rows=items.length===0
-    ? (isMob?'<p style="color:#2e4a6a;text-align:center;padding:32px">Sin clientes</p>':'<tr><td colspan="6" style="text-align:center;color:#2e4a6a;padding:28px">Sin clientes</td></tr>')
+    ? (isMob?'<p style="color:var(--text5);text-align:center;padding:32px">Sin clientes</p>':'<tr><td colspan="6" style="text-align:center;color:var(--text5);padding:28px">Sin clientes</td></tr>')
     : isMob
       ? items.map(c=>`
           <div class="mob-card">
@@ -1520,7 +1540,7 @@ function verHistorial(clienteId){
 // ═══════════════════════════════════════════════
 function pgImpresoras(){
   const items=_cache.impresoras;
-  const cards=items.length===0?'<p style="color:#3d5a7a">Sin impresoras</p>':items.map(p=>{
+  const cards=items.length===0?'<p style="color:var(--text4)">Sin impresoras</p>':items.map(p=>{
     const deg=parseFloat(p.desgaste)||0;const bc=deg>80?'#ef4444':deg>50?'#f59e0b':'#22c55e';
     const cfg=_cache.cfg;
     const consumoW=parseFloat(p.consumoW)||0;
@@ -1547,7 +1567,7 @@ function impresoraFrm(x={}){
     +`<div class="field">
         <label>Consumo eléctrico (W)</label>
         <input name="consumoW" type="text" inputmode="decimal" value="${esc(x.consumoW||'')}" placeholder="Ej: 200" oninput="updConsumoPreview(this.value)">
-        <div id="consumo-preview" style="font-size:11px;color:#3d5a7a;margin-top:6px">
+        <div id="consumo-preview" style="font-size:11px;color:var(--text4);margin-top:6px">
           ${consumoW>0?`⚡ ${consumoW}W → <b style="color:#60a5fa">${costeWh.toFixed(4)}€/h</b> con electricidad a ${costePorHora}€/kWh`:'Introduce los vatios de tu impresora'}
         </div>
       </div>`;
@@ -1655,15 +1675,15 @@ async function doDelF(id){ if(await dbDel('filamentos',id)){_cache.filamentos=_c
 // ═══════════════════════════════════════════════
 function pgPiezas(){
   const items=_cache.piezas;
-  const cards=items.length===0?'<p style="color:#3d5a7a">Sin piezas guardadas</p>':items.map(p=>`
+  const cards=items.length===0?'<p style="color:var(--text4)">Sin piezas guardadas</p>':items.map(p=>`
 <div class="card" style="min-width:200px;flex:1 1 200px"><div style="font-size:32px;margin-bottom:10px">🧩</div>
-<div style="font-weight:700;color:#e2eaf4;margin-bottom:6px">${esc(p.nombre)}</div>
-<div style="font-size:13px;color:#3d5a7a;display:flex;flex-direction:column;gap:3px;margin-bottom:14px">
-<span>Material: <b style="color:#7a9ab8">${esc(p.material)}</b></span><span>Peso: <b style="color:#7a9ab8">${esc(p.peso)}g</b></span>
-<span>Tiempo: <b style="color:#7a9ab8">${esc(p.tiempoImpresion)}h</b></span><span>Sugerido: <b style="color:#22c55e">${esc(p.precioSugerido)}€</b></span></div>
+<div style="font-weight:700;color:var(--text2);margin-bottom:6px">${esc(p.nombre)}</div>
+<div style="font-size:13px;color:var(--text4);display:flex;flex-direction:column;gap:3px;margin-bottom:14px">
+<span>Material: <b style="color:var(--text3)">${esc(p.material)}</b></span><span>Peso: <b style="color:var(--text3)">${esc(p.peso)}g</b></span>
+<span>Tiempo: <b style="color:var(--text3)">${esc(p.tiempoImpresion)}h</b></span><span>Sugerido: <b style="color:#22c55e">${esc(p.precioSugerido)}€</b></span></div>
 <div style="display:flex;gap:8px"><button class="btn-secondary" onclick="editPz('${p.id}')">Editar</button><button class="btn-icon" onclick="delPz('${p.id}')">🗑️</button></div></div>`).join('');
   return`<div class="page-header"><h2 class="page-title">Piezas</h2><button class="btn-primary" onclick="editPz(null)">+ Nueva pieza</button></div>
-<p style="color:#3d5a7a;font-size:13px;margin-bottom:16px">Guarda piezas frecuentes para auto-rellenar pedidos.</p>
+<p style="color:var(--text4);font-size:13px;margin-bottom:16px">Guarda piezas frecuentes para auto-rellenar pedidos.</p>
 <div class="flexwrap">${cards}</div>`;
 }
 function piezaFrm(x={}){ return fld('Nombre *','nombre',x.nombre||'')+fld('Material','material',x.material||'PLA','text',MATS)+fld('Peso (g)','peso',x.peso||'','number')+fld('Tiempo impresión (h)','tiempoImpresion',x.tiempoImpresion||'','number')+fld('Precio sugerido (€)','precioSugerido',x.precioSugerido||'','number'); }
@@ -1699,7 +1719,7 @@ function pgPedidos(){
     if(_pSearch&&!o.proyecto?.toLowerCase().includes(_pSearch.toLowerCase()))return false;
     return true;
   });
-  const rows=fl.length===0?'<tr><td colspan="9" style="text-align:center;color:#2e4a6a;padding:32px">Sin pedidos — crea tu primer pedido 👆</td></tr>':fl.map(o=>{
+  const rows=fl.length===0?'<tr><td colspan="9" style="text-align:center;color:var(--text5);padding:32px">Sin pedidos — crea tu primer pedido 👆</td></tr>':fl.map(o=>{
     const cl=clients.find(x=>x.id===o.clienteId)||{};
     const c=calcOrderCosts(o,cfg);
     const bg=rowHl[o.estado]||'';
@@ -1710,19 +1730,19 @@ function pgPedidos(){
     if(isPagado){factBtn='<button class="btn-icon fact-btn" title="'+(hasFactura?'Ver factura':'Generar factura')+'" onclick="genFactura(\''+o.id+'\')" style="font-size:18px">🧾</button>';}
     else{factBtn='<button class="btn-icon" title="Solo para pedidos pagados" style="opacity:.18;cursor:not-allowed;font-size:18px">🧾</button>';}
     const factBadge=hasFactura?'<div style="margin-top:3px"><span style="display:inline-block;background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800;font-family:monospace">🧾 '+esc(o.facturaNum)+'</span></div>':'';
-    const multiPieza=(o.lineas&&o.lineas.length>1)?'<div style="font-size:10px;color:#3d5a7a;margin-top:2px">'+o.lineas.length+' tipos · '+piezasCount+' uds</div>':'';
+    const multiPieza=(o.lineas&&o.lineas.length>1)?'<div style="font-size:10px;color:var(--text4);margin-top:2px">'+o.lineas.length+' tipos · '+piezasCount+' uds</div>':'';
     const cobradoBadge=o.cobrado?'<div style="margin-top:3px"><span style="display:inline-block;background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800">💰 cobrado</span></div>':'';
     const cobrarBtn=!o.cobrado
       ?'<button class="btn-icon" title="Marcar como cobrado" onclick="marcarCobrado(\''+o.id+'\')" style="font-size:18px;color:#4ade80;opacity:.7">💰</button>'
       :'<button class="btn-icon" title="Ya cobrado" style="opacity:.2;cursor:default;font-size:18px">💰</button>';
     return'<tr style="'+(bg?'background:'+bg:'')+'"><td><span class="num-badge">'+esc(o.presNum||'—')+'</span>'+factBadge+'</td>'
-      +'<td><span style="color:#e2e8f0;font-weight:700;font-size:13.5px">'+esc(o.proyecto)+'</span>'+multiPieza+cobradoBadge+'</td>'
-      +'<td style="color:#7a9ab8">'+esc(cl.nombre||'—')+'</td>'
-      +'<td><span style="background:#0f1e35;color:#7a9ab8;padding:2px 8px;border-radius:6px;font-size:12px;font-weight:600">'+esc(o.material)+'</span></td>'
-      +'<td style="color:#7a9ab8">'+esc(o.peso)+'g</td>'
+      +'<td><span style="color:var(--text2);font-weight:700;font-size:13.5px">'+esc(o.proyecto)+'</span>'+multiPieza+cobradoBadge+'</td>'
+      +'<td style="color:var(--text3)">'+esc(cl.nombre||'—')+'</td>'
+      +'<td><span style="background:var(--bg4);color:var(--text3);padding:2px 8px;border-radius:6px;font-size:12px;font-weight:600">'+esc(o.material)+'</span></td>'
+      +'<td style="color:var(--text3)">'+esc(o.peso)+'g</td>'
       +'<td style="color:'+( o.cobrado?'#4ade80':'#34d399')+';font-weight:800;font-size:14px">'+c.fp.toFixed(2)+(cfg.moneda||'€')+'</td>'
       +'<td>'+mkBadge(o.estado)+'</td>'
-      +'<td style="color:#2e4a6a">'+esc(o.fecha)+'</td>'
+      +'<td style="color:var(--text5)">'+esc(o.fecha)+'</td>'
       +'<td style="text-align:right;white-space:nowrap">'
         +'<button class="btn-icon" title="Presupuesto PDF" onclick="genPDF(\''+o.id+'\')">📄</button>'
         +'<button class="btn-icon" title="WhatsApp" onclick="sendWA(\''+o.id+'\')">💬</button>'
@@ -1735,7 +1755,7 @@ function pgPedidos(){
 
   const isMob=window.innerWidth<=768;
 
-  const mobCards=fl.length===0?'<p style="color:#2e4a6a;text-align:center;padding:32px">Sin pedidos — crea tu primer pedido 👆</p>':fl.map(o=>{
+  const mobCards=fl.length===0?'<p style="color:var(--text5);text-align:center;padding:32px">Sin pedidos — crea tu primer pedido 👆</p>':fl.map(o=>{
     const cl=clients.find(x=>x.id===o.clienteId)||{};
     const c=calcOrderCosts(o,cfg);
     const hasFactura=!!o.facturaNum;
@@ -1792,15 +1812,15 @@ function renderLineas(){
   const rows=_lineas.map((l,i)=>{
     const selFil=filaments.find(f=>f.id===l.filamentoId);
     const usingFil=l.filamentoId&&l.filamentoId!=='__manual__'&&selFil;
-    return`<div style="background:#070e1c;border:1px solid #132540;border-radius:12px;padding:14px 16px;margin-bottom:10px">
+    return`<div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-<span style="font-size:11px;font-weight:800;color:#2e4a6a;text-transform:uppercase;letter-spacing:1px">Pieza ${i+1}</span>
+<span style="font-size:11px;font-weight:800;color:var(--text5);text-transform:uppercase;letter-spacing:1px">Pieza ${i+1}</span>
 ${_lineas.length>1?`<button class="btn-icon" style="color:#f87171;font-size:12px;padding:3px 8px;border:1px solid rgba(239,68,68,.25);border-radius:6px" onclick="removeLinea('${l.id}')">✕ Quitar</button>`:''}</div>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 14px">
 <div class="field"><label>Plantilla</label><select onchange="applyPiezaPlantilla('${l.id}',this.value)" style="font-size:13px">${pOpts.map(o=>`<option value="${esc(o.value)}"${o.value===l.piezaId?' selected':''}>${esc(o.label)}</option>`).join('')}</select></div>
 <div class="field"><label>Descripción *</label><input type="text" value="${esc(l.nombre)}" oninput="updateLinea('${l.id}','nombre',this.value)" placeholder="Ej: Soporte lateral"></div>
 <div class="field"><label>Filamento del stock</label><select onchange="applyFilamento('${l.id}',this.value)" style="font-size:13px">${filOpts.map(o=>`<option value="${esc(o.value)}"${o.value===(l.filamentoId||'__manual__')?' selected':''}>${esc(o.label)}</option>`).join('')}</select></div>
-<div class="field"><label>Tipo de material</label>${usingFil?`<div style="display:flex;align-items:center;gap:8px;background:#0f1e35;border:1.5px solid #1a2e4a;border-radius:10px;padding:10px 14px"><span style="width:14px;height:14px;border-radius:50%;background:${esc(selFil.color||'#888')};border:1px solid #2a4470;flex-shrink:0;display:inline-block"></span><span style="color:#e2eaf4;font-weight:600">${esc(selFil.tipo)}</span><span style="color:#3d5a7a;font-size:12px">· ${esc(selFil.marca)}</span></div>`:`<select onchange="updateLinea('${l.id}','material',this.value)">${MATS.map(m=>`<option${m===l.material?' selected':''}>${m}</option>`).join('')}</select>`}</div>
+<div class="field"><label>Tipo de material</label>${usingFil?`<div style="display:flex;align-items:center;gap:8px;background:var(--bg4);border:1.5px solid var(--border2);border-radius:10px;padding:10px 14px"><span style="width:14px;height:14px;border-radius:50%;background:${esc(selFil.color||'#888')};border:1px solid #2a4470;flex-shrink:0;display:inline-block"></span><span style="color:var(--text2);font-weight:600">${esc(selFil.tipo)}</span><span style="color:var(--text4);font-size:12px">· ${esc(selFil.marca)}</span></div>`:`<select onchange="updateLinea('${l.id}','material',this.value)">${MATS.map(m=>`<option${m===l.material?' selected':''}>${m}</option>`).join('')}</select>`}</div>
 <div class="field"><label>Cantidad</label><input type="number" min="1" value="${l.qty||1}" oninput="updateLinea('${l.id}','qty',this.value);refreshCostPreview()"></div>
 <div class="field"><label>Peso unitario (g)</label><input type="text" inputmode="decimal" value="${esc(l.peso)}" oninput="updateLinea('${l.id}','peso',this.value.replace(',','.'));refreshCostPreview()" placeholder="0"></div>
 <div class="field" style="grid-column:1/-1"><label>Tiempo unitario (h)</label><input type="text" inputmode="decimal" value="${esc(l.tiempoImpresion)}" oninput="updateLinea('${l.id}','tiempoImpresion',this.value.replace(',','.'));refreshCostPreview()" placeholder="0"></div>
@@ -1882,27 +1902,27 @@ ${fld('Ganancia manual (€) — vacío = margen','gananciaManual',x.gananciaMan
 ${fld('Notas','notas',x.notas||'','textarea')}
 
 <div style="margin:16px 0 12px">
-  <div style="font-size:12px;font-weight:800;color:#2e4a6a;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">📷 Foto de referencia</div>
+  <div style="font-size:12px;font-weight:800;color:var(--text5);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">📷 Foto de referencia</div>
   <div id="foto-preview" style="${x.fotoUrl?'':'display:none'}margin-bottom:10px">
-    ${x.fotoUrl?`<div style="position:relative;display:inline-block"><img src="${esc(x.fotoUrl)}" style="max-width:100%;max-height:180px;border-radius:10px;border:1px solid #132540;display:block"><button onclick="clearFoto()" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.7);border:none;border-radius:50%;width:28px;height:28px;color:#f87171;font-size:14px;cursor:pointer">✕</button></div>`:''}
+    ${x.fotoUrl?`<div style="position:relative;display:inline-block"><img src="${esc(x.fotoUrl)}" style="max-width:100%;max-height:180px;border-radius:10px;border:1px solid var(--border);display:block"><button onclick="clearFoto()" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.7);border:none;border-radius:50%;width:28px;height:28px;color:#f87171;font-size:14px;cursor:pointer">✕</button></div>`:''}
   </div>
-  <label for="foto-input" style="display:flex;align-items:center;gap:10px;background:#0f1e35;border:2px dashed #1a2e4a;border-radius:12px;padding:14px 18px;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='#3b82f6'" onmouseout="this.style.borderColor='#1a2e4a'">
+  <label for="foto-input" style="display:flex;align-items:center;gap:10px;background:var(--bg4);border:2px dashed #1a2e4a;border-radius:12px;padding:14px 18px;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='#3b82f6'" onmouseout="this.style.borderColor='#1a2e4a'">
     <span style="font-size:28px">📷</span>
-    <div><div style="color:#7a9ab8;font-size:14px;font-weight:600">Añadir foto de referencia</div><div style="color:#3d5a7a;font-size:12px;margin-top:2px">JPG, PNG, WebP — máx. 10MB</div></div>
+    <div><div style="color:var(--text3);font-size:14px;font-weight:600">Añadir foto de referencia</div><div style="color:var(--text4);font-size:12px;margin-top:2px">JPG, PNG, WebP — máx. 10MB</div></div>
   </label>
   <input type="file" id="foto-input" accept="image/*" style="display:none" onchange="previewFoto(this)">
 </div>
 
 <div style="display:flex;justify-content:space-between;align-items:center;margin:18px 0 12px">
-<div><div style="font-size:12px;font-weight:800;color:#2e4a6a;text-transform:uppercase;letter-spacing:1px">Piezas del pedido</div><div style="font-size:11px;color:#3d5a7a;margin-top:2px">Cada pieza se imprime por separado.</div></div>
+<div><div style="font-size:12px;font-weight:800;color:var(--text5);text-transform:uppercase;letter-spacing:1px">Piezas del pedido</div><div style="font-size:11px;color:var(--text4);margin-top:2px">Cada pieza se imprime por separado.</div></div>
 <button class="btn-secondary" style="font-size:12px;padding:7px 14px;white-space:nowrap" onclick="addLinea()">+ Añadir pieza</button></div>
 <div id="lineas-container"></div>
-<div style="background:#070e1c;border:1px solid #132540;border-radius:12px;padding:12px 16px;margin:12px 0;display:flex;gap:24px">
-<div><span style="font-size:10px;color:#2e4a6a;text-transform:uppercase;letter-spacing:1px;font-weight:700">Peso total</span><div id="total-peso" style="color:#60a5fa;font-weight:800;font-family:monospace;font-size:16px">—</div></div>
-<div><span style="font-size:10px;color:#2e4a6a;text-transform:uppercase;letter-spacing:1px;font-weight:700">Tiempo total</span><div id="total-tiempo" style="color:#60a5fa;font-weight:800;font-family:monospace;font-size:16px">—</div></div>
-<div><span style="font-size:10px;color:#2e4a6a;text-transform:uppercase;letter-spacing:1px;font-weight:700">Piezas</span><div id="total-piezas" style="color:#60a5fa;font-weight:800;font-family:monospace;font-size:16px">—</div></div>
+<div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px 16px;margin:12px 0;display:flex;gap:24px">
+<div><span style="font-size:10px;color:var(--text5);text-transform:uppercase;letter-spacing:1px;font-weight:700">Peso total</span><div id="total-peso" style="color:#60a5fa;font-weight:800;font-family:monospace;font-size:16px">—</div></div>
+<div><span style="font-size:10px;color:var(--text5);text-transform:uppercase;letter-spacing:1px;font-weight:700">Tiempo total</span><div id="total-tiempo" style="color:#60a5fa;font-weight:800;font-family:monospace;font-size:16px">—</div></div>
+<div><span style="font-size:10px;color:var(--text5);text-transform:uppercase;letter-spacing:1px;font-weight:700">Piezas</span><div id="total-piezas" style="color:#60a5fa;font-weight:800;font-family:monospace;font-size:16px">—</div></div>
 </div>
-<div class="cost-box"><div style="font-size:10px;color:#3d5a7a;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Vista previa de costes</div><div class="cost-grid" id="cprev">${costPrevHTML(c)}</div></div>`;
+<div class="cost-box"><div style="font-size:10px;color:var(--text4);font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">Vista previa de costes</div><div class="cost-grid" id="cprev">${costPrevHTML(c)}</div></div>`;
 }
 
 // ─── FOTO DE REFERENCIA ───────────────────────
@@ -1920,7 +1940,7 @@ function previewFoto(input){
     if(prev){
       prev.style.display = '';
       prev.innerHTML = `<div style="position:relative;display:inline-block">
-        <img src="${e.target.result}" style="max-width:100%;max-height:180px;border-radius:10px;border:1px solid #132540;display:block">
+        <img src="${e.target.result}" style="max-width:100%;max-height:180px;border-radius:10px;border:1px solid var(--border);display:block">
         <button onclick="clearFoto()" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.7);border:none;border-radius:50%;width:28px;height:28px;color:#f87171;font-size:14px;cursor:pointer">✕</button>
       </div>`;
     }
@@ -2091,20 +2111,20 @@ async function marcarCobrado(id){
 // ═══════════════════════════════════════════════
 function pgArchivos(){
   const files=_cache.archivos;
-  const cards=files.length===0?'<p style="color:#3d5a7a">Sin archivos</p>':files.map(f=>`
+  const cards=files.length===0?'<p style="color:var(--text4)">Sin archivos</p>':files.map(f=>`
 <div class="card" style="width:170px;padding:14px">
 <div class="file-thumb" ${f.is_image?`onclick="prevFile('${f.id}')" style="cursor:pointer"`:''}>${f.is_image&&f._url?`<img src="${f._url}" alt="${esc(f.name)}">`:`<span style="font-size:40px">${f.is_stl?'🔷':'📄'}</span>`}</div>
-<div style="font-size:11px;color:#7a9ab8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:3px;font-weight:500">${esc(f.name)}</div>
-<div style="font-size:10px;color:#3d5a7a;margin-bottom:10px">${((f.size||0)/1024).toFixed(1)} KB · ${esc(f.fecha)}</div>
+<div style="font-size:11px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:3px;font-weight:500">${esc(f.name)}</div>
+<div style="font-size:10px;color:var(--text4);margin-bottom:10px">${((f.size||0)/1024).toFixed(1)} KB · ${esc(f.fecha)}</div>
 <div style="display:flex;gap:6px"><button class="btn-secondary" style="padding:5px 10px;font-size:12px" onclick="dlFile('${f.id}')">⬇️</button><button class="btn-icon" onclick="delFile('${f.id}')">🗑️</button></div>
 </div>`).join('');
   return`<h2 class="page-title" style="margin-bottom:4px">Archivos</h2>
-<p style="color:#3d5a7a;font-size:13px;margin-bottom:16px">STL e imágenes — guardados en Supabase Storage (máx. 50MB).</p>
+<p style="color:var(--text4);font-size:13px;margin-bottom:16px">STL e imágenes — guardados en Supabase Storage (máx. 50MB).</p>
 <div class="dropzone" id="dz" onclick="$('fi').click()">
 <input type="file" id="fi" multiple accept=".stl,image/*" style="display:none" onchange="procFiles(this.files)">
 <div style="font-size:44px;margin-bottom:10px">📁</div>
-<div style="color:#7a9ab8;font-size:14px;font-weight:500">Arrastra archivos o haz clic</div>
-<div style="color:#3d5a7a;font-size:12px;margin-top:6px">STL, JPG, PNG, WebP, GIF</div>
+<div style="color:var(--text3);font-size:14px;font-weight:500">Arrastra archivos o haz clic</div>
+<div style="color:var(--text4);font-size:12px;margin-top:6px">STL, JPG, PNG, WebP, GIF</div>
 </div>
 <div class="flexwrap">${cards}</div>`;
 }
