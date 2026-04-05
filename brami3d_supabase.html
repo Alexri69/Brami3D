@@ -1193,6 +1193,23 @@ function generarInforme(){
         </tr>`;
       }).join('');
 
+  // Gastos del mes
+  const gastosMes=(_cache.gastos||[]).filter(g=>(g.fecha||'').startsWith(prefix));
+  const totGastosMes=gastosMes.reduce((s,g)=>s+parseFloat(g.importe||0),0);
+  const gastosByCat={};
+  gastosMes.forEach(g=>{gastosByCat[g.categoria]=(gastosByCat[g.categoria]||0)+parseFloat(g.importe||0);});
+  const beneficioReal=totIngresos-totCostes-totGastosMes;
+
+  const gastosRows=gastosMes.length===0
+    ?`<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:12px">Sin gastos este mes</td></tr>`
+    :gastosMes.map(g=>`
+        <tr style="border-bottom:1px solid #f1f5f9">
+          <td style="padding:7px 10px;font-size:12px;font-weight:600;color:#0f172a">${g.descripcion}</td>
+          <td style="padding:7px 10px;font-size:11px;color:#64748b">${g.categoria}</td>
+          <td style="padding:7px 10px;font-size:12px;color:#64748b">${g.proveedor||'—'}</td>
+          <td style="padding:7px 10px;font-size:12px;text-align:right;color:#dc2626;font-weight:700">-${parseFloat(g.importe).toFixed(2)} ${mon}</td>
+        </tr>`).join('');
+
   const filRows = Object.entries(filConsumo).length===0
     ? `<tr><td colspan="2" style="text-align:center;color:#94a3b8;padding:12px">Sin consumo registrado</td></tr>`
     : Object.entries(filConsumo).map(([mat,peso])=>`
@@ -1261,15 +1278,15 @@ th:last-child{text-align:right}
     <div class="stat-val" style="color:#15803d">${totIngresos.toFixed(2)} ${mon}</div>
     <div class="stat-sub">${pagados.length} pedido${pagados.length!==1?'s':''} cobrado${pagados.length!==1?'s':''}</div>
   </div>
-  <div class="stat" style="background:#fffbeb;border-color:#fde68a">
-    <div class="stat-lbl">Costes</div>
-    <div class="stat-val" style="color:#b45309">${totCostes.toFixed(2)} ${mon}</div>
-    <div class="stat-sub">Producción</div>
+  <div class="stat" style="background:#fef2f2;border-color:#fecaca">
+    <div class="stat-lbl">Gastos</div>
+    <div class="stat-val" style="color:#dc2626">-${totGastosMes.toFixed(2)} ${mon}</div>
+    <div class="stat-sub">${gastosMes.length} gasto${gastosMes.length!==1?'s':''}</div>
   </div>
-  <div class="stat" style="background:${beneficio>=0?'#f0fdf4':'#fef2f2'};border-color:${beneficio>=0?'#bbf7d0':'#fecaca'}">
-    <div class="stat-lbl">Beneficio neto</div>
-    <div class="stat-val" style="color:${beneficio>=0?'#15803d':'#dc2626'}">${beneficio.toFixed(2)} ${mon}</div>
-    <div class="stat-sub">${beneficio>=0?'✓ Positivo':'⚠ Negativo'}</div>
+  <div class="stat" style="background:${beneficioReal>=0?'#f0fdf4':'#fef2f2'};border-color:${beneficioReal>=0?'#bbf7d0':'#fecaca'}">
+    <div class="stat-lbl">Beneficio real</div>
+    <div class="stat-val" style="color:${beneficioReal>=0?'#15803d':'#dc2626'}">${beneficioReal.toFixed(2)} ${mon}</div>
+    <div class="stat-sub">${beneficioReal>=0?'✓ Positivo':'⚠ Negativo'}</div>
   </div>
 </div>
 
@@ -1285,6 +1302,15 @@ th:last-child{text-align:right}
     <thead><tr><th>Proyecto</th><th>Cliente</th><th>Fecha</th><th style="text-align:right">Precio</th><th style="text-align:center">Estado</th></tr></thead>
     <tbody>${pedidosRows}</tbody>
   </table>
+</div>
+
+<div class="section">
+  <div class="section-title">Gastos del mes</div>
+  <table>
+    <thead><tr><th>Descripción</th><th>Categoría</th><th>Proveedor</th><th style="text-align:right">Importe</th></tr></thead>
+    <tbody>${gastosRows}</tbody>
+  </table>
+  ${totGastosMes>0?`<div style="text-align:right;margin-top:8px;font-size:13px;font-weight:700;color:#dc2626">Total gastos: -${totGastosMes.toFixed(2)} ${mon}</div>`:''}
 </div>
 
 <div class="section">
