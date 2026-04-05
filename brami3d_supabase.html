@@ -254,6 +254,15 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
       </button>
     </div>
 
+    <!-- Botón instalar PWA -->
+    <div id="install-banner" style="display:none;width:100%;max-width:460px;margin-bottom:16px">
+      <button onclick="installPWA()" style="width:100%;background:linear-gradient(135deg,#059669,#047857);color:#fff;border:none;border-radius:12px;padding:13px 20px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 20px rgba(5,150,105,.4)">
+        <span style="font-size:20px">📲</span>
+        Instalar app en tu móvil — Gratis
+      </button>
+      <div style="text-align:center;font-size:11px;color:#2e4a6a;margin-top:6px">Sin App Store · Se instala directamente</div>
+    </div>
+
     <!-- Hero -->
     <div style="text-align:center;margin-bottom:24px;width:100%;max-width:460px">
       <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(37,99,235,.12);border:1px solid rgba(37,99,235,.3);border-radius:99px;padding:5px 14px;font-size:11px;font-weight:700;color:#60a5fa;letter-spacing:.5px;text-transform:uppercase;margin-bottom:14px">
@@ -466,6 +475,35 @@ if(savedTheme==='light'){
   document.addEventListener('DOMContentLoaded',()=>{
     const btn=$('theme-btn');if(btn)btn.textContent='☀️';
   });
+}
+
+// ═══════════════════════════════════════════════
+//  PWA INSTALL
+// ═══════════════════════════════════════════════
+let _installPrompt = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  _installPrompt = e;
+  const banner = $('install-banner');
+  if(banner) banner.style.display = 'block';
+});
+
+window.addEventListener('appinstalled', () => {
+  const banner = $('install-banner');
+  if(banner) banner.style.display = 'none';
+  _installPrompt = null;
+});
+
+async function installPWA(){
+  if(!_installPrompt) return;
+  _installPrompt.prompt();
+  const {outcome} = await _installPrompt.userChoice;
+  if(outcome === 'accepted'){
+    const banner = $('install-banner');
+    if(banner) banner.style.display = 'none';
+  }
+  _installPrompt = null;
 }
 
 // ═══════════════════════════════════════════════
