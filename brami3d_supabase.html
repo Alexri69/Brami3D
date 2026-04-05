@@ -254,7 +254,7 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
     <div style="background:linear-gradient(145deg,#070e1c,#0a1828);border:1px solid rgba(37,99,235,.3);border-radius:16px;padding:18px;margin-bottom:20px">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
         <span style="font-size:16px">🧮</span>
-        <span style="font-size:12px;font-weight:800;color:#60a5fa;text-transform:uppercase;letter-spacing:1px">Calculadora de costes — Gratis</span>
+        <span style="font-size:12px;font-weight:800;color:#60a5fa;text-transform:uppercase;letter-spacing:1px">Calcula el precio de tu pieza — Gratis</span>
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
@@ -276,6 +276,11 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
         <div>
           <div style="font-size:10px;font-weight:700;color:var(--text5);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Consumo impresora (W)</div>
           <input type="number" id="calc-consumo" placeholder="200" min="0" oninput="calcCoste()"
+            style="width:100%;padding:9px 12px;background:#0d1926;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:15px">
+        </div>
+        <div style="grid-column:1/-1">
+          <div style="font-size:10px;font-weight:700;color:var(--text5);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Precio electricidad (€/kWh)</div>
+          <input type="number" id="calc-kwh" placeholder="0.15" min="0" step="0.01" value="0.15" oninput="calcCoste()"
             style="width:100%;padding:9px 12px;background:#0d1926;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:15px">
         </div>
       </div>
@@ -445,8 +450,8 @@ function calcCoste(){
   const tiempo  = parseFloat($('calc-tiempo')?.value)||0;
   const precFil = parseFloat($('calc-precio-fil')?.value)||20;
   const consumo = parseFloat($('calc-consumo')?.value)||200;
+  const kwh     = parseFloat($('calc-kwh')?.value)||0.15;
   const margen  = parseFloat($('calc-margen')?.value)||30;
-  const kwh     = 0.15; // €/kWh promedio España
 
   const mat  = (peso/1000)*precFil;
   const elec = (consumo/1000)*tiempo*kwh;
