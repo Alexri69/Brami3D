@@ -852,13 +852,27 @@ function calcOrderCosts(order,cfg){
   if(order.lineas&&order.lineas.length>0){
     for(const l of order.lineas){
       const qty=parseInt(l.qty)||1;
-      const peso=(parseFloat(l.peso)||0)*qty;
-      let costG=parseFloat(cfg.costePorGramo)||0.03;
-      if(l.filamentoId&&l.filamentoId!=='__manual__'){
-        const fil=filaments.find(f=>f.id===l.filamentoId);
-        if(fil) costG=(parseFloat(fil.precioPorKg)||0)/1000;
+      // Multi-filament support
+      if(l.filamentos&&l.filamentos.length>0){
+        for(const fil of l.filamentos){
+          const peso=(parseFloat(fil.peso)||0)*qty;
+          let costG=parseFloat(cfg.costePorGramo)||0.03;
+          if(fil.filamentoId&&fil.filamentoId!=='__manual__'){
+            const f=filaments.find(x=>x.id===fil.filamentoId);
+            if(f) costG=(parseFloat(f.precioPorKg)||0)/1000;
+          }
+          mc+=peso*costG;
+        }
+      } else {
+        // Legacy single filament
+        const peso=(parseFloat(l.peso)||0)*qty;
+        let costG=parseFloat(cfg.costePorGramo)||0.03;
+        if(l.filamentoId&&l.filamentoId!=='__manual__'){
+          const fil=filaments.find(f=>f.id===l.filamentoId);
+          if(fil) costG=(parseFloat(fil.precioPorKg)||0)/1000;
+        }
+        mc+=peso*costG;
       }
-      mc+=peso*costG;
     }
   } else {
     mc=(parseFloat(order.peso)||0)*(parseFloat(cfg.costePorGramo)||0.03);
@@ -1802,16 +1816,43 @@ ${isMob
 
 // ─── MULTI-PIEZA ───────────────────────────────
 let _lineas=[];
-function lineaEmpty(){ return{id:uid(),piezaId:'',filamentoId:'__manual__',nombre:'',material:'PLA',peso:'',tiempoImpresion:'',qty:1}; }
+function lineaEmpty(){ return{id:uid(),piezaId:'',filamentos:[{filamentoId:'__manual__',peso:''}],filamentoId:'__manual__',nombre:'',material:'PLA',peso:'',tiempoImpresion:'',qty:1}; }
 function calcLineasTotals(lineas){return{pesoTotal:lineas.reduce((s,l)=>s+(parseFloat(l.peso)||0)*(parseInt(l.qty)||1),0),tiempoTotal:lineas.reduce((s,l)=>s+(parseFloat(l.tiempoImpresion)||0)*(parseInt(l.qty)||1),0)};}
 
 function renderLineas(){
   const parts=_cache.piezas; const filaments=_cache.filamentos;
   const pOpts=[{value:'',label:'── Sin plantilla ──'},...parts.map(p=>({value:p.id,label:p.nombre}))];
   const filOpts=[{value:'__manual__',label:'── Manual ──'},...filaments.map(f=>({value:f.id,label:`${f.tipo} · ${f.marca}${f.color?' · '+f.color:''}`}))];
+
   const rows=_lineas.map((l,i)=>{
-    const selFil=filaments.find(f=>f.id===l.filamentoId);
-    const usingFil=l.filamentoId&&l.filamentoId!=='__manual__'&&selFil;
+    // Ensure filamentos array exists (backwards compat)
+    if(!l.filamentos||!l.filamentos.length) l.filamentos=[{filamentoId:l.filamentoId||'__manual__',peso:l.peso||''}];
+
+    const filRows=l.filamentos.map((fil,fi)=>{
+      const selFil=filaments.find(f=>f.id===fil.filamentoId);
+      const usingFil=fil.filamentoId&&fil.filamentoId!=='__manual__'&&selFil;
+      const dotColor=selFil?.color||'#888';
+      return`<div style="display:grid;grid-template-columns:1fr auto;gap:8px;align-items:end;margin-bottom:8px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;padding:10px 12px">
+        <div>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+            ${usingFil?`<span style="width:10px;height:10px;border-radius:50%;background:${esc(dotColor)};flex-shrink:0;display:inline-block"></span>`:''}
+            <select onchange="updateFilLinea('${l.id}',${fi},'filamentoId',this.value);refreshCostPreview()" style="font-size:13px;flex:1">
+              ${filOpts.map(o=>`<option value="${esc(o.value)}"${o.value===(fil.filamentoId||'__manual__')?' selected':''}>${esc(o.label)}</option>`).join('')}
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <label style="font-size:10px;white-space:nowrap;margin:0;text-transform:none;letter-spacing:0">Peso (g):</label>
+            <input type="text" inputmode="decimal" value="${esc(fil.peso||'')}" placeholder="0" style="flex:1"
+              oninput="updateFilLinea('${l.id}',${fi},'peso',this.value.replace(',','.'));syncLineaPeso('${l.id}');refreshCostPreview()">
+            ${usingFil?`<span style="font-size:11px;color:var(--text4);white-space:nowrap">${esc(selFil.tipo)}</span>`:''}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          ${l.filamentos.length>1?`<button class="btn-icon" style="color:#f87171;font-size:14px" onclick="removeFilLinea('${l.id}',${fi})">✕</button>`:''}
+        </div>
+      </div>`;
+    }).join('');
+
     return`<div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
 <span style="font-size:11px;font-weight:800;color:var(--text5);text-transform:uppercase;letter-spacing:1px">Pieza ${i+1}</span>
@@ -1819,12 +1860,20 @@ ${_lineas.length>1?`<button class="btn-icon" style="color:#f87171;font-size:12px
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 14px">
 <div class="field"><label>Plantilla</label><select onchange="applyPiezaPlantilla('${l.id}',this.value)" style="font-size:13px">${pOpts.map(o=>`<option value="${esc(o.value)}"${o.value===l.piezaId?' selected':''}>${esc(o.label)}</option>`).join('')}</select></div>
 <div class="field"><label>Descripción *</label><input type="text" value="${esc(l.nombre)}" oninput="updateLinea('${l.id}','nombre',this.value)" placeholder="Ej: Soporte lateral"></div>
-<div class="field"><label>Filamento del stock</label><select onchange="applyFilamento('${l.id}',this.value)" style="font-size:13px">${filOpts.map(o=>`<option value="${esc(o.value)}"${o.value===(l.filamentoId||'__manual__')?' selected':''}>${esc(o.label)}</option>`).join('')}</select></div>
-<div class="field"><label>Tipo de material</label>${usingFil?`<div style="display:flex;align-items:center;gap:8px;background:var(--bg4);border:1.5px solid var(--border2);border-radius:10px;padding:10px 14px"><span style="width:14px;height:14px;border-radius:50%;background:${esc(selFil.color||'#888')};border:1px solid #2a4470;flex-shrink:0;display:inline-block"></span><span style="color:var(--text2);font-weight:600">${esc(selFil.tipo)}</span><span style="color:var(--text4);font-size:12px">· ${esc(selFil.marca)}</span></div>`:`<select onchange="updateLinea('${l.id}','material',this.value)">${MATS.map(m=>`<option${m===l.material?' selected':''}>${m}</option>`).join('')}</select>`}</div>
 <div class="field"><label>Cantidad</label><input type="number" min="1" value="${l.qty||1}" oninput="updateLinea('${l.id}','qty',this.value);refreshCostPreview()"></div>
-<div class="field"><label>Peso unitario (g)</label><input type="text" inputmode="decimal" value="${esc(l.peso)}" oninput="updateLinea('${l.id}','peso',this.value.replace(',','.'));refreshCostPreview()" placeholder="0"></div>
-<div class="field" style="grid-column:1/-1"><label>Tiempo unitario (h)</label><input type="text" inputmode="decimal" value="${esc(l.tiempoImpresion)}" oninput="updateLinea('${l.id}','tiempoImpresion',this.value.replace(',','.'));refreshCostPreview()" placeholder="0"></div>
-</div></div>`;}).join('');
+<div class="field"><label>Tiempo unitario (h)</label><input type="text" inputmode="decimal" value="${esc(l.tiempoImpresion)}" oninput="updateLinea('${l.id}','tiempoImpresion',this.value.replace(',','.'));refreshCostPreview()" placeholder="0"></div>
+</div>
+<div style="margin-top:10px">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+<label style="margin:0;font-size:11px">🧵 Filamentos de esta pieza</label>
+${l.filamentos.length<3?`<button onclick="addFilLinea('${l.id}')" style="background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);color:#60a5fa;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700">+ Añadir filamento</button>`:''}
+</div>
+${filRows}
+<div style="font-size:11px;color:var(--text4);margin-top:4px">Peso total pieza: <b style="color:#60a5fa">${l.filamentos.reduce((s,f)=>s+(parseFloat(f.peso)||0),0).toFixed(1)}g × ${l.qty||1} = ${(l.filamentos.reduce((s,f)=>s+(parseFloat(f.peso)||0),0)*(parseInt(l.qty)||1)).toFixed(1)}g</b></div>
+</div>
+</div>`;
+  }).join('');
+
   const el=document.getElementById('lineas-container');
   if(el)el.innerHTML=rows;
   refreshCostPreview();
@@ -1833,7 +1882,37 @@ ${_lineas.length>1?`<button class="btn-icon" style="color:#f87171;font-size:12px
 function addLinea(){_lineas.push(lineaEmpty());renderLineas();}
 function removeLinea(id){_lineas=_lineas.filter(l=>l.id!==id);renderLineas();}
 function updateLinea(id,field,val){const l=_lineas.find(x=>x.id===id);if(l)l[field]=val;}
-function applyPiezaPlantilla(lid,pid){const l=_lineas.find(x=>x.id===lid);if(!l)return;l.piezaId=pid;if(pid){const p=_cache.piezas.find(x=>x.id===pid);if(p){l.nombre=p.nombre;l.material=p.material;l.peso=p.peso;l.tiempoImpresion=p.tiempoImpresion;}}renderLineas();}
+
+function addFilLinea(lid){
+  const l=_lineas.find(x=>x.id===lid);
+  if(!l||l.filamentos.length>=3) return;
+  l.filamentos.push({filamentoId:'__manual__',peso:''});
+  renderLineas();
+}
+function removeFilLinea(lid,fi){
+  const l=_lineas.find(x=>x.id===lid);
+  if(!l||l.filamentos.length<=1) return;
+  l.filamentos.splice(fi,1);
+  syncLineaPeso(lid);
+  renderLineas();
+}
+function updateFilLinea(lid,fi,field,val){
+  const l=_lineas.find(x=>x.id===lid);
+  if(!l||!l.filamentos[fi]) return;
+  l.filamentos[fi][field]=val;
+  // Keep first filamentoId in sync for legacy
+  if(fi===0&&field==='filamentoId') l.filamentoId=val;
+}
+function syncLineaPeso(lid){
+  const l=_lineas.find(x=>x.id===lid);
+  if(!l) return;
+  // Peso total = suma de todos los filamentos
+  const total=l.filamentos.reduce((s,f)=>s+(parseFloat(f.peso)||0),0);
+  l.peso=total.toString();
+  // First filamento sync
+  if(l.filamentos[0]) l.filamentoId=l.filamentos[0].filamentoId;
+}
+function applyPiezaPlantilla(lid,pid){const l=_lineas.find(x=>x.id===lid);if(!l)return;l.piezaId=pid;if(pid){const p=_cache.piezas.find(x=>x.id===pid);if(p){l.nombre=p.nombre;l.material=p.material;l.peso=p.peso;l.tiempoImpresion=p.tiempoImpresion;if(l.filamentos)l.filamentos[0].peso=p.peso;}}renderLineas();}
 function applyFilamento(lid,fid){const l=_lineas.find(x=>x.id===lid);if(!l)return;l.filamentoId=fid;if(fid&&fid!=='__manual__'){const f=_cache.filamentos.find(x=>x.id===fid);if(f)l.material=f.tipo;}renderLineas();}
 
 function refreshCostPreview(){
@@ -1842,7 +1921,33 @@ function refreshCostPreview(){
   const pd=parseFloat(document.querySelector('[name="costeDiseno"]')?.value||0);
   const gm=document.querySelector('[name="gananciaManual"]')?.value||'';
   let mc=0,pesoTotal=0,tiempoTotal=0;
-  for(const l of _lineas){const qty=parseInt(l.qty)||1;const peso=(parseFloat(l.peso)||0)*qty;const tiempo=(parseFloat(l.tiempoImpresion)||0)*qty;pesoTotal+=peso;tiempoTotal+=tiempo;let cg=parseFloat(cfg.costePorGramo)||0.03;if(l.filamentoId&&l.filamentoId!=='__manual__'){const fil=_cache.filamentos.find(f=>f.id===l.filamentoId);if(fil)cg=(parseFloat(fil.precioPorKg)||0)/1000;}mc+=peso*cg;}
+  for(const l of _lineas){
+    const qty=parseInt(l.qty)||1;
+    const tiempo=(parseFloat(l.tiempoImpresion)||0)*qty;
+    tiempoTotal+=tiempo;
+    // Multi-filament
+    if(l.filamentos&&l.filamentos.length>0){
+      for(const fil of l.filamentos){
+        const peso=(parseFloat(fil.peso)||0)*qty;
+        pesoTotal+=peso;
+        let cg=parseFloat(cfg.costePorGramo)||0.03;
+        if(fil.filamentoId&&fil.filamentoId!=='__manual__'){
+          const f=_cache.filamentos.find(x=>x.id===fil.filamentoId);
+          if(f) cg=(parseFloat(f.precioPorKg)||0)/1000;
+        }
+        mc+=peso*cg;
+      }
+    } else {
+      const peso=(parseFloat(l.peso)||0)*qty;
+      pesoTotal+=peso;
+      let cg=parseFloat(cfg.costePorGramo)||0.03;
+      if(l.filamentoId&&l.filamentoId!=='__manual__'){
+        const f=_cache.filamentos.find(x=>x.id===l.filamentoId);
+        if(f) cg=(parseFloat(f.precioPorKg)||0)/1000;
+      }
+      mc+=peso*cg;
+    }
+  }
   const kwhPrice=parseFloat(cfg.costePorHora)||0.15;
   // Impresora seleccionada en el formulario
   const impSel=document.querySelector('[name="impresoraId"]')?.value;
@@ -1862,7 +1967,14 @@ function pedidoFrm(x={}){
   const cfg=_cache.cfg;
   const cliOpts=[{value:'',label:'Sin cliente'},..._cache.clientes.map(c=>({value:c.id,label:c.nombre}))];
   const estOpts=['pendiente','imprimiendo','terminado','entregado'];
-  if(x.lineas&&x.lineas.length>0)_lineas=[...x.lineas.map(l=>({...l,id:l.id||uid(),filamentoId:l.filamentoId||'__manual__'}))];
+  if(x.lineas&&x.lineas.length>0)_lineas=[...x.lineas.map(l=>({
+    ...l,
+    id:l.id||uid(),
+    filamentoId:l.filamentoId||'__manual__',
+    filamentos:l.filamentos&&l.filamentos.length>0
+      ? l.filamentos
+      : [{filamentoId:l.filamentoId||'__manual__',peso:l.peso||''}]
+  }))];
   else _lineas=[lineaEmpty()];
   const filaments=_cache.filamentos;
   let mcInit=0,pesoInit=0,tiempoInit=0;
