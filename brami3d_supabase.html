@@ -241,12 +241,74 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
 
 <!-- AUTH -->
 <div id="auth-screen">
-  <div class="auth-card">
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+  <div class="auth-card" style="max-width:420px;width:100%">
+
+    <!-- Logo -->
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
       <svg width="38" height="38" viewBox="0 0 38 38" fill="none"><rect width="38" height="38" rx="9" fill="#1d4ed8"/><polygon points="19,7 30,13 30,25 19,31 8,25 8,13" fill="none" stroke="#93c5fd" stroke-width="1.5"/><polygon points="19,7 30,13 19,19 8,13" fill="#3b82f6" opacity="0.8"/><polygon points="8,13 19,19 19,31 8,25" fill="#2563eb"/><polygon points="30,13 19,19 19,31 30,25" fill="#1d4ed8"/></svg>
       <div><div style="font-size:24px;font-weight:900;color:#f1f5f9;letter-spacing:-1.5px">B3D</div><div style="font-size:10px;color:#3b82f6;font-weight:600;letter-spacing:2px;text-transform:uppercase">Print Studio</div></div>
     </div>
-    <p style="color:var(--text4);font-size:13px;margin-bottom:28px">Gestión profesional de impresión 3D</p>
+    <p style="color:var(--text4);font-size:13px;margin-bottom:20px">Gestión profesional de impresión 3D</p>
+
+    <!-- CALCULADORA GRATUITA -->
+    <div style="background:linear-gradient(145deg,#070e1c,#0a1828);border:1px solid rgba(37,99,235,.3);border-radius:16px;padding:18px;margin-bottom:20px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+        <span style="font-size:16px">🧮</span>
+        <span style="font-size:12px;font-weight:800;color:#60a5fa;text-transform:uppercase;letter-spacing:1px">Calculadora de costes — Gratis</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div>
+          <div style="font-size:10px;font-weight:700;color:var(--text5);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Peso (g)</div>
+          <input type="number" id="calc-peso" placeholder="85" min="0" oninput="calcCoste()"
+            style="width:100%;padding:9px 12px;background:#0d1926;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:15px">
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:700;color:var(--text5);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Tiempo (h)</div>
+          <input type="number" id="calc-tiempo" placeholder="4.5" min="0" step="0.1" oninput="calcCoste()"
+            style="width:100%;padding:9px 12px;background:#0d1926;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:15px">
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:700;color:var(--text5);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Filamento (€/kg)</div>
+          <input type="number" id="calc-precio-fil" placeholder="20" min="0" oninput="calcCoste()"
+            style="width:100%;padding:9px 12px;background:#0d1926;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:15px">
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:700;color:var(--text5);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Consumo impresora (W)</div>
+          <input type="number" id="calc-consumo" placeholder="200" min="0" oninput="calcCoste()"
+            style="width:100%;padding:9px 12px;background:#0d1926;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:15px">
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+        <div style="font-size:10px;font-weight:700;color:var(--text5);text-transform:uppercase;letter-spacing:.8px;white-space:nowrap">Margen %</div>
+        <input type="range" id="calc-margen" min="10" max="200" value="30" oninput="calcCoste();$('calc-margen-val').textContent=this.value+'%'"
+          style="flex:1;accent-color:#3b82f6">
+        <span id="calc-margen-val" style="font-size:13px;font-weight:700;color:#60a5fa;min-width:38px">30%</span>
+      </div>
+
+      <!-- Resultado -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+        <div style="background:#0d1926;border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:9px;color:var(--text5);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">Material</div>
+          <div id="calc-r-mat" style="font-size:16px;font-weight:900;color:#7a9ab8;font-family:monospace">0.00€</div>
+        </div>
+        <div style="background:#0d1926;border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:9px;color:var(--text5);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">Electricidad</div>
+          <div id="calc-r-elec" style="font-size:16px;font-weight:900;color:#7a9ab8;font-family:monospace">0.00€</div>
+        </div>
+        <div style="background:linear-gradient(145deg,#0d2545,#0a1e38);border:1px solid rgba(37,99,235,.3);border-radius:10px;padding:10px;text-align:center">
+          <div style="font-size:9px;color:#60a5fa;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">Precio venta</div>
+          <div id="calc-r-total" style="font-size:18px;font-weight:900;color:#60a5fa;font-family:monospace">0.00€</div>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--text5)">
+        ✨ Guarda tus pedidos, clientes y facturas — <b style="color:#60a5fa">regístrate gratis</b>
+      </div>
+    </div>
+
+    <!-- LOGIN / REGISTRO -->
     <div class="tabs">
       <button class="tab active" id="tab-login" onclick="switchTab('login')">Iniciar sesión</button>
       <button class="tab" id="tab-signup" onclick="switchTab('signup')">Registrarse</button>
@@ -373,6 +435,31 @@ if(savedTheme==='light'){
   document.addEventListener('DOMContentLoaded',()=>{
     const btn=$('theme-btn');if(btn)btn.textContent='☀️';
   });
+}
+
+// ═══════════════════════════════════════════════
+//  CALCULADORA GRATUITA (LOGIN)
+// ═══════════════════════════════════════════════
+function calcCoste(){
+  const peso    = parseFloat($('calc-peso')?.value)||0;
+  const tiempo  = parseFloat($('calc-tiempo')?.value)||0;
+  const precFil = parseFloat($('calc-precio-fil')?.value)||20;
+  const consumo = parseFloat($('calc-consumo')?.value)||200;
+  const margen  = parseFloat($('calc-margen')?.value)||30;
+  const kwh     = 0.15; // €/kWh promedio España
+
+  const mat  = (peso/1000)*precFil;
+  const elec = (consumo/1000)*tiempo*kwh;
+  const tc   = mat+elec;
+  const venta= tc*(1+margen/100);
+
+  const fmt = v => v.toFixed(2)+'€';
+  const r1=$('calc-r-mat');   if(r1) r1.textContent=fmt(mat);
+  const r2=$('calc-r-elec');  if(r2) r2.textContent=fmt(elec);
+  const r3=$('calc-r-total'); if(r3){
+    r3.textContent=fmt(venta);
+    r3.style.color=venta>0?'#60a5fa':'#7a9ab8';
+  }
 }
 
 // ═══════════════════════════════════════════════
