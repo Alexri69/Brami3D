@@ -239,85 +239,107 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
 <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-KNW7F7GB" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <!-- End Google Tag Manager (noscript) -->
 
-<!-- AUTH -->
+<!-- AUTH SCREEN = CALCULADORA PANTALLA COMPLETA -->
 <div id="auth-screen">
-  <div class="auth-card" style="max-width:420px;width:100%">
+  <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px;background:radial-gradient(ellipse at 50% 30%,#0d1926 0%,#04090f 70%);overflow-y:auto">
 
-    <!-- Logo -->
-    <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
-      <svg width="38" height="38" viewBox="0 0 38 38" fill="none"><rect width="38" height="38" rx="9" fill="#1d4ed8"/><polygon points="19,7 30,13 30,25 19,31 8,25 8,13" fill="none" stroke="#93c5fd" stroke-width="1.5"/><polygon points="19,7 30,13 19,19 8,13" fill="#3b82f6" opacity="0.8"/><polygon points="8,13 19,19 19,31 8,25" fill="#2563eb"/><polygon points="30,13 19,19 19,31 30,25" fill="#1d4ed8"/></svg>
-      <div><div style="font-size:24px;font-weight:900;color:#f1f5f9;letter-spacing:-1.5px">B3D</div><div style="font-size:10px;color:#3b82f6;font-weight:600;letter-spacing:2px;text-transform:uppercase">Print Studio</div></div>
-    </div>
-    <p style="color:var(--text4);font-size:13px;margin-bottom:20px">Gestión profesional de impresión 3D</p>
-
-    <!-- LLAMADA DE ATENCIÓN -->
-    <div style="text-align:center;margin-bottom:16px">
-      <div style="font-size:22px;font-weight:900;color:#fff;letter-spacing:-.5px;line-height:1.2">¿Cuánto cobrar<br>por tu pieza? 🤔</div>
-      <div style="font-size:13px;color:var(--text4);margin-top:6px">Calcula el precio justo en segundos — sin registrarte</div>
-    </div>
-    <div style="background:linear-gradient(145deg,#070e1c,#0a1828);border:1px solid rgba(37,99,235,.3);border-radius:16px;padding:18px;margin-bottom:20px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
-        <span style="font-size:16px">🧮</span>
-        <span style="font-size:12px;font-weight:800;color:#60a5fa;text-transform:uppercase;letter-spacing:1px">Calcula el precio de tu pieza — Gratis</span>
+    <!-- Topbar -->
+    <div style="display:flex;align-items:center;justify-content:space-between;width:100%;max-width:460px;margin-bottom:28px;padding-top:8px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <svg width="32" height="32" viewBox="0 0 38 38" fill="none"><rect width="38" height="38" rx="9" fill="#1d4ed8"/><polygon points="19,7 30,13 30,25 19,31 8,25 8,13" fill="none" stroke="#93c5fd" stroke-width="1.5"/><polygon points="19,7 30,13 19,19 8,13" fill="#3b82f6" opacity="0.8"/><polygon points="8,13 19,19 19,31 8,25" fill="#2563eb"/><polygon points="30,13 19,19 19,31 30,25" fill="#1d4ed8"/></svg>
+        <div style="font-size:18px;font-weight:900;color:#f1f5f9;letter-spacing:-1px">Brami3D</div>
       </div>
+      <button onclick="openLoginModal()" style="background:rgba(37,99,235,.15);color:#60a5fa;border:1.5px solid rgba(37,99,235,.3);border-radius:10px;padding:9px 18px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer">
+        Iniciar sesión →
+      </button>
+    </div>
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+    <!-- Hero -->
+    <div style="text-align:center;margin-bottom:24px;width:100%;max-width:460px">
+      <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(37,99,235,.12);border:1px solid rgba(37,99,235,.3);border-radius:99px;padding:5px 14px;font-size:11px;font-weight:700;color:#60a5fa;letter-spacing:.5px;text-transform:uppercase;margin-bottom:14px">
+        <span style="width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block;animation:pulse 2s infinite"></span>
+        Gratis · Sin registro
+      </div>
+      <div style="font-size:clamp(26px,6vw,36px);font-weight:900;color:#fff;letter-spacing:-1.5px;line-height:1.1;margin-bottom:10px">
+        ¿Cuánto cobrar<br>por tu pieza? 🤔
+      </div>
+      <div style="font-size:14px;color:#7a9ab8;line-height:1.6">
+        Calcula el precio justo en segundos.<br>Filamento, electricidad y margen incluidos.
+      </div>
+    </div>
+
+    <!-- Calculadora -->
+    <div style="width:100%;max-width:460px;background:linear-gradient(145deg,#0d1926,#080f1a);border:1px solid rgba(37,99,235,.25);border-radius:20px;padding:22px;margin-bottom:16px">
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
         <div>
-          <div style="font-size:10px;font-weight:700;color:var(--text5);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Peso (g)</div>
+          <div style="font-size:10px;font-weight:700;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Peso (g)</div>
           <input type="number" id="calc-peso" placeholder="85" min="0" oninput="calcCoste()"
-            style="width:100%;padding:9px 12px;background:#0d1926;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:15px">
+            style="width:100%;padding:10px 12px;background:#070e1c;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:16px">
         </div>
         <div>
-          <div style="font-size:10px;font-weight:700;color:var(--text5);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Tiempo (h)</div>
+          <div style="font-size:10px;font-weight:700;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Tiempo (h)</div>
           <input type="number" id="calc-tiempo" placeholder="4.5" min="0" step="0.1" oninput="calcCoste()"
-            style="width:100%;padding:9px 12px;background:#0d1926;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:15px">
+            style="width:100%;padding:10px 12px;background:#070e1c;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:16px">
         </div>
         <div>
-          <div style="font-size:10px;font-weight:700;color:var(--text5);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Filamento (€/kg)</div>
+          <div style="font-size:10px;font-weight:700;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Filamento (€/kg)</div>
           <input type="number" id="calc-precio-fil" placeholder="20" min="0" oninput="calcCoste()"
-            style="width:100%;padding:9px 12px;background:#0d1926;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:15px">
+            style="width:100%;padding:10px 12px;background:#070e1c;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:16px">
         </div>
         <div>
-          <div style="font-size:10px;font-weight:700;color:var(--text5);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Consumo impresora (W)</div>
+          <div style="font-size:10px;font-weight:700;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Consumo (W)</div>
           <input type="number" id="calc-consumo" placeholder="200" min="0" oninput="calcCoste()"
-            style="width:100%;padding:9px 12px;background:#0d1926;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:15px">
+            style="width:100%;padding:10px 12px;background:#070e1c;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:16px">
         </div>
         <div style="grid-column:1/-1">
-          <div style="font-size:10px;font-weight:700;color:var(--text5);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Precio electricidad (€/kWh)</div>
+          <div style="font-size:10px;font-weight:700;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Precio electricidad (€/kWh)</div>
           <input type="number" id="calc-kwh" placeholder="0.15" min="0" step="0.01" value="0.15" oninput="calcCoste()"
-            style="width:100%;padding:9px 12px;background:#0d1926;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:15px">
+            style="width:100%;padding:10px 12px;background:#070e1c;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:16px">
         </div>
       </div>
 
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
-        <div style="font-size:10px;font-weight:700;color:var(--text5);text-transform:uppercase;letter-spacing:.8px;white-space:nowrap">Margen %</div>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+        <div style="font-size:10px;font-weight:700;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;white-space:nowrap">Margen</div>
         <input type="range" id="calc-margen" min="10" max="200" value="30" oninput="calcCoste();$('calc-margen-val').textContent=this.value+'%'"
           style="flex:1;accent-color:#3b82f6">
         <span id="calc-margen-val" style="font-size:13px;font-weight:700;color:#60a5fa;min-width:38px">30%</span>
       </div>
 
-      <!-- Resultado -->
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
-        <div style="background:#0d1926;border-radius:10px;padding:10px;text-align:center">
-          <div style="font-size:9px;color:var(--text5);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">Material</div>
-          <div id="calc-r-mat" style="font-size:16px;font-weight:900;color:#7a9ab8;font-family:monospace">0.00€</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
+        <div style="background:#070e1c;border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:9px;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Material</div>
+          <div id="calc-r-mat" style="font-size:18px;font-weight:900;color:#7a9ab8;font-family:monospace">0.00€</div>
         </div>
-        <div style="background:#0d1926;border-radius:10px;padding:10px;text-align:center">
-          <div style="font-size:9px;color:var(--text5);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">Electricidad</div>
-          <div id="calc-r-elec" style="font-size:16px;font-weight:900;color:#7a9ab8;font-family:monospace">0.00€</div>
+        <div style="background:#070e1c;border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:9px;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Electricidad</div>
+          <div id="calc-r-elec" style="font-size:18px;font-weight:900;color:#7a9ab8;font-family:monospace">0.00€</div>
         </div>
-        <div style="background:linear-gradient(145deg,#0d2545,#0a1e38);border:1px solid rgba(37,99,235,.3);border-radius:10px;padding:10px;text-align:center">
-          <div style="font-size:9px;color:#60a5fa;text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px">Precio venta</div>
-          <div id="calc-r-total" style="font-size:18px;font-weight:900;color:#60a5fa;font-family:monospace">0.00€</div>
+        <div style="background:linear-gradient(145deg,#0d2545,#0a1e38);border:1.5px solid rgba(37,99,235,.4);border-radius:10px;padding:12px;text-align:center">
+          <div style="font-size:9px;color:#60a5fa;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Precio venta</div>
+          <div id="calc-r-total" style="font-size:20px;font-weight:900;color:#60a5fa;font-family:monospace">0.00€</div>
         </div>
       </div>
 
-      <div style="text-align:center;margin-top:10px;font-size:11px;color:var(--text5)">
-        ✨ Guarda tus pedidos, clientes y facturas — <b style="color:#60a5fa">regístrate gratis</b>
+      <div style="background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);border-radius:12px;padding:14px;text-align:center">
+        <div style="font-size:13px;color:#7a9ab8;margin-bottom:10px">¿Quieres guardar pedidos, clientes y facturas?</div>
+        <button onclick="openLoginModal('signup')" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border:none;border-radius:10px;padding:12px 24px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;box-shadow:0 4px 16px rgba(37,99,235,.4);width:100%">
+          🚀 Crear cuenta gratis
+        </button>
+        <div style="font-size:11px;color:#2e4a6a;margin-top:8px">Sin tarjeta · 30 días gratis</div>
       </div>
     </div>
+  </div>
+</div>
 
-    <!-- LOGIN / REGISTRO -->
+<!-- MODAL LOGIN -->
+<div id="login-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);z-index:999;align-items:center;justify-content:center;padding:20px">
+  <div class="auth-card" style="position:relative;width:100%;max-width:380px">
+    <button onclick="closeLoginModal()" style="position:absolute;top:14px;right:14px;background:none;border:none;color:#7a9ab8;font-size:22px;cursor:pointer;line-height:1">✕</button>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+      <svg width="32" height="32" viewBox="0 0 38 38" fill="none"><rect width="38" height="38" rx="9" fill="#1d4ed8"/><polygon points="19,7 30,13 30,25 19,31 8,25 8,13" fill="none" stroke="#93c5fd" stroke-width="1.5"/><polygon points="19,7 30,13 19,19 8,13" fill="#3b82f6" opacity="0.8"/><polygon points="8,13 19,19 19,31 8,25" fill="#2563eb"/><polygon points="30,13 19,19 19,31 30,25" fill="#1d4ed8"/></svg>
+      <div style="font-size:20px;font-weight:900;color:#f1f5f9;letter-spacing:-1px">Brami3D</div>
+    </div>
     <div class="tabs">
       <button class="tab active" id="tab-login" onclick="switchTab('login')">Iniciar sesión</button>
       <button class="tab" id="tab-signup" onclick="switchTab('signup')">Registrarse</button>
@@ -469,6 +491,15 @@ function calcCoste(){
     r3.textContent=fmt(venta);
     r3.style.color=venta>0?'#60a5fa':'#7a9ab8';
   }
+}
+
+function openLoginModal(tab='login'){
+  const m=$('login-modal');
+  if(m){m.style.display='flex';switchTab(tab);}
+}
+function closeLoginModal(){
+  const m=$('login-modal');
+  if(m) m.style.display='none';
 }
 
 // ═══════════════════════════════════════════════
