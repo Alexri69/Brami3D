@@ -1817,7 +1817,17 @@ ${isMob
 // ─── MULTI-PIEZA ───────────────────────────────
 let _lineas=[];
 function lineaEmpty(){ return{id:uid(),piezaId:'',filamentos:[{filamentoId:'__manual__',peso:''}],filamentoId:'__manual__',nombre:'',material:'PLA',peso:'',tiempoImpresion:'',qty:1}; }
-function calcLineasTotals(lineas){return{pesoTotal:lineas.reduce((s,l)=>s+(parseFloat(l.peso)||0)*(parseInt(l.qty)||1),0),tiempoTotal:lineas.reduce((s,l)=>s+(parseFloat(l.tiempoImpresion)||0)*(parseInt(l.qty)||1),0)};}
+function calcLineasTotals(lineas){
+  return{
+    pesoTotal:lineas.reduce((s,l)=>{
+      const qty=parseInt(l.qty)||1;
+      if(l.filamentos&&l.filamentos.length>0)
+        return s+l.filamentos.reduce((fs,f)=>fs+(parseFloat(f.peso)||0),0)*qty;
+      return s+(parseFloat(l.peso)||0)*qty;
+    },0),
+    tiempoTotal:lineas.reduce((s,l)=>s+(parseFloat(l.tiempoImpresion)||0)*(parseInt(l.qty)||1),0)
+  };
+}
 
 function renderLineas(){
   const parts=_cache.piezas; const filaments=_cache.filamentos;
@@ -2119,6 +2129,7 @@ function editO(id){
 
 async function saveO(id){
   const d=gfd(['clienteId','proyecto','estado','notas','fecha','gananciaManual','costePostprocesado','costeDiseno','impresoraId']);
+  const prevOrder=_cache.pedidos.find(o=>o.id===id);
   const cobradoCheck=document.querySelector('[name="cobradoCheck"]')?.checked||false;
   const eraYaCobrado=prevOrder?.cobrado||false;
   const ahora=today();
@@ -2133,7 +2144,6 @@ async function saveO(id){
   const mainMat=firstLinea.material||'PLA';
   const mainFilId=firstLinea.filamentoId&&firstLinea.filamentoId!=='__manual__'?firstLinea.filamentoId:null;
 
-  const prevOrder=_cache.pedidos.find(o=>o.id===id);
   let presNum=prevOrder?.presNum||'';
   if(!id) presNum=await nextPresNum();
 
