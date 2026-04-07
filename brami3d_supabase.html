@@ -1176,23 +1176,34 @@ function abrirDocModal(html, filename){
 
   const modal=document.createElement('div');
   modal.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.85);display:flex;flex-direction:column';
+
+  // Botón descargar como link directo
+  const descBtn=`<a href="${blobUrl}" download="${filename}"
+    style="background:rgba(37,99,235,.2);border:1px solid rgba(37,99,235,.4);color:#60a5fa;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;text-decoration:none;font-family:inherit;white-space:nowrap">
+    ⬇️ Descargar
+  </a>`;
+
   modal.innerHTML=`
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#04090f;border-bottom:1px solid #132540;flex-shrink:0">
-      <div style="font-size:14px;font-weight:700;color:#e2eaf4">📄 ${filename}</div>
-      <div style="display:flex;gap:8px">
-        <a href="${blobUrl}" download="${filename}"
-          style="background:rgba(37,99,235,.2);border:1px solid rgba(37,99,235,.4);color:#60a5fa;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;text-decoration:none;font-family:inherit">
-          ⬇️ Descargar
-        </a>
-        <button onclick="this.closest('div[style]').remove();URL.revokeObjectURL('${blobUrl}')"
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#04090f;border-bottom:1px solid #132540;flex-shrink:0;gap:8px">
+      <div style="font-size:13px;font-weight:700;color:#e2eaf4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">📄 ${filename}</div>
+      <div style="display:flex;gap:8px;flex-shrink:0">
+        ${descBtn}
+        <button id="close-doc-modal"
           style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#f87171;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer">
-          ✕ Cerrar
+          ✕
         </button>
       </div>
     </div>
     <iframe src="${blobUrl}" style="flex:1;border:none;background:#fff"></iframe>
   `;
+
   document.body.appendChild(modal);
+
+  modal.querySelector('#close-doc-modal').addEventListener('click', ()=>{
+    modal.remove();
+    // Revocar solo al cerrar, no antes
+    setTimeout(()=>URL.revokeObjectURL(blobUrl), 1000);
+  });
 }
 
 function downloadPDFFile(id){
@@ -1206,15 +1217,17 @@ function downloadPDFFile(id){
   return o;
 }
 
-function sendWA(id){
+async function sendWA(id){
   const o=_cache.pedidos.find(x=>x.id===id);if(!o)return;
   const cfg=_cache.cfg;
   const cl=_cache.clientes.find(x=>x.id===o.clienteId)||{};
   const c=calcOrderCosts(o,cfg);
   const mon=cfg.moneda||'€';
-  // Generate and open PDF first
-  genPDF(id);
-  // Build WhatsApp message
+
+  // Generar presupuesto y mostrar modal
+  await genPDF(id);
+
+  // Mensaje WhatsApp
   const msg=`¡Hola${cl.nombre?' '+cl.nombre:''}! 👋
 
 Te envío el presupuesto para tu pedido:
@@ -1222,16 +1235,18 @@ Te envío el presupuesto para tu pedido:
 📋 *${o.proyecto}*
 💰 *Precio total: ${c.fp.toFixed(2)} ${mon}*${o.presNum?'\n🔢 Presupuesto Nº: '+o.presNum:''}
 
-El PDF se ha abierto en tu pantalla — puedes guardarlo y adjuntarlo aquí.
+Te he adjuntado el presupuesto en PDF 📎
 
 _¿Tienes alguna pregunta? Estoy a tu disposición._`;
+
   let ph=(cl.telefono||'').replace(/[^\d+]/g,'');
-  // Add Spain prefix if no country code
   if(ph && !ph.startsWith('+')){
     if(ph.startsWith('34')) ph='+'+ph;
     else ph='+34'+ph;
   }
-  setTimeout(()=>window.open(`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`,'_blank'),800);
+
+  // Abrir WhatsApp después de un momento para que el modal cargue
+  setTimeout(()=>window.open(`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`,'_blank'), 1200);
 }
 
 // ═══════════════════════════════════════════════
