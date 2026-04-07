@@ -1149,7 +1149,6 @@ ${biz.telefono?`<div class="payment-num">${biz.telefono}</div><div class="paymen
 }
 
 async function genPDF(id){
-  // If no presNum yet, assign one and save
   let o=_cache.pedidos.find(x=>x.id===id);if(!o)return;
   if(!o.presNum){
     const pn=await nextPresNum();
@@ -1167,8 +1166,33 @@ async function genPDF(id){
     }
   }
   const html=buildPDFHtml(id);if(!html)return;
-  const w=window.open('','_blank');if(!w){alert('Permite ventanas emergentes');return;}
-  w.document.write(html);w.document.close();
+  abrirDocModal(html, `Presupuesto_${o.presNum||o.proyecto}.html`);
+}
+
+function abrirDocModal(html, filename){
+  const blob=new Blob([html],{type:'text/html'});
+  const blobUrl=URL.createObjectURL(blob);
+  const isMob=window.innerWidth<=768;
+
+  const modal=document.createElement('div');
+  modal.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.85);display:flex;flex-direction:column';
+  modal.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#04090f;border-bottom:1px solid #132540;flex-shrink:0">
+      <div style="font-size:14px;font-weight:700;color:#e2eaf4">📄 ${filename}</div>
+      <div style="display:flex;gap:8px">
+        <a href="${blobUrl}" download="${filename}"
+          style="background:rgba(37,99,235,.2);border:1px solid rgba(37,99,235,.4);color:#60a5fa;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;text-decoration:none;font-family:inherit">
+          ⬇️ Descargar
+        </a>
+        <button onclick="this.closest('div[style]').remove();URL.revokeObjectURL('${blobUrl}')"
+          style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#f87171;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer">
+          ✕ Cerrar
+        </button>
+      </div>
+    </div>
+    <iframe src="${blobUrl}" style="flex:1;border:none;background:#fff"></iframe>
+  `;
+  document.body.appendChild(modal);
 }
 
 function downloadPDFFile(id){
@@ -1280,8 +1304,7 @@ ${o.notas?`<div class="notas-box"><b>Notas:</b> ${o.notas}</div>`:''}
 </div>
 <div class="footer"><div class="footer-thanks">¡Gracias por su confianza! 🙏</div><div class="footer-note"><div>Factura generada el ${dateStr}</div><div>${biz.empresa||'B3D Print Studio'}</div></div></div>
 </div><script>setTimeout(()=>window.print(),500)<\/script></body></html>`;
-  const w=window.open('','_blank');if(!w){alert('Permite ventanas emergentes');return;}
-  w.document.write(html);w.document.close();
+  abrirDocModal(html, `Factura_${o.facturaNum}.html`);
 }
 
 // ═══════════════════════════════════════════════
@@ -1495,10 +1518,7 @@ th:last-child{text-align:right}
 </body></html>`;
 
   closeModal();
-  const w=window.open('','_blank');
-  if(!w){alert('Permite ventanas emergentes para generar el informe');return;}
-  w.document.write(html);
-  w.document.close();
+  abrirDocModal(html, `Informe_${mesNombre}_${anio}.html`);
 }
 
 // ═══════════════════════════════════════════════
