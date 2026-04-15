@@ -49,10 +49,10 @@ const link = document.createElement('link');
 link.rel = 'manifest'; link.href = url;
 document.head.appendChild(link);
 
-// Registrar Service Worker
+// Limpiar cualquier Service Worker previo
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(r => r.unregister());
   });
 }
 </script>
