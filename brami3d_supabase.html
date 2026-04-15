@@ -57,6 +57,7 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
@@ -1035,6 +1036,7 @@ function render(){
   const fn=map[PAGE];
   $('content').innerHTML=fn?fn():'<p style="color:var(--text4)">Página no encontrada</p>';
   if(PAGE==='archivos') initDZ();
+  if(PAGE==='dashboard') setTimeout(initDashboardCharts,0);
 }
 
 // ═══════════════════════════════════════════════
@@ -1607,6 +1609,50 @@ th:last-child{text-align:right}
 // ═══════════════════════════════════════════════
 //  DASHBOARD
 // ═══════════════════════════════════════════════
+// ===============================================
+//  GRAFICAS DASHBOARD
+// ===============================================
+const CHART_COLORS=['#3b82f6','#34d399','#f59e0b','#a78bfa','#f472b6','#60a5fa','#fb923c','#94a3b8'];
+const ESTADO_COLORS={pendiente:'#fbbf24',imprimiendo:'#60a5fa',terminado:'#34d399',entregado:'#a78bfa',cobrado:'#4ade80',pagado:'#4ade80'};
+let _charts={};
+function destroyChart(id){if(_charts[id]){_charts[id].destroy();delete _charts[id];}}
+function initDashboardCharts(){
+  if(typeof Chart==='undefined') return;
+  const cfg=_cache.cfg; const orders=_cache.pedidos; const mon=cfg.moneda||'\u20ac';
+  const months={};
+  orders.forEach(o=>{const m=(o.fecha||'').slice(0,7);if(!m)return;if(!months[m])months[m]=0;if(o.cobrado===true)months[m]+=calcOrderCosts(o,cfg).fp;});
+  const mks=Object.keys(months).sort().slice(-7);
+  const c1=$('ch-ingresos');
+  if(c1){
+    destroyChart('ingresos');
+    _charts['ingresos']=new Chart(c1,{type:'bar',data:{
+      labels:mks.map(m=>m.slice(5)+'/'+m.slice(2,4)),
+      datasets:[{data:mks.map(m=>parseFloat(months[m].toFixed(2))),backgroundColor:'rgba(59,130,246,.7)',borderColor:'#3b82f6',borderWidth:1,borderRadius:6}]
+    },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.parsed.y.toFixed(2)+mon}}},scales:{x:{ticks:{color:'#7a9ab8',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}},y:{ticks:{color:'#7a9ab8',font:{size:10},callback:v=>v+mon},grid:{color:'rgba(255,255,255,.06)'}}}}});
+  }
+  const byE={};orders.forEach(o=>{byE[o.estado]=(byE[o.estado]||0)+1;});
+  const c2=$('ch-estados');
+  if(c2&&Object.keys(byE).length){
+    destroyChart('estados');
+    const labels=Object.keys(byE);
+    _charts['estados']=new Chart(c2,{type:'doughnut',data:{
+      labels,
+      datasets:[{data:labels.map(k=>byE[k]),backgroundColor:labels.map(k=>ESTADO_COLORS[k]||'#94a3b8'),borderWidth:0,hoverOffset:6}]
+    },options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{position:'right',labels:{color:'#7a9ab8',font:{size:10},boxWidth:10,padding:8}},tooltip:{callbacks:{label:ctx=>ctx.label+': '+ctx.parsed}}}}});
+  }
+  const byMat={};
+  orders.forEach(o=>{if(o.material)byMat[o.material]=(byMat[o.material]||0)+1;});
+  const topMats=Object.entries(byMat).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const c3=$('ch-materiales');
+  if(c3&&topMats.length){
+    destroyChart('materiales');
+    _charts['materiales']=new Chart(c3,{type:'bar',data:{
+      labels:topMats.map(([k])=>k),
+      datasets:[{data:topMats.map(([,v])=>v),backgroundColor:CHART_COLORS.slice(0,topMats.length),borderWidth:0,borderRadius:6}]
+    },options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.parsed.x+' pedido'+(ctx.parsed.x!==1?'s':'')}}},scales:{x:{ticks:{color:'#7a9ab8',font:{size:10},stepSize:1},grid:{color:'rgba(255,255,255,.06)'}},y:{ticks:{color:'#7a9ab8',font:{size:11}},grid:{display:false}}}}});
+  }
+}
+
 function pgDashboard(){
   const orders=_cache.pedidos; const cfg=_cache.cfg;
   const paid=orders.filter(o=>o.cobrado===true);
@@ -1625,7 +1671,7 @@ function pgDashboard(){
 
   const stC=(lbl,val,ico,col,sub)=>`<div class="card stat-card" style="position:relative;overflow:hidden;padding:22px 24px"><div style="position:absolute;top:0;left:0;right:0;height:3px;background:${col};opacity:.6;border-radius:16px 16px 0 0"></div><div style="font-size:10px;font-weight:800;color:var(--text5);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:12px">${lbl}</div><div style="color:${col};font-size:28px;font-weight:900;letter-spacing:-1.5px;font-family:'Courier New',monospace;line-height:1">${val}</div>${sub?`<div style="font-size:11px;color:var(--text4);margin-top:8px;font-weight:500">${sub}</div>`:''}</div>`;
 
-  const bars=mks.length===0?'<p style="color:var(--text5);font-size:13px">Sin pedidos pagados aún</p>':`<div class="bar-chart">${mks.map(m=>`<div class="bar-col"><div style="font-size:10px;color:var(--text5);font-family:monospace">${months[m].i>0?months[m].i.toFixed(0):''}</div><div class="bar" style="height:${Math.max(4,(months[m].i/maxI)*88)}px"></div></div>`).join('')}</div><div style="display:flex;gap:8px;margin-top:8px">${mks.map(m=>`<div style="flex:1;text-align:center;font-size:9px;color:var(--text5)">${m.slice(5)}/${m.slice(2,4)}</div>`).join('')}</div>`;
+  // chart data prepared below
 
   const eList=Object.entries(byE).length===0?'<p style="color:var(--text5);font-size:13px">Sin pedidos</p>':Object.entries(byE).map(([k,v])=>`<button onclick="goToEstado('${k}')" style="display:flex;justify-content:space-between;align-items:center;width:100%;padding:10px 12px;margin-bottom:6px;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:all .18s;text-align:left" onmouseover="this.style.background='rgba(59,130,246,.08)';this.style.borderColor='#2563eb40'" onmouseout="this.style.background='rgba(255,255,255,.02)';this.style.borderColor='#132540'">${mkBadge(k)}<span style="color:#93c5fd;font-weight:800;font-size:18px;font-family:monospace">${v}</span></button>`).join('');
 
@@ -1712,8 +1758,21 @@ function pgDashboard(){
 ${pendAlert}
 ${filAlert}
 <div class="flexwrap" style="margin-top:18px">
-  <div class="card" style="flex:2;min-width:260px"><div class="card-title">Ingresos por mes</div>${bars}</div>
-  <div class="card" style="flex:1;min-width:200px"><div class="card-title" style="margin-bottom:12px">Por estado <span style="font-size:9px;color:var(--text5);font-weight:600;text-transform:none;letter-spacing:0;margin-left:4px">— toca para filtrar</span></div>${eList}</div>
+  <div class="card" style="flex:2;min-width:260px">
+    <div class="card-title">Ingresos por mes (${cfg.moneda||'\u20ac'})</div>
+    <div style="position:relative;height:160px"><canvas id="ch-ingresos"></canvas></div>
+  </div>
+  <div class="card" style="flex:1;min-width:200px">
+    <div class="card-title" style="margin-bottom:12px">Por estado <span style="font-size:9px;color:var(--text5);font-weight:600;text-transform:none;letter-spacing:0;margin-left:4px">— toca para filtrar</span></div>
+    <div style="position:relative;height:140px;margin-bottom:10px"><canvas id="ch-estados"></canvas></div>
+    ${eList}
+  </div>
+</div>
+<div class="flexwrap" style="margin-top:14px">
+  <div class="card" style="flex:1;min-width:260px">
+    <div class="card-title">Materiales más usados</div>
+    <div style="position:relative;height:140px"><canvas id="ch-materiales"></canvas></div>
+  </div>
 </div>
 <div class="card" style="margin-top:18px;padding:0;overflow:hidden">
   <div style="padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px"><span>🕐</span><span class="card-title" style="margin:0">Últimos pedidos</span></div>
