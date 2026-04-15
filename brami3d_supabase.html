@@ -2767,24 +2767,13 @@ ${fld('Email de contacto','biz_email',cfg.email||'')}
 <div class="card" style="flex:1;min-width:240px">
 <div class="card-title">🔔 Notificaciones</div>
 <p style="font-size:12px;color:var(--text4);margin-bottom:14px;line-height:1.6">Recibe avisos cuando un filamento esté bajo, haya pedidos sin cobrar o una impresora necesite mantenimiento.</p>
-<div id="notif-status" style="font-size:12px;color:var(--text4);margin-bottom:12px"></div>
-<button class="btn-primary" onclick="requestNotifPermission()" id="notif-btn">🔔 Activar notificaciones</button>
-<script>
-(function(){
-  const s = document.getElementById('notif-status');
-  const b = document.getElementById('notif-btn');
-  if(!('Notification' in window)){
-    if(s) s.textContent = '❌ No soportado en este navegador';
-    if(b) b.disabled = true;
-  } else if(Notification.permission === 'granted'){
-    if(s) s.innerHTML = '<span style="color:#34d399">✅ Notificaciones activas</span>';
-    if(b) b.textContent = '🔔 Comprobar alertas ahora';
-  } else if(Notification.permission === 'denied'){
-    if(s) s.textContent = '⛔ Bloqueadas en el navegador';
-    if(b) b.disabled = true;
-  }
-})();
-</script>
+${(()=>{
+  if(!('Notification' in window)) return '<div style="font-size:12px;color:#f87171;margin-bottom:12px">❌ No soportado en este navegador</div>';
+  if(Notification.permission==='granted') return '<div style="font-size:12px;color:#34d399;margin-bottom:12px">✅ Notificaciones activas</div>';
+  if(Notification.permission==='denied') return '<div style="font-size:12px;color:#f87171;margin-bottom:12px">⛔ Bloqueadas — actívalas en ajustes del navegador</div>';
+  return '<div style="font-size:12px;color:var(--text4);margin-bottom:12px">Sin configurar</div>';
+})()}
+<button class="btn-primary" onclick="requestNotifPermission()">🔔 ${Notification.permission==='granted'?'Comprobar alertas ahora':'Activar notificaciones'}</button>
 </div>
 <div class="card" style="flex:1;min-width:240px">
 <div class="card-title">💡 Fórmula de precios</div>
