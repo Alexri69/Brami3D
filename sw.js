@@ -1,4 +1,4 @@
-const CACHE_NAME = 'b3d-shell-v1';
+const CACHE_NAME = 'b3d-shell-v2';
 const SHELL = [
   '/brami3d_supabase.html',
   'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2'
