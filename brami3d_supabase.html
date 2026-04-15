@@ -1806,6 +1806,46 @@ function exportClientesExcel(){
   showToast('Excel exportado ✓','ok');
 }
 
+function exportPedidosCSV(){
+  const cfg=_cache.cfg; const mon=cfg.moneda||'€';
+  const orders=_cache.pedidos;
+  if(!orders.length){showToast('No hay pedidos para exportar','err');return;}
+  const cel=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const cols=['Nº Presupuesto','Nº Factura','Proyecto','Cliente','Material','Peso (g)','Tiempo (h)','Precio ('+mon+')','Coste ('+mon+')','Ganancia ('+mon+')','Estado','Cobrado','Fecha','Notas'];
+  const rows=orders.map(o=>{
+    const cl=_cache.clientes.find(c=>c.id===o.clienteId)||{};
+    const costs=calcOrderCosts(o,cfg);
+    return[cel(o.presNum||''),cel(o.facturaNum||''),cel(o.proyecto||''),cel(cl.nombre||''),cel(o.material||''),o.peso||0,o.tiempoImpresion||0,costs.fp.toFixed(2),costs.coste.toFixed(2),(costs.fp-costs.coste).toFixed(2),cel(o.estado||''),o.cobrado?'Sí':'No',cel(o.fecha||''),cel(o.notas||'')].join(';');
+  });
+  const csv='﻿'+cols.map(c=>'"'+c+'"').join(';')+'
+'+rows.join('
+');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='Pedidos_B3D_'+today()+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+  showToast('Excel exportado ✓','ok');
+}
+
+function exportGastosCSV(){
+  const cfg=_cache.cfg; const mon=cfg.moneda||'€';
+  const gastos=_cache.gastos||[];
+  if(!gastos.length){showToast('No hay gastos para exportar','err');return;}
+  const cel=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+  const cols=['Concepto','Categoría','Importe ('+mon+')','Fecha','Notas'];
+  const rows=gastos.map(g=>[cel(g.concepto||''),cel(g.categoria||''),parseFloat(g.importe||0).toFixed(2),cel(g.fecha||''),cel(g.notas||'')].join(';'));
+  const csv='﻿'+cols.map(c=>'"'+c+'"').join(';')+'
+'+rows.join('
+');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='Gastos_B3D_'+today()+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+  showToast('Excel exportado ✓','ok');
+}
+
 function delC(id){ confirmDel('¿Eliminar este cliente?',`doDelC('${id}')`); }
 async function doDelC(id){ if(await dbDel('clientes',id)){_cache.clientes=_cache.clientes.filter(x=>x.id!==id);render();showToast('Eliminado','ok');} }
 
@@ -2099,7 +2139,7 @@ function pgPedidos(){
     </div>`;
   }).join('');
 
-  return`<div class="page-header"><div><h2 class="page-title">Pedidos</h2><div class="page-subtitle">${orders.length} pedido${orders.length!==1?'s':''} en total</div></div><button class="btn-primary" onclick="editO(null)">+ Nuevo</button></div>
+  return`<div class="page-header"><div><h2 class="page-title">Pedidos</h2><div class="page-subtitle">${orders.length} pedido${orders.length!==1?'s':''} en total</div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-secondary" onclick="exportPedidosCSV()" style="display:flex;align-items:center;gap:6px">📊 Exportar Excel</button><button class="btn-primary" onclick="editO(null)">+ Nuevo</button></div></div>
 <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center">${chips}${!isMob?`<input style="flex:1;min-width:160px" placeholder="🔍 Buscar…" value="${esc(_pSearch)}" oninput="_pSearch=this.value;render()">`:''}</div>
 ${isMob?`<input style="margin-bottom:12px" placeholder="🔍 Buscar proyecto…" value="${esc(_pSearch)}" oninput="_pSearch=this.value;render()">`:``}
 ${isMob
@@ -2667,7 +2707,7 @@ function pgGastos(){
 
   return`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:10px">
   <div><h2 class="page-title">Gastos</h2><div class="page-subtitle">Control de todos tus gastos</div></div>
-  <button class="btn-primary" onclick="editGasto(null)">+ Nuevo gasto</button>
+  <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-secondary" onclick="exportGastosCSV()" style="display:flex;align-items:center;gap:6px">📊 Exportar Excel</button><button class="btn-primary" onclick="editGasto(null)">+ Nuevo gasto</button></div>
 </div>
 
 <div class="flexwrap" style="margin-bottom:18px">
