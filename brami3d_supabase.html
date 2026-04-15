@@ -41,6 +41,10 @@ const manifest = {
     { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'maskable' },
     { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
     { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+  ],
+  shortcuts: [
+    { name: 'Nuevo pedido', short_name: 'Pedido', url: '/brami3d_supabase.html?s=pedido', icons: [{ src: '/icon-192.png', sizes: '192x192' }] },
+    { name: 'Nuevo cliente', short_name: 'Cliente', url: '/brami3d_supabase.html?s=cliente', icons: [{ src: '/icon-192.png', sizes: '192x192' }] }
   ]
 };
 const blob = new Blob([JSON.stringify(manifest)], {type:'application/json'});
@@ -733,6 +737,7 @@ async function bootApp(){
     refreshBizHeader();
     goTo('dashboard');
     // Refresh in background silently
+    handleShortcut();
     loadAll(true).then(()=>{
       saveLocalCache();
       render();
@@ -746,6 +751,7 @@ async function bootApp(){
       saveLocalCache();
       goTo('dashboard');
       checkAndNotify();
+      handleShortcut();
     } catch(e) {
       $('content').innerHTML='<div style="padding:32px;color:#f87171;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:12px;margin:24px">❌ Error al cargar: '+e.message+'<br><br><button class="btn-primary" onclick="bootApp()">🔄 Reintentar</button></div>';
     }
@@ -2964,6 +2970,16 @@ async function saveBiz(){
   refreshBizHeader();
   const b=$('scb2');if(b){b.textContent='✅ Guardado';setTimeout(()=>{b.textContent='Guardar datos empresa';},2000);}
   showToast('Datos de empresa guardados','ok');
+}
+
+// ═══════════════════════════════════════════════
+//  PWA SHORTCUTS
+// ═══════════════════════════════════════════════
+function handleShortcut(){
+  const s=new URLSearchParams(location.search).get('s');
+  if(!s) return;
+  if(s==='pedido'){ goTo('pedidos'); setTimeout(()=>editO(null),120); }
+  else if(s==='cliente'){ goTo('clientes'); setTimeout(()=>editC(null),120); }
 }
 
 // ═══════════════════════════════════════════════
