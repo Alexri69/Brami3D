@@ -1641,7 +1641,22 @@ function initDashboardCharts(){
     },options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{position:'right',labels:{color:'#7a9ab8',font:{size:10},boxWidth:10,padding:8}},tooltip:{callbacks:{label:ctx=>ctx.label+': '+ctx.parsed}}}}});
   }
   const byMat={};
-  orders.forEach(o=>{if(o.material)byMat[o.material]=(byMat[o.material]||0)+1;});
+  orders.forEach(o=>{
+    if(o.lineas&&o.lineas.length){
+      o.lineas.forEach(l=>{
+        let mat='';
+        if(l.filamentoId&&l.filamentoId!=='__manual__'){
+          const f=(_cache.filamentos||[]).find(x=>x.id===l.filamentoId);
+          mat=f?`${f.tipo} ${f.marca}`.trim():l.material||'';
+        } else {
+          mat=l.material||'';
+        }
+        if(mat) byMat[mat]=(byMat[mat]||0)+1;
+      });
+    } else if(o.material){
+      byMat[o.material]=(byMat[o.material]||0)+1;
+    }
+  });
   const topMats=Object.entries(byMat).sort((a,b)=>b[1]-a[1]).slice(0,6);
   const c3=$('ch-materiales');
   if(c3&&topMats.length){
