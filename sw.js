@@ -18,6 +18,18 @@ self.addEventListener('activate', e => {
   );
 });
 
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+      for (const c of list) {
+        if (c.url.includes('brami3d') && 'focus' in c) return c.focus();
+      }
+      return clients.openWindow('/brami3d_supabase.html');
+    })
+  );
+});
+
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
 

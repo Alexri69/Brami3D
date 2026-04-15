@@ -487,6 +487,63 @@ if(savedTheme==='light'){
 }
 
 // ═══════════════════════════════════════════════
+//  NOTIFICACIONES
+// ═══════════════════════════════════════════════
+const NOTIF_KEY = 'b3d_notif_last';
+
+async function requestNotifPermission(){
+  if(!('Notification' in window)){ showToast('Tu navegador no soporta notificaciones','err'); return; }
+  const perm = await Notification.requestPermission();
+  if(perm === 'granted'){
+    localStorage.setItem('b3d_notif_enabled','1');
+    showToast('Notificaciones activadas','ok');
+    checkAndNotify();
+  } else {
+    showToast('Permiso denegado','err');
+  }
+}
+
+function notifEnabled(){
+  return 'Notification' in window && Notification.permission === 'granted' && localStorage.getItem('b3d_notif_enabled') === '1';
+}
+
+function showNotif(title, body){
+  if(!notifEnabled()) return;
+  const n = new Notification(title, { body, icon: '/icon-192.png', badge: '/icon-192.png' });
+  n.onclick = () => { window.focus(); n.close(); };
+}
+
+function checkAndNotify(){
+  if(!notifEnabled()) return;
+  const last = parseInt(localStorage.getItem(NOTIF_KEY)||'0');
+  const now = Date.now();
+  if(now - last < 60*60*1000) return;
+  localStorage.setItem(NOTIF_KEY, now);
+
+  const lowFils = (_cache.filamentos||[]).filter(f => parseFloat(f.pesoRestante) < 250);
+  if(lowFils.length){
+    const nombres = lowFils.map(f=>f.tipo||f.nombre||'Filamento').join(', ');
+    showNotif('⚠️ Filamento bajo', lowFils.length + ' filamento' + (lowFils.length>1?'s':'') + ' con menos de 250g: ' + nombres);
+  }
+
+  const hace7 = Date.now() - 7*24*60*60*1000;
+  const sinCobrar = (_cache.pedidos||[]).filter(o => {
+    if(o.cobrado) return false;
+    if(!['terminado','entregado'].includes(o.estado)) return false;
+    return o.fecha ? new Date(o.fecha).getTime() < hace7 : false;
+  });
+  if(sinCobrar.length){
+    showNotif('💰 Pedidos sin cobrar', sinCobrar.length + ' pedido' + (sinCobrar.length>1?'s':'') + ' terminado' + (sinCobrar.length>1?'s':'') + ' pendiente' + (sinCobrar.length>1?'s':'') + ' de cobro');
+  }
+
+  const desgastadas = (_cache.impresoras||[]).filter(p => parseFloat(p.desgaste) > 80);
+  if(desgastadas.length){
+    const nombres = desgastadas.map(p=>p.nombre).join(', ');
+    showNotif('🔧 Mantenimiento recomendado', desgastadas.length + ' impresora' + (desgastadas.length>1?'s':'') + ' con desgaste >80%: ' + nombres);
+  }
+}
+
+// ═══════════════════════════════════════════════
 //  PWA INSTALL
 // ═══════════════════════════════════════════════
 let _installPrompt = null;
@@ -679,6 +736,7 @@ async function bootApp(){
       saveLocalCache();
       render();
       refreshAlerts();
+      checkAndNotify();
     }).catch(()=>{});
   } else {
     $('content').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:60vh"><div style="text-align:center"><div class="loading-spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto 16px"></div><div style="color:var(--text4);font-size:13px">Cargando...</div></div></div>';
@@ -686,6 +744,7 @@ async function bootApp(){
       await loadAll(false);
       saveLocalCache();
       goTo('dashboard');
+      checkAndNotify();
     } catch(e) {
       $('content').innerHTML='<div style="padding:32px;color:#f87171;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:12px;margin:24px">❌ Error al cargar: '+e.message+'<br><br><button class="btn-primary" onclick="bootApp()">🔄 Reintentar</button></div>';
     }
@@ -2704,6 +2763,28 @@ ${fld('Email de contacto','biz_email',cfg.email||'')}
 <div style="color:var(--text4);font-size:13px;margin-bottom:6px">Email: <b style="color:var(--text2)">${esc(CU.email)}</b></div>
 <div style="background:var(--bg);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--text4);line-height:1.6;margin-bottom:16px">☁️ Datos guardados en Supabase.<br>Accede desde cualquier dispositivo.</div>
 <button class="btn-danger" onclick="logout()">🚪 Cerrar sesión</button>
+</div>
+<div class="card" style="flex:1;min-width:240px">
+<div class="card-title">🔔 Notificaciones</div>
+<p style="font-size:12px;color:var(--text4);margin-bottom:14px;line-height:1.6">Recibe avisos cuando un filamento esté bajo, haya pedidos sin cobrar o una impresora necesite mantenimiento.</p>
+<div id="notif-status" style="font-size:12px;color:var(--text4);margin-bottom:12px"></div>
+<button class="btn-primary" onclick="requestNotifPermission()" id="notif-btn">🔔 Activar notificaciones</button>
+<script>
+(function(){
+  const s = document.getElementById('notif-status');
+  const b = document.getElementById('notif-btn');
+  if(!('Notification' in window)){
+    if(s) s.textContent = '❌ No soportado en este navegador';
+    if(b) b.disabled = true;
+  } else if(Notification.permission === 'granted'){
+    if(s) s.innerHTML = '<span style="color:#34d399">✅ Notificaciones activas</span>';
+    if(b) b.textContent = '🔔 Comprobar alertas ahora';
+  } else if(Notification.permission === 'denied'){
+    if(s) s.textContent = '⛔ Bloqueadas en el navegador';
+    if(b) b.disabled = true;
+  }
+})();
+</script>
 </div>
 <div class="card" style="flex:1;min-width:240px">
 <div class="card-title">💡 Fórmula de precios</div>
