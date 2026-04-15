@@ -1876,9 +1876,7 @@ function exportPedidosCSV(){
     const costs=calcOrderCosts(o,cfg);
     return[cel(o.presNum||''),cel(o.facturaNum||''),cel(o.proyecto||''),cel(cl.nombre||''),cel(o.material||''),o.peso||0,o.tiempoImpresion||0,costs.fp.toFixed(2),costs.coste.toFixed(2),(costs.fp-costs.coste).toFixed(2),cel(o.estado||''),o.cobrado?'Sí':'No',cel(o.fecha||''),cel(o.notas||'')].join(';');
   });
-  const csv='﻿'+cols.map(c=>'"'+c+'"').join(';')+'
-'+rows.join('
-');
+  const csv='\uFEFF'+cols.map(c=>'"'+c+'"').join(';')+'\n'+rows.join('\n');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download='Pedidos_B3D_'+today()+'.csv';
@@ -1894,9 +1892,7 @@ function exportGastosCSV(){
   const cel=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
   const cols=['Concepto','Categoría','Importe ('+mon+')','Fecha','Notas'];
   const rows=gastos.map(g=>[cel(g.concepto||''),cel(g.categoria||''),parseFloat(g.importe||0).toFixed(2),cel(g.fecha||''),cel(g.notas||'')].join(';'));
-  const csv='﻿'+cols.map(c=>'"'+c+'"').join(';')+'
-'+rows.join('
-');
+  const csv='\uFEFF'+cols.map(c=>'"'+c+'"').join(';')+'\n'+rows.join('\n');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');a.href=url;a.download='Gastos_B3D_'+today()+'.csv';
