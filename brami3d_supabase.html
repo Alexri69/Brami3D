@@ -1701,8 +1701,54 @@ function pgDashboard(){
         </div>`;}).join('')}
     </div>`;
 
-  // Pedidos pendientes hace más de 3 días
+  // Alertas de cobro — terminados/entregados sin cobrar hace +7 días
   const hoy = new Date();
+  const sinCobrar = orders.filter(o=>{
+    if(o.cobrado===true) return false;
+    if(o.estado!=='terminado'&&o.estado!=='entregado') return false;
+    if(!o.fecha) return false;
+    const dias = Math.floor((hoy - new Date(o.fecha)) / (1000*60*60*24));
+    return dias >= 7;
+  }).sort((a,b)=>a.fecha.localeCompare(b.fecha));
+  const totalSinCobrar = sinCobrar.reduce((s,o)=>s+calcOrderCosts(o,cfg).fp,0);
+
+  const cobroAlert = sinCobrar.length===0 ? '' :
+    `<div class="card" style="margin-top:18px;border-color:rgba(52,211,153,.35);background:linear-gradient(145deg,#001a0e,#000f08)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px">
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:20px">💸</span>
+          <div>
+            <div style="font-size:10px;font-weight:800;color:#34d399;text-transform:uppercase;letter-spacing:1.4px">Pendiente de cobrar</div>
+            <div style="font-size:11px;color:#064e3b;margin-top:1px">${sinCobrar.length} pedido${sinCobrar.length!==1?'s':''} terminado${sinCobrar.length!==1?'s':''} sin cobrar</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span style="font-size:22px;font-weight:900;color:#34d399;font-family:monospace;letter-spacing:-1px">${totalSinCobrar.toFixed(2)}${cfg.moneda||'€'}</span>
+          <span style="background:rgba(52,211,153,.2);color:#34d399;border:1px solid rgba(52,211,153,.4);border-radius:99px;padding:2px 10px;font-size:12px;font-weight:800">${sinCobrar.length}</span>
+        </div>
+      </div>
+      ${sinCobrar.map(o=>{
+        const cl=_cache.clientes.find(x=>x.id===o.clienteId)||{};
+        const dias=Math.floor((hoy-new Date(o.fecha))/(1000*60*60*24));
+        const c=calcOrderCosts(o,cfg);
+        const urgente=dias>=14;
+        return`<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;background:rgba(255,255,255,.02);border:1px solid rgba(52,211,153,.12);border-radius:10px;padding:10px 14px">
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:700;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(o.proyecto)}</div>
+            <div style="display:flex;align-items:center;gap:8px;margin-top:3px;flex-wrap:wrap">
+              ${mkBadge(o.estado)}
+              ${cl.nombre?`<span style="font-size:11px;color:var(--text4)">${esc(cl.nombre)}</span>`:''}
+              <span style="font-size:11px;color:${urgente?'#f87171':'#fbbf24'};font-weight:700">${urgente?'🔴':'🟡'} ${dias} día${dias!==1?'s':''}</span>
+            </div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:14px;font-weight:900;color:#34d399">${c.fp.toFixed(2)}${cfg.moneda||'€'}</div>
+            <button onclick="editO('${o.id}')" style="margin-top:4px;background:rgba(52,211,153,.15);border:1px solid rgba(52,211,153,.3);color:#34d399;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700">Cobrar</button>
+          </div>
+        </div>`;}).join('')}
+    </div>`;
+
+  // Pedidos pendientes hace más de 3 días
   const pendOld = orders.filter(o=>{
     if(o.estado!=='pendiente'&&o.estado!=='imprimiendo') return false;
     if(!o.fecha) return false;
@@ -1755,6 +1801,7 @@ function pgDashboard(){
   ${stC('Beneficio neto',ben.toFixed(2)+(cfg.moneda||'€'),'📈',ben>=0?'#34d399':'#f87171',ben>=0?'Margen positivo ✓':'Revisar precios')}
   ${stC('Total pedidos',orders.length,'🖨️','#93c5fd',`${pendCount} pendiente${pendCount!==1?'s':''} · ${impCount} imprimiendo`)}
 </div>
+${cobroAlert}
 ${pendAlert}
 ${filAlert}
 <div class="flexwrap" style="margin-top:18px">
