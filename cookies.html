@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Política de cookies — Brami3D</title>
+<meta name="robots" content="noindex">
+<style>
+:root{--bg:#04090f;--bg2:#080f1a;--bg3:#0d1926;--blue:#2563eb;--blue3:#60a5fa;--text:#e2eaf4;--text2:#7a9ab8;--text3:#2e4a6a;--border:#0f2040}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.6;padding:40px 20px}
+.wrap{max-width:760px;margin:0 auto;padding:40px 32px;background:var(--bg2);border:1px solid var(--border);border-radius:12px}
+h1{font-size:28px;margin-bottom:8px}
+h2{font-size:18px;color:var(--blue3);margin:28px 0 10px;border-bottom:1px solid var(--border);padding-bottom:6px}
+p,li{color:var(--text2);font-size:14px;margin-bottom:8px}
+ul{padding-left:20px;margin-bottom:8px}
+a{color:var(--blue3)}
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px}
+th,td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+th{background:var(--bg3);color:var(--text);font-weight:600}
+td{color:var(--text2)}
+.todo{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);color:#fca5a5;padding:8px 12px;border-radius:6px;font-size:12px;font-family:monospace;display:inline-block;margin:4px 0}
+.warn{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.4);color:#fcd34d;padding:14px 18px;border-radius:8px;margin-bottom:24px;font-size:13px}
+.controls{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:18px;margin:24px 0}
+.controls h2{margin-top:0;border:none;padding:0}
+.controls .status{font-size:13px;color:var(--text2);margin:10px 0 14px}
+.controls .status b{color:var(--text)}
+.controls button{background:#2563eb;border:none;color:#fff;padding:10px 18px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;margin-right:8px}
+.controls button.secondary{background:transparent;border:1px solid #334155;color:var(--text)}
+.updated{color:var(--text3);font-size:12px;margin-top:6px}
+nav{margin-bottom:24px;font-size:13px}
+nav a{color:var(--text2);text-decoration:none;margin-right:16px}
+nav a:hover{color:var(--blue3)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav><a href="/landing.html">← Brami3D</a> <a href="/privacidad.html">Privacidad</a></nav>
+
+<div class="warn">⚠️ <b>Borrador de revisión.</b> Revisar con asesor legal antes de publicar. Sustituir los campos <code>[COMPLETAR: ...]</code>.</div>
+
+<h1>Política de cookies</h1>
+<p class="updated">Última actualización: [COMPLETAR: fecha]</p>
+
+<h2>1. ¿Qué son las cookies?</h2>
+<p>Las cookies son pequeños ficheros de texto que un sitio guarda en tu dispositivo para recordar información entre visitas. En este sitio también usamos <i>localStorage</i>, una tecnología equivalente cuya finalidad y tratamiento declaramos aquí para mayor transparencia.</p>
+
+<h2>2. Cookies y almacenamiento que usamos</h2>
+
+<h3 style="color:var(--text);font-size:15px;margin-top:16px">Técnicas (imprescindibles — no requieren consentimiento)</h3>
+<table>
+<thead><tr><th>Nombre</th><th>Tipo</th><th>Finalidad</th><th>Duración</th></tr></thead>
+<tbody>
+<tr><td>sb-*-auth-token</td><td>Cookie/localStorage</td><td>Mantener la sesión iniciada en Supabase.</td><td>Sesión / hasta cierre</td></tr>
+<tr><td>b3d_cache_v1_*</td><td>localStorage</td><td>Caché local de tus datos para que la app funcione offline tras el primer uso.</td><td>Persistente, hasta que cierres sesión o borres datos</td></tr>
+<tr><td>b3d_theme</td><td>localStorage</td><td>Recordar tu preferencia de tema claro/oscuro.</td><td>Persistente</td></tr>
+<tr><td>b3d_rgpd</td><td>localStorage</td><td>Recordar tu elección sobre cookies analíticas.</td><td>Persistente</td></tr>
+</tbody>
+</table>
+
+<h3 style="color:var(--text);font-size:15px;margin-top:16px">Analíticas (requieren tu consentimiento)</h3>
+<table>
+<thead><tr><th>Nombre</th><th>Proveedor</th><th>Finalidad</th><th>Duración</th></tr></thead>
+<tbody>
+<tr><td>_ga, _ga_*</td><td>Google LLC</td><td>Identificador de usuario para Google Analytics 4.</td><td>Hasta 2 años</td></tr>
+<tr><td>_gid</td><td>Google LLC</td><td>Distinguir usuarios.</td><td>24 h</td></tr>
+<tr><td>_gat_*</td><td>Google LLC</td><td>Limitar la tasa de peticiones.</td><td>1 minuto</td></tr>
+</tbody>
+</table>
+<p>Las cookies analíticas solo se activan si pulsas "Aceptar" en el banner. Si las rechazas, no se instalan.</p>
+
+<h2>3. Gestionar tu consentimiento</h2>
+<div class="controls">
+<h2>Tu elección actual</h2>
+<div class="status" id="rgpd-status">Cargando…</div>
+<button id="btn-accept" type="button">Aceptar cookies analíticas</button>
+<button id="btn-reject" class="secondary" type="button">Rechazarlas</button>
+<button id="btn-revoke" class="secondary" type="button">Volver a preguntarme</button>
+</div>
+<p>También puedes bloquear cookies desde la configuración de tu navegador. Ten en cuenta que bloquear cookies técnicas puede impedir que la aplicación funcione (inicio de sesión, caché, etc.).</p>
+
+<h2>4. Terceros</h2>
+<p>Las cookies analíticas las establece Google LLC. Para más información sobre cómo Google usa estos datos y tus opciones, consulta:</p>
+<ul>
+<li><a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Política de privacidad de Google</a></li>
+<li><a href="https://policies.google.com/technologies/cookies" target="_blank" rel="noopener">Política de cookies de Google</a></li>
+<li><a href="https://tools.google.com/dlpage/gaoptout" target="_blank" rel="noopener">Complemento de inhabilitación para Google Analytics</a></li>
+</ul>
+
+<h2>5. Cambios en esta política</h2>
+<p>Esta política puede actualizarse para reflejar nuevas cookies o cambios normativos. La fecha de la última revisión aparece al principio del documento.</p>
+
+<h2>6. Contacto</h2>
+<p>Para cualquier duda sobre esta política, escribe a <span class="todo">[COMPLETAR: email de contacto]</span>.</p>
+
+</div>
+
+<script>
+(function(){
+  const KEY='b3d_rgpd';
+  const statusEl=document.getElementById('rgpd-status');
+  function render(){
+    const s=localStorage.getItem(KEY);
+    if(s==='accepted') statusEl.innerHTML='Has <b>aceptado</b> las cookies analíticas.';
+    else if(s==='rejected') statusEl.innerHTML='Has <b>rechazado</b> las cookies analíticas.';
+    else statusEl.innerHTML='Aún no has elegido. Se te mostrará el banner la próxima vez que visites la app.';
+  }
+  document.getElementById('btn-accept').addEventListener('click',()=>{localStorage.setItem(KEY,'accepted');render();});
+  document.getElementById('btn-reject').addEventListener('click',()=>{localStorage.setItem(KEY,'rejected');render();});
+  document.getElementById('btn-revoke').addEventListener('click',()=>{localStorage.removeItem(KEY);render();});
+  render();
+})();
+</script>
+</body>
+</html>
