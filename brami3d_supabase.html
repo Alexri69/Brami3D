@@ -772,39 +772,32 @@ async function loadAll(silent=false){
     new Promise((_,reject)=>setTimeout(()=>reject(new Error(name+' timeout (10s)')),10000))
   ]);
 
-  show('Cargando clientes...');
-  const c = await qry(sb.from('clientes').select('*').eq('user_id',userId).order('created_at'), 'clientes');
+  show('Cargando datos...');
+
+  // Fire all queries in parallel instead of sequentially (was ~8 round-trips, now 1)
+  const [c, p, im, fi, pz, ar, gs, cfg] = await Promise.all([
+    qry(sb.from('clientes').select('*').eq('user_id',userId).order('created_at'), 'clientes'),
+    qry(sb.from('pedidos').select('*').eq('user_id',userId).order('created_at', {ascending:false}), 'pedidos'),
+    qry(sb.from('impresoras').select('*').eq('user_id',userId).order('created_at'), 'impresoras'),
+    qry(sb.from('filamentos').select('*').eq('user_id',userId).order('created_at'), 'filamentos'),
+    qry(sb.from('piezas').select('*').eq('user_id',userId).order('created_at'), 'piezas'),
+    qry(sb.from('archivos').select('*').eq('user_id',userId).order('created_at'), 'archivos'),
+    qry(sb.from('gastos').select('*').eq('user_id',userId).order('fecha',{ascending:false}), 'gastos'),
+    qry(sb.from('config').select('*').eq('user_id',userId).single(), 'config')
+  ]);
+
   if(c.error) throw new Error('clientes: '+c.error.message);
   _cache.clientes = c.data||[];
 
-  show('Cargando pedidos...');
-  const p = await qry(sb.from('pedidos').select('*').eq('user_id',userId).order('created_at', {ascending:false}), 'pedidos');
   if(p.error) throw new Error('pedidos: '+p.error.message);
   _cache.pedidos = mapPedidos(p.data||[]);
 
-  show('Cargando impresoras...');
-  const im = await qry(sb.from('impresoras').select('*').eq('user_id',userId).order('created_at'), 'impresoras');
   _cache.impresoras = mapImpresoras(im.data||[]);
-
-  show('Cargando filamentos...');
-  const fi = await qry(sb.from('filamentos').select('*').eq('user_id',userId).order('created_at'), 'filamentos');
   _cache.filamentos = mapFilamentos(fi.data||[]);
-
-  show('Cargando piezas...');
-  const pz = await qry(sb.from('piezas').select('*').eq('user_id',userId).order('created_at'), 'piezas');
-  _cache.piezas = mapPiezas(pz.data||[]);
-
-  show('Cargando archivos...');
-  const ar = await qry(sb.from('archivos').select('*').eq('user_id',userId).order('created_at'), 'archivos');
-  _cache.archivos = ar.data||[];
-
-  show('Cargando gastos...');
-  const gs = await qry(sb.from('gastos').select('*').eq('user_id',userId).order('fecha',{ascending:false}), 'gastos');
-  _cache.gastos = gs.data||[];
-
-  show('Cargando configuración...');
-  const cfg = await qry(sb.from('config').select('*').eq('user_id',userId).single(), 'config');
-  _cache.cfg = cfg.data ? mapCfg(cfg.data) : {costePorGramo:0.03,costePorHora:0.15,margen:30,moneda:'€',empresa:'',telefono:'',email:''};
+  _cache.piezas     = mapPiezas(pz.data||[]);
+  _cache.archivos   = ar.data||[];
+  _cache.gastos     = gs.data||[];
+  _cache.cfg        = cfg.data ? mapCfg(cfg.data) : {costePorGramo:0.03,costePorHora:0.15,margen:30,moneda:'€',empresa:'',telefono:'',email:''};
 
   refreshBizHeader();
 }
