@@ -1252,38 +1252,8 @@ async function genPDF(id){
 function abrirDocModal(html, filename){
   const blob=new Blob([html],{type:'text/html'});
   const blobUrl=URL.createObjectURL(blob);
-  const isMob=window.innerWidth<=768;
-
-  const modal=document.createElement('div');
-  modal.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.85);display:flex;flex-direction:column';
-
-  // Botón descargar como link directo
-  const descBtn=`<a href="${blobUrl}" download="${filename}"
-    style="background:rgba(37,99,235,.2);border:1px solid rgba(37,99,235,.4);color:#60a5fa;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;text-decoration:none;font-family:inherit;white-space:nowrap">
-    ⬇️ Descargar
-  </a>`;
-
-  modal.innerHTML=`
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#04090f;border-bottom:1px solid #132540;flex-shrink:0;gap:8px">
-      <div style="font-size:13px;font-weight:700;color:#e2eaf4;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">📄 ${filename}</div>
-      <div style="display:flex;gap:8px;flex-shrink:0">
-        ${descBtn}
-        <button id="close-doc-modal"
-          style="background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#f87171;border-radius:8px;padding:8px 14px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer">
-          ✕
-        </button>
-      </div>
-    </div>
-    <iframe src="${blobUrl}" style="flex:1;border:none;background:#fff"></iframe>
-  `;
-
-  document.body.appendChild(modal);
-
-  modal.querySelector('#close-doc-modal').addEventListener('click', ()=>{
-    modal.remove();
-    // Revocar solo al cerrar, no antes
-    setTimeout(()=>URL.revokeObjectURL(blobUrl), 1000);
-  });
+  window.open(blobUrl,'_blank');
+  setTimeout(()=>URL.revokeObjectURL(blobUrl),60000);
 }
 
 function downloadPDFFile(id){
