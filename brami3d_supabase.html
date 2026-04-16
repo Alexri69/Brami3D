@@ -808,6 +808,21 @@ async function loadAll(silent=false){
   if(p.error) throw new Error('pedidos: '+p.error.message);
   _cache.pedidos = mapPedidos(p.data||[]);
 
+  // Refresh signed URLs for pedido photos. foto_path is the persistent pointer;
+  // foto_url is a short-lived session token (1h) that we regenerate on every load
+  // so nothing stored in the DB is valid for more than one session window.
+  try {
+    const withFoto = _cache.pedidos.filter(o => o.fotoPath);
+    if(withFoto.length){
+      const paths = withFoto.map(o => o.fotoPath);
+      const { data: sigs } = await sb.storage.from('archivos').createSignedUrls(paths, 60*60);
+      if(sigs){
+        const byPath = new Map(sigs.filter(s=>!s.error && s.signedUrl).map(s=>[s.path,s.signedUrl]));
+        withFoto.forEach(o => { const u=byPath.get(o.fotoPath); if(u) o.fotoUrl=u; });
+      }
+    }
+  } catch(e){ console.warn('Signed URL refresh failed:', e); }
+
   _cache.impresoras = mapImpresoras(im.data||[]);
   _cache.filamentos = mapFilamentos(fi.data||[]);
   _cache.piezas     = mapPiezas(pz.data||[]);
@@ -2552,7 +2567,7 @@ async function uploadFotoIfNeeded(orderId){
   }
   const {error} = await sb.storage.from('archivos').upload(path, _fotoFile, {upsert:true});
   if(error){ showToast('Error subiendo foto: '+error.message,'err'); return _fotoUrl; }
-  const {data} = await sb.storage.from('archivos').createSignedUrl(path, 60*60*24*365); // 1 year
+  const {data} = await sb.storage.from('archivos').createSignedUrl(path, 60*60); // 1h — refreshed per session in loadAll()
   _fotoPath = path;
   _fotoFile = null;
   return data?.signedUrl || null;
