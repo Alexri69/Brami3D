@@ -3,101 +3,188 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Política de privacidad — Brami3D</title>
-<meta name="robots" content="noindex">
+<title>Política de Privacidad — Brami3D</title>
+<!-- Consent-gated GA4 (RGPD / LOPDGDD). Loads only after user accepts. -->
+<script>
+(function(){
+  const KEY='b3d_rgpd';
+  window.B3D_CONSENT={
+    get state(){ return localStorage.getItem(KEY); },
+    accept(){ localStorage.setItem(KEY,'accepted'); loadGoogleTags(); hide(); },
+    reject(){ localStorage.setItem(KEY,'rejected'); hide(); },
+    revoke(){ localStorage.removeItem(KEY); show(); }
+  };
+  function loadGoogleTags(){
+    if(window.__b3dTagsLoaded) return; window.__b3dTagsLoaded=true;
+    const ga=document.createElement('script'); ga.async=true;
+    ga.src='https://www.googletagmanager.com/gtag/js?id=G-C5P6F52QE3';
+    document.head.appendChild(ga);
+    window.dataLayer=window.dataLayer||[];
+    window.gtag=function(){dataLayer.push(arguments);};
+    gtag('js', new Date()); gtag('config','G-C5P6F52QE3');
+  }
+  function show(){ const el=document.getElementById('rgpd-banner'); if(el) el.style.display='flex'; }
+  function hide(){ const el=document.getElementById('rgpd-banner'); if(el) el.style.display='none'; }
+  document.addEventListener('DOMContentLoaded', function(){
+    if(B3D_CONSENT.state==='accepted'){ loadGoogleTags(); return; }
+    const b=document.createElement('div');
+    b.id='rgpd-banner';
+    b.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:9999;padding:14px 20px;background:rgba(8,15,26,.97);backdrop-filter:blur(12px);border-top:1px solid #0f2040;color:#e2eaf4;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;display:none;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:0 -4px 24px rgba(0,0,0,.4);font-size:13px';
+    b.innerHTML='<div style="flex:1;min-width:240px;line-height:1.5">Usamos cookies analíticas (Google Analytics) para entender el uso del sitio. Puedes aceptarlas o rechazarlas; las cookies técnicas imprescindibles se aplican siempre. Más info en <a href="/cookies.html" style="color:#60a5fa">Política de cookies</a> y <a href="/privacidad.html" style="color:#60a5fa">Privacidad</a>.</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" id="rgpd-reject" style="background:transparent;border:1px solid #334155;color:#e2eaf4;padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit">Rechazar</button><button type="button" id="rgpd-accept" style="background:#2563eb;border:none;color:#fff;padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer;font-weight:600;font-family:inherit">Aceptar</button></div>';
+    document.body.appendChild(b);
+    document.getElementById('rgpd-accept').addEventListener('click',function(){B3D_CONSENT.accept();});
+    document.getElementById('rgpd-reject').addEventListener('click',function(){B3D_CONSENT.reject();});
+    if(!B3D_CONSENT.state) show();
+  });
+})();
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#04090f;--bg2:#080f1a;--bg3:#0d1926;--blue:#2563eb;--blue3:#60a5fa;--text:#e2eaf4;--text2:#7a9ab8;--text3:#2e4a6a;--border:#0f2040}
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.6;padding:40px 20px}
-.wrap{max-width:760px;margin:0 auto;padding:40px 32px;background:var(--bg2);border:1px solid var(--border);border-radius:12px}
-h1{font-size:28px;margin-bottom:8px}
-h2{font-size:18px;color:var(--blue3);margin:28px 0 10px;border-bottom:1px solid var(--border);padding-bottom:6px}
-p,li{color:var(--text2);font-size:14px;margin-bottom:8px}
-ul{padding-left:20px;margin-bottom:8px}
-a{color:var(--blue3)}
-.todo{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);color:#fca5a5;padding:8px 12px;border-radius:6px;font-size:12px;font-family:monospace;display:inline-block;margin:4px 0}
-.warn{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.4);color:#fcd34d;padding:14px 18px;border-radius:8px;margin-bottom:24px;font-size:13px}
-.updated{color:var(--text3);font-size:12px;margin-top:6px}
-nav{margin-bottom:24px;font-size:13px}
-nav a{color:var(--text2);text-decoration:none;margin-right:16px}
-nav a:hover{color:var(--blue3)}
+body{background:#04090f;color:#e2eaf4;font-family:'Space Grotesk',sans-serif;-webkit-font-smoothing:antialiased;line-height:1.7}
+a{color:#60a5fa;text-decoration:none}
+a:hover{text-decoration:underline}
+
+nav{position:sticky;top:0;z-index:100;padding:16px 40px;display:flex;align-items:center;justify-content:space-between;background:rgba(4,9,15,.95);backdrop-filter:blur(20px);border-bottom:1px solid #0f2040}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-box{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#2563eb,#1d4ed8);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff}
+.nav-brand{font-size:17px;font-weight:700;color:#e2eaf4}
+.nav-back{color:#60a5fa;font-size:14px;font-weight:600}
+
+.container{max-width:760px;margin:0 auto;padding:60px 24px 100px}
+
+h1{font-size:36px;font-weight:700;letter-spacing:-1.5px;color:#fff;margin-bottom:8px}
+.updated{font-size:13px;color:#2e4a6a;margin-bottom:48px}
+
+h2{font-size:18px;font-weight:700;color:#fff;margin:40px 0 14px;padding-bottom:8px;border-bottom:1px solid #0f2040;letter-spacing:-.3px}
+h2 .num{color:#2563eb;margin-right:8px;font-family:monospace}
+
+p{font-size:15px;color:#7a9ab8;margin-bottom:12px}
+
+ul{list-style:none;margin-bottom:12px}
+ul li{font-size:15px;color:#7a9ab8;padding:6px 0 6px 20px;position:relative;border-bottom:1px solid #070e1c}
+ul li:last-child{border:none}
+ul li::before{content:'→';position:absolute;left:0;color:#2563eb;font-weight:700}
+ul li b{color:#e2eaf4}
+
+.info-card{background:linear-gradient(145deg,#0d1926,#080f1a);border:1px solid #0f2040;border-radius:14px;padding:20px 24px;margin-bottom:12px}
+.info-row{display:flex;gap:12px;padding:8px 0;border-bottom:1px solid #070e1c;font-size:14px}
+.info-row:last-child{border:none}
+.info-lbl{color:#2e4a6a;font-weight:600;min-width:140px;flex-shrink:0}
+.info-val{color:#7a9ab8}
+.info-val a{color:#60a5fa}
+
+.highlight{background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);border-radius:10px;padding:14px 18px;font-size:14px;color:#7a9ab8;margin:12px 0}
+.highlight b{color:#60a5fa}
+
+footer{text-align:center;padding:32px;border-top:1px solid #0f2040;font-size:13px;color:#2e4a6a}
+footer a{color:#3d5a7a}
+
+@media(max-width:600px){
+  nav{padding:14px 16px}
+  .container{padding:40px 16px 80px}
+  h1{font-size:28px}
+  .info-row{flex-direction:column;gap:4px}
+  .info-lbl{min-width:unset}
+}
 </style>
 </head>
 <body>
-<div class="wrap">
-<nav><a href="/landing.html">← Brami3D</a> <a href="/cookies.html">Cookies</a></nav>
 
-<div class="warn">⚠️ <b>Borrador de revisión.</b> Este documento debe ser revisado por un asesor legal antes de publicarse. Los campos <code>[COMPLETAR: ...]</code> deben sustituirse con datos reales.</div>
+<nav>
+  <a href="https://brami3d.app" class="nav-logo">
+    <div class="logo-box">B3D</div>
+    <span class="nav-brand">Brami3D</span>
+  </a>
+  <a href="https://brami3d.app" class="nav-back">← Volver</a>
+</nav>
 
-<h1>Política de privacidad</h1>
-<p class="updated">Última actualización: [COMPLETAR: fecha]</p>
+<div class="container">
+  <h1>Política de Privacidad</h1>
+  <div class="updated">Última actualización: 16 de abril de 2026</div>
 
-<h2>1. Responsable del tratamiento</h2>
-<p>El responsable del tratamiento de los datos personales recogidos a través de este sitio y del servicio Brami3D es:</p>
-<ul>
-<li><b>Titular:</b> <span class="todo">[COMPLETAR: nombre completo o razón social]</span></li>
-<li><b>NIF/CIF:</b> <span class="todo">[COMPLETAR]</span></li>
-<li><b>Domicilio:</b> <span class="todo">[COMPLETAR: dirección postal]</span></li>
-<li><b>Email de contacto:</b> <span class="todo">[COMPLETAR: p.ej. privacidad@brami3d.app]</span></li>
-</ul>
+  <!-- 1 -->
+  <h2><span class="num">1.</span>Responsable del tratamiento</h2>
+  <div class="info-card">
+    <div class="info-row"><span class="info-lbl">Titular</span><span class="info-val">Alexander Riesinger</span></div>
+    <div class="info-row"><span class="info-lbl">NIF</span><span class="info-val">43807041E</span></div>
+    <div class="info-row"><span class="info-lbl">Actividad</span><span class="info-val">Servicio de impresión 3D y software de gestión</span></div>
+    <div class="info-row"><span class="info-lbl">Domicilio</span><span class="info-val">Santa Cruz de Tenerife, Canarias, España</span></div>
+    <div class="info-row"><span class="info-lbl">Email de contacto</span><span class="info-val"><a href="mailto:alexri69@gmail.com">alexri69@gmail.com</a></span></div>
+    <div class="info-row"><span class="info-lbl">Sitio web</span><span class="info-val"><a href="https://brami3d.app">brami3d.app</a></span></div>
+  </div>
 
-<h2>2. Datos que tratamos</h2>
-<p>En función de tu uso del servicio, tratamos las siguientes categorías de datos:</p>
-<ul>
-<li><b>Datos de cuenta:</b> correo electrónico, contraseña (almacenada con hash en Supabase Auth).</li>
-<li><b>Datos de negocio que tú introduces:</b> clientes (nombre, NIF, contacto), pedidos, impresoras, filamentos, piezas, archivos, gastos, configuración. Estos datos son tuyos; Brami3D es depositario técnico.</li>
-<li><b>Datos técnicos y analíticos:</b> si aceptas las cookies analíticas, Google Analytics recoge identificador de cliente, URLs visitadas, tiempo en página, dispositivo, navegador y ubicación aproximada a nivel de ciudad.</li>
-</ul>
+  <!-- 2 -->
+  <h2><span class="num">2.</span>Datos que tratamos</h2>
+  <p>En función de tu uso del servicio, tratamos las siguientes categorías de datos:</p>
+  <ul>
+    <li><b>Datos de cuenta:</b> correo electrónico y contraseña (almacenada con hash en Supabase Auth).</li>
+    <li><b>Datos de negocio que tú introduces:</b> clientes (nombre, NIF, contacto), pedidos, impresoras, filamentos, piezas, archivos y gastos. Estos datos son tuyos; Brami3D actúa como depositario técnico.</li>
+    <li><b>Datos técnicos y analíticos:</b> si aceptas las cookies analíticas, Google Analytics recoge identificador de cliente, URLs visitadas, tiempo en página, dispositivo, navegador y ubicación aproximada a nivel de ciudad.</li>
+  </ul>
 
-<h2>3. Finalidades y base jurídica</h2>
-<ul>
-<li><b>Prestación del servicio</b> (ejecución del contrato, art. 6.1.b RGPD): operar tu cuenta, almacenar tus datos de negocio, mostrártelos.</li>
-<li><b>Seguridad</b> (interés legítimo, art. 6.1.f RGPD): prevención de fraude y abuso.</li>
-<li><b>Analítica de uso</b> (consentimiento, art. 6.1.a RGPD): mejorar la aplicación. Solo si aceptas expresamente en el banner.</li>
-<li><b>Cumplimiento legal</b> (art. 6.1.c RGPD): obligaciones fiscales y contables.</li>
-</ul>
+  <!-- 3 -->
+  <h2><span class="num">3.</span>Finalidades y base jurídica</h2>
+  <ul>
+    <li><b>Prestación del servicio</b> (ejecución del contrato, art. 6.1.b RGPD): operar tu cuenta y almacenar tus datos de negocio.</li>
+    <li><b>Seguridad</b> (interés legítimo, art. 6.1.f RGPD): prevención de fraude y abuso.</li>
+    <li><b>Analítica de uso</b> (consentimiento, art. 6.1.a RGPD): mejorar la aplicación. Solo si aceptas expresamente en el banner de cookies.</li>
+    <li><b>Cumplimiento legal</b> (art. 6.1.c RGPD): obligaciones fiscales y contables.</li>
+  </ul>
 
-<h2>4. Destinatarios y encargados del tratamiento</h2>
-<p>Tus datos se procesan en los siguientes servicios:</p>
-<ul>
-<li><b>Supabase Inc.</b> — alojamiento de la base de datos y archivos. Región de servidores: <span class="todo">[COMPLETAR: p.ej. UE (Fráncfort)]</span>. Más info: <a href="https://supabase.com/privacy" target="_blank" rel="noopener">supabase.com/privacy</a></li>
-<li><b>GitHub, Inc.</b> — alojamiento del sitio estático (GitHub Pages).</li>
-<li><b>Google LLC</b> — solo si aceptas cookies analíticas (Google Analytics 4 y Google Tag Manager).</li>
-</ul>
-<p>No cedemos datos a terceros con fines comerciales.</p>
+  <!-- 4 -->
+  <h2><span class="num">4.</span>Destinatarios y encargados del tratamiento</h2>
+  <p>Tus datos se procesan en los siguientes servicios:</p>
+  <div class="info-card">
+    <div class="info-row"><span class="info-lbl">Supabase Inc.</span><span class="info-val">Base de datos y archivos. Servidores en la UE (Fráncfort). <a href="https://supabase.com/privacy" target="_blank">supabase.com/privacy</a></span></div>
+    <div class="info-row"><span class="info-lbl">GitHub, Inc.</span><span class="info-val">Alojamiento del sitio estático (GitHub Pages).</span></div>
+    <div class="info-row"><span class="info-lbl">Google LLC</span><span class="info-val">Solo si aceptas cookies analíticas (Google Analytics 4).</span></div>
+  </div>
+  <div class="highlight">🔒 <b>No cedemos datos a terceros con fines comerciales.</b></div>
 
-<h2>5. Transferencias internacionales</h2>
-<p>Google Analytics puede implicar transferencia de datos fuera del Espacio Económico Europeo, amparada en las Cláusulas Contractuales Tipo de la Comisión Europea y, en su caso, en el marco UE-EEUU de privacidad de datos. Si esta transferencia no te resulta aceptable, puedes rechazar las cookies analíticas en el banner.</p>
+  <!-- 5 -->
+  <h2><span class="num">5.</span>Transferencias internacionales</h2>
+  <p>Google Analytics puede implicar transferencia de datos fuera del Espacio Económico Europeo, amparada en las Cláusulas Contractuales Tipo de la Comisión Europea y en el marco UE-EEUU de privacidad de datos. Si esta transferencia no te resulta aceptable, puedes rechazar las cookies analíticas en el banner.</p>
 
-<h2>6. Plazo de conservación</h2>
-<ul>
-<li><b>Datos de cuenta y de negocio:</b> mientras la cuenta esté activa. Al eliminar la cuenta, se borran en un plazo máximo de 30 días, salvo copias de seguridad cifradas que pueden conservarse hasta 90 días más.</li>
-<li><b>Datos con obligación fiscal/contable</b> (facturas, gastos): el tiempo que exijan la normativa tributaria y mercantil, habitualmente 4-6 años.</li>
-<li><b>Datos analíticos:</b> <span class="todo">[COMPLETAR: p.ej. 14 meses conforme a la retención configurada en GA4]</span>.</li>
-</ul>
+  <!-- 6 -->
+  <h2><span class="num">6.</span>Plazo de conservación</h2>
+  <ul>
+    <li><b>Datos de cuenta y de negocio:</b> mientras la cuenta esté activa. Al eliminarla, se borran en un máximo de 30 días, salvo copias de seguridad cifradas que pueden conservarse hasta 90 días más.</li>
+    <li><b>Datos con obligación fiscal/contable</b> (facturas, gastos): el tiempo que exijan la normativa tributaria y mercantil, habitualmente 4-6 años.</li>
+    <li><b>Datos analíticos:</b> 14 meses conforme a la retención configurada en Google Analytics 4.</li>
+  </ul>
 
-<h2>7. Tus derechos</h2>
-<p>Puedes ejercer en cualquier momento los siguientes derechos contactando con el email del apartado 1:</p>
-<ul>
-<li><b>Acceso:</b> obtener confirmación de qué datos tenemos sobre ti.</li>
-<li><b>Rectificación:</b> corregir datos inexactos.</li>
-<li><b>Supresión:</b> solicitar el borrado de tus datos.</li>
-<li><b>Oposición:</b> oponerte al tratamiento.</li>
-<li><b>Limitación:</b> solicitar que restrinjamos el tratamiento.</li>
-<li><b>Portabilidad:</b> recibir tus datos en formato estructurado. Desde Configuración → Copia de seguridad puedes descargar un JSON completo.</li>
-<li><b>Retirar el consentimiento</b> para fines que se basaron en él, en cualquier momento.</li>
-</ul>
-<p>Si consideras que tratamos tus datos de forma indebida, puedes presentar una reclamación ante la <a href="https://www.aepd.es" target="_blank" rel="noopener">Agencia Española de Protección de Datos (AEPD)</a>.</p>
+  <!-- 7 -->
+  <h2><span class="num">7.</span>Tus derechos</h2>
+  <p>Puedes ejercer en cualquier momento los siguientes derechos contactando en <a href="mailto:alexri69@gmail.com">alexri69@gmail.com</a>:</p>
+  <ul>
+    <li><b>Acceso:</b> obtener confirmación de qué datos tenemos sobre ti.</li>
+    <li><b>Rectificación:</b> corregir datos inexactos.</li>
+    <li><b>Supresión:</b> solicitar el borrado de tus datos.</li>
+    <li><b>Oposición:</b> oponerte al tratamiento.</li>
+    <li><b>Limitación:</b> solicitar que restrinjamos el tratamiento.</li>
+    <li><b>Portabilidad:</b> recibir tus datos en formato estructurado. Desde Configuración puedes exportar tus datos.</li>
+    <li><b>Retirar el consentimiento</b> para fines basados en él, en cualquier momento.</li>
+  </ul>
+  <div class="highlight">Si consideras que tratamos tus datos de forma indebida, puedes presentar una reclamación ante la <b>Agencia Española de Protección de Datos (AEPD)</b> en <a href="https://www.aepd.es" target="_blank">aepd.es</a>.</div>
 
-<h2>8. Seguridad</h2>
-<p>Aplicamos medidas técnicas y organizativas razonables: conexiones HTTPS, hashing de contraseñas, aislamiento de datos por usuario con Row Level Security en Supabase, URLs firmadas de corta duración para archivos.</p>
+  <!-- 8 -->
+  <h2><span class="num">8.</span>Seguridad</h2>
+  <p>Aplicamos medidas técnicas y organizativas razonables: conexiones HTTPS, hashing de contraseñas, aislamiento de datos por usuario con Row Level Security en Supabase y URLs firmadas de corta duración para archivos.</p>
 
-<h2>9. Menores</h2>
-<p>El servicio está dirigido a mayores de 18 años. No recogemos datos de menores conscientemente.</p>
+  <!-- 9 -->
+  <h2><span class="num">9.</span>Menores</h2>
+  <p>El servicio está dirigido a mayores de 18 años. No recogemos datos de menores conscientemente. Si detectamos que un menor ha proporcionado datos sin autorización, los eliminaremos a la mayor brevedad.</p>
 
-<h2>10. Cambios en esta política</h2>
-<p>Nos reservamos el derecho a modificar esta política. Los cambios significativos se notificarán por email o mediante un aviso en la aplicación.</p>
+  <!-- 10 -->
+  <h2><span class="num">10.</span>Cambios en esta política</h2>
+  <p>Nos reservamos el derecho a modificar esta política. Los cambios significativos se notificarán por email o mediante un aviso en la aplicación.</p>
 
 </div>
+
+<footer>
+  © 2026 Brami3D · <a href="https://brami3d.app">brami3d.app</a> · <a href="mailto:alexri69@gmail.com">alexri69@gmail.com</a>
+</footer>
+
 </body>
 </html>
