@@ -703,6 +703,46 @@ async function logout(){
   await sb.auth.signOut();
 }
 
+// Backup: download all user data as JSON. File bytes in Storage are NOT included
+// (too large and privacy-sensitive for a browser download); only the metadata rows
+// from _cache.archivos are exported. Filament photos and pedido photos live in
+// Storage and would need to be re-uploaded on restore.
+function exportAllData(){
+  try {
+    const payload = {
+      app: 'Brami3D',
+      schema_version: 1,
+      exported_at: new Date().toISOString(),
+      user_email: CU?.email || null,
+      user_id: CU?.id || null,
+      data: {
+        clientes:   _cache.clientes   || [],
+        pedidos:    _cache.pedidos    || [],
+        impresoras: _cache.impresoras || [],
+        filamentos: _cache.filamentos || [],
+        piezas:     _cache.piezas     || [],
+        archivos:   _cache.archivos   || [],
+        gastos:     _cache.gastos     || [],
+        config:     _cache.cfg        || {}
+      }
+    };
+    const counts = Object.entries(payload.data)
+      .map(([k,v]) => Array.isArray(v) ? `${v.length} ${k}` : null)
+      .filter(Boolean).join(', ');
+    const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const ts = new Date().toISOString().slice(0,10);
+    a.href = url; a.download = `brami3d-backup-${ts}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url), 1000);
+    showToast(`Backup descargado ✓ (${counts})`, 'ok', 4000);
+  } catch(e){
+    console.error(e);
+    showToast('Error generando backup: '+e.message, 'err');
+  }
+}
+
 // ═══════════════════════════════════════════════
 //  CACHE LOCAL
 // ═══════════════════════════════════════════════
@@ -2980,6 +3020,11 @@ ${fld('Email de contacto','biz_email',cfg.email||'')}
 <div style="color:var(--text4);font-size:13px;margin-bottom:6px">Email: <b style="color:var(--text2)">${esc(CU.email)}</b></div>
 <div style="background:var(--bg);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--text4);line-height:1.6;margin-bottom:16px">☁️ Datos guardados en Supabase.<br>Accede desde cualquier dispositivo.</div>
 <button class="btn-danger" onclick="logout()">🚪 Cerrar sesión</button>
+</div>
+<div class="card" style="flex:1;min-width:240px">
+<div class="card-title">💾 Copia de seguridad</div>
+<p style="font-size:12px;color:var(--text4);margin-bottom:14px;line-height:1.6">Descarga un JSON con todos tus datos (clientes, pedidos, impresoras, filamentos, piezas, gastos y configuración). Las imágenes y ficheros subidos no se incluyen, solo su referencia.</p>
+<button class="btn-primary" onclick="exportAllData()">⬇️ Descargar copia (JSON)</button>
 </div>
 <div class="card" style="flex:1;min-width:240px">
 <div class="card-title">🔔 Notificaciones</div>
