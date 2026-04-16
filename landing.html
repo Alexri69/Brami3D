@@ -4,8 +4,40 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Brami3D — Gestión profesional de impresión 3D</title>
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-C5P6F52QE3"></script>
-<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-C5P6F52QE3');</script>
+<!-- Consent-gated GA4 (RGPD / LOPDGDD). Loads only after user accepts. -->
+<script>
+(function(){
+  const KEY='b3d_rgpd';
+  window.B3D_CONSENT={
+    get state(){ return localStorage.getItem(KEY); },
+    accept(){ localStorage.setItem(KEY,'accepted'); loadGoogleTags(); hide(); },
+    reject(){ localStorage.setItem(KEY,'rejected'); hide(); },
+    revoke(){ localStorage.removeItem(KEY); show(); }
+  };
+  function loadGoogleTags(){
+    if(window.__b3dTagsLoaded) return; window.__b3dTagsLoaded=true;
+    const ga=document.createElement('script'); ga.async=true;
+    ga.src='https://www.googletagmanager.com/gtag/js?id=G-C5P6F52QE3';
+    document.head.appendChild(ga);
+    window.dataLayer=window.dataLayer||[];
+    window.gtag=function(){dataLayer.push(arguments);};
+    gtag('js', new Date()); gtag('config','G-C5P6F52QE3');
+  }
+  function show(){ const el=document.getElementById('rgpd-banner'); if(el) el.style.display='flex'; }
+  function hide(){ const el=document.getElementById('rgpd-banner'); if(el) el.style.display='none'; }
+  document.addEventListener('DOMContentLoaded', function(){
+    if(B3D_CONSENT.state==='accepted'){ loadGoogleTags(); return; }
+    const b=document.createElement('div');
+    b.id='rgpd-banner';
+    b.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:9999;padding:14px 20px;background:rgba(8,15,26,.97);backdrop-filter:blur(12px);border-top:1px solid #0f2040;color:#e2eaf4;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;display:none;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:0 -4px 24px rgba(0,0,0,.4);font-size:13px';
+    b.innerHTML='<div style="flex:1;min-width:240px;line-height:1.5">Usamos cookies analíticas (Google Analytics) para entender el uso del sitio. Puedes aceptarlas o rechazarlas; las cookies técnicas imprescindibles se aplican siempre.</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" id="rgpd-reject" style="background:transparent;border:1px solid #334155;color:#e2eaf4;padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit">Rechazar</button><button type="button" id="rgpd-accept" style="background:#2563eb;border:none;color:#fff;padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer;font-weight:600;font-family:inherit">Aceptar</button></div>';
+    document.body.appendChild(b);
+    document.getElementById('rgpd-accept').addEventListener('click',function(){B3D_CONSENT.accept();});
+    document.getElementById('rgpd-reject').addEventListener('click',function(){B3D_CONSENT.reject();});
+    if(!B3D_CONSENT.state) show();
+  });
+})();
+</script>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#04090f;--bg2:#080f1a;--bg3:#0d1926;--blue:#2563eb;--blue3:#60a5fa;--blue4:#93c5fd;--text:#e2eaf4;--text2:#7a9ab8;--text3:#2e4a6a;--border:#0f2040}
