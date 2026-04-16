@@ -1,4 +1,4 @@
-const CACHE_NAME = 'b3d-cdn-v1';
+const CACHE_NAME = 'b3d-cdn-v2';
 
 // Solo cacheamos recursos CDN externos (no cambian)
 const CDN_SHELL = [

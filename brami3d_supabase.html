@@ -53,10 +53,11 @@ const link = document.createElement('link');
 link.rel = 'manifest'; link.href = url;
 document.head.appendChild(link);
 
-// Limpiar cualquier Service Worker previo
+// Registrar Service Worker (caché de CDN + fallback offline)
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(regs => {
-    regs.forEach(r => r.unregister());
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js')
+      .catch(err => console.warn('SW registration failed:', err));
   });
 }
 </script>
