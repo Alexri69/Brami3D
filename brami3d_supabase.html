@@ -853,11 +853,30 @@ function mapCfg(r){ return {
   nif:r.nif||'', direccion:r.direccion||''
 };}
 
+// Columns that must never be negative. Clamped at the write boundary so any bad input
+// (typo, paste, dev tools) is normalized before it hits the DB.
+// ganancia_manual intentionally omitted: user may legitimately sell at a loss.
+const NON_NEG_FIELDS = {
+  pedidos:    ['peso','tiempo_impresion','precio_final','coste_postprocesado','coste_diseno'],
+  impresoras: ['horas_uso','desgaste','consumo_w'],
+  filamentos: ['peso_restante','precio_por_kg'],
+  piezas:     ['peso','tiempo_impresion','precio_por_kg'],
+  gastos:     ['importe'],
+  config:     ['coste_por_gramo','coste_por_hora','margen']
+};
+
 // Generic save (insert or update)
 async function dbSave(table, data){
+  const nonNeg = NON_NEG_FIELDS[table] || [];
   const cleaned = {};
   for(const [k,v] of Object.entries(data)){
-    cleaned[k] = (v===''||v===undefined) ? null : v;
+    if(v===''||v===undefined){ cleaned[k]=null; continue; }
+    if(v!==null && nonNeg.includes(k)){
+      const n = parseFloat(v);
+      cleaned[k] = isFinite(n) ? Math.max(0,n) : 0;
+    } else {
+      cleaned[k] = v;
+    }
   }
   const payload = {...cleaned, user_id: CU.id};
   const {error} = await sb.from(table).upsert(payload, {onConflict: 'id'});
