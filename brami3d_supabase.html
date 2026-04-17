@@ -1334,6 +1334,7 @@ const NAV=[
   {id:'piezas',lbl:'Piezas',icon:'🧩'},
   {id:'archivos',lbl:'Archivos',icon:'📁'},
   {id:'gastos',lbl:'Gastos',icon:'💸'},
+  {id:'registro',lbl:'Registro fiscal',icon:'📜'},
   {id:'configuracion',lbl:'Configuración',icon:'⚙️'},
 ];
 
@@ -1471,11 +1472,12 @@ document.addEventListener('click', e=>{
 //  RENDER
 // ═══════════════════════════════════════════════
 function render(){
-  const map={dashboard:pgDashboard,clientes:pgClientes,pedidos:pgPedidos,impresoras:pgImpresoras,filamentos:pgFilamentos,piezas:pgPiezas,archivos:pgArchivos,gastos:pgGastos,configuracion:pgConfig};
+  const map={dashboard:pgDashboard,clientes:pgClientes,pedidos:pgPedidos,impresoras:pgImpresoras,filamentos:pgFilamentos,piezas:pgPiezas,archivos:pgArchivos,gastos:pgGastos,registro:pgRegistro,configuracion:pgConfig};
   const fn=map[PAGE];
   $('content').innerHTML=fn?fn():'<p style="color:var(--text4)">Página no encontrada</p>';
   if(PAGE==='archivos') initDZ();
   if(PAGE==='dashboard') setTimeout(initDashboardCharts,0);
+  if(PAGE==='registro') setTimeout(cargarRegistroFiscal,0);
 }
 
 // ═══════════════════════════════════════════════
@@ -3333,6 +3335,90 @@ async function doDelGasto(id){
   if(await dbDel('gastos',id)){
     _cache.gastos=(_cache.gastos||[]).filter(x=>x.id!==id);
     render();showToast('Eliminado','ok');
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  REGISTRO FISCAL (vista sólo-lectura del SIF)
+// ═══════════════════════════════════════════════
+function pgRegistro(){
+  return`<h2 class="page-title" style="margin-bottom:6px">Registro fiscal</h2>
+<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:18px">
+  <span style="background:#1e3a8a;color:#bfdbfe;border-radius:99px;padding:3px 10px;font-size:11px;font-weight:700;letter-spacing:.3px">MODO NO-VERIFACTU</span>
+  <span style="color:var(--text4);font-size:12px">RD 1007/2023 · Orden HAC/1177/2024 · SIF Brami3D v${esc(SIF_VERSION)}</span>
+  <span style="flex:1"></span>
+  <button class="btn-primary" onclick="exportarRegistrosXML()">📄 Exportar XML AEAT</button>
+</div>
+<div class="card" style="margin-bottom:16px">
+  <div class="card-title">🔒 Cadena de facturas <span id="regf-count" style="color:var(--text4);font-weight:400;font-size:13px;margin-left:8px"></span></div>
+  <div id="regf-list" style="color:var(--text4);font-size:13px">Cargando…</div>
+</div>
+<div class="card">
+  <div class="card-title">📋 Eventos del sistema <span id="evt-count" style="color:var(--text4);font-weight:400;font-size:13px;margin-left:8px"></span></div>
+  <div id="evt-list" style="color:var(--text4);font-size:13px">Cargando…</div>
+</div>`;
+}
+
+async function cargarRegistroFiscal(){
+  try {
+    const [{data:regs,error:e1},{data:evts,error:e2}]=await Promise.all([
+      sb.from('facturas_registro').select('id,factura_num,factura_fecha,tipo,receptor_nombre,receptor_nif,base_imponible,importe_total,hash,hash_anterior,ts_emision,modalidad').eq('user_id',CU.id).order('ts_emision',{ascending:false}).limit(500),
+      sb.from('facturas_eventos').select('id,tipo,descripcion,ts,hash,hash_anterior,registro_id').eq('user_id',CU.id).order('ts',{ascending:false}).limit(500)
+    ]);
+    if(e1) throw e1;
+    if(e2) throw e2;
+    const R=regs||[], E=evts||[];
+
+    // Facturas
+    const regEl=$('regf-list'); const regCount=$('regf-count');
+    if(regCount) regCount.textContent=`(${R.length} ${R.length===1?'registro':'registros'})`;
+    if(R.length===0){
+      regEl.innerHTML='<div style="padding:12px;background:var(--bg);border-radius:8px">Aún no hay facturas registradas. Al emitir tu primera factura se creará el primer eslabón de la cadena.</div>';
+    } else {
+      // Verificar integridad en reverso: cada registro debería tener hash_anterior = hash del inmediatamente anterior (orden cronológico)
+      const chrono=[...R].reverse(); // ascendente
+      const cadenaOk=chrono.every((r,i)=> i===0 ? (r.hash_anterior==='' || r.hash_anterior==null) : r.hash_anterior===chrono[i-1].hash );
+      const statusBar=cadenaOk
+        ? '<div style="background:#064e3b;color:#a7f3d0;border-radius:8px;padding:8px 12px;font-size:12px;margin-bottom:10px">✓ Cadena íntegra — ningún hash previo ha sido alterado</div>'
+        : '<div style="background:#7f1d1d;color:#fecaca;border-radius:8px;padding:8px 12px;font-size:12px;margin-bottom:10px">⚠ Cadena rota — hay un registro cuyo hash_anterior no coincide</div>';
+      regEl.innerHTML=statusBar+'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:var(--bg)">'
+        +['Nº Factura','Fecha','Tipo','Receptor','Base','Total','Huella (SHA-256)'].map(h=>`<th style="text-align:left;padding:8px 10px;color:var(--text3);font-weight:600">${h}</th>`).join('')
+        +'</tr></thead><tbody>'
+        +R.map(r=>{
+          const tipoTag=r.tipo==='rectificativa'?'<span style="background:#78350f;color:#fde68a;border-radius:4px;padding:1px 6px;font-size:10px">R1</span>':(r.tipo==='anulacion'?'<span style="background:#7f1d1d;color:#fecaca;border-radius:4px;padding:1px 6px;font-size:10px">F2</span>':'<span style="background:#064e3b;color:#a7f3d0;border-radius:4px;padding:1px 6px;font-size:10px">F1</span>');
+          return `<tr style="border-top:1px solid var(--border)">
+            <td style="padding:8px 10px;color:var(--text2);font-weight:600">${esc(r.factura_num)}</td>
+            <td style="padding:8px 10px">${esc(r.factura_fecha||'')}</td>
+            <td style="padding:8px 10px">${tipoTag}</td>
+            <td style="padding:8px 10px">${esc(r.receptor_nombre||'-')}${r.receptor_nif?`<br><span style="color:var(--text4);font-size:10px">${esc(r.receptor_nif)}</span>`:''}</td>
+            <td style="padding:8px 10px;text-align:right">${Number(r.base_imponible||0).toFixed(2)} €</td>
+            <td style="padding:8px 10px;text-align:right;color:var(--text2);font-weight:600">${Number(r.importe_total||0).toFixed(2)} €</td>
+            <td style="padding:8px 10px;font-family:monospace;font-size:10px;color:var(--text4);cursor:copy" title="Click para copiar" onclick="navigator.clipboard.writeText('${esc(r.hash)}');showToast('Huella copiada','ok',1500)">${esc((r.hash||'').slice(0,16))}…</td>
+          </tr>`;
+        }).join('')
+        +'</tbody></table></div>';
+    }
+
+    // Eventos
+    const evtEl=$('evt-list'); const evtCount=$('evt-count');
+    if(evtCount) evtCount.textContent=`(${E.length} ${E.length===1?'evento':'eventos'})`;
+    if(E.length===0){
+      evtEl.innerHTML='<div style="padding:12px;background:var(--bg);border-radius:8px">Sin eventos registrados.</div>';
+    } else {
+      const tagColor=t=>({inicio:'#1e3a8a',creacion:'#064e3b',rectificacion:'#78350f',anulacion:'#7f1d1d',exportacion:'#4c1d95',anomalia:'#7f1d1d',fin:'#1f2937'}[t]||'#1f2937');
+      const tagTextColor=t=>({inicio:'#bfdbfe',creacion:'#a7f3d0',rectificacion:'#fde68a',anulacion:'#fecaca',exportacion:'#ddd6fe',anomalia:'#fecaca',fin:'#9ca3af'}[t]||'#9ca3af');
+      evtEl.innerHTML='<div style="display:flex;flex-direction:column;gap:6px">'
+        +E.map(ev=>`<div style="display:flex;gap:10px;align-items:center;padding:8px 10px;background:var(--bg);border-radius:6px;font-size:12px">
+          <span style="background:${tagColor(ev.tipo)};color:${tagTextColor(ev.tipo)};border-radius:4px;padding:2px 8px;font-size:10px;font-weight:700;min-width:80px;text-align:center">${esc((ev.tipo||'').toUpperCase())}</span>
+          <span style="color:var(--text4);min-width:150px">${esc(new Date(ev.ts).toLocaleString('es-ES'))}</span>
+          <span style="flex:1;color:var(--text2)">${esc(ev.descripcion||'-')}</span>
+          <span style="font-family:monospace;color:var(--text4);font-size:10px;cursor:copy" title="Click para copiar" onclick="navigator.clipboard.writeText('${esc(ev.hash)}');showToast('Huella copiada','ok',1500)">${esc((ev.hash||'').slice(0,12))}…</span>
+        </div>`).join('')
+        +'</div>';
+    }
+  } catch(e){
+    console.error('cargarRegistroFiscal',e);
+    $('regf-list').innerHTML=`<div style="background:#7f1d1d;color:#fecaca;border-radius:8px;padding:10px 14px">Error cargando registros: ${esc(e.message||e)}</div>`;
   }
 }
 
