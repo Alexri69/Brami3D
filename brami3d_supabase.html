@@ -416,6 +416,7 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
     <div id="topbar">
       <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0">
         <div id="tb-company" style="font-size:16px;font-weight:700;color:#60a5fa;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;max-width:200px"></div>
+        <span id="tb-plan-badge" onclick="showPlanInfo()" title="Plan activo" style="display:none;font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;flex-shrink:0"></span>
         <!-- Desktop search -->
         <div id="search-wrap-desk" style="flex:1;max-width:380px;position:relative;display:none" class="desk-only">
           <span style="position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:15px;pointer-events:none">🔍</span>
@@ -475,6 +476,122 @@ let SB_OPEN = true;
 
 // In-memory cache (reloaded on every page navigation)
 let _cache = { clientes:[], pedidos:[], impresoras:[], filamentos:[], piezas:[], archivos:[], cfg:{} };
+
+// ═══════════════════════════════════════════════
+//  PLANES / LÍMITES
+// ═══════════════════════════════════════════════
+// Email whitelist: estos usuarios tienen plan='admin' sin límites, aunque la
+// tabla user_plans esté vacía o no exista. Es el cinturón de seguridad del owner.
+const ADMIN_EMAILS = ['alexri69@gmail.com'];
+
+// Plan activo del usuario. Se recalcula en loadAll() a partir de (en orden):
+//   1) ADMIN_EMAILS  → 'admin' (nunca se niega acceso al owner)
+//   2) user_plans.plan si expires_at es null o futuro
+//   3) trial_until si es futuro → 'pro' efectivo (trial 30 días)
+//   4) 'free' por defecto
+let _plan = {
+  tier: 'free',        // 'free' | 'pro' | 'admin'
+  source: 'default',   // 'whitelist' | 'db' | 'trial' | 'default'
+  expiresAt: null,
+  trialUntil: null,
+  isAdmin: false,
+  isPro: false
+};
+
+// Límites del plan free. Pro y admin son ilimitados.
+const FREE_LIMITS = {
+  pedidosPorMes: 10,
+  clientes: 5
+};
+
+// Resuelve _plan a partir de la fila de user_plans y el email del usuario.
+function resolvePlan(row){
+  const email = (CU?.email||'').toLowerCase();
+  if(ADMIN_EMAILS.includes(email)){
+    _plan = {tier:'admin', source:'whitelist', expiresAt:null, trialUntil:null, isAdmin:true, isPro:true};
+    return;
+  }
+  const now = Date.now();
+  if(row){
+    if(row.plan==='admin'){
+      _plan = {tier:'admin', source:'db', expiresAt:null, trialUntil:null, isAdmin:true, isPro:true};
+      return;
+    }
+    if(row.plan==='pro'){
+      const exp = row.expires_at ? new Date(row.expires_at).getTime() : null;
+      if(!exp || exp>now){
+        _plan = {tier:'pro', source:'db', expiresAt:row.expires_at, trialUntil:row.trial_until, isAdmin:false, isPro:true};
+        return;
+      }
+    }
+    // free con trial activo cuenta como pro a efectos de límites
+    if(row.trial_until){
+      const tr = new Date(row.trial_until).getTime();
+      if(tr>now){
+        _plan = {tier:'pro', source:'trial', expiresAt:null, trialUntil:row.trial_until, isAdmin:false, isPro:true};
+        return;
+      }
+    }
+  }
+  _plan = {tier:'free', source:row?'db':'default', expiresAt:null, trialUntil:row?.trial_until||null, isAdmin:false, isPro:false};
+}
+
+// Cuenta pedidos del mes en curso (usa created_at del pedido en _cache).
+function pedidosEsteMes(){
+  const d = new Date();
+  const yy = d.getFullYear(), mm = d.getMonth();
+  return _cache.pedidos.filter(o=>{
+    const f = o.fecha || o.created_at;
+    if(!f) return false;
+    const od = new Date(f);
+    return od.getFullYear()===yy && od.getMonth()===mm;
+  }).length;
+}
+
+// Modal de upgrade cuando el usuario free toca techo.
+function showUpgradeModal(reason){
+  const msg = reason || 'Has alcanzado el límite de tu plan Free.';
+  const html = `
+    <div style="text-align:center;padding:8px 4px">
+      <div style="font-size:48px;margin-bottom:8px">🚀</div>
+      <h3 style="margin:0 0 10px;color:var(--text2)">Actualiza a Pro</h3>
+      <p style="color:var(--text4);margin:0 0 18px;line-height:1.5">${esc(msg)}</p>
+      <div style="background:rgba(96,165,250,.08);border:1px solid rgba(96,165,250,.25);border-radius:10px;padding:14px;margin-bottom:18px;text-align:left">
+        <div style="font-weight:700;color:var(--text2);margin-bottom:8px">Plan Pro incluye:</div>
+        <div style="color:var(--text3);font-size:13px;line-height:1.7">
+          ✓ Pedidos y clientes ilimitados<br>
+          ✓ Exportaciones Excel ilimitadas<br>
+          ✓ Registro fiscal completo (Verifactu)<br>
+          ✓ Soporte prioritario
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <a href="landing.html#precios" target="_blank" class="btn-primary" style="text-decoration:none;display:inline-block">Ver planes</a>
+        <button class="btn-secondary" onclick="closeModal()">Ahora no</button>
+      </div>
+    </div>`;
+  openModal(msh('Límite del plan alcanzado', html));
+}
+
+// Devuelve true si la acción está permitida. Si no, muestra modal y devuelve false.
+// action: 'nuevoPedido' | 'nuevoCliente'
+function checkPlanLimit(action, editingId){
+  if(_plan.isPro || _plan.isAdmin) return true;
+  if(action==='nuevoCliente' && !editingId){
+    if(_cache.clientes.length >= FREE_LIMITS.clientes){
+      showUpgradeModal(`El plan Free permite hasta ${FREE_LIMITS.clientes} clientes. Actualiza a Pro para añadir más.`);
+      return false;
+    }
+  }
+  if(action==='nuevoPedido' && !editingId){
+    const n = pedidosEsteMes();
+    if(n >= FREE_LIMITS.pedidosPorMes){
+      showUpgradeModal(`El plan Free permite ${FREE_LIMITS.pedidosPorMes} pedidos al mes. Este mes ya llevas ${n}. Actualiza a Pro para seguir creando pedidos.`);
+      return false;
+    }
+  }
+  return true;
+}
 
 // ═══════════════════════════════════════════════
 //  UTILS
@@ -854,7 +971,7 @@ async function loadAll(silent=false){
 
   // Fire all queries in parallel instead of sequentially (was ~8 round-trips, now 1).
   // Each query auto-paginates in 1000-row chunks so tables with >1000 rows aren't silently truncated.
-  const [c, p, im, fi, pz, ar, gs, cfg] = await Promise.all([
+  const [c, p, im, fi, pz, ar, gs, cfg, pl] = await Promise.all([
     qry(fetchAllPages(()=>sb.from('clientes').select('*').eq('user_id',userId).order('created_at')), 'clientes'),
     qry(fetchAllPages(()=>sb.from('pedidos').select('*').eq('user_id',userId).order('created_at', {ascending:false})), 'pedidos'),
     qry(fetchAllPages(()=>sb.from('impresoras').select('*').eq('user_id',userId).order('created_at')), 'impresoras'),
@@ -862,7 +979,8 @@ async function loadAll(silent=false){
     qry(fetchAllPages(()=>sb.from('piezas').select('*').eq('user_id',userId).order('created_at')), 'piezas'),
     qry(fetchAllPages(()=>sb.from('archivos').select('*').eq('user_id',userId).order('created_at')), 'archivos'),
     qry(fetchAllPages(()=>sb.from('gastos').select('*').eq('user_id',userId).order('fecha',{ascending:false})), 'gastos'),
-    qry(sb.from('config').select('*').eq('user_id',userId).single(), 'config')
+    qry(sb.from('config').select('*').eq('user_id',userId).single(), 'config'),
+    qry(sb.from('user_plans').select('*').eq('user_id',userId).maybeSingle(), 'user_plans').catch(()=>({data:null,error:null}))
   ]);
 
   if(c.error) throw new Error('clientes: '+c.error.message);
@@ -892,6 +1010,10 @@ async function loadAll(silent=false){
   _cache.archivos   = ar.data||[];
   _cache.gastos     = gs.data||[];
   _cache.cfg        = cfg.data ? mapCfg(cfg.data) : {costePorGramo:0.03,costePorHora:0.15,margen:30,moneda:'€',empresa:'',telefono:'',email:''};
+
+  // Resolver plan: whitelist admin > row de user_plans > default free.
+  // Si la tabla aún no existe (SQL no aplicado) cae a default gracias al catch de arriba.
+  resolvePlan(pl && !pl.error ? pl.data : null);
 
   refreshBizHeader();
 }
@@ -1394,6 +1516,49 @@ function refreshAlerts(){
 function refreshBizHeader(){
   const el=$('tb-company'); if(!el) return;
   el.textContent=_cache.cfg.empresa||'';
+  // Badge del plan
+  const b=$('tb-plan-badge'); if(!b) return;
+  if(_plan.isAdmin){
+    b.style.display='inline-block';
+    b.textContent='ADMIN';
+    b.style.background='rgba(168,85,247,.15)';
+    b.style.border='1px solid rgba(168,85,247,.35)';
+    b.style.color='#c084fc';
+  } else if(_plan.isPro){
+    b.style.display='inline-block';
+    b.textContent=_plan.source==='trial'?'TRIAL':'PRO';
+    b.style.background='rgba(34,197,94,.12)';
+    b.style.border='1px solid rgba(34,197,94,.3)';
+    b.style.color='#4ade80';
+  } else {
+    b.style.display='inline-block';
+    b.textContent='FREE';
+    b.style.background='rgba(148,163,184,.1)';
+    b.style.border='1px solid rgba(148,163,184,.25)';
+    b.style.color='var(--text4)';
+  }
+}
+
+function showPlanInfo(){
+  const t = _plan.tier==='admin'?'Admin (owner)':_plan.tier==='pro'?(_plan.source==='trial'?'Pro (trial)':'Pro'):'Free';
+  const pedidos = pedidosEsteMes();
+  const clientes = _cache.clientes.length;
+  let detalle='';
+  if(_plan.isAdmin){
+    detalle='<p style="color:var(--text4);margin:0 0 12px">Acceso sin límites como propietario.</p>';
+  } else if(_plan.isPro){
+    const exp = _plan.expiresAt ? new Date(_plan.expiresAt).toLocaleDateString('es-ES') : null;
+    const tr  = _plan.trialUntil ? new Date(_plan.trialUntil).toLocaleDateString('es-ES') : null;
+    detalle = _plan.source==='trial'
+      ? `<p style="color:var(--text4);margin:0 0 12px">Trial gratuito hasta <b>${esc(tr||'')}</b>. Acceso a todas las funciones.</p>`
+      : `<p style="color:var(--text4);margin:0 0 12px">Plan Pro activo${exp?` hasta <b>${esc(exp)}</b>`:''}. Pedidos y clientes ilimitados.</p>`;
+  } else {
+    detalle = `
+      <p style="color:var(--text4);margin:0 0 12px">Este mes: <b>${pedidos} / ${FREE_LIMITS.pedidosPorMes}</b> pedidos · <b>${clientes} / ${FREE_LIMITS.clientes}</b> clientes.</p>
+      <p style="color:var(--text4);margin:0 0 12px">Actualiza a Pro para pedidos y clientes ilimitados.</p>
+      <div style="text-align:center;margin-top:14px"><a href="landing.html#precios" target="_blank" class="btn-primary" style="text-decoration:none;display:inline-block">Ver planes</a></div>`;
+  }
+  openModal(msh('Tu plan: '+t, detalle + '<div style="text-align:center;margin-top:12px"><button class="btn-secondary" onclick="closeModal()">Cerrar</button></div>'));
 }
 
 function toggleMobSearch(){
@@ -2353,12 +2518,14 @@ ${isMob
 }
 function clienteFrm(x={}){ return fld('Nombre *','nombre',x.nombre||'')+fld('NIF / CIF','nif',x.nif||'')+fld('Empresa','empresa',x.empresa||'')+fld('Dirección','direccion',x.direccion||'')+fld('Teléfono','telefono',x.telefono||'')+fld('Email','email',x.email||'','email')+fld('Notas','notas',x.notas||'','textarea'); }
 function editC(id){
+  if(!checkPlanLimit('nuevoCliente', id)) return;
   const x=id?_cache.clientes.find(c=>c.id===id)||{}:{};
   openModal(msh(id?'Editar cliente':'Nuevo cliente',`${clienteFrm(x)}<div style="display:flex;gap:10px;margin-top:8px"><button class="btn-primary" id="save-c-btn" onclick="saveC('${id||''}')">Guardar</button><button class="btn-secondary" onclick="closeModal()">Cancelar</button></div>`));
 }
 async function saveC(id){
+  if(!checkPlanLimit('nuevoCliente', id)) return;
   const d=gfd(['nombre','nif','empresa','direccion','telefono','email','notas']);
-  if(!d.nombre.trim()){alert('Nombre obligatorio');return;}
+  if(!d.nombre.trim()){showToast('Nombre obligatorio','err');return;}
   setLoading('save-c-btn',true);
   const row={nombre:d.nombre,nif:d.nif||'',empresa:d.empresa,direccion:d.direccion||'',telefono:d.telefono,email:d.email,notas:d.notas};
   if(id){row.id=id;}else{row.id=uid();}
@@ -3071,6 +3238,7 @@ function attachPedidoEvents(){setTimeout(()=>{
 },60);}
 
 function editO(id){
+  if(!checkPlanLimit('nuevoPedido', id)) return;
   const x=id?_cache.pedidos.find(o=>o.id===id)||{}:{};
   // Init foto state
   _fotoFile = null;
@@ -3081,6 +3249,7 @@ function editO(id){
 }
 
 async function saveO(id){
+  if(!checkPlanLimit('nuevoPedido', id)) return;
   const d=gfd(['clienteId','proyecto','estado','notas','fecha','gananciaManual','precioFinal','costePostprocesado','costeDiseno','impresoraId']);
   const prevOrder=_cache.pedidos.find(o=>o.id===id);
   const cobradoCheck=document.querySelector('[name="cobradoCheck"]')?.checked||false;
