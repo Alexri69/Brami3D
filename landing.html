@@ -188,34 +188,6 @@ footer{padding:32px 40px;border-top:1px solid var(--border);display:flex;justify
   <div class="stat"><div class="stat-n">Real</div><div class="stat-l">Costes en tiempo real</div></div>
 </div>
 
-<!-- CALCULADORA -->
-<div class="pricing reveal" style="padding-bottom:40px">
-  <span class="sec-lbl">Calculadora gratuita</span>
-  <h2 style="font-size:clamp(36px,5vw,58px)">Calcula el precio de tu pieza<br>sin registrarte 🧮</h2>
-  <p style="font-size:18px">Prueba ahora mismo — gratis y sin crear cuenta.</p>
-  <div style="margin:32px auto 0;max-width:460px;background:linear-gradient(145deg,#0d1926,#080f1a);border:1px solid rgba(37,99,235,.25);border-radius:20px;padding:24px;text-align:left">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-      <div><div style="font-size:10px;font-weight:700;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Peso (g)</div><input type="number" id="lc-peso" placeholder="85" oninput="lcalc()" style="width:100%;padding:10px 12px;background:#070e1c;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:16px;font-family:inherit"></div>
-      <div><div style="font-size:10px;font-weight:700;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Tiempo (h)</div><input type="number" id="lc-tiempo" placeholder="4.5" step="0.1" oninput="lcalc()" style="width:100%;padding:10px 12px;background:#070e1c;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:16px;font-family:inherit"></div>
-      <div><div style="font-size:10px;font-weight:700;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Filamento (€/kg)</div><input type="number" id="lc-fil" placeholder="20" oninput="lcalc()" style="width:100%;padding:10px 12px;background:#070e1c;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:16px;font-family:inherit"></div>
-      <div><div style="font-size:10px;font-weight:700;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Consumo (W)</div><input type="number" id="lc-w" placeholder="200" oninput="lcalc()" style="width:100%;padding:10px 12px;background:#070e1c;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:16px;font-family:inherit"></div>
-      <div style="grid-column:1/-1"><div style="font-size:10px;font-weight:700;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Electricidad (€/kWh)</div><input type="number" id="lc-kwh" placeholder="0.15" step="0.01" value="0.15" oninput="lcalc()" style="width:100%;padding:10px 12px;background:#070e1c;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:16px;font-family:inherit"></div>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-      <div style="font-size:10px;font-weight:700;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;white-space:nowrap">Margen</div>
-      <input type="range" id="lc-margen" min="10" max="200" value="30" oninput="lcalc();document.getElementById('lc-mv').textContent=this.value+'%'" style="flex:1;accent-color:#3b82f6">
-      <span id="lc-mv" style="font-size:13px;font-weight:700;color:#60a5fa;min-width:38px">30%</span>
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
-      <div style="background:#070e1c;border-radius:10px;padding:12px;text-align:center"><div style="font-size:9px;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Material</div><div id="lc-mat" style="font-size:18px;font-weight:900;color:#7a9ab8;font-family:monospace">0.00€</div></div>
-      <div style="background:#070e1c;border-radius:10px;padding:12px;text-align:center"><div style="font-size:9px;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Electricidad</div><div id="lc-elec" style="font-size:18px;font-weight:900;color:#7a9ab8;font-family:monospace">0.00€</div></div>
-      <div style="background:linear-gradient(145deg,#0d2545,#0a1e38);border:1.5px solid rgba(37,99,235,.4);border-radius:10px;padding:12px;text-align:center"><div style="font-size:9px;color:#60a5fa;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Precio venta</div><div id="lc-total" style="font-size:20px;font-weight:900;color:#60a5fa;font-family:monospace">0.00€</div></div>
-    </div>
-    <a href="https://brami3d.app/brami3d_supabase.html" style="display:block;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border-radius:10px;padding:13px;font-size:15px;font-weight:700;text-align:center;text-decoration:none;box-shadow:0 4px 16px rgba(37,99,235,.4)">🚀 Guardar pedidos — Registrarse gratis</a>
-  </div>
-</div>
-
-
 <div id="funciones" class="sec reveal">
   <span class="sec-lbl">Funcionalidades</span>
   <h2 class="sec-title">Todo lo que necesitas<br>para tu taller</h2>
@@ -317,6 +289,33 @@ footer{padding:32px 40px;border-top:1px solid var(--border);display:flex;justify
   <div class="faq-i"><div class="faq-q">¿Mis datos están seguros? <span>+</span></div><div class="faq-a">Sí. Los datos se guardan en Supabase con cifrado y acceso exclusivo a tu cuenta. Nadie más puede verlos.</div></div>
   <div class="faq-i"><div class="faq-q">¿Las facturas son legalmente válidas? <span>+</span></div><div class="faq-a">Sí. Incluyen NIF/CIF de empresa y cliente, numeración correlativa y todos los datos requeridos por la normativa española.</div></div>
   <div class="faq-i"><div class="faq-q">¿Funciona en ordenador también? <span>+</span></div><div class="faq-a">Perfectamente. Se adapta a cualquier pantalla y los datos se sincronizan entre todos tus dispositivos en tiempo real.</div></div>
+</div>
+
+<!-- CALCULADORA -->
+<div id="calculadora" class="pricing reveal" style="padding-bottom:40px">
+  <span class="sec-lbl">Calculadora gratuita</span>
+  <h2 style="font-size:clamp(36px,5vw,58px)">Calcula el precio de tu pieza<br>sin registrarte 🧮</h2>
+  <p style="font-size:18px">Pruébala ahora — y si te gusta, regístrate gratis para guardar tus cálculos como pedidos.</p>
+  <div style="margin:32px auto 0;max-width:460px;background:linear-gradient(145deg,#0d1926,#080f1a);border:1px solid rgba(37,99,235,.25);border-radius:20px;padding:24px;text-align:left">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div><div style="font-size:10px;font-weight:700;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Peso (g)</div><input type="number" id="lc-peso" placeholder="85" oninput="lcalc()" style="width:100%;padding:10px 12px;background:#070e1c;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:16px;font-family:inherit"></div>
+      <div><div style="font-size:10px;font-weight:700;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Tiempo (h)</div><input type="number" id="lc-tiempo" placeholder="4.5" step="0.1" oninput="lcalc()" style="width:100%;padding:10px 12px;background:#070e1c;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:16px;font-family:inherit"></div>
+      <div><div style="font-size:10px;font-weight:700;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Filamento (€/kg)</div><input type="number" id="lc-fil" placeholder="20" oninput="lcalc()" style="width:100%;padding:10px 12px;background:#070e1c;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:16px;font-family:inherit"></div>
+      <div><div style="font-size:10px;font-weight:700;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Consumo (W)</div><input type="number" id="lc-w" placeholder="200" oninput="lcalc()" style="width:100%;padding:10px 12px;background:#070e1c;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:16px;font-family:inherit"></div>
+      <div style="grid-column:1/-1"><div style="font-size:10px;font-weight:700;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Electricidad (€/kWh)</div><input type="number" id="lc-kwh" placeholder="0.15" step="0.01" value="0.15" oninput="lcalc()" style="width:100%;padding:10px 12px;background:#070e1c;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:16px;font-family:inherit"></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
+      <div style="font-size:10px;font-weight:700;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;white-space:nowrap">Margen</div>
+      <input type="range" id="lc-margen" min="10" max="200" value="30" oninput="lcalc();document.getElementById('lc-mv').textContent=this.value+'%'" style="flex:1;accent-color:#3b82f6">
+      <span id="lc-mv" style="font-size:13px;font-weight:700;color:#60a5fa;min-width:38px">30%</span>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
+      <div style="background:#070e1c;border-radius:10px;padding:12px;text-align:center"><div style="font-size:9px;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Material</div><div id="lc-mat" style="font-size:18px;font-weight:900;color:#7a9ab8;font-family:monospace">0.00€</div></div>
+      <div style="background:#070e1c;border-radius:10px;padding:12px;text-align:center"><div style="font-size:9px;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Electricidad</div><div id="lc-elec" style="font-size:18px;font-weight:900;color:#7a9ab8;font-family:monospace">0.00€</div></div>
+      <div style="background:linear-gradient(145deg,#0d2545,#0a1e38);border:1.5px solid rgba(37,99,235,.4);border-radius:10px;padding:12px;text-align:center"><div style="font-size:9px;color:#60a5fa;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Precio venta</div><div id="lc-total" style="font-size:20px;font-weight:900;color:#60a5fa;font-family:monospace">0.00€</div></div>
+    </div>
+    <a href="https://brami3d.app/brami3d_supabase.html" style="display:block;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border-radius:10px;padding:13px;font-size:15px;font-weight:700;text-align:center;text-decoration:none;box-shadow:0 4px 16px rgba(37,99,235,.4)">🚀 Guardar pedidos — Registrarse gratis</a>
+  </div>
 </div>
 
 <div class="cta reveal">
