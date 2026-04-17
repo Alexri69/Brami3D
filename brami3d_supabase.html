@@ -83,7 +83,8 @@ if ('serviceWorker' in navigator) {
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+<script>window.QRious||document.write('<script src="https://unpkg.com/qrious@4.0.2/dist/qrious.min.js"><\/script>');</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
@@ -1167,10 +1168,12 @@ function qrAEATUrl({emisorNif,numSerie,fecha,importe}){
 }
 
 // Genera un QR PNG como data URL. Nivel M de corrección (Orden HAC/1177/2024).
+// Librería: QRious (canvas-based). Fallback inline vía unpkg si jsDelivr falla.
 async function qrDataUrl(url,size=240){
   try {
-    if(typeof QRCode==='undefined'||!QRCode.toDataURL){ console.warn('QRCode lib no cargada'); return ''; }
-    return await QRCode.toDataURL(url,{errorCorrectionLevel:'M',margin:1,width:size,color:{dark:'#000000',light:'#ffffff'}});
+    if(typeof QRious==='undefined'){ console.warn('QRious lib no cargada — QR no se incluirá en la factura'); return ''; }
+    const q=new QRious({value:url,size:size,level:'M',background:'white',foreground:'black',padding:4});
+    return q.toDataURL('image/png');
   } catch(e){ console.warn('qrDataUrl',e); return ''; }
 }
 
