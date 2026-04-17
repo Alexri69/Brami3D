@@ -804,6 +804,7 @@ async function bootApp(){
       render();
       refreshAlerts();
       checkAndNotify();
+      registrarInicioSIF();
     }).catch(()=>{});
   } else {
     $('content').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:60vh"><div style="text-align:center"><div class="loading-spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto 16px"></div><div style="color:var(--text4);font-size:13px">Cargando...</div></div></div>';
@@ -813,6 +814,7 @@ async function bootApp(){
       goTo('dashboard');
       checkAndNotify();
       handleShortcut();
+      registrarInicioSIF();
     } catch(e) {
       $('content').innerHTML='<div style="padding:32px;color:#f87171;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:12px;margin:24px">❌ Error al cargar: '+e.message+'<br><br><button class="btn-primary" onclick="bootApp()">🔄 Reintentar</button></div>';
     }
@@ -1045,6 +1047,23 @@ async function fetchUltimoHashEvento(){
   } catch(e){ console.warn(e); return ''; }
 }
 
+// Registra un evento 'inicio' del SIF si han pasado >24h desde el último.
+// Evita llenar facturas_eventos con una entrada por cada recarga.
+async function registrarInicioSIF(){
+  try {
+    const hace24h=new Date(Date.now()-24*60*60*1000).toISOString();
+    const {data}=await sb.from('facturas_eventos')
+      .select('id,ts').eq('user_id',CU.id).eq('tipo','inicio')
+      .gte('ts',hace24h).limit(1);
+    if(data&&data.length>0) return false;  // ya hay un inicio en las últimas 24h
+    await registrarEvento('inicio',{
+      descripcion:`Arranque del SIF Brami3D v${SIF_VERSION}`,
+      datos:{modalidad:MODALIDAD_FACTURACION,ua:navigator.userAgent.slice(0,120)}
+    });
+    return true;
+  } catch(e){ console.warn('registrarInicioSIF',e); return false; }
+}
+
 // Inserta un evento inmutable encadenado en facturas_eventos.
 async function registrarEvento(tipo,{descripcion='',registro_id=null,datos={}}={}){
   try {
@@ -1108,6 +1127,10 @@ async function registrarFactura(pedido,cliente,cfg,{tipo='emision',rectifica_id=
     if(error){
       console.error('registrarFactura',error);
       showToast('⚠️ No se pudo registrar la factura: '+error.message,'err');
+      registrarEvento('anomalia',{
+        descripcion:`Fallo al registrar factura ${pedido.facturaNum}: ${error.message}`,
+        datos:{factura_num:pedido.facturaNum,codigo:error.code||'',detalles:error.details||''}
+      });
       return null;
     }
 
@@ -1121,6 +1144,10 @@ async function registrarFactura(pedido,cliente,cfg,{tipo='emision',rectifica_id=
   } catch(e){
     console.error('registrarFactura exception',e);
     showToast('⚠️ Error al registrar factura','err');
+    registrarEvento('anomalia',{
+      descripcion:`Excepción al registrar factura ${pedido?.facturaNum||''}: ${e.message||e}`,
+      datos:{factura_num:pedido?.facturaNum||'',stack:(e.stack||'').slice(0,500)}
+    });
     return null;
   }
 }
