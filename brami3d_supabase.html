@@ -83,6 +83,7 @@ if ('serviceWorker' in navigator) {
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
@@ -1124,6 +1125,28 @@ async function registrarFactura(pedido,cliente,cfg,{tipo='emision',rectifica_id=
   }
 }
 
+// URL del QR conforme a la Orden HAC/1177/2024 (servicio AEAT de cotejo).
+// Parámetros: nif (emisor), numserie (nº completo de factura), fecha DD-MM-YYYY,
+// importe con coma decimal convertida a punto, 2 decimales.
+function qrAEATUrl({emisorNif,numSerie,fecha,importe}){
+  const fmtFecha=(fecha||'').split('-').reverse().join('-');
+  const p=new URLSearchParams({
+    nif:(emisorNif||'').replace(/\s/g,''),
+    numserie:numSerie||'',
+    fecha:fmtFecha,
+    importe:Number(importe||0).toFixed(2)
+  });
+  return `https://www2.agenciatributaria.es/wlpl/TIKE-CONT/ValidarQR?${p.toString()}`;
+}
+
+// Genera un QR PNG como data URL. Nivel M de corrección (Orden HAC/1177/2024).
+async function qrDataUrl(url,size=240){
+  try {
+    if(typeof QRCode==='undefined'||!QRCode.toDataURL){ console.warn('QRCode lib no cargada'); return ''; }
+    return await QRCode.toDataURL(url,{errorCorrectionLevel:'M',margin:1,width:size,color:{dark:'#000000',light:'#ffffff'}});
+  } catch(e){ console.warn('qrDataUrl',e); return ''; }
+}
+
 // ═══════════════════════════════════════════════
 //  NAV
 // ═══════════════════════════════════════════════
@@ -1559,6 +1582,9 @@ async function genFactura(id){
   const reg=await registrarFactura(o,cl,cfg);
   const huella=reg?.hash||'';
   const huellaFmt=huella?huella.slice(0,8)+'…'+huella.slice(-8):'';
+  // QR AEAT conforme Orden HAC/1177/2024 (ISO/IEC 18004, nivel M).
+  const qrUrlAEAT=qrAEATUrl({emisorNif:cfg.nif||'',numSerie:o.facturaNum||'',fecha:o.facturaFecha||'',importe:c.fp||0});
+  const qrImg=await qrDataUrl(qrUrlAEAT,260);
   const logoSVG=`<svg width="44" height="44" viewBox="0 0 38 38" fill="none"><rect width="38" height="38" rx="9" fill="#1d4ed8"/><polygon points="19,7 30,13 30,25 19,31 8,25 8,13" fill="none" stroke="#93c5fd" stroke-width="1.5"/><polygon points="19,7 30,13 19,19 8,13" fill="#3b82f6" opacity="0.8"/><polygon points="8,13 19,19 19,31 8,25" fill="#2563eb"/><polygon points="30,13 19,19 19,31 30,25" fill="#1d4ed8"/></svg>`;
 
   const lineasHTML=o.lineas&&o.lineas.length>0?`<table style="width:100%;border-collapse:collapse"><thead><tr style="background:#0f172a;color:#94a3b8"><th style="text-align:left;padding:8px 12px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px">Descripción</th><th style="text-align:center;padding:8px 12px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px">Uds</th><th style="text-align:right;padding:8px 12px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px">Material</th></tr></thead><tbody>${o.lineas.map((l,i)=>`<tr style="border-bottom:1px solid #f1f5f9;background:${i%2===0?'#fff':'#f8fafc'}"><td style="padding:8px 12px;font-size:11px;font-weight:600;color:#0f172a">${l.nombre||'—'}</td><td style="padding:8px 12px;font-size:11px;color:#475569;text-align:center">${l.qty||1}</td><td style="padding:8px 12px;font-size:11px;color:#475569;text-align:right">${l.material||'—'}</td></tr>`).join('')}</tbody></table>`:
@@ -1594,8 +1620,13 @@ async function genFactura(id){
 .notas-box{background:#fffbeb;border:1px solid #fde68a;border-radius:7px;padding:7px 12px;font-size:10px;color:#92400e;flex-shrink:0}
 .footer{background:#f8fafc;border-top:1px solid #e2e8f0;padding:9px 26px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
 .footer-thanks{font-size:11px;font-weight:700;color:#0f172a}.footer-note{font-size:8px;color:#94a3b8;text-align:right;line-height:1.7}
-.compl{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;padding:6px 12px;font-size:8px;color:#475569;line-height:1.6;display:flex;justify-content:space-between;gap:12px;flex-shrink:0}
+.compl{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;padding:8px 12px;font-size:8px;color:#475569;line-height:1.6;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-shrink:0}
 .compl b{color:#0f172a;font-weight:700}.compl .huella{font-family:'Courier New',monospace;letter-spacing:.3px}
+.compl-txt{flex:1;min-width:0}
+.compl-txt .verify{font-size:7px;color:#64748b;margin-top:4px;line-height:1.5}
+.compl-qr{width:34mm;height:34mm;flex-shrink:0;background:#fff;padding:1mm;border:1px solid #cbd5e1;border-radius:3px;display:flex;align-items:center;justify-content:center}
+.compl-qr img{width:100%;height:100%;display:block;image-rendering:pixelated}
+@media print{.compl-qr{width:32mm;height:32mm;padding:0.5mm}}
 @media print{html,body{width:210mm;height:297mm;margin:0;padding:0;overflow:hidden}.page{height:297mm;overflow:hidden}@page{size:A4 portrait;margin:0}}</style></head><body>
 <div class="page">
 <div class="hdr"><div class="hdr-brand">${logoSVG}<div><div class="brand-name">B3D</div><div class="brand-sub">Print Studio</div></div></div>
@@ -1608,7 +1639,7 @@ async function genFactura(id){
 <div class="items-section"><div class="slbl">Detalle del servicio</div><div class="items-wrap">${lineasHTML}</div></div>
 <div class="totals-wrap"><div class="totals">${c.pd>0?`<div class="totals-row"><span class="totals-lbl">Diseño</span><span class="totals-val">${c.pd.toFixed(2)} ${mon}</span></div>`:''}${c.pp>0?`<div class="totals-row"><span class="totals-lbl">Postprocesado</span><span class="totals-val">${c.pp.toFixed(2)} ${mon}</span></div>`:''}<div class="total-final"><span class="total-final-lbl">Total facturado</span><div style="display:flex;align-items:baseline"><span class="total-final-amt">${c.fp.toFixed(2)}</span><span class="total-final-mon">${mon}</span></div></div></div></div>
 ${o.notas?`<div class="notas-box"><b>Notas:</b> ${o.notas}</div>`:''}
-${huella?`<div class="compl"><div><b>Sistema de facturación:</b> Brami3D v${SIF_VERSION} — Conforme RD 1007/2023 (modo No-Verifactu)</div><div><b>Huella SHA-256:</b> <span class="huella">${huellaFmt}</span></div></div>`:''}
+${huella?`<div class="compl"><div class="compl-txt"><div><b>Sistema:</b> Brami3D v${SIF_VERSION} · Conforme RD 1007/2023 (modo No-Verifactu)</div><div><b>Huella SHA-256:</b> <span class="huella">${huellaFmt}</span></div><div class="verify">Escanee el QR para verificar esta factura en la sede electrónica de la AEAT (sede.agenciatributaria.gob.es).</div></div>${qrImg?`<div class="compl-qr"><img src="${qrImg}" alt="QR verificación AEAT"></div>`:''}</div>`:''}
 </div>
 <div class="footer"><div class="footer-thanks">¡Gracias por su confianza! 🙏</div><div class="footer-note"><div>Factura generada el ${dateStr}</div><div>${biz.empresa||'B3D Print Studio'}</div></div></div>
 </div><script>setTimeout(()=>window.print(),500)<\/script></body></html>`;
