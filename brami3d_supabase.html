@@ -1498,12 +1498,47 @@ function confirmDel(msg,code){openModal(msh('Confirmar',`<p style="color:#cbd5e1
 // ═══════════════════════════════════════════════
 //  FORM HELPERS
 // ═══════════════════════════════════════════════
+// Parsea un input de usuario numérico (coma o punto decimal) clamped a [min,max].
+// Si está vacío o no es numérico devuelve `def`. Si queda fuera de rango, clampa al extremo.
+// Uso típico: numVal(d.pesoRestante, {min:0}) reemplaza parseFloat(d.pesoRestante)||0 sin aceptar negativos.
+function numVal(x,{min=0,max=Infinity,def=0}={}){
+  if(x==null||x==='') return def;
+  const n=parseFloat(String(x).replace(',','.'));
+  if(!isFinite(n)) return def;
+  if(n<min) return min;
+  if(n>max) return max;
+  return n;
+}
+// Validación estricta: no clampa, devuelve {ok, value, error}. Úsalo para mostrar error al usuario
+// en vez de guardar un valor corregido silenciosamente.
+function validateNum(label,x,{min=0,max=Infinity,allowEmpty=true,integer=false}={}){
+  if(x==null||x===''){
+    if(allowEmpty) return {ok:true,value:null};
+    return {ok:false,error:`${label}: obligatorio`};
+  }
+  const n=parseFloat(String(x).replace(',','.'));
+  if(!isFinite(n)) return {ok:false,error:`${label}: valor no numérico`};
+  if(integer && !Number.isInteger(n)) return {ok:false,error:`${label}: debe ser un número entero`};
+  if(n<min) return {ok:false,error:`${label}: no puede ser menor que ${min}`};
+  if(n>max) return {ok:false,error:`${label}: no puede ser mayor que ${max}`};
+  return {ok:true,value:n};
+}
+
 function fld(label,name,val,type='text',opts=null){
   const id='ff_'+name;
-  if(opts){const o=opts.map(o=>`<option value="${esc(o.value??o)}"${(o.value??o)==String(val??'')?' selected':''}>${esc(o.label??o)}</option>`).join('');return`<div class="field"><label for="${id}">${esc(label)}</label><select id="${id}" name="${name}">${o}</select></div>`;}
+  // 5º arg es Array → <select>
+  if(Array.isArray(opts)){const o=opts.map(o=>`<option value="${esc(o.value??o)}"${(o.value??o)==String(val??'')?' selected':''}>${esc(o.label??o)}</option>`).join('');return`<div class="field"><label for="${id}">${esc(label)}</label><select id="${id}" name="${name}">${o}</select></div>`;}
   if(type==='textarea')return`<div class="field"><label for="${id}">${esc(label)}</label><textarea id="${id}" name="${name}">${esc(val)}</textarea></div>`;
   if(type==='color')return`<div class="field"><label for="${id}">${esc(label)}</label><input id="${id}" name="${name}" type="color" value="${esc(val)}" style="width:100%;height:42px;padding:2px 4px;border-radius:8px;background:var(--bg4);border:1.5px solid var(--border2);cursor:pointer"></div>`;
-  return`<div class="field"><label for="${id}">${esc(label)}</label><input id="${id}" name="${name}" type="${type}" value="${esc(val??'')}"></div>`;
+  // 5º arg es objeto plano → atributos HTML5 sobre <input> (min, max, step, pattern, required, ...)
+  // Para inputs numéricos, añade min="0" por defecto (bloquea negativos desde UI) si no se fija explícitamente.
+  const attrsObj = opts && typeof opts==='object' && !Array.isArray(opts) ? {...opts} : {};
+  if(type==='number'){
+    if(attrsObj.min===undefined) attrsObj.min='0';
+    if(attrsObj.step===undefined) attrsObj.step='any';
+  }
+  const attrs = Object.entries(attrsObj).map(([k,v])=>`${esc(k)}="${esc(v)}"`).join(' ');
+  return`<div class="field"><label for="${id}">${esc(label)}</label><input id="${id}" name="${name}" type="${type}" value="${esc(val??'')}" ${attrs}></div>`;
 }
 function gfd(fields){
   const o={};
@@ -2463,8 +2498,8 @@ function impresoraFrm(x={}){
   return fld('Nombre *','nombre',x.nombre||'')
     +fld('Modelo','modelo',x.modelo||'')
     +fld('Estado','estado',x.estado||'activa','text',['activa','mantenimiento','averiada'])
-    +fld('Horas de uso','horasUso',x.horasUso||0,'number')
-    +fld('% Desgaste','desgaste',x.desgaste||0,'number')
+    +fld('Horas de uso','horasUso',x.horasUso||0,'number',{min:0})
+    +fld('% Desgaste','desgaste',x.desgaste||0,'number',{min:0,max:100})
     +`<div class="field">
         <label>Consumo eléctrico (W)</label>
         <input name="consumoW" type="text" inputmode="decimal" value="${esc(x.consumoW||'')}" placeholder="Ej: 200" oninput="updConsumoPreview(this.value)">
@@ -2479,12 +2514,23 @@ function editP(id){
 }
 async function saveP(id){
   const d=gfd(['nombre','modelo','estado','horasUso','desgaste','consumoW']);
-  if(!d.nombre.trim()){alert('Nombre obligatorio');return;}
+  if(!d.nombre.trim()){showToast('Nombre obligatorio','err');return;}
+  // Validación numérica
+  for(const [label,raw,opts] of [
+    ['Horas de uso',d.horasUso,{min:0}],
+    ['% Desgaste',d.desgaste,{min:0,max:100}],
+    ['Consumo (W)',d.consumoW,{min:0}]
+  ]){
+    const v=validateNum(label,raw,opts); if(!v.ok){showToast(v.error,'err');return;}
+  }
   setLoading('save-p-btn',true);
-  const row={nombre:d.nombre,modelo:d.modelo,estado:d.estado,horas_uso:d.horasUso,desgaste:d.desgaste,consumo_w:parseFloat(d.consumoW)||0};
+  const horasUso=numVal(d.horasUso,{min:0});
+  const desgaste=numVal(d.desgaste,{min:0,max:100});
+  const consumoW=numVal(d.consumoW,{min:0});
+  const row={nombre:d.nombre,modelo:d.modelo,estado:d.estado,horas_uso:horasUso,desgaste:desgaste,consumo_w:consumoW};
   if(id)row.id=id;else row.id=uid();
   const ok=await dbSave('impresoras',row);
-  const mapped={id:row.id,nombre:d.nombre,modelo:d.modelo,estado:d.estado,horasUso:d.horasUso,desgaste:d.desgaste,consumoW:parseFloat(d.consumoW)||0};
+  const mapped={id:row.id,nombre:d.nombre,modelo:d.modelo,estado:d.estado,horasUso:horasUso,desgaste:desgaste,consumoW:consumoW};
   if(ok){if(id)_cache.impresoras=_cache.impresoras.map(i=>i.id===id?mapped:i);else _cache.impresoras.push(mapped);closeModal();render();refreshAlerts();showToast('Guardado','ok');}
 }
 
@@ -2560,12 +2606,20 @@ function editF(id){
 }
 async function saveF(id){
   const d=gfd(['tipo','marca','color','pesoRestante','precioPorKg']);
-  if(!d.marca.trim()){alert('Marca obligatoria');return;}
+  if(!d.marca.trim()){showToast('Marca obligatoria','err');return;}
+  for(const [label,raw,opts] of [
+    ['Peso restante (g)',d.pesoRestante,{min:0}],
+    ['Precio por kg (€)',d.precioPorKg,{min:0}]
+  ]){
+    const v=validateNum(label,raw,opts); if(!v.ok){showToast(v.error,'err');return;}
+  }
   setLoading('save-f-btn',true);
-  const row={tipo:d.tipo,marca:d.marca,color:d.color,peso_restante:d.pesoRestante,precio_por_kg:d.precioPorKg};
+  const pesoRestante=numVal(d.pesoRestante,{min:0});
+  const precioPorKg=numVal(d.precioPorKg,{min:0});
+  const row={tipo:d.tipo,marca:d.marca,color:d.color,peso_restante:pesoRestante,precio_por_kg:precioPorKg};
   if(id)row.id=id;else row.id=uid();
   const ok=await dbSave('filamentos',row);
-  const mapped={id:row.id,tipo:d.tipo,marca:d.marca,color:d.color,pesoRestante:d.pesoRestante,precioPorKg:d.precioPorKg};
+  const mapped={id:row.id,tipo:d.tipo,marca:d.marca,color:d.color,pesoRestante:pesoRestante,precioPorKg:precioPorKg};
   if(ok){if(id)_cache.filamentos=_cache.filamentos.map(i=>i.id===id?mapped:i);else _cache.filamentos.push(mapped);closeModal();render();showToast('Guardado','ok');}
 }
 function delF(id){ confirmDel('¿Eliminar este filamento?',`doDelF('${id}')`); }
@@ -2594,12 +2648,22 @@ function editPz(id){
 }
 async function savePz(id){
   const d=gfd(['nombre','material','peso','tiempoImpresion','precioSugerido']);
-  if(!d.nombre.trim()){alert('Nombre obligatorio');return;}
+  if(!d.nombre.trim()){showToast('Nombre obligatorio','err');return;}
+  for(const [label,raw,opts] of [
+    ['Peso (g)',d.peso,{min:0}],
+    ['Tiempo impresión (h)',d.tiempoImpresion,{min:0}],
+    ['Precio sugerido (€)',d.precioSugerido,{min:0}]
+  ]){
+    const v=validateNum(label,raw,opts); if(!v.ok){showToast(v.error,'err');return;}
+  }
   setLoading('save-pz-btn',true);
-  const row={nombre:d.nombre,material:d.material,peso:d.peso,tiempo_impresion:d.tiempoImpresion,precio_sugerido:d.precioSugerido};
+  const peso=numVal(d.peso,{min:0});
+  const tiempoImpresion=numVal(d.tiempoImpresion,{min:0});
+  const precioSugerido=numVal(d.precioSugerido,{min:0});
+  const row={nombre:d.nombre,material:d.material,peso:peso,tiempo_impresion:tiempoImpresion,precio_sugerido:precioSugerido};
   if(id)row.id=id;else row.id=uid();
   const ok=await dbSave('piezas',row);
-  const mapped={id:row.id,nombre:d.nombre,material:d.material,peso:d.peso,tiempoImpresion:d.tiempoImpresion,precioSugerido:d.precioSugerido};
+  const mapped={id:row.id,nombre:d.nombre,material:d.material,peso:peso,tiempoImpresion:tiempoImpresion,precioSugerido:precioSugerido};
   if(ok){if(id)_cache.piezas=_cache.piezas.map(i=>i.id===id?mapped:i);else _cache.piezas.push(mapped);closeModal();render();showToast('Guardado','ok');}
 }
 function delPz(id){ confirmDel('¿Eliminar esta pieza?',`doDelPz('${id}')`); }
@@ -3024,8 +3088,36 @@ async function saveO(id){
   const ahora=today();
   const nuevoCobrado=cobradoCheck;
   const fechaCobradoFinal=nuevoCobrado?(eraYaCobrado?prevOrder?.fechaCobrado:ahora):null;
-  if(!d.proyecto.trim()){alert('Proyecto obligatorio');return;}
-  if(_lineas.length===0){alert('Añade al menos una pieza');return;}
+  if(!d.proyecto.trim()){showToast('Proyecto obligatorio','err');return;}
+  if(_lineas.length===0){showToast('Añade al menos una pieza','err');return;}
+  // Validación numérica: costes y ganancias no pueden ser negativos. precioFinal sí permite 0 (regalo).
+  for(const [label,raw,opts] of [
+    ['Coste diseño (€)',d.costeDiseno,{min:0}],
+    ['Coste postprocesado (€)',d.costePostprocesado,{min:0}],
+    ['Ganancia manual (€)',d.gananciaManual,{min:0}],
+    ['Precio final (€)',d.precioFinal,{min:0}]
+  ]){
+    const v=validateNum(label,raw,opts); if(!v.ok){showToast(v.error,'err');return;}
+  }
+  // Validación de líneas: peso, tiempo y qty no pueden ser negativos
+  for(let i=0;i<_lineas.length;i++){
+    const l=_lineas[i];
+    const lbl=`Línea ${i+1} (${l.nombre||'sin nombre'})`;
+    const vQ=validateNum(`${lbl}: Cantidad`,l.qty,{min:1,integer:true,allowEmpty:false});
+    if(!vQ.ok){showToast(vQ.error,'err');return;}
+    const vT=validateNum(`${lbl}: Tiempo impresión`,l.tiempoImpresion,{min:0});
+    if(!vT.ok){showToast(vT.error,'err');return;}
+    // Peso: si la línea tiene filamentos múltiples, validar cada uno; si no, validar l.peso
+    if(l.filamentos&&l.filamentos.length>0){
+      for(let j=0;j<l.filamentos.length;j++){
+        const vP=validateNum(`${lbl}: Peso filamento #${j+1}`,l.filamentos[j].peso,{min:0});
+        if(!vP.ok){showToast(vP.error,'err');return;}
+      }
+    } else {
+      const vP=validateNum(`${lbl}: Peso`,l.peso,{min:0});
+      if(!vP.ok){showToast(vP.error,'err');return;}
+    }
+  }
   setLoading('save-o-btn',true);
 
   const {pesoTotal,tiempoTotal}=calcLineasTotals(_lineas);
@@ -3319,11 +3411,12 @@ function editGasto(id){
 
 async function saveGasto(id){
   const d=gfd(['gasto_desc','gasto_cat','gasto_importe','gasto_fecha','gasto_proveedor','gasto_notas']);
-  if(!d.gasto_desc.trim()){alert('Descripción obligatoria');return;}
-  if(!d.gasto_importe){alert('Importe obligatorio');return;}
+  if(!d.gasto_desc.trim()){showToast('Descripción obligatoria','err');return;}
+  const vImp=validateNum('Importe (€)',d.gasto_importe,{min:0.01,allowEmpty:false});
+  if(!vImp.ok){showToast(vImp.error,'err');return;}
   setLoading('save-g-btn',true);
   const rowId=id||uid();
-  const row={id:rowId,descripcion:d.gasto_desc,categoria:d.gasto_cat,importe:parseFloat(d.gasto_importe)||0,fecha:d.gasto_fecha||today(),proveedor:d.gasto_proveedor||'',notas:d.gasto_notas||''};
+  const row={id:rowId,descripcion:d.gasto_desc,categoria:d.gasto_cat,importe:vImp.value,fecha:d.gasto_fecha||today(),proveedor:d.gasto_proveedor||'',notas:d.gasto_notas||''};
   const ok=await dbSave('gastos',row);
   if(ok){
     if(!_cache.gastos)_cache.gastos=[];
@@ -3493,7 +3586,17 @@ ${(()=>{
 
 async function saveConfig(){
   const d=gfd(['costePorGramo','costePorHora','margen','moneda']);
-  const row={user_id:CU.id,coste_por_gramo:d.costePorGramo,coste_por_hora:d.costePorHora,margen:d.margen,moneda:d.moneda,empresa:_cache.cfg.empresa||'',telefono:_cache.cfg.telefono||'',email:_cache.cfg.email||''};
+  for(const [label,raw,opts] of [
+    ['Coste por gramo (€/g)',d.costePorGramo,{min:0,max:1000}],
+    ['Precio kWh (€/kWh)',d.costePorHora,{min:0,max:100}],
+    ['Margen (%)',d.margen,{min:0,max:1000}]
+  ]){
+    const v=validateNum(label,raw,opts); if(!v.ok){showToast(v.error,'err');return;}
+  }
+  const costePorGramo=numVal(d.costePorGramo,{min:0});
+  const costePorHora=numVal(d.costePorHora,{min:0});
+  const margen=numVal(d.margen,{min:0});
+  const row={user_id:CU.id,coste_por_gramo:costePorGramo,coste_por_hora:costePorHora,margen:margen,moneda:d.moneda,empresa:_cache.cfg.empresa||'',telefono:_cache.cfg.telefono||'',email:_cache.cfg.email||''};
   const {error}=await sb.from('config').upsert(row,{onConflict:'user_id'});
   if(error){showToast('Error: '+error.message,'err');return;}
   _cache.cfg={..._cache.cfg,...mapCfg(row)};
