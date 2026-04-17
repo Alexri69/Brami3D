@@ -1164,7 +1164,7 @@ function qrAEATUrl({emisorNif,numSerie,fecha,importe}){
     fecha:fmtFecha,
     importe:Number(importe||0).toFixed(2)
   });
-  return `https://www2.agenciatributaria.es/wlpl/TIKE-CONT/ValidarQR?${p.toString()}`;
+  return `https://www2.agenciatributaria.gob.es/wlpl/TIKE-CONT/ValidarQR?${p.toString()}`;
 }
 
 // Genera un QR PNG como data URL. Nivel M de corrección (Orden HAC/1177/2024).
