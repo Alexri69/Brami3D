@@ -818,6 +818,7 @@ sb.auth.onAuthStateChange(async (event, session)=>{
 })();
 
 async function logout(){
+  try { unsubscribeRealtime(); } catch(_){}
   clearLocalCache();
   await sb.auth.signOut();
 }
@@ -923,6 +924,7 @@ async function bootApp(){
       refreshAlerts();
       checkAndNotify();
       registrarInicioSIF();
+      subscribeRealtime();
     }).catch(()=>{});
   } else {
     $('content').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:60vh"><div style="text-align:center"><div class="loading-spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto 16px"></div><div style="color:var(--text4);font-size:13px">Cargando...</div></div></div>';
@@ -933,6 +935,7 @@ async function bootApp(){
       checkAndNotify();
       handleShortcut();
       registrarInicioSIF();
+      subscribeRealtime();
     } catch(e) {
       $('content').innerHTML='<div style="padding:32px;color:#f87171;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:12px;margin:24px">❌ Error al cargar: '+e.message+'<br><br><button class="btn-primary" onclick="bootApp()">🔄 Reintentar</button></div>';
     }
@@ -1052,6 +1055,108 @@ function mapCfg(r){ return {
   margen:r.margen,moneda:r.moneda,empresa:r.empresa,telefono:r.telefono,email:r.email,
   nif:r.nif||'', direccion:r.direccion||'', logo:r.logo||''
 };}
+
+// ═══════════════════════════════════════════════
+//  REALTIME — Supabase subscriptions
+// ═══════════════════════════════════════════════
+// Mantiene _cache sincronizado cuando cambian datos desde otra pestaña o
+// dispositivo. Una fila insertada/actualizada/borrada en otro lado aparece
+// aquí sin necesidad de refrescar. Requiere haber ejecutado sql/004 para
+// añadir las tablas a la publication `supabase_realtime`.
+//
+// RLS sigue aplicando: el cliente solo recibe eventos de filas que podría
+// SELECTAR (user_id=auth.uid()). El filtro user_id=eq.{uid} reduce tráfico.
+let _rtChannel = null;
+let _rtRenderT = null;
+
+function _rtScheduleRender(){
+  clearTimeout(_rtRenderT);
+  _rtRenderT = setTimeout(() => {
+    try { saveLocalCache(); } catch(_){}
+    try { if(typeof render === 'function') render(); } catch(_){}
+    try { if(typeof refreshAlerts === 'function') refreshAlerts(); } catch(_){}
+  }, 180);
+}
+
+// Aplica un evento realtime al cache. Devuelve true si algo cambió.
+function _rtApply(table, eventType, newRow, oldRow){
+  // Config y user_plans son filas únicas por usuario → objetos, no arrays.
+  if(table === 'config'){
+    if(eventType === 'DELETE'){
+      _cache.cfg = {costePorGramo:0.03,costePorHora:0.15,margen:30,moneda:'€',empresa:'',telefono:'',email:''};
+    } else if(newRow){
+      _cache.cfg = mapCfg(newRow);
+      try { if(typeof refreshBizHeader === 'function') refreshBizHeader(); } catch(_){}
+    }
+    return true;
+  }
+  if(table === 'user_plans'){
+    try { if(typeof resolvePlan === 'function') resolvePlan(eventType === 'DELETE' ? null : newRow); } catch(_){}
+    return true;
+  }
+
+  const cacheKey = {
+    clientes:'clientes', pedidos:'pedidos', impresoras:'impresoras',
+    filamentos:'filamentos', piezas:'piezas', archivos:'archivos',
+    gastos:'gastos'
+  }[table];
+  if(!cacheKey) return false;
+  const arr = _cache[cacheKey];
+  if(!Array.isArray(arr)) return false;
+
+  const targetId = (newRow && newRow.id) || (oldRow && oldRow.id);
+  if(!targetId) return false;
+
+  if(eventType === 'DELETE'){
+    const before = arr.length;
+    _cache[cacheKey] = arr.filter(x => x.id !== targetId);
+    return _cache[cacheKey].length !== before;
+  }
+
+  // INSERT / UPDATE: remapear con los mismos helpers que loadAll.
+  const mappers = {
+    pedidos: r => mapPedidos([r])[0],
+    impresoras: r => mapImpresoras([r])[0],
+    filamentos: r => mapFilamentos([r])[0],
+    piezas: r => mapPiezas([r])[0]
+  };
+  const mapped = mappers[table] ? mappers[table](newRow) : newRow;
+  const idx = arr.findIndex(x => x.id === targetId);
+  if(idx >= 0) arr[idx] = mapped;
+  else arr.push(mapped);
+  return true;
+}
+
+function unsubscribeRealtime(){
+  if(_rtChannel){
+    try { sb.removeChannel(_rtChannel); } catch(e){ console.warn('[rt] removeChannel', e); }
+    _rtChannel = null;
+  }
+}
+
+function subscribeRealtime(){
+  if(!CU || !CU.id) return;
+  unsubscribeRealtime(); // idempotente
+  const userFilter = 'user_id=eq.' + CU.id;
+  const tables = ['clientes','pedidos','impresoras','filamentos','piezas','archivos','gastos','config','user_plans'];
+  const ch = sb.channel('b3d-rt-' + CU.id);
+  for(const t of tables){
+    ch.on('postgres_changes',
+      {event:'*', schema:'public', table:t, filter:userFilter},
+      (payload) => {
+        try {
+          const changed = _rtApply(t, payload.eventType, payload.new, payload.old);
+          if(changed) _rtScheduleRender();
+        } catch(e){ console.warn('[rt] handler', t, e); }
+      }
+    );
+  }
+  ch.subscribe((status, err) => {
+    if(status === 'SUBSCRIBED') console.log('[rt] subscribed', CU.id.slice(0,8));
+    else if(status === 'CHANNEL_ERROR' || err) console.warn('[rt] error', status, err);
+  });
+  _rtChannel = ch;
+}
 
 // ═══════════════════════════════════════════════
 //  BRANDING (marca blanca)
