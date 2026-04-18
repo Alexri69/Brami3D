@@ -344,6 +344,12 @@ footer{padding:32px 40px;border-top:1px solid var(--border);display:flex;justify
 </footer>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// Siempre empezar arriba del todo en la landing. Evita que el navegador
+// restaure la posición de scroll previa (p.ej. dejar al usuario caído en
+// #calculadora si fue lo último que vio) y ancla inicial a la cabecera.
+if('scrollRestoration' in history) history.scrollRestoration='manual';
+window.addEventListener('load',()=>{ if(!location.hash) window.scrollTo(0,0); });
+
 const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')});},{threshold:0.1});
 document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
 
