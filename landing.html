@@ -350,17 +350,29 @@ footer{padding:32px 40px;border-top:1px solid var(--border);display:flex;justify
 // restaure la posición de scroll previa (p.ej. dejar al usuario caído en
 // #calculadora si fue lo último que vio) y ancla inicial a la cabecera.
 if('scrollRestoration' in history) history.scrollRestoration='manual';
-// Scroll al top en DOMContentLoaded Y en load, salvo que el usuario haya
-// navegado intencionadamente con hash (#funciones). En incógnito a veces
-// el hash queda de una pestaña previa del mismo origen.
-function resetScrollIfNeeded(){
-  if(!location.hash || location.hash==='#' || location.hash==='#calculadora'){
+// En desktop, html{scroll-behavior:smooth} + scrollTo(0,0) se puede
+// interrumpir y dejar al usuario a medio camino (p.ej. sobre la calculadora).
+// Por eso forzamos scroll instantáneo durante el arranque y lo repetimos
+// varias veces durante el primer segundo para cubrir layout shifts de
+// fuentes, imágenes y ejecución del IntersectionObserver.
+function hardScrollTop(){
+  const h=location.hash;
+  if(!h || h==='#' || h==='#calculadora'){
     try{ history.replaceState(null,'',location.pathname+location.search); }catch(_){}
+    document.documentElement.style.scrollBehavior='auto';
     window.scrollTo(0,0);
+    document.documentElement.scrollTop=0;
+    document.body.scrollTop=0;
   }
 }
-document.addEventListener('DOMContentLoaded', resetScrollIfNeeded);
-window.addEventListener('load', resetScrollIfNeeded);
+hardScrollTop();
+document.addEventListener('DOMContentLoaded', hardScrollTop);
+window.addEventListener('load', hardScrollTop);
+// Repetir durante 1.2s por si layout shifts (fuentes tardías, etc.)
+// empujan el scroll en desktop.
+[50,150,300,600,1200].forEach(ms=>setTimeout(hardScrollTop, ms));
+// Reactivar el smooth scroll después del arranque para los enlaces ancla.
+setTimeout(()=>{document.documentElement.style.scrollBehavior='';}, 1300);
 
 // Observer con salvaguarda: si algo impide que se dispare correctamente,
 // a los 2 segundos revelamos todo lo que no haya recibido .visible. Así
