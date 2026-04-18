@@ -142,6 +142,8 @@ h1 span{background:linear-gradient(135deg,#3b82f6,#93c5fd);-webkit-background-cl
 footer{padding:32px 40px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--text2)}
 .reveal{opacity:0;transform:translateY(30px);transition:opacity .7s ease,transform .7s ease}
 .reveal.visible{opacity:1;transform:none}
+/* Fallback: si un navegador no soporta IntersectionObserver, mostrar todo */
+@supports not (overflow: clip) {.reveal{opacity:1;transform:none}}
 @media(max-width:768px){
   nav{padding:14px 20px}
   .hero{padding:100px 20px 60px}
@@ -348,10 +350,29 @@ footer{padding:32px 40px;border-top:1px solid var(--border);display:flex;justify
 // restaure la posición de scroll previa (p.ej. dejar al usuario caído en
 // #calculadora si fue lo último que vio) y ancla inicial a la cabecera.
 if('scrollRestoration' in history) history.scrollRestoration='manual';
-window.addEventListener('load',()=>{ if(!location.hash) window.scrollTo(0,0); });
+// Scroll al top en DOMContentLoaded Y en load, salvo que el usuario haya
+// navegado intencionadamente con hash (#funciones). En incógnito a veces
+// el hash queda de una pestaña previa del mismo origen.
+function resetScrollIfNeeded(){
+  if(!location.hash || location.hash==='#' || location.hash==='#calculadora'){
+    try{ history.replaceState(null,'',location.pathname+location.search); }catch(_){}
+    window.scrollTo(0,0);
+  }
+}
+document.addEventListener('DOMContentLoaded', resetScrollIfNeeded);
+window.addEventListener('load', resetScrollIfNeeded);
 
-const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')});},{threshold:0.1});
-document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
+// Observer con salvaguarda: si algo impide que se dispare correctamente,
+// a los 2 segundos revelamos todo lo que no haya recibido .visible. Así
+// las secciones nunca quedan atrapadas en opacity:0.
+const revealEls = document.querySelectorAll('.reveal');
+const obs = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); });
+},{threshold:0.08});
+revealEls.forEach(el=>obs.observe(el));
+setTimeout(()=>{
+  document.querySelectorAll('.reveal:not(.visible)').forEach(el=>el.classList.add('visible'));
+}, 2000);
 
 function lcalc(){
   const p=parseFloat(document.getElementById('lc-peso')?.value)||0;
