@@ -926,40 +926,107 @@ function exportAllData(){
 // ═══════════════════════════════════════════════
 //  CACHE LOCAL
 // ═══════════════════════════════════════════════
+// Antes: un único JSON monolítico con todas las tablas. En cada escritura
+// re-serializábamos clientes+pedidos+impresoras+... — con volumen (100+
+// pedidos con líneas JSON embebidas) eran ~200KB por dbSave. Ahora:
+//   · Una key en localStorage por tabla.
+//   · saveLocalCache(tabla) sólo marca dirty esa tabla.
+//   · Debounce interno de 150ms: ráfagas de escrituras → 1 sola serialización.
+//   · Timestamp en una key aparte para la ventana de validez de 24h.
+// Migración transparente del formato viejo: si existe el JSON monolítico se
+// lee una vez al arrancar y se borra.
 const CACHE_KEY = 'b3d_cache_v1';
+const CACHE_TABLES = ['clientes','pedidos','impresoras','filamentos','piezas','gastos','cfg'];
+const _cacheDirty = new Set();
+let _cacheSaveT = null;
 
-function saveLocalCache(){
+function _cacheK(t){ return CACHE_KEY+'_'+CU.id+'_'+t; }
+function _cacheTsK(){ return CACHE_KEY+'_'+CU.id+'_ts'; }
+
+function _cachePersist(){
+  if(!CU || !CU.id || !_cacheDirty.size) return;
   try {
-    localStorage.setItem(CACHE_KEY+'_'+CU.id, JSON.stringify({
-      clientes:_cache.clientes, pedidos:_cache.pedidos,
-      impresoras:_cache.impresoras, filamentos:_cache.filamentos,
-      piezas:_cache.piezas, cfg:_cache.cfg, gastos:_cache.gastos||[],
-      ts: Date.now()
-    }));
-  } catch(e){}
+    _cacheDirty.forEach(t => {
+      const val = (t === 'cfg') ? _cache.cfg : (_cache[t] || []);
+      localStorage.setItem(_cacheK(t), JSON.stringify(val));
+    });
+    localStorage.setItem(_cacheTsK(), String(Date.now()));
+    _cacheDirty.clear();
+  } catch(_){}
+}
+
+// saveLocalCache()           → marca TODAS las tablas dirty (tras loadAll)
+// saveLocalCache('pedidos')  → sólo esa tabla
+// saveLocalCache(['a','b'])  → varias tablas
+function saveLocalCache(table){
+  if(!CU || !CU.id) return;
+  if(table === undefined){
+    CACHE_TABLES.forEach(t => _cacheDirty.add(t));
+  } else if(Array.isArray(table)){
+    table.forEach(t => { if(CACHE_TABLES.includes(t)) _cacheDirty.add(t); });
+  } else if(CACHE_TABLES.includes(table)){
+    _cacheDirty.add(table);
+  } else {
+    return; // tablas no cacheadas (archivos, user_plans) → no-op
+  }
+  clearTimeout(_cacheSaveT);
+  _cacheSaveT = setTimeout(_cachePersist, 150);
 }
 
 function loadLocalCache(){
+  if(!CU || !CU.id) return false;
+  const dflCfg = {costePorGramo:0.03,costePorHora:0.15,margen:30,moneda:'€',empresa:'',telefono:'',email:''};
   try {
-    const raw = localStorage.getItem(CACHE_KEY+'_'+CU.id);
-    if(!raw) return false;
-    const data = JSON.parse(raw);
-    // Use cache if less than 24h old
-    if(Date.now()-data.ts > 24*60*60*1000) return false;
-    _cache.clientes   = data.clientes   || [];
-    _cache.pedidos    = data.pedidos    || [];
-    _cache.impresoras = data.impresoras || [];
-    _cache.filamentos = data.filamentos || [];
-    _cache.piezas     = data.piezas     || [];
-    _cache.archivos   = _cache.archivos || [];
-    _cache.gastos     = data.gastos     || [];
-    _cache.cfg        = data.cfg        || {costePorGramo:0.03,costePorHora:0.15,margen:30,moneda:'€',empresa:'',telefono:'',email:''};
-    return true;
-  } catch(e){ return false; }
+    const ts = parseInt(localStorage.getItem(_cacheTsK())||'0', 10);
+    if(ts && Date.now()-ts <= 24*60*60*1000){
+      const read = t => {
+        const raw = localStorage.getItem(_cacheK(t));
+        return raw ? JSON.parse(raw) : null;
+      };
+      _cache.clientes   = read('clientes')   || [];
+      _cache.pedidos    = read('pedidos')    || [];
+      _cache.impresoras = read('impresoras') || [];
+      _cache.filamentos = read('filamentos') || [];
+      _cache.piezas     = read('piezas')     || [];
+      _cache.archivos   = _cache.archivos    || [];
+      _cache.gastos     = read('gastos')     || [];
+      _cache.cfg        = read('cfg')        || dflCfg;
+      return true;
+    }
+    // Migración suave desde el cache monolítico v1.
+    const legacy = localStorage.getItem(CACHE_KEY+'_'+CU.id);
+    if(legacy){
+      try {
+        const data = JSON.parse(legacy);
+        if(data && data.ts && Date.now()-data.ts <= 24*60*60*1000){
+          _cache.clientes   = data.clientes   || [];
+          _cache.pedidos    = data.pedidos    || [];
+          _cache.impresoras = data.impresoras || [];
+          _cache.filamentos = data.filamentos || [];
+          _cache.piezas     = data.piezas     || [];
+          _cache.archivos   = _cache.archivos || [];
+          _cache.gastos     = data.gastos     || [];
+          _cache.cfg        = data.cfg        || dflCfg;
+          localStorage.removeItem(CACHE_KEY+'_'+CU.id);
+          saveLocalCache(); // persistir en el formato nuevo
+          return true;
+        }
+      } catch(_){}
+      try { localStorage.removeItem(CACHE_KEY+'_'+CU.id); } catch(_){}
+    }
+  } catch(_){}
+  return false;
 }
 
 function clearLocalCache(){
-  try { localStorage.removeItem(CACHE_KEY+'_'+CU.id); } catch(e){}
+  if(!CU || !CU.id) return;
+  try {
+    CACHE_TABLES.forEach(t => localStorage.removeItem(_cacheK(t)));
+    localStorage.removeItem(_cacheTsK());
+    localStorage.removeItem(CACHE_KEY+'_'+CU.id); // legacy
+    _cacheDirty.clear();
+    clearTimeout(_cacheSaveT);
+  } catch(_){}
 }
 
 // ═══════════════════════════════════════════════
@@ -1086,7 +1153,7 @@ async function loadAll(silent=false){
   if(planRow && planRow.blocked && !_plan.isAdmin){
     showToast('Tu cuenta está suspendida. Contacta con soporte.', 'err', 6000);
     await sb.auth.signOut().catch(()=>{});
-    try { localStorage.removeItem('b3d_cache_'+userId); } catch(_){}
+    try { clearLocalCache(); } catch(_){}
     setTimeout(()=>location.reload(), 1200);
     throw new Error('account blocked');
   }
@@ -1143,9 +1210,11 @@ let _rtChannel = null;
 let _rtRenderT = null;
 
 function _rtScheduleRender(){
+  // La persistencia a localStorage ahora la dispara el handler de realtime
+  // por cada tabla cambiada (saveLocalCache ya debouncea internamente).
+  // Este debounce se queda sólo para el render UI.
   clearTimeout(_rtRenderT);
   _rtRenderT = setTimeout(() => {
-    try { saveLocalCache(); } catch(_){}
     try { if(typeof render === 'function') render(); } catch(_){}
     try { if(typeof refreshAlerts === 'function') refreshAlerts(); } catch(_){}
   }, 180);
@@ -1173,7 +1242,7 @@ function _rtApply(table, eventType, newRow, oldRow){
       try {
         showToast('Tu cuenta ha sido suspendida.', 'err', 5000);
         sb.auth.signOut().catch(()=>{});
-        try { localStorage.removeItem('b3d_cache_'+(CU&&CU.id||'')); } catch(_){}
+        try { clearLocalCache(); } catch(_){}
         setTimeout(()=>location.reload(), 1200);
       } catch(_){}
     }
@@ -1231,7 +1300,11 @@ function subscribeRealtime(){
       (payload) => {
         try {
           const changed = _rtApply(t, payload.eventType, payload.new, payload.old);
-          if(changed) _rtScheduleRender();
+          if(changed){
+            // user_plans y archivos no se cachean → saveLocalCache los ignora.
+            saveLocalCache(t === 'config' ? 'cfg' : t);
+            _rtScheduleRender();
+          }
         } catch(e){ console.warn('[rt] handler', t, e); }
       }
     );
@@ -1308,14 +1381,14 @@ async function dbSave(table, data){
   const payload = {...cleaned, user_id: CU.id};
   const {error} = await sb.from(table).upsert(payload, {onConflict: 'id'});
   if(error){ showToast('Error: '+error.message,'err'); console.error(table, error); }
-  else { setTimeout(saveLocalCache, 100); }
+  else { saveLocalCache(table === 'config' ? 'cfg' : table); }
   return !error;
 }
 
 async function dbDel(table, id){
   const {error}=await sb.from(table).delete().eq('id',id).eq('user_id',CU.id);
   if(error) showToast('Error al eliminar: '+error.message,'err');
-  else { setTimeout(saveLocalCache, 100); }
+  else { saveLocalCache(table === 'config' ? 'cfg' : table); }
   return !error;
 }
 
