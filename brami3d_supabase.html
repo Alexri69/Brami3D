@@ -736,7 +736,7 @@ function switchTab(m){
   $('tab-signup').className='tab'+(m==='signup'?' active':'');
   $('name-field').className='field'+(m==='signup'?'':' hidden');
   $('auth-btn').textContent = m==='login'?'Entrar':'Crear cuenta';
-  $('a-err').className='err-msg hidden';
+  const e=$('a-err'); e.removeAttribute('style'); e.className='err-msg hidden';
 }
 
 async function doAuth(){
@@ -750,15 +750,97 @@ async function doAuth(){
   if(authMode==='login'){
     const r=await sb.auth.signInWithPassword({email,password:pass});
     err=r.error;
+    // Detectar email no confirmado para ofrecer reenviar
+    if(err && /not confirmed|confirm|verification/i.test(err.message||'')){
+      showEmailNotConfirmed(email);
+      setLoading('auth-btn',false,'Entrar');
+      return;
+    }
   } else {
-    if(!name||!email||!pass){ showAuthErr('Rellena todos los campos'); setLoading('auth-btn',false); return; }
-    const r=await sb.auth.signUp({email,password:pass,options:{data:{name}}});
+    if(!name||!email||!pass){ showAuthErr('Rellena todos los campos'); setLoading('auth-btn',false,'Crear cuenta'); return; }
+    if(pass.length < 6){ showAuthErr('La contraseña debe tener al menos 6 caracteres'); setLoading('auth-btn',false,'Crear cuenta'); return; }
+    const r=await sb.auth.signUp({
+      email, password:pass,
+      options:{
+        data:{name},
+        emailRedirectTo: location.origin + '/brami3d_supabase.html'
+      }
+    });
     err=r.error;
-    if(!err) showToast('¡Cuenta creada! Revisa tu email para confirmar.','ok',5000);
+    if(!err){
+      // Si identities está vacío, significa que el email ya estaba registrado
+      // (Supabase devuelve ok silenciosamente para no filtrar qué cuentas existen).
+      const identitiesLen = r.data?.user?.identities?.length ?? 1;
+      if(identitiesLen === 0){
+        showAuthErr('Este email ya está registrado. Intenta iniciar sesión o recuperar tu contraseña.');
+        setLoading('auth-btn',false,'Crear cuenta');
+        return;
+      }
+      // Signup OK: el usuario tiene que confirmar el email antes de poder entrar.
+      showSignupSuccess(email);
+      setLoading('auth-btn',false,'Crear cuenta');
+      return;
+    }
   }
 
-  setLoading('auth-btn',false);
+  setLoading('auth-btn',false, authMode==='login'?'Entrar':'Crear cuenta');
   if(err) showAuthErr(err.message);
+}
+
+// Reenvía el email de confirmación de signup.
+async function resendConfirmation(email){
+  if(!email) return;
+  const btn = $('resend-btn');
+  if(btn){ btn.disabled=true; btn.textContent='Enviando…'; }
+  try {
+    const {error} = await sb.auth.resend({
+      type: 'signup',
+      email,
+      options: { emailRedirectTo: location.origin + '/brami3d_supabase.html' }
+    });
+    if(error) throw error;
+    showToast('Email de confirmación reenviado','ok',4000);
+    if(btn){ btn.textContent='✓ Enviado'; setTimeout(()=>{ if(btn){btn.disabled=false;btn.textContent='Reenviar email';} },5000); }
+  } catch(e){
+    showToast('Error: '+(e.message||e),'err');
+    if(btn){ btn.disabled=false; btn.textContent='Reenviar email'; }
+  }
+}
+
+// UI: banner dentro del modal de login indicando "revisa tu email".
+function showSignupSuccess(email){
+  const e=$('a-err');
+  e.className='err-msg';
+  e.style.background='rgba(34,197,94,.12)';
+  e.style.border='1px solid rgba(34,197,94,.35)';
+  e.style.color='#4ade80';
+  e.innerHTML = `
+    <div style="font-weight:700;margin-bottom:4px">📧 ¡Cuenta creada!</div>
+    <div style="font-size:13px;line-height:1.5;color:#86efac;font-weight:400">
+      Te hemos enviado un email a <b>${esc(email)}</b>. Pincha el enlace para confirmar tu cuenta antes de poder entrar.
+    </div>
+    <button id="resend-btn" type="button" onclick="resendConfirmation('${esc(email)}')"
+      style="margin-top:10px;padding:6px 14px;font-size:12px;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);color:#4ade80;border-radius:8px;cursor:pointer;font-weight:600">
+      Reenviar email
+    </button>`;
+}
+
+// UI: login fallido por email sin confirmar.
+function showEmailNotConfirmed(email){
+  const e=$('a-err');
+  e.className='err-msg';
+  e.style.background='rgba(245,158,11,.12)';
+  e.style.border='1px solid rgba(245,158,11,.35)';
+  e.style.color='#fbbf24';
+  e.innerHTML = `
+    <div style="font-weight:700;margin-bottom:4px">⚠️ Email sin confirmar</div>
+    <div style="font-size:13px;line-height:1.5;color:#fcd34d;font-weight:400">
+      Aún no has confirmado <b>${esc(email)}</b>. Revisa tu bandeja (y la carpeta de spam) o pide un email nuevo.
+    </div>
+    <button id="resend-btn" type="button" onclick="resendConfirmation('${esc(email)}')"
+      style="margin-top:10px;padding:6px 14px;font-size:12px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.4);color:#fbbf24;border-radius:8px;cursor:pointer;font-weight:600">
+      Reenviar email
+    </button>`;
 }
 
 async function doReset(){
@@ -769,7 +851,13 @@ async function doReset(){
   else showToast('Email de recuperación enviado','ok',4000);
 }
 
-function showAuthErr(msg){ const e=$('a-err'); e.textContent=msg; e.className='err-msg'; }
+function showAuthErr(msg){
+  const e=$('a-err');
+  // Reset estilos inline de los banners success/warning para que el error se vea como tal
+  e.removeAttribute('style');
+  e.textContent=msg;
+  e.className='err-msg';
+}
 
 // Listen to auth state
 sb.auth.onAuthStateChange(async (event, session)=>{
