@@ -2385,6 +2385,22 @@ function generarInforme(){
   const totIngresos = pagados.reduce((s,o)=>s+calcOrderCosts(o,cfg).fp,0);
   const totCostes   = pagados.reduce((s,o)=>s+calcOrderCosts(o,cfg).tc,0);
   const beneficio   = totIngresos - totCostes;
+  const margenMedio = totIngresos>0?((beneficio/totIngresos)*100):0;
+
+  // Desglose costes producción
+  const costeMat  = pagados.reduce((s,o)=>s+(calcOrderCosts(o,cfg).cm||0),0);
+  const costeElec = pagados.reduce((s,o)=>s+(calcOrderCosts(o,cfg).ce||0),0);
+  const costeDis  = pagados.reduce((s,o)=>s+(parseFloat(o.costeDiseno)||0),0);
+  const costePost = pagados.reduce((s,o)=>s+(parseFloat(o.costePostprocesado)||0),0);
+
+  // Top clientes del mes
+  const clientesTotales={};
+  pagados.forEach(o=>{
+    const cl=_cache.clientes.find(x=>x.id===o.clienteId);
+    const nombre=cl?.nombre||'Sin cliente';
+    clientesTotales[nombre]=(clientesTotales[nombre]||0)+calcOrderCosts(o,cfg).fp;
+  });
+  const topClientes=Object.entries(clientesTotales).sort((a,b)=>b[1]-a[1]).slice(0,5);
 
   // Filament consumption this month (from paid orders)
   const filConsumo = {};
@@ -2503,14 +2519,14 @@ th:last-child{text-align:right}
     <div class="stat-sub">${pagados.length} pedido${pagados.length!==1?'s':''} cobrado${pagados.length!==1?'s':''}</div>
   </div>
   <div class="stat" style="background:#fef2f2;border-color:#fecaca">
-    <div class="stat-lbl">Gastos</div>
-    <div class="stat-val" style="color:#dc2626">-${totGastosMes.toFixed(2)} ${mon}</div>
-    <div class="stat-sub">${gastosMes.length} gasto${gastosMes.length!==1?'s':''}</div>
+    <div class="stat-lbl">Gastos totales</div>
+    <div class="stat-val" style="color:#dc2626">-${(totCostes+totGastosMes).toFixed(2)} ${mon}</div>
+    <div class="stat-sub">Producción + gastos</div>
   </div>
   <div class="stat" style="background:${beneficioReal>=0?'#f0fdf4':'#fef2f2'};border-color:${beneficioReal>=0?'#bbf7d0':'#fecaca'}">
-    <div class="stat-lbl">Beneficio real</div>
+    <div class="stat-lbl">Beneficio neto</div>
     <div class="stat-val" style="color:${beneficioReal>=0?'#15803d':'#dc2626'}">${beneficioReal.toFixed(2)} ${mon}</div>
-    <div class="stat-sub">${beneficioReal>=0?'✓ Positivo':'⚠ Negativo'}</div>
+    <div class="stat-sub">Margen: ${margenMedio.toFixed(1)}%</div>
   </div>
 </div>
 
@@ -2544,6 +2560,25 @@ th:last-child{text-align:right}
     <tbody>${filRows}</tbody>
   </table>
 </div>
+
+<div class="section">
+  <div class="section-title">Desglose de costes de producción</div>
+  <table>
+    <thead><tr><th>Concepto</th><th style="text-align:right">Coste</th><th style="text-align:right">% del total</th></tr></thead>
+    <tbody>
+      ${[['Material',costeMat],['Electricidad',costeElec],['Diseño',costeDis],['Postprocesado',costePost]].filter(([,v])=>v>0).map(([lbl,v])=>`<tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-size:12px;font-weight:600;color:#0f172a">${lbl}</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#dc2626;font-weight:700">-${v.toFixed(2)} ${mon}</td><td style="padding:7px 10px;font-size:11px;text-align:right;color:#64748b">${totCostes>0?((v/totCostes)*100).toFixed(1):0}%</td></tr>`).join('') || '<tr><td colspan="3" style="text-align:center;color:#94a3b8;padding:12px">Sin pedidos cobrados</td></tr>'}
+    </tbody>
+  </table>
+  ${totCostes>0?`<div style="text-align:right;margin-top:8px;font-size:13px;font-weight:700;color:#dc2626">Total costes producción: -${totCostes.toFixed(2)} ${mon}</div>`:''}
+</div>
+
+${topClientes.length>0?`<div class="section">
+  <div class="section-title">Top clientes del mes</div>
+  <table>
+    <thead><tr><th>Cliente</th><th style="text-align:right">Facturado</th><th style="text-align:right">% ingresos</th></tr></thead>
+    <tbody>${topClientes.map(([nombre,total])=>`<tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-size:12px;font-weight:600;color:#0f172a">${nombre}</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#15803d;font-weight:700">${total.toFixed(2)} ${mon}</td><td style="padding:7px 10px;font-size:11px;text-align:right;color:#64748b">${totIngresos>0?((total/totIngresos)*100).toFixed(1):0}%</td></tr>`).join('')}</tbody>
+  </table>
+</div>`:''}
 
 <div class="footer">
   <span>${esc(brandFooterName(cfg))} · Informe ${mesNombre} ${anio}</span>
