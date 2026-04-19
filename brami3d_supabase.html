@@ -1173,7 +1173,8 @@ function mapPedidos(rows){ return rows.map(r=>({
   presNum:r.pres_num, facturaNum:r.factura_num, facturaFecha:r.factura_fecha,
   lineas:r.lineas||[], fotoUrl:r.foto_url||null, fotoPath:r.foto_path||null,
   impresoraId:r.impresora_id||null,
-  cobrado:r.cobrado||false, fechaCobrado:r.fecha_cobrado||null
+  cobrado:r.cobrado||false, fechaCobrado:r.fecha_cobrado||null,
+  fechaEntrega:r.fecha_entrega||null
 }));}
 
 function mapImpresoras(rows){ return rows.map(r=>({
@@ -2595,6 +2596,181 @@ ${topClientes.length>0?`<div class="section">
 }
 
 // ═══════════════════════════════════════════════
+//  INFORME ANUAL
+// ═══════════════════════════════════════════════
+function abrirInformeAnual(){
+  const now=new Date();
+  const anioActual=now.getFullYear();
+  const anioOpts=[anioActual-2,anioActual-1,anioActual].map(y=>`<option value="${y}"${y===anioActual?' selected':''}>${y}</option>`).join('');
+  openModal(msh('Informe anual',`
+    <p style="color:var(--text4);font-size:13px;margin-bottom:20px">Resumen completo del año con desglose mensual.</p>
+    <div class="field"><label>Año</label><select name="inf-anio-a">${anioOpts}</select></div>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn-primary" onclick="generarInformeAnual()" style="flex:1;justify-content:center">📈 Generar PDF</button>
+      <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+    </div>
+  `));
+}
+
+function generarInformeAnual(){
+  const anio=document.querySelector('[name="inf-anio-a"]')?.value;
+  if(!anio) return;
+  const cfg=_cache.cfg; const mon=cfg.moneda||'€';
+  const meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const dateStr=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
+
+  // Calcular datos por mes
+  const porMes=meses.map((nombre,i)=>{
+    const prefix=`${anio}-${String(i+1).padStart(2,'0')}`;
+    const ordenes=_cache.pedidos.filter(o=>(o.fecha||'').startsWith(prefix));
+    const cobrados=ordenes.filter(o=>o.cobrado===true);
+    const ingresos=cobrados.reduce((s,o)=>s+calcOrderCosts(o,cfg).fp,0);
+    const costes=cobrados.reduce((s,o)=>s+calcOrderCosts(o,cfg).tc,0);
+    const gastos=(_cache.gastos||[]).filter(g=>(g.fecha||'').startsWith(prefix)).reduce((s,g)=>s+parseFloat(g.importe||0),0);
+    const beneficio=ingresos-costes-gastos;
+    return{nombre,ingresos,costes,gastos,beneficio,pedidos:ordenes.length,cobrados:cobrados.length};
+  });
+
+  const totIngresos=porMes.reduce((s,m)=>s+m.ingresos,0);
+  const totCostes=porMes.reduce((s,m)=>s+m.costes,0);
+  const totGastos=porMes.reduce((s,m)=>s+m.gastos,0);
+  const totBeneficio=porMes.reduce((s,m)=>s+m.beneficio,0);
+  const totPedidos=porMes.reduce((s,m)=>s+m.pedidos,0);
+  const totCobrados=porMes.reduce((s,m)=>s+m.cobrados,0);
+  const margenAnual=totIngresos>0?((totBeneficio/totIngresos)*100):0;
+
+  // Mejor y peor mes
+  const mesesConIngresos=porMes.filter(m=>m.ingresos>0);
+  const mejorMes=mesesConIngresos.length?mesesConIngresos.reduce((a,b)=>a.ingresos>b.ingresos?a:b):null;
+  const peorMes=mesesConIngresos.length?mesesConIngresos.reduce((a,b)=>a.ingresos<b.ingresos?a:b):null;
+
+  // Barra visual proporcional
+  const maxIngreso=Math.max(...porMes.map(m=>m.ingresos),1);
+  const barW=(v)=>Math.round((v/maxIngreso)*120);
+
+  const filasMes=porMes.map((m,i)=>{
+    const bg=i%2===0?'#fff':'#f8fafc';
+    const bColor=m.beneficio>=0?'#15803d':'#dc2626';
+    const bar=m.ingresos>0?`<div style="display:inline-block;width:${barW(m.ingresos)}px;height:6px;background:#2563eb;border-radius:3px;vertical-align:middle"></div>`:'';
+    return`<tr style="border-bottom:1px solid #f1f5f9;background:${bg}">
+      <td style="padding:8px 10px;font-size:12px;font-weight:700;color:#0f172a">${m.nombre}</td>
+      <td style="padding:8px 10px;font-size:12px;text-align:right;color:#15803d;font-weight:700">${m.ingresos>0?m.ingresos.toFixed(2)+' '+mon:'—'}</td>
+      <td style="padding:8px 10px;font-size:12px;text-align:right;color:#dc2626">${m.costes>0?'-'+m.costes.toFixed(2)+' '+mon:'—'}</td>
+      <td style="padding:8px 10px;font-size:12px;text-align:right;color:#dc2626">${m.gastos>0?'-'+m.gastos.toFixed(2)+' '+mon:'—'}</td>
+      <td style="padding:8px 10px;font-size:12px;text-align:right;color:${bColor};font-weight:700">${m.ingresos>0?m.beneficio.toFixed(2)+' '+mon:'—'}</td>
+      <td style="padding:8px 10px;font-size:11px;text-align:center;color:#475569">${m.cobrados}/${m.pedidos}</td>
+      <td style="padding:8px 10px">${bar}</td>
+    </tr>`;
+  }).join('');
+
+  const html=`<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
+<title>Informe Anual ${anio}</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#0f172a;max-width:780px;margin:0 auto;padding:40px 36px}
+.hdr{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:24px;border-bottom:3px solid #2563eb;margin-bottom:32px}
+.brand{font-size:20px;font-weight:900;color:#0f172a;letter-spacing:-1.5px}
+.biz{text-align:right;font-size:11px;color:#64748b;line-height:1.8}
+.biz-name{font-size:14px;font-weight:800;color:#0f172a;margin-bottom:2px}
+.title-band{background:#0f172a;border-radius:12px;padding:20px 28px;margin-bottom:28px;display:flex;justify-content:space-between;align-items:center}
+.title-band h1{font-size:26px;font-weight:900;color:#fff;letter-spacing:-.5px}
+.title-band .sub{font-size:13px;color:#94a3b8;margin-top:4px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
+.kpi{border-radius:10px;padding:16px 18px;border:1px solid #e2e8f0}
+.kpi-lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#94a3b8;margin-bottom:8px}
+.kpi-val{font-size:22px;font-weight:900;letter-spacing:-1px;font-family:'Courier New',monospace}
+.kpi-sub{font-size:11px;color:#94a3b8;margin-top:4px}
+.highlights{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px}
+.hl{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px 18px}
+.hl-lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#94a3b8;margin-bottom:6px}
+.hl-val{font-size:16px;font-weight:800;color:#0f172a}
+.hl-sub{font-size:11px;color:#64748b;margin-top:2px}
+.section-title{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#94a3b8;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid #e2e8f0}
+table{width:100%;border-collapse:collapse}
+thead tr{background:#f8fafc}
+th{text-align:left;padding:8px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#94a3b8}
+.tfoot td{padding:10px;font-size:13px;font-weight:800;border-top:2px solid #e2e8f0;background:#f8fafc}
+.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;font-size:10px;color:#94a3b8}
+@media print{body{padding:24px}@page{margin:.5cm}}
+</style></head><body>
+
+<div class="hdr">
+  <div style="display:flex;align-items:center;gap:12px">
+    ${brandLogo(cfg,40)}
+    <div><div class="brand">${esc(brandFooterName(cfg))}</div></div>
+  </div>
+  <div class="biz">
+    ${cfg.nif?`<div>${esc(cfg.nif)}</div>`:''}
+    ${cfg.email?`<div>✉ ${esc(cfg.email)}</div>`:''}
+  </div>
+</div>
+
+<div class="title-band">
+  <div>
+    <h1>Informe anual ${anio}</h1>
+    <div class="sub">Resumen completo · ${totPedidos} pedidos · ${totCobrados} cobrados</div>
+  </div>
+  <div style="font-size:11px;color:#475569;text-align:right">Generado el<br><b>${dateStr}</b></div>
+</div>
+
+<div class="kpis">
+  <div class="kpi" style="background:#f0fdf4;border-color:#bbf7d0">
+    <div class="kpi-lbl">Ingresos totales</div>
+    <div class="kpi-val" style="color:#15803d">${totIngresos.toFixed(2)}</div>
+    <div class="kpi-sub">${mon} · ${totCobrados} pedidos cobrados</div>
+  </div>
+  <div class="kpi" style="background:#fef2f2;border-color:#fecaca">
+    <div class="kpi-lbl">Gastos totales</div>
+    <div class="kpi-val" style="color:#dc2626">-${(totCostes+totGastos).toFixed(2)}</div>
+    <div class="kpi-sub">${mon} · producción + gastos</div>
+  </div>
+  <div class="kpi" style="background:${totBeneficio>=0?'#f0fdf4':'#fef2f2'};border-color:${totBeneficio>=0?'#bbf7d0':'#fecaca'}">
+    <div class="kpi-lbl">Beneficio neto</div>
+    <div class="kpi-val" style="color:${totBeneficio>=0?'#15803d':'#dc2626'}">${totBeneficio.toFixed(2)}</div>
+    <div class="kpi-sub">${mon} · margen ${margenAnual.toFixed(1)}%</div>
+  </div>
+  <div class="kpi" style="background:#eff6ff;border-color:#bfdbfe">
+    <div class="kpi-lbl">Media mensual</div>
+    <div class="kpi-val" style="color:#1d4ed8">${(totIngresos/12).toFixed(2)}</div>
+    <div class="kpi-sub">${mon}/mes · ${(totPedidos/12).toFixed(1)} pedidos/mes</div>
+  </div>
+</div>
+
+${mejorMes||peorMes?`<div class="highlights">
+  ${mejorMes?`<div class="hl"><div class="hl-lbl">Mejor mes</div><div class="hl-val">${mejorMes.nombre}</div><div class="hl-sub">${mejorMes.ingresos.toFixed(2)} ${mon} facturados · ${mejorMes.cobrados} pedidos cobrados</div></div>`:''}
+  ${peorMes&&peorMes!==mejorMes?`<div class="hl"><div class="hl-lbl">Mes más flojo</div><div class="hl-val">${peorMes.nombre}</div><div class="hl-sub">${peorMes.ingresos.toFixed(2)} ${mon} facturados · ${peorMes.cobrados} pedidos cobrados</div></div>`:''}
+</div>`:''}
+
+<div style="margin-bottom:28px">
+  <div class="section-title">Desglose mensual</div>
+  <table>
+    <thead><tr><th>Mes</th><th style="text-align:right">Ingresos</th><th style="text-align:right">Costes prod.</th><th style="text-align:right">Gastos</th><th style="text-align:right">Beneficio</th><th style="text-align:center">Pedidos</th><th>Volumen</th></tr></thead>
+    <tbody>${filasMes}</tbody>
+    <tfoot><tr class="tfoot">
+      <td>TOTAL ${anio}</td>
+      <td style="text-align:right;color:#15803d">${totIngresos.toFixed(2)} ${mon}</td>
+      <td style="text-align:right;color:#dc2626">-${totCostes.toFixed(2)} ${mon}</td>
+      <td style="text-align:right;color:#dc2626">-${totGastos.toFixed(2)} ${mon}</td>
+      <td style="text-align:right;color:${totBeneficio>=0?'#15803d':'#dc2626'}">${totBeneficio.toFixed(2)} ${mon}</td>
+      <td style="text-align:center">${totCobrados}/${totPedidos}</td>
+      <td></td>
+    </tr></tfoot>
+  </table>
+</div>
+
+<div class="footer">
+  <span>${esc(brandFooterName(cfg))} · Informe anual ${anio}</span>
+  <span>Generado con Brami3D · ${dateStr}</span>
+</div>
+
+<script>setTimeout(()=>window.print(),500)<\/script>
+</body></html>`;
+
+  closeModal();
+  abrirDocModal(html, `Informe_Anual_${anio}.html`);
+}
+
+// ═══════════════════════════════════════════════
 //  DASHBOARD
 // ═══════════════════════════════════════════════
 // ===============================================
@@ -2793,9 +2969,10 @@ function pgDashboard(){
 
   return`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;flex-wrap:wrap;gap:12px">
   <div><h2 class="page-title">Dashboard</h2><div class="page-subtitle">Resumen de tu negocio</div></div>
-  <button class="btn-secondary" onclick="abrirInforme()" style="display:flex;align-items:center;gap:8px;white-space:nowrap">
-    <span>📊</span> Exportar informe mensual
-  </button>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <button class="btn-secondary" onclick="abrirInforme()" style="display:flex;align-items:center;gap:8px;white-space:nowrap"><span>📊</span> Informe mensual</button>
+    <button class="btn-secondary" onclick="abrirInformeAnual()" style="display:flex;align-items:center;gap:8px;white-space:nowrap"><span>📈</span> Informe anual</button>
+  </div>
 </div>
 <div class="flexwrap" style="margin-bottom:22px">
   ${stC('Ingresos cobrados',totI.toFixed(2)+(cfg.moneda||'€'),'💰','#34d399',`${paid.length} pedido${paid.length!==1?'s':''} pagados`)}
@@ -2932,12 +3109,12 @@ function exportPedidosCSV(){
   if(!orders.length){showToast('No hay pedidos para exportar','err');return;}
   const cel=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
   const fmt=n=>isFinite(n)?parseFloat(n).toFixed(2):'0.00';
-  const cols=['Nº Presupuesto','Nº Factura','Proyecto','Cliente','Material','Peso (g)','Tiempo (h)','Precio ('+mon+')','Coste ('+mon+')','Ganancia ('+mon+')','Estado','Cobrado','Fecha','Notas'];
+  const cols=['Nº Presupuesto','Nº Factura','Proyecto','Cliente','NIF/CIF','Empresa','Teléfono','Material','Peso (g)','Tiempo (h)','Precio ('+mon+')','Coste ('+mon+')','Ganancia ('+mon+')','Estado','Cobrado','Fecha pedido','Fecha entrega','Fecha cobro','Notas'];
   const rows=orders.map(o=>{
     const cl=(_cache.clientes||[]).find(c=>c.id===o.clienteId)||{};
     let fp=0,tc=0,profit=0;
     try{const c=calcOrderCosts(o,cfg);fp=c.fp||0;tc=c.tc||0;profit=c.profit||0;}catch(e){console.warn('calcOrderCosts error para pedido',o.id,e);}
-    return[cel(o.presNum||''),cel(o.facturaNum||''),cel(o.proyecto||''),cel(cl.nombre||''),cel(o.material||''),o.peso||0,o.tiempoImpresion||0,fmt(fp),fmt(tc),fmt(profit),cel(o.estado||''),o.cobrado?'Sí':'No',cel(o.fecha||''),cel(o.notas||'')].join(';');
+    return[cel(o.presNum||''),cel(o.facturaNum||''),cel(o.proyecto||''),cel(cl.nombre||''),cel(cl.nif||''),cel(cl.empresa||''),cel(cl.telefono||''),cel(o.material||''),o.peso||0,o.tiempoImpresion||0,fmt(fp),fmt(tc),fmt(profit),cel(o.estado||''),o.cobrado?'Sí':'No',cel(o.fecha||''),cel(o.fechaEntrega||''),cel(o.fechaCobrado||''),cel(o.notas||'')].join(';');
   });
   const csv='\uFEFF'+cols.map(c=>'"'+c+'"').join(';')+'\n'+rows.join('\n');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
@@ -3280,11 +3457,12 @@ function pgPedidos(){
     const factBadge=hasFactura?'<div style="margin-top:3px"><span style="display:inline-block;background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800;font-family:monospace">🧾 '+esc(o.facturaNum)+'</span></div>':'';
     const multiPieza=(o.lineas&&o.lineas.length>1)?'<div style="font-size:10px;color:var(--text4);margin-top:2px">'+o.lineas.length+' tipos · '+piezasCount+' uds</div>':'';
     const cobradoBadge=o.cobrado?'<div style="margin-top:3px"><span style="display:inline-block;background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800">💰 cobrado</span></div>':'';
+    const entregaBadge=(()=>{if(!o.fechaEntrega)return'';const hoy2=new Date();hoy2.setHours(0,0,0,0);const fe=new Date(o.fechaEntrega+'T00:00:00');const diff=Math.ceil((fe-hoy2)/(1000*60*60*24));if(o.cobrado)return'';if(diff<0)return'<div style="margin-top:2px"><span style="display:inline-block;background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800">⚠️ vencido '+o.fechaEntrega+'</span></div>';if(diff<=3)return'<div style="margin-top:2px"><span style="display:inline-block;background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800">⏰ entrega '+o.fechaEntrega+'</span></div>';return'<div style="margin-top:2px"><span style="display:inline-block;background:rgba(96,165,250,.1);color:#60a5fa;border:1px solid rgba(96,165,250,.2);border-radius:5px;padding:1px 7px;font-size:9px">📅 '+o.fechaEntrega+'</span></div>';})();
     const cobrarBtn=!o.cobrado
       ?'<button class="btn-icon" title="Marcar como cobrado" onclick="marcarCobrado(\''+o.id+'\')" style="font-size:18px;color:#4ade80;opacity:.7">💰</button>'
       :'<button class="btn-icon" title="Ya cobrado" style="opacity:.2;cursor:default;font-size:18px">💰</button>';
     return'<tr style="'+(bg?'background:'+bg:'')+'"><td><span class="num-badge">'+esc(o.presNum||'—')+'</span>'+factBadge+'</td>'
-      +'<td><span style="color:var(--text2);font-weight:700;font-size:13.5px">'+esc(o.proyecto)+'</span>'+multiPieza+cobradoBadge+'</td>'
+      +'<td><span style="color:var(--text2);font-weight:700;font-size:13.5px">'+esc(o.proyecto)+'</span>'+multiPieza+cobradoBadge+entregaBadge+'</td>'
       +'<td style="color:var(--text3)">'+esc(cl.nombre||'—')+'</td>'
       +'<td><span style="background:var(--bg4);color:var(--text3);padding:2px 8px;border-radius:6px;font-size:12px;font-weight:600">'+esc(o.material)+'</span></td>'
       +'<td style="color:var(--text3)">'+esc(o.peso)+'g</td>'
@@ -3534,7 +3712,8 @@ function pedidoFrm(x={}){
     :'';
   return`<div class="grid2" style="margin-bottom:4px">
 ${fld('Nombre del proyecto *','proyecto',x.proyecto||'')}${fld('Cliente','clienteId',x.clienteId||'','text',cliOpts)}
-${fld('Estado','estado',x.estado||'pendiente','text',estOpts)}${fld('Fecha','fecha',x.fecha||today(),'date')}
+${fld('Estado','estado',x.estado||'pendiente','text',estOpts)}${fld('Fecha pedido','fecha',x.fecha||today(),'date')}
+${fld('Fecha de entrega (opcional)','fechaEntrega',x.fechaEntrega||'','date')}
 </div>
 <div class="field">
   <label>Impresora</label>
@@ -3784,11 +3963,12 @@ async function saveO(id){
     fecha_cobrado:fechaCobradoFinal,
     foto_url:fotoUrl||null,
     foto_path:_fotoPath||null,
+    fecha_entrega:d.fechaEntrega||null,
   };
   row.id = rowId;
   const ok=await dbSave('pedidos',row);
   if(ok){
-    const mapped={id:row.id,clienteId:d.clienteId,proyecto:d.proyecto,material:mainMat,peso:pesoTotal,tiempoImpresion:tiempoTotal,estado:d.estado,notas:d.notas,fecha:d.fecha,gananciaManual:d.gananciaManual,precioFinal:d.precioFinal!==''?parseFloat(d.precioFinal):null,costePostprocesado:d.costePostprocesado,costeDiseno:d.costeDiseno||0,presNum:presNum,facturaNum:prevOrder?.facturaNum||null,facturaFecha:prevOrder?.facturaFecha||null,lineas:_lineas,fotoUrl:fotoUrl||null,fotoPath:_fotoPath||null,impresoraId:d.impresoraId||null,cobrado:nuevoCobrado,fechaCobrado:fechaCobradoFinal};
+    const mapped={id:row.id,clienteId:d.clienteId,proyecto:d.proyecto,material:mainMat,peso:pesoTotal,tiempoImpresion:tiempoTotal,estado:d.estado,notas:d.notas,fecha:d.fecha,gananciaManual:d.gananciaManual,precioFinal:d.precioFinal!==''?parseFloat(d.precioFinal):null,costePostprocesado:d.costePostprocesado,costeDiseno:d.costeDiseno||0,presNum:presNum,facturaNum:prevOrder?.facturaNum||null,facturaFecha:prevOrder?.facturaFecha||null,lineas:_lineas,fotoUrl:fotoUrl||null,fotoPath:_fotoPath||null,impresoraId:d.impresoraId||null,cobrado:nuevoCobrado,fechaCobrado:fechaCobradoFinal,fechaEntrega:d.fechaEntrega||null};
     if(id)_cache.pedidos=_cache.pedidos.map(o=>o.id===id?mapped:o);else _cache.pedidos.unshift(mapped);
     closeModal();render();refreshAlerts();showToast('✅ Pedido guardado','ok');
     // Si se acaba de marcar como cobrado, generar factura
