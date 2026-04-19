@@ -4377,7 +4377,7 @@ ${fld('Coste por gramo por defecto (€/g)','costePorGramo',cfg.costePorGramo,'n
 ${fld('Precio kWh electricidad (€/kWh)','costePorHora',cfg.costePorHora,'number')}
 ${fld('Margen de beneficio (%)','margen',cfg.margen,'number')}
 ${fld('Moneda','moneda',cfg.moneda,'text',[{value:'€',label:'Euro (€)'},{value:'$',label:'Dólar ($)'},{value:'£',label:'Libra (£)'},{value:'R$',label:'Real brasileño (R$)'},{value:'MXN',label:'Peso mexicano (MXN)'},{value:'ARS',label:'Peso argentino (ARS)'},{value:'CLP',label:'Peso chileno (CLP)'}])}
-${fld('Nombre del impuesto','nombreImpuesto',cfg.nombreImpuesto||'IVA','text',[{value:'IVA',label:'IVA (España / México / Argentina)'},{value:'VAT',label:'VAT (UK / Europa)'},{value:'GST',label:'GST (Australia / India / NZ)'},{value:'Sales Tax',label:'Sales Tax (EEUU)'},{value:'Ninguno',label:'Sin impuesto'}])}
+${fld('Nombre del impuesto','nombreImpuesto',cfg.nombreImpuesto||'IVA','text',[{value:'IVA',label:'IVA (España peninsular / México / Argentina)'},{value:'IGIC',label:'IGIC (Canarias — 7% general)'},{value:'IPSI',label:'IPSI (Ceuta y Melilla)'},{value:'VAT',label:'VAT (UK / Europa)'},{value:'GST',label:'GST (Australia / India / NZ)'},{value:'Sales Tax',label:'Sales Tax (EEUU)'},{value:'Ninguno',label:'Sin impuesto'}])}
 ${fld('Tipo impositivo (%)','tipoIva',cfg.tipoIva||0,'number')}
 <p style="font-size:11px;color:var(--text4);margin-top:-8px;line-height:1.5">0% = sin impuesto en facturas. El impuesto se añade encima del precio al generar la factura.</p>
 <button class="btn-primary" id="scb" onclick="saveConfig()">Guardar configuración</button>
