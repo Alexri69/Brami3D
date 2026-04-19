@@ -1721,11 +1721,21 @@ function goTo(page){
 function goToEstado(e){ _pFilt=e;_pSearch=''; goTo('pedidos'); }
 
 function mobMore(){
-  // Show a bottom sheet with remaining nav items
+  // Show a bottom sheet with remaining nav items (los que no caben en la bottom nav).
+  // Se añade Admin al final si el usuario es admin.
+  const items = [
+    {id:'impresoras',    lbl:'Impresoras',     ico:'🖨️'},
+    {id:'piezas',        lbl:'Piezas',         ico:'🧩'},
+    {id:'gastos',        lbl:'Gastos',         ico:'💸'},
+    {id:'archivos',      lbl:'Archivos',       ico:'📁'},
+    {id:'registro',      lbl:'Registro fiscal',ico:'📜'},
+    {id:'configuracion', lbl:'Configuración',  ico:'⚙️'},
+  ];
+  if(_plan.isAdmin) items.push({id:'admin', lbl:'Admin', ico:'🛡️'});
   openModal(msh('Menú',`
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
-      ${[{id:'impresoras',lbl:'Impresoras',ico:'🖨️'},{id:'piezas',lbl:'Piezas',ico:'🧩'},{id:'gastos',lbl:'Gastos',ico:'💸'},{id:'archivos',lbl:'Archivos',ico:'📁'},{id:'configuracion',lbl:'Configuración',ico:'⚙️'}].map(n=>`
-        <button onclick="goTo('${n.id}');closeModal()" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px;background:var(--bg4);border:1.5px solid #132540;border-radius:14px;color:var(--text3);font-size:13px;font-weight:600">
+      ${items.map(n=>`
+        <button onclick="goTo('${n.id}');closeModal()" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px;background:var(--bg4);border:1.5px solid #132540;border-radius:14px;color:var(--text3);font-size:13px;font-weight:600;text-align:center">
           <span style="font-size:28px">${n.ico}</span>${n.lbl}
         </button>`).join('')}
     </div>
