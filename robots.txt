@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://brami3d.app/sitemap.xml
