@@ -265,7 +265,7 @@ footer{padding:32px 40px;border-top:1px solid var(--border);display:flex;justify
         <li>Exportar a Excel</li>
         <li>Soporte prioritario</li>
       </ul>
-      <a href="https://brami3d.app/brami3d_supabase.html" class="pc-btn pc-btn-p">Empezar 30 días gratis →</a>
+      <button onclick="openPayModal('mensual')" class="pc-btn pc-btn-p">Contratar Pro Mensual →</button>
     </div>
     <div class="pc anual">
       <span class="tag tag-a">💰 Ahorra 29€</span>
@@ -278,7 +278,7 @@ footer{padding:32px 40px;border-top:1px solid var(--border);display:flex;justify
         <li>Acceso anticipado a novedades</li>
         <li>Soporte prioritario</li>
       </ul>
-      <a href="https://brami3d.app/brami3d_supabase.html" class="pc-btn pc-btn-a">Empezar 30 días gratis →</a>
+      <button onclick="openPayModal('anual')" class="pc-btn pc-btn-a">Contratar Pro Anual →</button>
     </div>
   </div>
   <p style="font-size:13px;color:var(--text3);margin-top:32px">✓ Sin permanencia &nbsp;·&nbsp; ✓ Cancela cuando quieras &nbsp;·&nbsp; ✓ Datos siempre tuyos</p>
@@ -345,6 +345,52 @@ footer{padding:32px 40px;border-top:1px solid var(--border);display:flex;justify
   <span>© 2026 Brami3D · <a href="https://brami3d.app/brami3d_supabase.html" style="color:var(--blue3);text-decoration:none">Entrar a la app</a></span>
 </footer>
 
+<!-- Modal de pago -->
+<div id="pay-modal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(4,9,15,.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px">
+  <div style="background:#0d1926;border:1px solid rgba(37,99,235,.3);border-radius:18px;padding:32px 28px;max-width:420px;width:100%;position:relative;box-shadow:0 24px 60px rgba(0,0,0,.6)">
+    <button onclick="closePayModal()" style="position:absolute;top:14px;right:16px;background:none;border:none;color:#7a9ab8;font-size:22px;cursor:pointer;line-height:1">×</button>
+
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="font-size:36px;margin-bottom:8px">🚀</div>
+      <div style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#60a5fa;margin-bottom:6px">Activar plan</div>
+      <div id="pay-label" style="font-size:22px;font-weight:700;color:#e2eaf4"></div>
+      <div id="pay-precio" style="font-size:15px;color:#7a9ab8;margin-top:2px"></div>
+    </div>
+
+    <div style="background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);border-radius:12px;padding:16px 18px;margin-bottom:20px">
+      <div style="font-size:12px;font-weight:700;color:#60a5fa;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">¿Cómo funciona?</div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:#e2eaf4">
+          <span style="background:#2563eb;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px">1</span>
+          <span>Haz el pago por PayPal con el botón de abajo</span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:#e2eaf4">
+          <span style="background:#2563eb;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px">2</span>
+          <span>Envíanos un email con el <b>email que usas en la app</b></span>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:#e2eaf4">
+          <span style="background:#2563eb;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px">3</span>
+          <span>Activamos tu plan Pro en menos de 24 horas</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <a id="pay-paypal-btn" href="#" target="_blank" rel="noopener"
+        style="display:flex;align-items:center;justify-content:center;gap:10px;background:#0070ba;color:#fff;border-radius:10px;padding:14px;font-size:15px;font-weight:700;text-decoration:none;text-align:center">
+        <img src="https://www.paypalobjects.com/webstatic/icon/pp258.png" alt="PayPal" style="width:22px;height:22px;border-radius:4px">
+        Pagar con PayPal
+      </a>
+      <a id="pay-email-btn" href="#"
+        style="display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:#e2eaf4;border-radius:10px;padding:12px;font-size:13px;font-weight:600;text-decoration:none;text-align:center">
+        ✉️ Enviar email tras el pago
+      </a>
+    </div>
+
+    <p style="font-size:11px;color:#2e4a6a;text-align:center;margin-top:16px">Sin suscripción automática · Cancela cuando quieras</p>
+  </div>
+</div>
+
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // Siempre empezar arriba del todo en la landing. Evita que el navegador
 // restaure la posición de scroll previa (p.ej. dejar al usuario caído en
@@ -401,6 +447,38 @@ function lcalc(){
   document.getElementById('lc-elec').textContent=fmt(elec);
   document.getElementById('lc-total').textContent=fmt(total);
 }
+
+// ── Modal de pago ────────────────────────────────────────────────────────
+function openPayModal(plan){
+  const isMensual = plan === 'mensual';
+  const precio = isMensual ? '9€/mes' : '79€/año';
+  const label  = isMensual ? 'Pro Mensual' : 'Pro Anual';
+  const paypalAmount = isMensual ? '9' : '79';
+  const asunto = encodeURIComponent('Brami3D ' + label);
+  const paypalUrl = 'https://www.paypal.me/Brami3D/' + paypalAmount + 'EUR';
+
+  const modal = document.getElementById('pay-modal');
+  document.getElementById('pay-label').textContent = label;
+  document.getElementById('pay-precio').textContent = precio;
+  document.getElementById('pay-paypal-btn').href = paypalUrl;
+  document.getElementById('pay-email-btn').href =
+    'mailto:alexri69@gmail.com?subject=' + asunto +
+    '&body=' + encodeURIComponent('Hola, acabo de pagar el plan ' + label + ' de Brami3D.\n\nMi email en la app: \nNombre: \n\n¡Gracias!');
+  modal.style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closePayModal(){
+  document.getElementById('pay-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+  // Cerrar modal al hacer clic fuera
+  document.getElementById('pay-modal').addEventListener('click', function(e){
+    if(e.target === this) closePayModal();
+  });
+});
 </script>
 </body>
 </html>
