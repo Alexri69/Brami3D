@@ -983,6 +983,7 @@ async function bootApp(){
     handleShortcut();
     loadAll(true).then(()=>{
       saveLocalCache();
+      buildNav();                 // ← _plan ya resuelto: añade "Admin" si corresponde
       render();
       refreshAlerts();
       checkAndNotify();
@@ -994,6 +995,7 @@ async function bootApp(){
     try {
       await loadAll(false);
       saveLocalCache();
+      buildNav();                 // ← _plan ya resuelto: añade "Admin" si corresponde
       goTo('dashboard');
       checkAndNotify();
       handleShortcut();
@@ -1166,6 +1168,9 @@ function _rtApply(table, eventType, newRow, oldRow){
   }
   if(table === 'user_plans'){
     try { if(typeof resolvePlan === 'function') resolvePlan(eventType === 'DELETE' ? null : newRow); } catch(_){}
+    // Si el plan cambia en vivo, reconstruir nav (por si pasa a admin o sale de admin).
+    try { if(typeof buildNav === 'function') buildNav(); } catch(_){}
+    try { if(typeof refreshBizHeader === 'function') refreshBizHeader(); } catch(_){}
     // Si el admin acaba de bloquear a este usuario en vivo, ejecutar logout.
     if(eventType !== 'DELETE' && newRow && newRow.blocked && !_plan.isAdmin){
       try {
