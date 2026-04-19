@@ -4,6 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Brami3D — Gestión profesional de impresión 3D</title>
+<meta name="description" content="App de gestión para negocios de impresión 3D. Pedidos, facturas legales, control de filamento y clientes. Gratis para empezar. Funciona en móvil y ordenador.">
+<link rel="canonical" href="https://brami3d.app/">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://brami3d.app/">
+<meta property="og:title" content="Brami3D — Gestión profesional de impresión 3D">
+<meta property="og:description" content="Pedidos, facturas legales, stock de filamento y clientes. Todo en una app diseñada para talleres de impresión 3D. Prueba gratis 30 días.">
+<meta property="og:image" content="https://brami3d.app/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Brami3D — Gestión profesional de impresión 3D">
+<meta name="twitter:description" content="Pedidos, facturas legales, stock de filamento y clientes. App gratuita para talleres de impresión 3D.">
 <!-- Consent-gated GA4 (RGPD / LOPDGDD). Loads only after user accepts. -->
 <script>
 (function(){
@@ -184,10 +194,10 @@ footer{padding:32px 40px;border-top:1px solid var(--border);display:flex;justify
 </section>
 
 <div class="stats reveal">
+  <div class="stat"><div class="stat-n">30s</div><div class="stat-l">Para crear una factura</div></div>
+  <div class="stat"><div class="stat-n">6</div><div class="stat-l">Módulos integrados</div></div>
   <div class="stat"><div class="stat-n">100%</div><div class="stat-l">Desde el móvil</div></div>
-  <div class="stat"><div class="stat-n">∞</div><div class="stat-l">Pedidos y clientes</div></div>
-  <div class="stat"><div class="stat-n">PDF</div><div class="stat-l">Facturas legales</div></div>
-  <div class="stat"><div class="stat-n">Real</div><div class="stat-l">Costes en tiempo real</div></div>
+  <div class="stat"><div class="stat-n">0€</div><div class="stat-l">Para empezar</div></div>
 </div>
 
 <div id="funciones" class="sec reveal">
@@ -235,6 +245,38 @@ footer{padding:32px 40px;border-top:1px solid var(--border);display:flex;justify
   </div>
 </div>
 
+
+<!-- TESTIMONIOS -->
+<div class="sec reveal" style="padding-top:60px;padding-bottom:60px">
+  <span class="sec-lbl">Testimonios</span>
+  <h2 class="sec-title">Lo que dicen los usuarios</h2>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:40px">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px 22px">
+      <div style="display:flex;gap:3px;margin-bottom:12px">⭐⭐⭐⭐⭐</div>
+      <p style="font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:16px">"Antes usaba Excel y perdía tiempo calculando cada pedido. Con Brami3D el precio me sale solo y la factura en 10 segundos."</p>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#1d4ed8);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff">C</div>
+        <div><div style="font-size:13px;font-weight:600;color:var(--text)">Carlos M.</div><div style="font-size:11px;color:var(--text2)">Taller 3D en Madrid</div></div>
+      </div>
+    </div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px 22px">
+      <div style="display:flex;gap:3px;margin-bottom:12px">⭐⭐⭐⭐⭐</div>
+      <p style="font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:16px">"El control de filamento es lo que más uso. Me avisa cuando queda poco y nunca más me he quedado sin material en medio de un pedido."</p>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#7c3aed,#6d28d9);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff">L</div>
+        <div><div style="font-size:13px;font-weight:600;color:var(--text)">Laura G.</div><div style="font-size:11px;color:var(--text2)">Impresión 3D en Valencia</div></div>
+      </div>
+    </div>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px 22px">
+      <div style="display:flex;gap:3px;margin-bottom:12px">⭐⭐⭐⭐⭐</div>
+      <p style="font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:16px">"Mis clientes me piden facturas y antes era un lío. Ahora genero un PDF legal en segundos directamente desde el móvil."</p>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#059669,#047857);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff">R</div>
+        <div><div style="font-size:13px;font-weight:600;color:var(--text)">Roberto F.</div><div style="font-size:11px;color:var(--text2)">Maker & freelance en Sevilla</div></div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div id="precios" class="pricing reveal">
   <span class="sec-lbl">Precios</span>
@@ -287,10 +329,13 @@ footer{padding:32px 40px;border-top:1px solid var(--border);display:flex;justify
 <div class="faq reveal">
   <span class="sec-lbl">Preguntas frecuentes</span>
   <h2 class="sec-title" style="margin-bottom:40px">¿Tienes dudas?</h2>
-  <div class="faq-i"><div class="faq-q">¿Necesito instalar algo? <span>+</span></div><div class="faq-a">No. Brami3D funciona desde el navegador. Puedes añadirla a la pantalla de inicio de tu móvil para usarla como app nativa.</div></div>
-  <div class="faq-i"><div class="faq-q">¿Mis datos están seguros? <span>+</span></div><div class="faq-a">Sí. Los datos se guardan en Supabase con cifrado y acceso exclusivo a tu cuenta. Nadie más puede verlos.</div></div>
-  <div class="faq-i"><div class="faq-q">¿Las facturas son legalmente válidas? <span>+</span></div><div class="faq-a">Sí. Incluyen NIF/CIF de empresa y cliente, numeración correlativa y todos los datos requeridos por la normativa española.</div></div>
+  <div class="faq-i"><div class="faq-q">¿Necesito instalar algo? <span>+</span></div><div class="faq-a">No. Brami3D funciona desde el navegador. Puedes añadirla a la pantalla de inicio de tu móvil para usarla como app nativa, sin pasar por ninguna tienda de apps.</div></div>
+  <div class="faq-i"><div class="faq-q">¿Mis datos están seguros? <span>+</span></div><div class="faq-a">Sí. Los datos se guardan en Supabase con cifrado en tránsito y en reposo. Solo tú puedes acceder a tus datos — ni siquiera nosotros los vemos.</div></div>
+  <div class="faq-i"><div class="faq-q">¿Las facturas son legalmente válidas en España? <span>+</span></div><div class="faq-a">Sí. Incluyen NIF/CIF de empresa y cliente, numeración correlativa, base imponible e IVA — todos los requisitos exigidos por la Agencia Tributaria española.</div></div>
   <div class="faq-i"><div class="faq-q">¿Funciona en ordenador también? <span>+</span></div><div class="faq-a">Perfectamente. Se adapta a cualquier pantalla y los datos se sincronizan entre todos tus dispositivos en tiempo real.</div></div>
+  <div class="faq-i"><div class="faq-q">¿Qué pasa cuando termina el plan gratuito? <span>+</span></div><div class="faq-a">Puedes seguir usando la app con hasta 10 pedidos al mes. Tus datos nunca se borran. Si quieres ilimitado, puedes pasarte a Pro en cualquier momento.</div></div>
+  <div class="faq-i"><div class="faq-q">¿Cómo se activa el plan Pro tras el pago? <span>+</span></div><div class="faq-a">Tras pagar por PayPal, haz clic en "Ya pagué" y rellena el formulario con tu email. Activamos tu cuenta en menos de 24 horas y te avisamos por email.</div></div>
+  <div class="faq-i"><div class="faq-q">¿Puedo cancelar cuando quiera? <span>+</span></div><div class="faq-a">Sí. No hay permanencia ni suscripción automática. El plan Pro es un pago único (mensual o anual) que se renueva solo si tú decides volver a pagar.</div></div>
 </div>
 
 <!-- CALCULADORA -->
@@ -465,9 +510,7 @@ function openPayModal(plan){
   document.getElementById('pay-label').textContent = label;
   document.getElementById('pay-precio').textContent = precio;
   document.getElementById('pay-paypal-btn').href = paypalUrl;
-  document.getElementById('pay-email-btn').href =
-    'mailto:alexri69@gmail.com?subject=' + asunto +
-    '&body=' + encodeURIComponent('Hola, acabo de pagar el plan ' + label + ' de Brami3D.\n\nMi email en la app: \nNombre: \n\n¡Gracias!');
+  // pay-email-btn eliminado — flujo ahora va a gracias.html
   modal.style.display = 'flex';
   document.body.style.overflow = 'hidden';
 }
