@@ -993,6 +993,17 @@ async function loadAll(silent=false){
   // Si la tabla aún no existe (SQL no aplicado) cae a default gracias al catch de arriba.
   resolvePlan(pl && !pl.error ? pl.data : null);
 
+  // Enforcement de bloqueo: si el admin marcó al usuario como blocked en user_plans,
+  // forzamos logout inmediato. Los admins (whitelist) nunca se bloquean a sí mismos.
+  const planRow = pl && !pl.error ? pl.data : null;
+  if(planRow && planRow.blocked && !_plan.isAdmin){
+    showToast('Tu cuenta está suspendida. Contacta con soporte.', 'err', 6000);
+    await sb.auth.signOut().catch(()=>{});
+    try { localStorage.removeItem('b3d_cache_'+userId); } catch(_){}
+    setTimeout(()=>location.reload(), 1200);
+    throw new Error('account blocked');
+  }
+
   refreshBizHeader();
 }
 
@@ -1067,6 +1078,15 @@ function _rtApply(table, eventType, newRow, oldRow){
   }
   if(table === 'user_plans'){
     try { if(typeof resolvePlan === 'function') resolvePlan(eventType === 'DELETE' ? null : newRow); } catch(_){}
+    // Si el admin acaba de bloquear a este usuario en vivo, ejecutar logout.
+    if(eventType !== 'DELETE' && newRow && newRow.blocked && !_plan.isAdmin){
+      try {
+        showToast('Tu cuenta ha sido suspendida.', 'err', 5000);
+        sb.auth.signOut().catch(()=>{});
+        try { localStorage.removeItem('b3d_cache_'+(CU&&CU.id||'')); } catch(_){}
+        setTimeout(()=>location.reload(), 1200);
+      } catch(_){}
+    }
     return true;
   }
 
@@ -1581,7 +1601,11 @@ const NAV=[
 ];
 
 function buildNav(){
-  $('sb-nav').innerHTML=NAV.map(n=>`
+  // Admin-only: añadir entry "Admin" al final si el usuario es admin.
+  const items = _plan.isAdmin
+    ? [...NAV, {id:'admin', lbl:'Admin', icon:'🛡️'}]
+    : NAV;
+  $('sb-nav').innerHTML=items.map(n=>`
     <button class="nav-btn${PAGE===n.id?' active':''}" id="nb-${n.id}" onclick="goTo('${n.id}')">
       <span style="font-size:18px;flex-shrink:0">${n.icon}</span>
       <span class="nl">${n.lbl}</span>
@@ -1757,12 +1781,15 @@ document.addEventListener('click', e=>{
 //  RENDER
 // ═══════════════════════════════════════════════
 function render(){
-  const map={dashboard:pgDashboard,clientes:pgClientes,pedidos:pgPedidos,impresoras:pgImpresoras,filamentos:pgFilamentos,piezas:pgPiezas,archivos:pgArchivos,gastos:pgGastos,registro:pgRegistro,configuracion:pgConfig};
+  const map={dashboard:pgDashboard,clientes:pgClientes,pedidos:pgPedidos,impresoras:pgImpresoras,filamentos:pgFilamentos,piezas:pgPiezas,archivos:pgArchivos,gastos:pgGastos,registro:pgRegistro,configuracion:pgConfig,admin:pgAdmin};
+  // Gate admin page: si alguien hace goTo('admin') sin ser admin, redirige.
+  if(PAGE==='admin' && !_plan.isAdmin){ PAGE='dashboard'; }
   const fn=map[PAGE];
   $('content').innerHTML=fn?fn():'<p style="color:var(--text4)">Página no encontrada</p>';
   if(PAGE==='archivos') initDZ();
   if(PAGE==='dashboard') setTimeout(initDashboardCharts,0);
   if(PAGE==='registro') setTimeout(cargarRegistroFiscal,0);
+  if(PAGE==='admin') setTimeout(adminLoadUsers,0);
 }
 
 // ═══════════════════════════════════════════════
@@ -3798,6 +3825,297 @@ async function cargarRegistroFiscal(){
   } catch(e){
     console.error('cargarRegistroFiscal',e);
     $('regf-list').innerHTML=`<div style="background:#7f1d1d;color:#fecaca;border-radius:8px;padding:10px 14px">Error cargando registros: ${esc(e.message||e)}</div>`;
+  }
+}
+
+// ═══════════════════════════════════════════════
+//  ADMIN (solo owner / plan=admin)
+// ═══════════════════════════════════════════════
+// Estado local de la página admin (lista cacheada + filtro de búsqueda).
+let _adminUsers = [];
+let _adminFilter = '';
+
+function pgAdmin(){
+  if(!_plan.isAdmin){
+    return '<p style="color:var(--text4)">Sin permisos.</p>';
+  }
+  return `
+  <h2 class="page-title" style="margin-bottom:8px">🛡️ Administración</h2>
+  <p style="color:var(--text4);margin-bottom:18px;font-size:13px">Panel privado del owner — gestionar planes, bloqueos y notas de todos los usuarios de Brami3D.</p>
+
+  <div class="flexwrap" style="margin-bottom:16px;gap:10px">
+    <input id="admin-search" type="text" placeholder="🔎 Buscar por email…"
+      oninput="_adminFilter=this.value.toLowerCase();adminRenderTable()"
+      style="flex:1;min-width:220px;padding:10px 14px;background:var(--bg4);border:1.5px solid var(--border2);border-radius:10px;color:var(--text2);font-size:14px">
+    <button class="btn-secondary" onclick="adminLoadUsers()">🔄 Refrescar</button>
+  </div>
+
+  <div id="admin-stats" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px"></div>
+
+  <div id="admin-table-wrap" style="background:var(--bg3);border:1px solid var(--border2);border-radius:12px;overflow:hidden">
+    <div style="padding:30px;text-align:center;color:var(--text4)">
+      <span class="loading-spinner"></span> Cargando usuarios…
+    </div>
+  </div>`;
+}
+
+async function adminLoadUsers(){
+  if(!_plan.isAdmin) return;
+  try {
+    const {data, error} = await sb.rpc('admin_list_users');
+    if(error) throw error;
+    _adminUsers = data || [];
+    adminRenderTable();
+  } catch(e){
+    const w = $('admin-table-wrap');
+    if(w) w.innerHTML = `<div style="padding:24px;color:#fca5a5">Error cargando usuarios: ${esc(e.message||e)}<br><br>Asegúrate de haber ejecutado <code>sql/005_admin_functions.sql</code> en Supabase.</div>`;
+    console.error('adminLoadUsers', e);
+  }
+}
+
+function adminEffectivePlan(u){
+  // Replica la lógica de resolvePlan() en el cliente para mostrar al admin
+  // cuál es el plan EFECTIVO de cada usuario (admin vs pro vs trial vs free)
+  // sin tener que refrescar nada. Solo informativo.
+  const now = Date.now();
+  if(u.plan === 'admin') return {label:'ADMIN', color:'#c084fc', bg:'rgba(168,85,247,.15)'};
+  if(u.plan === 'pro'){
+    const exp = u.expires_at ? new Date(u.expires_at).getTime() : null;
+    if(!exp || exp > now) return {label:'PRO', color:'#4ade80', bg:'rgba(34,197,94,.12)'};
+    return {label:'PRO (vencido)', color:'#fca5a5', bg:'rgba(239,68,68,.12)'};
+  }
+  if(u.trial_until){
+    const tr = new Date(u.trial_until).getTime();
+    if(tr > now) return {label:'TRIAL', color:'#fbbf24', bg:'rgba(245,158,11,.12)'};
+  }
+  return {label:'FREE', color:'#94a3b8', bg:'rgba(148,163,184,.12)'};
+}
+
+function adminRenderTable(){
+  const wrap = $('admin-table-wrap');
+  if(!wrap) return;
+
+  // Stats
+  const stats = $('admin-stats');
+  if(stats){
+    const total = _adminUsers.length;
+    const pro   = _adminUsers.filter(u=>adminEffectivePlan(u).label==='PRO').length;
+    const trial = _adminUsers.filter(u=>adminEffectivePlan(u).label==='TRIAL').length;
+    const blocked = _adminUsers.filter(u=>u.blocked).length;
+    const chip = (lbl,n,color) => `<div style="background:var(--bg4);border:1px solid var(--border2);border-radius:10px;padding:10px 14px;min-width:110px"><div style="font-size:11px;color:var(--text4);text-transform:uppercase">${esc(lbl)}</div><div style="font-size:22px;font-weight:700;color:${color}">${n}</div></div>`;
+    stats.innerHTML = chip('Total', total, 'var(--text2)') + chip('Pro', pro, '#4ade80') + chip('Trial', trial, '#fbbf24') + chip('Bloqueados', blocked, '#f87171');
+  }
+
+  const filtered = _adminFilter
+    ? _adminUsers.filter(u => (u.email||'').toLowerCase().includes(_adminFilter))
+    : _adminUsers;
+
+  if(!filtered.length){
+    wrap.innerHTML = `<div style="padding:24px;color:var(--text4);text-align:center">${_adminFilter?'Ningún usuario coincide con la búsqueda.':'No hay usuarios.'}</div>`;
+    return;
+  }
+
+  const fmtDate = iso => iso ? new Date(iso).toLocaleDateString('es-ES') : '—';
+  const fmtDateTime = iso => iso ? new Date(iso).toLocaleString('es-ES',{dateStyle:'short',timeStyle:'short'}) : '—';
+
+  const rows = filtered.map(u => {
+    const p = adminEffectivePlan(u);
+    const expNear = u.expires_at && (new Date(u.expires_at).getTime() - Date.now()) < 7*86400000;
+    return `
+    <tr style="border-bottom:1px solid var(--border2)">
+      <td style="padding:12px 14px">
+        <div style="font-weight:600;color:var(--text2)">${esc(u.email||'(sin email)')}</div>
+        <div style="font-size:11px;color:var(--text4);font-family:monospace">${esc((u.user_id||'').slice(0,8))}…</div>
+        ${u.blocked?'<div style="margin-top:4px;display:inline-block;background:rgba(239,68,68,.15);color:#fca5a5;font-size:10px;font-weight:700;padding:2px 8px;border-radius:99px">🚫 BLOQUEADO</div>':''}
+      </td>
+      <td style="padding:12px 14px;font-size:12px;color:var(--text3)">${fmtDate(u.created_at)}</td>
+      <td style="padding:12px 14px;font-size:12px;color:var(--text3)">${fmtDateTime(u.last_sign_in_at)}</td>
+      <td style="padding:12px 14px">
+        <span style="background:${p.bg};border:1px solid ${p.color}55;color:${p.color};font-size:11px;font-weight:700;padding:3px 9px;border-radius:99px">${esc(p.label)}</span>
+        ${u.expires_at?`<div style="font-size:11px;color:${expNear?'#fbbf24':'var(--text4)'};margin-top:4px">Vence ${fmtDate(u.expires_at)}</div>`:''}
+        ${u.trial_until && p.label==='TRIAL'?`<div style="font-size:11px;color:var(--text4);margin-top:4px">Trial → ${fmtDate(u.trial_until)}</div>`:''}
+      </td>
+      <td style="padding:12px 14px;font-size:12px;color:var(--text3);text-align:center">
+        <div>${u.n_pedidos||0} ped.</div>
+        <div style="color:var(--text4);font-size:11px">${u.n_clientes||0} cli · ${u.n_impresoras||0} imp</div>
+      </td>
+      <td style="padding:12px 14px">
+        <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end">
+          <button class="btn-secondary" style="padding:6px 10px;font-size:11px" onclick="adminOpenPlanModal('${esc(u.user_id)}')">Plan</button>
+          <button class="btn-secondary" style="padding:6px 10px;font-size:11px;${u.blocked?'background:rgba(239,68,68,.15);color:#fca5a5':''}" onclick="adminToggleBlocked('${esc(u.user_id)}',${!u.blocked})">${u.blocked?'Desbloquear':'Bloquear'}</button>
+          <button class="btn-secondary" style="padding:6px 10px;font-size:11px" onclick="adminOpenNotesModal('${esc(u.user_id)}')">📝${u.notes?' •':''}</button>
+          <button class="btn-secondary" style="padding:6px 10px;font-size:11px" onclick="adminResetPassword('${esc(u.email||'')}')" ${u.email?'':'disabled'}>🔑</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  wrap.innerHTML = `
+    <div style="overflow-x:auto">
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead>
+        <tr style="background:var(--bg4);border-bottom:1px solid var(--border2)">
+          <th style="padding:10px 14px;text-align:left;font-size:11px;text-transform:uppercase;color:var(--text4)">Usuario</th>
+          <th style="padding:10px 14px;text-align:left;font-size:11px;text-transform:uppercase;color:var(--text4)">Alta</th>
+          <th style="padding:10px 14px;text-align:left;font-size:11px;text-transform:uppercase;color:var(--text4)">Último login</th>
+          <th style="padding:10px 14px;text-align:left;font-size:11px;text-transform:uppercase;color:var(--text4)">Plan</th>
+          <th style="padding:10px 14px;text-align:center;font-size:11px;text-transform:uppercase;color:var(--text4)">Uso</th>
+          <th style="padding:10px 14px;text-align:right;font-size:11px;text-transform:uppercase;color:var(--text4)">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>
+    </div>`;
+}
+
+// ── Cambiar plan ──────────────────────────────────────────────────────────
+function adminOpenPlanModal(userId){
+  const u = _adminUsers.find(x=>x.user_id===userId);
+  if(!u) return;
+  const curExp = u.expires_at ? u.expires_at.slice(0,10) : '';
+  const html = `
+    <div style="margin-bottom:14px">
+      <div style="font-size:12px;color:var(--text4);margin-bottom:4px">Usuario</div>
+      <div style="font-weight:700;color:var(--text2)">${esc(u.email||'')}</div>
+    </div>
+    <div class="field">
+      <label>Plan</label>
+      <select id="adm-plan" style="width:100%">
+        <option value="free"${u.plan==='free'?' selected':''}>Free</option>
+        <option value="pro"${u.plan==='pro'?' selected':''}>Pro</option>
+      </select>
+    </div>
+    <div id="adm-pro-options" style="${u.plan==='pro'?'':'display:none'}">
+      <div class="field">
+        <label>Vence el</label>
+        <input id="adm-expires" type="date" value="${esc(curExp)}" style="width:100%">
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin:-6px 0 14px">
+        <button type="button" class="btn-secondary" style="padding:6px 12px;font-size:12px" onclick="adminAddDuration(30)">+1 mes</button>
+        <button type="button" class="btn-secondary" style="padding:6px 12px;font-size:12px" onclick="adminAddDuration(90)">+3 meses</button>
+        <button type="button" class="btn-secondary" style="padding:6px 12px;font-size:12px" onclick="adminAddDuration(365)">+1 año</button>
+        <button type="button" class="btn-secondary" style="padding:6px 12px;font-size:12px" onclick="adminClearExpiration()">Sin límite</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn-primary" id="adm-save-plan" onclick="adminSavePlan('${esc(userId)}')">Guardar</button>
+      <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+    </div>
+    <script>
+      document.getElementById('adm-plan').addEventListener('change', function(){
+        document.getElementById('adm-pro-options').style.display = this.value==='pro' ? '' : 'none';
+      });
+    <\/script>`;
+  openModal(msh('Cambiar plan', html));
+}
+
+function adminAddDuration(days){
+  const inp = $('adm-expires');
+  if(!inp) return;
+  const base = inp.value ? new Date(inp.value+'T00:00:00') : new Date();
+  const t = base.getTime() + days*86400000;
+  inp.value = new Date(t).toISOString().slice(0,10);
+}
+
+function adminClearExpiration(){
+  const inp = $('adm-expires');
+  if(inp) inp.value = '';
+}
+
+async function adminSavePlan(userId){
+  const plan = $('adm-plan').value;
+  const expDate = $('adm-expires') ? $('adm-expires').value : '';
+  const expiresAt = (plan==='pro' && expDate) ? new Date(expDate+'T23:59:59').toISOString() : null;
+  setLoading('adm-save-plan', true);
+  try {
+    const {error} = await sb.rpc('admin_set_plan', {
+      target_user: userId,
+      new_plan: plan,
+      new_expires_at: expiresAt,
+      new_trial_until: null
+    });
+    if(error) throw error;
+    showToast('Plan actualizado','ok');
+    closeModal();
+    await adminLoadUsers();
+  } catch(e){
+    showToast('Error: '+(e.message||e),'err');
+    console.error(e);
+  } finally {
+    setLoading('adm-save-plan', false, 'Guardar');
+  }
+}
+
+// ── Bloqueo ───────────────────────────────────────────────────────────────
+async function adminToggleBlocked(userId, newBlocked){
+  if(newBlocked && !confirm('¿Seguro que quieres BLOQUEAR a este usuario? No podrá entrar hasta que lo desbloquees.')) return;
+  try {
+    const {error} = await sb.rpc('admin_set_blocked', {
+      target_user: userId,
+      new_blocked: !!newBlocked
+    });
+    if(error) throw error;
+    showToast(newBlocked?'Usuario bloqueado':'Usuario desbloqueado','ok');
+    await adminLoadUsers();
+  } catch(e){
+    showToast('Error: '+(e.message||e),'err');
+    console.error(e);
+  }
+}
+
+// ── Notas ─────────────────────────────────────────────────────────────────
+function adminOpenNotesModal(userId){
+  const u = _adminUsers.find(x=>x.user_id===userId);
+  if(!u) return;
+  const html = `
+    <div style="margin-bottom:14px">
+      <div style="font-size:12px;color:var(--text4);margin-bottom:4px">Usuario</div>
+      <div style="font-weight:700;color:var(--text2)">${esc(u.email||'')}</div>
+    </div>
+    <div class="field">
+      <label>Notas internas (solo las ves tú)</label>
+      <textarea id="adm-notes" rows="5" style="width:100%;min-height:120px">${esc(u.notes||'')}</textarea>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn-primary" id="adm-save-notes" onclick="adminSaveNotes('${esc(userId)}')">Guardar</button>
+      <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+    </div>`;
+  openModal(msh('Notas del usuario', html));
+}
+
+async function adminSaveNotes(userId){
+  const notes = ($('adm-notes')?.value||'').trim() || null;
+  setLoading('adm-save-notes', true);
+  try {
+    const {error} = await sb.rpc('admin_set_notes', {
+      target_user: userId,
+      new_notes: notes
+    });
+    if(error) throw error;
+    showToast('Notas guardadas','ok');
+    closeModal();
+    await adminLoadUsers();
+  } catch(e){
+    showToast('Error: '+(e.message||e),'err');
+    console.error(e);
+  } finally {
+    setLoading('adm-save-notes', false, 'Guardar');
+  }
+}
+
+// ── Reset password ────────────────────────────────────────────────────────
+async function adminResetPassword(email){
+  if(!email) return;
+  if(!confirm(`Enviar email de reset de contraseña a ${email}?`)) return;
+  try {
+    const {error} = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: location.origin + '/brami3d_supabase.html'
+    });
+    if(error) throw error;
+    showToast('Email de reset enviado','ok');
+  } catch(e){
+    showToast('Error: '+(e.message||e),'err');
+    console.error(e);
   }
 }
 
