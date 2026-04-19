@@ -2971,7 +2971,7 @@ function pgImpresoras(){
 <div style="display:flex;gap:16px;font-size:13px;color:var(--text4);margin-bottom:6px"><span>⏱ ${p.horasUso}h</span><span>🔧 ${p.desgaste}%</span>${consumoW?`<span>⚡ ${consumoW}W</span>`:''}</div>
 ${costH?`<div style="font-size:12px;color:#60a5fa;margin-bottom:10px;font-weight:600">Coste eléctrico: ${costH.toFixed(4)}€/h</div>`:''}
 <div class="progress-track"><div class="progress-fill" style="width:${Math.min(deg,100)}%;background:${bc}"></div></div>
-<div style="display:flex;gap:8px"><button class="btn-secondary" onclick="editP('${p.id}')">Editar</button><button class="btn-icon" onclick="delP('${p.id}')">🗑️</button></div></div>`;}).join('');
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-primary" style="font-size:12px;padding:7px 12px" onclick="addPrintTime('${p.id}')">⏱ Registrar uso</button><button class="btn-secondary" onclick="editP('${p.id}')">Editar</button><button class="btn-icon" onclick="delP('${p.id}')">🗑️</button></div></div>`;}).join('');
   return`<div class="page-header"><h2 class="page-title">Impresoras</h2><button class="btn-primary" onclick="editP(null)">+ Nueva impresora</button></div><div class="flexwrap">${cards}</div>`;
 }
 function impresoraFrm(x={}){
@@ -3033,6 +3033,50 @@ function updConsumoPreview(val){
 }
 function delP(id){ confirmDel('¿Eliminar esta impresora?',`doDelP('${id}')`); }
 async function doDelP(id){ if(await dbDel('impresoras',id)){_cache.impresoras=_cache.impresoras.filter(x=>x.id!==id);render();refreshAlerts();showToast('Eliminado','ok');} }
+
+function addPrintTime(id){
+  const p=_cache.impresoras.find(x=>x.id===id); if(!p) return;
+  const cfg=_cache.cfg;
+  const kwhPrice=parseFloat(cfg.costePorHora)||0.15;
+  const consumoW=parseFloat(p.consumoW)||0;
+  const costH=consumoW>0?((consumoW/1000)*kwhPrice).toFixed(4):null;
+  openModal(msh(`⏱ Registrar uso — ${esc(p.nombre)}`,`
+    <p style="font-size:13px;color:var(--text4);margin-bottom:16px;line-height:1.5">
+      Acumulado actual: <b style="color:var(--text2)">${p.horasUso}h</b> · Desgaste: <b style="color:var(--text2)">${p.desgaste}%</b>
+      ${costH?`<br>Coste eléctrico estimado: <b style="color:#60a5fa">${costH}€/h</b>`:''}
+    </p>
+    ${fld('Horas de esta sesión *','pt_horas','','number',{min:0,step:0.1,placeholder:'Ej: 3.5'})}
+    ${fld('Desgaste adicional (%)','pt_desgaste','','number',{min:0,max:100,step:0.1,placeholder:'Ej: 1  (0 = sin cambio)'})}
+    <p style="font-size:11px;color:var(--text4);margin-top:-8px;margin-bottom:12px;line-height:1.5">
+      Si dejas el desgaste en 0 se aplica +0.1% por hora automáticamente.
+    </p>
+    <div style="display:flex;gap:10px">
+      <button class="btn-primary" id="save-pt-btn" onclick="doAddPrintTime('${id}')">Guardar</button>
+      <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+    </div>
+  `));
+}
+
+async function doAddPrintTime(id){
+  const p=_cache.impresoras.find(x=>x.id===id); if(!p) return;
+  const d=gfd(['pt_horas','pt_desgaste']);
+  const vH=validateNum('Horas de sesión',d.pt_horas,{min:0.01,max:9999});
+  if(!vH.ok){showToast(vH.error,'err');return;}
+  const horas=numVal(d.pt_horas,{min:0});
+  const desgasteAdicional=numVal(d.pt_desgaste,{min:0,max:100});
+  const incrementoDesgaste=desgasteAdicional>0?desgasteAdicional:horas*0.1;
+  const nuevasHoras=parseFloat(((parseFloat(p.horasUso)||0)+horas).toFixed(1));
+  const nuevoDesgaste=Math.min(100,parseFloat(((parseFloat(p.desgaste)||0)+incrementoDesgaste).toFixed(1)));
+  setLoading('save-pt-btn',true);
+  const row={id:p.id,nombre:p.nombre,modelo:p.modelo,estado:p.estado,horas_uso:nuevasHoras,desgaste:nuevoDesgaste,consumo_w:parseFloat(p.consumoW)||0};
+  const ok=await dbSave('impresoras',row);
+  if(ok){
+    const mapped={...p,horasUso:nuevasHoras,desgaste:nuevoDesgaste};
+    _cache.impresoras=_cache.impresoras.map(i=>i.id===id?mapped:i);
+    closeModal();render();refreshAlerts();
+    showToast(`+${horas}h registradas · Desgaste: ${nuevoDesgaste}%`,'ok');
+  }
+}
 
 // ═══════════════════════════════════════════════
 //  FILAMENTOS
