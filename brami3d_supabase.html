@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>B3D Print Studio</title>
-<!-- Consent-gated GA4 + GTM (RGPD / LOPDGDD). Loads only after user accepts. -->
+<!-- Consent-gated GA4 (RGPD / LOPDGDD). Loads only after user accepts. -->
 <script>
 (function(){
   const KEY='b3d_rgpd';
@@ -22,7 +22,6 @@
     window.dataLayer=window.dataLayer||[];
     window.gtag=function(){dataLayer.push(arguments);};
     gtag('js', new Date()); gtag('config','G-C5P6F52QE3');
-    (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-KNW7F7GB');
   }
   function show(){ const el=document.getElementById('rgpd-banner'); if(el) el.style.display='flex'; }
   function hide(){ const el=document.getElementById('rgpd-banner'); if(el) el.style.display='none'; }
@@ -248,9 +247,6 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
 </style>
 </head>
 <body>
-<!-- GTM noscript iframe removed: would fire without consent, breaking RGPD. -->
-<!-- Users with JS disabled cannot dismiss the consent banner anyway, so no tracking either way. -->
-
 <!-- AUTH SCREEN = CALCULADORA PANTALLA COMPLETA -->
 <div id="auth-screen">
   <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px;background:radial-gradient(ellipse at 50% 30%,#0d1926 0%,#04090f 70%);overflow-y:auto">
