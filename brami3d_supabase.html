@@ -1929,7 +1929,7 @@ function onGlobalSearch(q){
   const ql=q.toLowerCase();
   const cfg=_cache.cfg;
 
-  const cls=_cache.clientes.filter(c=>[c.nombre,c.empresa,c.email,c.telefono].join(' ').toLowerCase().includes(ql)).slice(0,4);
+  const cls=_cache.clientes.filter(c=>[c.nombre,c.empresa,c.email,c.telefono,c.nif].join(' ').toLowerCase().includes(ql)).slice(0,4);
   const peds=_cache.pedidos.filter(o=>[o.proyecto,o.presNum,o.material,o.notas].join(' ').toLowerCase().includes(ql)).slice(0,5);
   const pzs=_cache.piezas.filter(p=>[p.nombre,p.material].join(' ').toLowerCase().includes(ql)).slice(0,3);
 
@@ -3038,7 +3038,7 @@ ${filAlert}
 let _cSearch='', _cPage=0;
 const _C_PAGE_SIZE=25;
 function pgClientes(){
-  const all=_cache.clientes.filter(i=>[i.nombre,i.empresa,i.email,i.telefono].join(' ').toLowerCase().includes(_cSearch.toLowerCase()));
+  const all=_cache.clientes.filter(i=>[i.nombre,i.empresa,i.email,i.telefono,i.nif].join(' ').toLowerCase().includes(_cSearch.toLowerCase()));
   const totalPages=Math.max(1,Math.ceil(all.length/_C_PAGE_SIZE));
   _cPage=Math.min(_cPage,totalPages-1);
   const items=all.slice(_cPage*_C_PAGE_SIZE,(_cPage+1)*_C_PAGE_SIZE);
@@ -3448,13 +3448,13 @@ async function doDelPz(id){ if(await dbDel('piezas',id)){_cache.piezas=_cache.pi
 // ═══════════════════════════════════════════════
 //  PEDIDOS
 // ═══════════════════════════════════════════════
-let _pFilt='todos',_pSearch='',_pPage=0;
+let _pFilt='todos',_pSearch='',_pPage=0,_pSelected=new Set();
 const _P_PAGE_SIZE=20;
 function pgPedidos(){
   const orders=_cache.pedidos; const clients=_cache.clientes; const cfg=_cache.cfg;
   const ESTADOS=['todos','pendiente','imprimiendo','terminado','entregado','cobrado'];
   const rowHl={pendiente:'rgba(245,158,11,.06)',imprimiendo:'rgba(59,130,246,.06)',terminado:'rgba(16,185,129,.04)',entregado:'rgba(139,92,246,.05)',cobrado:'rgba(34,197,94,.06)'};
-  const chips=ESTADOS.map(e=>`<button class="chip${_pFilt===e?' active':''}" onclick="_pFilt='${e}';_pPage=0;render()">${e}</button>`).join('');
+  const chips=ESTADOS.map(e=>`<button class="chip${_pFilt===e?' active':''}" onclick="_pFilt='${e}';_pPage=0;_pSelected.clear();render()">${e}</button>`).join('');
   const fl=orders.filter(o=>{
     if(_pFilt==='cobrado') return o.cobrado===true;
     if(_pFilt!=='todos'&&o.estado!==_pFilt)return false;
@@ -3469,7 +3469,15 @@ function pgPedidos(){
     <span>Página <b style="color:var(--text2)">${_pPage+1}</b> de ${totalPPages} · ${fl.length} pedidos</span>
     <button class="btn-secondary" style="padding:6px 14px" ${_pPage>=totalPPages-1?'disabled':''} onclick="_pPage++;render()">Siguiente →</button>
   </div>`:'' ;
-  const rows=flPaged.length===0?'<tr><td colspan="9" style="text-align:center;color:var(--text5);padding:32px">Sin pedidos — crea tu primer pedido 👆</td></tr>':flPaged.map(o=>{
+  const allPageIds=flPaged.map(o=>o.id);
+  const allChecked=allPageIds.length>0&&allPageIds.every(id=>_pSelected.has(id));
+  const bulkBar=_pSelected.size>0?`<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:rgba(59,130,246,.1);border:1.5px solid rgba(59,130,246,.35);border-radius:12px;padding:10px 16px;margin-bottom:12px;font-size:13px">
+    <span style="font-weight:700;color:#60a5fa">${_pSelected.size} pedido${_pSelected.size!==1?'s':''} seleccionado${_pSelected.size!==1?'s':''}</span>
+    <span style="color:var(--text5)">→ Cambiar estado a:</span>
+    ${['pendiente','imprimiendo','terminado','entregado','cobrado'].map(e=>`<button onclick="bulkChangeEstado('${e}')" style="padding:5px 12px;border-radius:8px;font-size:12px;font-weight:700;border:1.5px solid;cursor:pointer;background:transparent" class="bulk-btn-${e}">${mkBadge(e)}</button>`).join('')}
+    <button onclick="_pSelected.clear();render()" style="margin-left:auto;padding:5px 12px;border-radius:8px;font-size:12px;background:var(--bg4);border:1px solid var(--border);color:var(--text4);cursor:pointer">✕ Deseleccionar</button>
+  </div>`:'';
+  const rows=flPaged.length===0?'<tr><td colspan="10" style="text-align:center;color:var(--text5);padding:32px">Sin pedidos — crea tu primer pedido 👆</td></tr>':flPaged.map(o=>{
     const cl=clients.find(x=>x.id===o.clienteId)||{};
     const c=calcOrderCosts(o,cfg);
     const bg=rowHl[o.estado]||'';
@@ -3486,7 +3494,8 @@ function pgPedidos(){
     const cobrarBtn=!o.cobrado
       ?'<button class="btn-icon" title="Marcar como cobrado" onclick="marcarCobrado(\''+o.id+'\')" style="font-size:18px;color:#4ade80;opacity:.7">💰</button>'
       :'<button class="btn-icon" title="Ya cobrado" style="opacity:.2;cursor:default;font-size:18px">💰</button>';
-    return'<tr style="'+(bg?'background:'+bg:'')+'"><td><span class="num-badge">'+esc(o.presNum||'—')+'</span>'+factBadge+'</td>'
+    const chk=`<input type="checkbox" ${_pSelected.has(o.id)?'checked':''} onchange="if(this.checked)_pSelected.add('${o.id}');else _pSelected.delete('${o.id}');render()" style="width:16px;height:16px;accent-color:#3b82f6;cursor:pointer;flex-shrink:0">`;
+    return'<tr style="'+(bg?'background:'+bg:'')+'"><td style="padding:8px 10px">'+chk+'</td><td><span class="num-badge">'+esc(o.presNum||'—')+'</span>'+factBadge+'</td>'
       +'<td><span style="color:var(--text2);font-weight:700;font-size:13.5px">'+esc(o.proyecto)+'</span>'+multiPieza+cobradoBadge+entregaBadge+'</td>'
       +'<td style="color:var(--text3)">'+esc(cl.nombre||'—')+'</td>'
       +'<td><span style="background:var(--bg4);color:var(--text3);padding:2px 8px;border-radius:6px;font-size:12px;font-weight:600">'+esc(o.material)+'</span></td>'
@@ -3545,10 +3554,28 @@ function pgPedidos(){
   return`<div class="page-header"><div><h2 class="page-title">Pedidos</h2><div class="page-subtitle">${orders.length} pedido${orders.length!==1?'s':''} en total</div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-secondary" onclick="exportPedidosCSV()" style="display:flex;align-items:center;gap:6px">📊 Exportar Excel</button><button class="btn-primary" onclick="editO(null)">+ Nuevo</button></div></div>
 <div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center">${chips}${!isMob?`<input style="flex:1;min-width:160px" placeholder="🔍 Buscar…" value="${esc(_pSearch)}" oninput="_pSearch=this.value;_pPage=0;render()">`:''}</div>
 ${isMob?`<input style="margin-bottom:12px" placeholder="🔍 Buscar proyecto…" value="${esc(_pSearch)}" oninput="_pSearch=this.value;_pPage=0;render()">`:``}
+${bulkBar}
 ${isMob
   ? `<div>${mobCards}</div>${pPager}`
-  : `<div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table><thead><tr><th>Nº / Factura</th><th>Proyecto</th><th>Cliente</th><th>Material</th><th>Peso</th><th>Precio</th><th>Estado</th><th>Fecha</th><th style="min-width:140px"></th></tr></thead><tbody>${rows}</tbody></table></div></div>${pPager}`
+  : `<div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table><thead><tr><th style="width:32px"><input type="checkbox" ${allChecked?'checked':''} onchange="if(this.checked){${JSON.stringify(allPageIds)}.forEach(id=>_pSelected.add(id));}else{${JSON.stringify(allPageIds)}.forEach(id=>_pSelected.delete(id));}render()" style="width:16px;height:16px;accent-color:#3b82f6;cursor:pointer" title="${allChecked?'Deseleccionar todo':'Seleccionar página'}"></th><th>Nº / Factura</th><th>Proyecto</th><th>Cliente</th><th>Material</th><th>Peso</th><th>Precio</th><th>Estado</th><th>Fecha</th><th style="min-width:140px"></th></tr></thead><tbody>${rows}</tbody></table></div></div>${pPager}`
 }`;
+}
+
+async function bulkChangeEstado(estado){
+  if(!_pSelected.size) return;
+  const ids=[..._pSelected];
+  const esCobrado = estado==='cobrado';
+  for(const id of ids){
+    const o=_cache.pedidos.find(x=>x.id===id);
+    if(!o) continue;
+    const upd={id, estado: esCobrado?o.estado:estado};
+    if(esCobrado && !o.cobrado){ upd.cobrado=true; upd.fecha_cobrado=new Date().toISOString().split('T')[0]; }
+    else if(!esCobrado){ upd.cobrado=false; upd.fecha_cobrado=null; }
+    await dbSave('pedidos',upd);
+  }
+  showToast(`✅ ${ids.length} pedido${ids.length!==1?'s':''} actualizados a "${estado}"`,'ok');
+  _pSelected.clear();
+  render();
 }
 
 // ─── MULTI-PIEZA ───────────────────────────────
