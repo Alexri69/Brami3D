@@ -3780,10 +3780,10 @@ function pgArchivos(){
   return`<h2 class="page-title" style="margin-bottom:4px">Archivos</h2>
 <p style="color:var(--text4);font-size:13px;margin-bottom:16px">STL e imágenes — guardados en Supabase Storage (máx. 50MB).</p>
 <div class="dropzone" id="dz" onclick="$('fi').click()">
-<input type="file" id="fi" multiple accept=".stl,image/*" style="display:none" onchange="procFiles(this.files)">
+<input type="file" id="fi" multiple accept=".stl,.jpg,.jpeg,.png,.webp,.gif,.svg" style="display:none" onchange="procFiles(this.files)">
 <div style="font-size:44px;margin-bottom:10px">📁</div>
 <div style="color:var(--text3);font-size:14px;font-weight:500">Arrastra archivos o haz clic</div>
-<div style="color:var(--text4);font-size:12px;margin-top:6px">STL, JPG, PNG, WebP, GIF</div>
+<div style="color:var(--text4);font-size:12px;margin-top:6px">STL · JPG · PNG · WebP · GIF · SVG · Máx. 50MB</div>
 </div>
 <div class="flexwrap">${cards}</div>`;
 }
@@ -3795,15 +3795,40 @@ function initDZ(){
   dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('over');procFiles(e.dataTransfer.files);});
 }
 
+const _ALLOWED_EXTS=new Set(['.stl','.jpg','.jpeg','.png','.webp','.gif','.svg']);
+const _ALLOWED_MIME=new Set([
+  'image/jpeg','image/jpg','image/png','image/webp','image/gif','image/svg+xml',
+  'model/stl','model/x.stl-ascii','model/x.stl-binary','application/sla',
+  'application/octet-stream' // STL binarios se clasifican así en muchos sistemas
+]);
+const _DANGEROUS_MIME=new Set([
+  'application/x-msdownload','application/x-executable','application/x-sh',
+  'application/x-bat','application/x-msdos-program','text/javascript',
+  'application/javascript','application/x-php','text/php',
+  'application/x-httpd-php','application/vnd.microsoft.portable-executable'
+]);
+function _validarArchivo(f){
+  const ext='.'+f.name.split('.').pop().toLowerCase();
+  if(!_ALLOWED_EXTS.has(ext)) return `Tipo no permitido: ${ext}. Solo STL e imágenes.`;
+  if(_DANGEROUS_MIME.has(f.type)) return `Tipo de archivo bloqueado por seguridad.`;
+  if(f.type&&!f.type.startsWith('image/')&&!_ALLOWED_MIME.has(f.type))
+    return `MIME no permitido: ${f.type}`;
+  return null;
+}
+
 async function procFiles(fl){
   for(const f of Array.from(fl)){
+    const err=_validarArchivo(f);
+    if(err){showToast(f.name+': '+err,'err');continue;}
     if(f.size>50*1024*1024){showToast(f.name+' supera 50MB','err');continue;}
     showToast('Subiendo '+f.name+'…','ok',8000);
-    const path=`${CU.id}/${Date.now()}_${f.name}`;
+    const safeExt='.'+f.name.split('.').pop().toLowerCase();
+    const safeName=Date.now()+'_'+f.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+    const path=`${CU.id}/${safeName}`;
     const {error:upErr}=await sb.storage.from('archivos').upload(path,f);
     if(upErr){showToast('Error subiendo: '+upErr.message,'err');continue;}
     const isImage=f.type.startsWith('image/');
-    const isSTL=f.name.toLowerCase().endsWith('.stl');
+    const isSTL=safeExt==='.stl';
     const row={id:uid(),name:f.name,size:f.size,type:f.type,is_image:isImage,is_stl:isSTL,storage_path:path,fecha:today()};
     const {error:dbErr}=await sb.from('archivos').insert({...row,user_id:CU.id});
     if(dbErr){showToast('Error registrando: '+dbErr.message,'err');continue;}
