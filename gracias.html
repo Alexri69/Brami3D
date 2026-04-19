@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>¡Gracias por tu pago! — Brami3D</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#04090f;color:#e2eaf4;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.card{background:#0d1926;border:1px solid #0f2040;border-radius:20px;padding:40px 32px;max-width:480px;width:100%}
+label{display:block;font-size:12px;font-weight:700;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+input,select{width:100%;padding:12px 14px;background:#070e1c;border:1.5px solid #132540;border-radius:10px;color:#e2eaf4;font-size:15px;font-family:inherit;margin-bottom:16px;outline:none}
+input:focus,select:focus{border-color:#2563eb}
+.btn{width:100%;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border:none;border-radius:12px;padding:15px;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;box-shadow:0 4px 20px rgba(37,99,235,.4)}
+.btn:hover{opacity:.9}
+.success{display:none;text-align:center;padding:20px 0}
+</style>
+</head>
+<body>
+<div class="card">
+
+  <div id="form-wrap">
+    <!-- Cabecera -->
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="font-size:48px;margin-bottom:12px">🎉</div>
+      <div style="font-size:22px;font-weight:800;color:#f1f5f9;margin-bottom:8px">¡Pago recibido!</div>
+      <p style="font-size:14px;color:#7a9ab8;line-height:1.6">
+        Gracias por confiar en Brami3D. Rellena este formulario y activaré tu plan Pro en menos de 24 horas.
+      </p>
+    </div>
+
+    <!-- Formulario -->
+    <form id="pay-form" action="https://formspree.io/f/xojywzve" method="POST" onsubmit="handleSubmit(event)">
+      <input type="hidden" name="_subject" value="🚀 Nuevo pago Brami3D Pro">
+
+      <div>
+        <label>Tu nombre</label>
+        <input type="text" name="nombre" placeholder="Alex" required>
+      </div>
+      <div>
+        <label>Email que usas en la app</label>
+        <input type="email" name="email_app" placeholder="tu@email.com" required>
+      </div>
+      <div>
+        <label>Plan contratado</label>
+        <select name="plan" required>
+          <option value="">Selecciona...</option>
+          <option value="Pro Mensual — 9€/mes">Pro Mensual — 9€/mes</option>
+          <option value="Pro Anual — 79€/año">Pro Anual — 79€/año</option>
+        </select>
+      </div>
+      <div>
+        <label>Notas (opcional)</label>
+        <input type="text" name="notas" placeholder="Ej: pagué desde PayPal el día 19/04">
+      </div>
+
+      <button type="submit" class="btn">✅ Enviar y activar mi plan</button>
+    </form>
+  </div>
+
+  <!-- Confirmación tras envío -->
+  <div class="success" id="success-msg">
+    <div style="font-size:56px;margin-bottom:16px">✅</div>
+    <div style="font-size:20px;font-weight:800;color:#f1f5f9;margin-bottom:10px">¡Listo!</div>
+    <p style="font-size:14px;color:#7a9ab8;line-height:1.6;margin-bottom:28px">
+      He recibido tus datos. Activaré tu plan Pro en menos de 24 horas y te avisaré por email.
+    </p>
+    <a href="https://brami3d.app/brami3d_supabase.html"
+       style="display:inline-block;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;text-decoration:none;border-radius:12px;padding:14px 28px;font-size:15px;font-weight:700">
+      Ir a la app →
+    </a>
+  </div>
+
+  <!-- Footer -->
+  <div style="text-align:center;margin-top:24px">
+    <p style="font-size:12px;color:#2e4a6a">
+      ¿Algún problema? Escríbeme a
+      <a href="mailto:alexri69@gmail.com" style="color:#60a5fa;text-decoration:none">alexri69@gmail.com</a>
+    </p>
+  </div>
+
+</div>
+
+<script>
+async function handleSubmit(e){
+  e.preventDefault();
+  const btn = document.querySelector('.btn');
+  btn.textContent = 'Enviando...';
+  btn.disabled = true;
+  try {
+    const res = await fetch(e.target.action, {
+      method: 'POST',
+      body: new FormData(e.target),
+      headers: {Accept: 'application/json'}
+    });
+    if(res.ok){
+      document.getElementById('form-wrap').style.display = 'none';
+      document.getElementById('success-msg').style.display = 'block';
+    } else {
+      btn.textContent = 'Error — inténtalo de nuevo';
+      btn.disabled = false;
+    }
+  } catch(_){
+    btn.textContent = 'Error — inténtalo de nuevo';
+    btn.disabled = false;
+  }
+}
+</script>
+</body>
+</html>

@@ -459,7 +459,8 @@ function openPayModal(plan){
   const label  = isMensual ? 'Pro Mensual' : 'Pro Anual';
   const paypalAmount = isMensual ? '9' : '79';
   const asunto = encodeURIComponent('Brami3D ' + label);
-  const paypalUrl = 'https://www.paypal.me/Brami3D/' + paypalAmount + 'EUR';
+  const returnUrl = encodeURIComponent('https://brami3d.app/gracias.html');
+  const paypalUrl = 'https://www.paypal.me/Brami3D/' + paypalAmount + 'EUR?return=' + returnUrl;
 
   const modal = document.getElementById('pay-modal');
   document.getElementById('pay-label').textContent = label;
