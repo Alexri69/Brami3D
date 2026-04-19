@@ -977,7 +977,7 @@ function saveLocalCache(table){
 
 function loadLocalCache(){
   if(!CU || !CU.id) return false;
-  const dflCfg = {costePorGramo:0.03,costePorHora:0.15,margen:30,moneda:'€',empresa:'',telefono:'',email:''};
+  const dflCfg = {costePorGramo:0.03,costePorHora:0.15,margen:30,moneda:'€',empresa:'',telefono:'',email:'',tipoIva:0,nombreImpuesto:'IVA'};
   try {
     const ts = parseInt(localStorage.getItem(_cacheTsK())||'0', 10);
     if(ts && Date.now()-ts <= 24*60*60*1000){
@@ -1143,7 +1143,7 @@ async function loadAll(silent=false){
   _cache.piezas     = mapPiezas(pz.data||[]);
   _cache.archivos   = ar.data||[];
   _cache.gastos     = gs.data||[];
-  _cache.cfg        = cfg.data ? mapCfg(cfg.data) : {costePorGramo:0.03,costePorHora:0.15,margen:30,moneda:'€',empresa:'',telefono:'',email:''};
+  _cache.cfg        = cfg.data ? mapCfg(cfg.data) : {costePorGramo:0.03,costePorHora:0.15,margen:30,moneda:'€',empresa:'',telefono:'',email:'',tipoIva:0,nombreImpuesto:'IVA'};
 
   // Resolver plan: whitelist admin > row de user_plans > default free.
   // Si la tabla aún no existe (SQL no aplicado) cae a default gracias al catch de arriba.
@@ -1195,7 +1195,8 @@ function mapPiezas(rows){ return rows.map(r=>({
 function mapCfg(r){ return {
   costePorGramo:r.coste_por_gramo,costePorHora:r.coste_por_hora,
   margen:r.margen,moneda:r.moneda,empresa:r.empresa,telefono:r.telefono,email:r.email,
-  nif:r.nif||'', direccion:r.direccion||'', logo:r.logo||''
+  nif:r.nif||'', direccion:r.direccion||'', logo:r.logo||'',
+  tipoIva:Number(r.tipo_iva||0), nombreImpuesto:r.nombre_impuesto||'IVA'
 };}
 
 // ═══════════════════════════════════════════════
@@ -1227,7 +1228,7 @@ function _rtApply(table, eventType, newRow, oldRow){
   // Config y user_plans son filas únicas por usuario → objetos, no arrays.
   if(table === 'config'){
     if(eventType === 'DELETE'){
-      _cache.cfg = {costePorGramo:0.03,costePorHora:0.15,margen:30,moneda:'€',empresa:'',telefono:'',email:''};
+      _cache.cfg = {costePorGramo:0.03,costePorHora:0.15,margen:30,moneda:'€',empresa:'',telefono:'',email:'',tipoIva:0,nombreImpuesto:'IVA'};
     } else if(newRow){
       _cache.cfg = mapCfg(newRow);
       try { if(typeof refreshBizHeader === 'function') refreshBizHeader(); } catch(_){}
@@ -1517,9 +1518,9 @@ async function registrarFactura(pedido,cliente,cfg,{tipo='emision',rectifica_id=
 
     const c=calcOrderCosts(pedido,cfg);
     const base=Number(c.fp||0);
-    const tipoIva=0;                    // TODO fase posterior: IVA configurable en cfg
-    const cuotaIva=0;
-    const total=base+cuotaIva;
+    const tipoIva=Number(cfg.tipoIva||0);
+    const cuotaIva=parseFloat((base * tipoIva / 100).toFixed(2));
+    const total=parseFloat((base+cuotaIva).toFixed(2));
 
     const registro={
       user_id:CU.id,
@@ -2175,7 +2176,7 @@ ${cl.direccion?`<div class="row"><span class="lbl">Dirección</span><span class=
 ${cl.email?`<div class="row"><span class="lbl">Email</span><span class="val">${cl.email}</span></div>`:''}
 ${cl.telefono?`<div class="row"><span class="lbl">Teléfono</span><span class="val">${cl.telefono}</span></div>`:''}</div>
 <div class="section"><div class="section-title">Detalles</div>${lineasHTML}${o.notas?`<div class="row" style="margin-top:8px"><span class="lbl">Notas</span><span class="val">${o.notas}</span></div>`:''}</div></div>
-<div class="price-section"><div><div class="price-lbl">PRECIO TOTAL</div><div style="font-size:11px;color:#475569;margin-top:4px">IVA no incluido</div></div>
+<div class="price-section"><div><div class="price-lbl">PRECIO TOTAL</div><div style="font-size:11px;color:#475569;margin-top:4px">${Number(cfg.tipoIva||0)>0?(cfg.nombreImpuesto||'IVA')+' no incluido':'Impuestos no incluidos'}</div></div>
 <div style="display:flex;align-items:baseline"><div class="price-val">${c.fp.toFixed(2)}</div><div class="price-mon">${mon}</div></div></div>
 <div class="payment"><div style="font-size:28px;flex-shrink:0">📱</div><div><div class="payment-label">Forma de pago</div><div class="payment-title">Bizum</div>
 ${biz.telefono?`<div class="payment-num">${biz.telefono}</div><div class="payment-sub">Puedes realizar el pago por Bizum al número indicado</div>`:`<div class="payment-sub" style="font-size:12px;font-weight:600">Consultar forma de pago</div>`}</div></div>
@@ -2334,7 +2335,7 @@ async function genFactura(id){
 <div class="meta-row"><div style="flex:1"><div class="slbl">Facturar a</div><div class="client-card"><div class="client-name">${cl.nombre||'—'}</div><div class="client-sub">${cl.nif?`<div><b>NIF/CIF: ${cl.nif}</b></div>`:''}${cl.empresa?`<div>${cl.empresa}</div>`:''}${cl.direccion?`<div>📍 ${cl.direccion}</div>`:''}${cl.email?`<div>${cl.email}</div>`:''}${cl.telefono?`<div>${cl.telefono}</div>`:''}</div></div></div>
 <div><div class="slbl">Datos del pedido</div><div class="info-card"><div class="info-row"><span class="info-lbl">Proyecto</span><span class="info-val">${o.proyecto}</span></div><div class="info-row"><span class="info-lbl">Fecha</span><span class="info-val">${o.fecha||'—'}</span></div><div class="info-row"><span class="info-lbl">Peso total</span><span class="info-val">${o.peso||'—'}g</span></div><div class="info-row"><span class="info-lbl">Tiempo</span><span class="info-val">${o.tiempoImpresion||'—'}h</span></div></div></div></div>
 <div class="items-section"><div class="slbl">Detalle del servicio</div><div class="items-wrap">${lineasHTML}</div></div>
-<div class="totals-wrap"><div class="totals">${c.pd>0?`<div class="totals-row"><span class="totals-lbl">Diseño</span><span class="totals-val">${c.pd.toFixed(2)} ${mon}</span></div>`:''}${c.pp>0?`<div class="totals-row"><span class="totals-lbl">Postprocesado</span><span class="totals-val">${c.pp.toFixed(2)} ${mon}</span></div>`:''}<div class="total-final"><span class="total-final-lbl">Total facturado</span><div style="display:flex;align-items:baseline"><span class="total-final-amt">${c.fp.toFixed(2)}</span><span class="total-final-mon">${mon}</span></div></div></div></div>
+<div class="totals-wrap"><div class="totals">${c.pd>0?`<div class="totals-row"><span class="totals-lbl">Diseño</span><span class="totals-val">${c.pd.toFixed(2)} ${mon}</span></div>`:''}${c.pp>0?`<div class="totals-row"><span class="totals-lbl">Postprocesado</span><span class="totals-val">${c.pp.toFixed(2)} ${mon}</span></div>`:''}${(()=>{const tiva=Number(cfg.tipoIva||0);if(tiva<=0)return'';const cuota=(c.fp*tiva/100);return`<div class="totals-row"><span class="totals-lbl">Base imponible</span><span class="totals-val">${c.fp.toFixed(2)} ${mon}</span></div><div class="totals-row"><span class="totals-lbl">${esc(cfg.nombreImpuesto||'IVA')} (${tiva}%)</span><span class="totals-val">${cuota.toFixed(2)} ${mon}</span></div>`;})()}<div class="total-final"><span class="total-final-lbl">Total facturado</span><div style="display:flex;align-items:baseline"><span class="total-final-amt">${(()=>{const tiva=Number(cfg.tipoIva||0);return tiva>0?(c.fp*(1+tiva/100)).toFixed(2):c.fp.toFixed(2);})()}</span><span class="total-final-mon">${mon}</span></div></div></div></div>
 ${o.notas?`<div class="notas-box"><b>Notas:</b> ${o.notas}</div>`:''}
 ${huella?`<div class="compl"><div class="compl-txt"><div><b>Sistema:</b> Brami3D v${SIF_VERSION} · Conforme RD 1007/2023 (modo No-Verifactu)</div><div><b>Huella SHA-256:</b> <span class="huella">${huellaFmt}</span></div><div class="verify">Escanee el QR para verificar esta factura en la sede electrónica de la AEAT (sede.agenciatributaria.gob.es).</div></div>${qrImg?`<div class="compl-qr"><img src="${qrImg}" alt="QR verificación AEAT"></div>`:''}</div>`:''}
 </div>
@@ -4306,7 +4307,10 @@ function pgConfig(){
 ${fld('Coste por gramo por defecto (€/g)','costePorGramo',cfg.costePorGramo,'number')}
 ${fld('Precio kWh electricidad (€/kWh)','costePorHora',cfg.costePorHora,'number')}
 ${fld('Margen de beneficio (%)','margen',cfg.margen,'number')}
-${fld('Moneda','moneda',cfg.moneda,'text',[{value:'€',label:'Euro (€)'},{value:'$',label:'Dólar ($)'},{value:'£',label:'Libra (£)'}])}
+${fld('Moneda','moneda',cfg.moneda,'text',[{value:'€',label:'Euro (€)'},{value:'$',label:'Dólar ($)'},{value:'£',label:'Libra (£)'},{value:'R$',label:'Real brasileño (R$)'},{value:'MXN',label:'Peso mexicano (MXN)'},{value:'ARS',label:'Peso argentino (ARS)'},{value:'CLP',label:'Peso chileno (CLP)'}])}
+${fld('Nombre del impuesto','nombreImpuesto',cfg.nombreImpuesto||'IVA','text',[{value:'IVA',label:'IVA (España / México / Argentina)'},{value:'VAT',label:'VAT (UK / Europa)'},{value:'GST',label:'GST (Australia / India / NZ)'},{value:'Sales Tax',label:'Sales Tax (EEUU)'},{value:'Ninguno',label:'Sin impuesto'}])}
+${fld('Tipo impositivo (%)','tipoIva',cfg.tipoIva||0,'number')}
+<p style="font-size:11px;color:var(--text4);margin-top:-8px;line-height:1.5">0% = sin impuesto en facturas. El impuesto se añade encima del precio al generar la factura.</p>
 <button class="btn-primary" id="scb" onclick="saveConfig()">Guardar configuración</button>
 </div>
 <div class="card" style="flex:1;min-width:280px">
@@ -4374,18 +4378,21 @@ ${(()=>{
 }
 
 async function saveConfig(){
-  const d=gfd(['costePorGramo','costePorHora','margen','moneda']);
+  const d=gfd(['costePorGramo','costePorHora','margen','moneda','nombreImpuesto','tipoIva']);
   for(const [label,raw,opts] of [
-    ['Coste por gramo (€/g)',d.costePorGramo,{min:0,max:1000}],
-    ['Precio kWh (€/kWh)',d.costePorHora,{min:0,max:100}],
-    ['Margen (%)',d.margen,{min:0,max:1000}]
+    ['Coste por gramo',d.costePorGramo,{min:0,max:1000}],
+    ['Precio kWh',d.costePorHora,{min:0,max:100}],
+    ['Margen (%)',d.margen,{min:0,max:1000}],
+    ['Tipo impositivo (%)',d.tipoIva,{min:0,max:100}]
   ]){
     const v=validateNum(label,raw,opts); if(!v.ok){showToast(v.error,'err');return;}
   }
   const costePorGramo=numVal(d.costePorGramo,{min:0});
   const costePorHora=numVal(d.costePorHora,{min:0});
   const margen=numVal(d.margen,{min:0});
-  const row={user_id:CU.id,coste_por_gramo:costePorGramo,coste_por_hora:costePorHora,margen:margen,moneda:d.moneda,empresa:_cache.cfg.empresa||'',telefono:_cache.cfg.telefono||'',email:_cache.cfg.email||''};
+  const tipoIva=numVal(d.tipoIva,{min:0,max:100});
+  const nombreImpuesto=d.nombreImpuesto||'IVA';
+  const row={user_id:CU.id,coste_por_gramo:costePorGramo,coste_por_hora:costePorHora,margen:margen,moneda:d.moneda,empresa:_cache.cfg.empresa||'',telefono:_cache.cfg.telefono||'',email:_cache.cfg.email||'',tipo_iva:tipoIva,nombre_impuesto:nombreImpuesto};
   const {error}=await sb.from('config').upsert(row,{onConflict:'user_id'});
   if(error){showToast('Error: '+error.message,'err');return;}
   _cache.cfg={..._cache.cfg,...mapCfg(row)};
@@ -4397,7 +4404,7 @@ async function saveBiz(){
   const d=gfd(['biz_empresa','biz_nif','biz_direccion','biz_telefono','biz_email']);
   // Logo: mantiene el pendiente cargado en _pendingLogo si hay uno, si no el actual de cfg
   const logoFinal = (_pendingLogo!==undefined) ? _pendingLogo : (_cache.cfg.logo||'');
-  const row={user_id:CU.id,empresa:d.biz_empresa||'',nif:d.biz_nif||'',direccion:d.biz_direccion||'',telefono:d.biz_telefono||'',email:d.biz_email||'',coste_por_gramo:_cache.cfg.costePorGramo,coste_por_hora:_cache.cfg.costePorHora,margen:_cache.cfg.margen,moneda:_cache.cfg.moneda,logo:logoFinal};
+  const row={user_id:CU.id,empresa:d.biz_empresa||'',nif:d.biz_nif||'',direccion:d.biz_direccion||'',telefono:d.biz_telefono||'',email:d.biz_email||'',coste_por_gramo:_cache.cfg.costePorGramo,coste_por_hora:_cache.cfg.costePorHora,margen:_cache.cfg.margen,moneda:_cache.cfg.moneda,logo:logoFinal,tipo_iva:_cache.cfg.tipoIva||0,nombre_impuesto:_cache.cfg.nombreImpuesto||'IVA'};
   const {error}=await sb.from('config').upsert(row,{onConflict:'user_id'});
   if(error){showToast('Error: '+error.message,'err');return;}
   _cache.cfg={..._cache.cfg,empresa:d.biz_empresa,nif:d.biz_nif,direccion:d.biz_direccion,telefono:d.biz_telefono,email:d.biz_email,logo:logoFinal};
