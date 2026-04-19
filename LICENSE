@@ -1,0 +1,34 @@
+Brami3D — Propietary License
+==============================
+
+Copyright (c) 2025-2026 Alexander Rivero. All rights reserved.
+
+This source code is made publicly viewable for transparency and educational
+reference only. It does not grant any license to use, copy, modify, merge,
+publish, distribute, sublicense, or sell copies of the software, nor to
+deploy it as a hosted service, in whole or in part, without prior written
+permission from the copyright holder.
+
+Permitted, without prior authorization:
+- Reading and studying the source code.
+- Reporting bugs or suggesting improvements via GitHub Issues.
+
+Not permitted, without prior written authorization:
+- Running or hosting Brami3D (in whole or in substantial part) as a
+  service offered to third parties.
+- Redistributing the source code or compiled artifacts.
+- Creating derivative works for commercial use.
+- Removing or altering copyright, trademark, or this license notice.
+
+"Brami3D" and its visual identity (logo, colors, designs) are the exclusive
+property of Alexander Rivero. Any commercial use, OEM licensing, or
+white-label agreement must be negotiated in writing.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+THE AUTHOR BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+
+For commercial licensing or partnership inquiries: alexri69@gmail.com
