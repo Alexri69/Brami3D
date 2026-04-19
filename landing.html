@@ -236,7 +236,7 @@ footer{padding:32px 40px;border-top:1px solid var(--border);display:flex;justify
 </div>
 
 
-<div class="pricing reveal">
+<div id="precios" class="pricing reveal">
   <span class="sec-lbl">Precios</span>
   <h2>Simple y sin sorpresas</h2>
   <p>Prueba gratis 30 días. Sin tarjeta de crédito.</p>
@@ -396,27 +396,22 @@ footer{padding:32px 40px;border-top:1px solid var(--border);display:flex;justify
 // restaure la posición de scroll previa (p.ej. dejar al usuario caído en
 // #calculadora si fue lo último que vio) y ancla inicial a la cabecera.
 if('scrollRestoration' in history) history.scrollRestoration='manual';
-// En desktop, html{scroll-behavior:smooth} + scrollTo(0,0) se puede
-// interrumpir y dejar al usuario a medio camino (p.ej. sobre la calculadora).
-// Por eso forzamos scroll instantáneo durante el arranque y lo repetimos
-// varias veces durante el primer segundo para cubrir layout shifts de
-// fuentes, imágenes y ejecución del IntersectionObserver.
 function hardScrollTop(){
-  const h=location.hash;
-  if(!h || h==='#' || h==='#calculadora'){
-    try{ history.replaceState(null,'',location.pathname+location.search); }catch(_){}
-    document.documentElement.style.scrollBehavior='auto';
-    window.scrollTo(0,0);
-    document.documentElement.scrollTop=0;
-    document.body.scrollTop=0;
-  }
+  try{ history.replaceState(null,'',location.pathname+location.search); }catch(_){}
+  document.documentElement.scrollTop=0;
+  document.body.scrollTop=0;
+  window.scrollTo({top:0,left:0,behavior:'instant'});
 }
 hardScrollTop();
 document.addEventListener('DOMContentLoaded', hardScrollTop);
 window.addEventListener('load', hardScrollTop);
-// Repetir durante 1.2s por si layout shifts (fuentes tardías, etc.)
-// empujan el scroll en desktop.
+// Cubrir layout shifts durante el primer segundo
 [50,150,300,600,1200].forEach(ms=>setTimeout(hardScrollTop, ms));
+// Fix bfcache móvil: cuando el usuario vuelve atrás desde la app,
+// el browser restaura la posición aunque scrollRestoration='manual'.
+window.addEventListener('pageshow', function(e){
+  if(e.persisted) hardScrollTop();
+});
 // Smooth scroll solo para links de anclaje internos (href="#algo"), nunca global.
 document.addEventListener('click', function(e){
   const a = e.target.closest('a[href^="#"]');
