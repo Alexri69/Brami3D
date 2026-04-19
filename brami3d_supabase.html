@@ -1760,6 +1760,7 @@ const NAV=[
   {id:'impresoras',lbl:'Impresoras',icon:'🖨️'},
   {id:'filamentos',lbl:'Filamentos',icon:'🧵'},
   {id:'piezas',lbl:'Piezas',icon:'🧩'},
+  {id:'cobros',lbl:'Cobros',icon:'💳'},
   {id:'archivos',lbl:'Archivos',icon:'📁'},
   {id:'gastos',lbl:'Gastos',icon:'💸'},
   {id:'registro',lbl:'Registro fiscal',icon:'📜'},
@@ -1798,6 +1799,7 @@ function mobMore(){
   const items = [
     {id:'impresoras',    lbl:'Impresoras',     ico:'🖨️'},
     {id:'piezas',        lbl:'Piezas',         ico:'🧩'},
+    {id:'cobros',        lbl:'Cobros',          ico:'💳'},
     {id:'gastos',        lbl:'Gastos',         ico:'💸'},
     {id:'archivos',      lbl:'Archivos',       ico:'📁'},
     {id:'registro',      lbl:'Registro fiscal',ico:'📜'},
@@ -1957,7 +1959,7 @@ document.addEventListener('click', e=>{
 //  RENDER
 // ═══════════════════════════════════════════════
 function render(){
-  const map={dashboard:pgDashboard,clientes:pgClientes,pedidos:pgPedidos,impresoras:pgImpresoras,filamentos:pgFilamentos,piezas:pgPiezas,archivos:pgArchivos,gastos:pgGastos,registro:pgRegistro,configuracion:pgConfig,admin:pgAdmin};
+  const map={dashboard:pgDashboard,clientes:pgClientes,pedidos:pgPedidos,impresoras:pgImpresoras,filamentos:pgFilamentos,piezas:pgPiezas,archivos:pgArchivos,gastos:pgGastos,cobros:pgCobros,registro:pgRegistro,configuracion:pgConfig,admin:pgAdmin};
   // Gate admin page: si alguien hace goTo('admin') sin ser admin, redirige.
   if(PAGE==='admin' && !_plan.isAdmin){ PAGE='dashboard'; }
   const fn=map[PAGE];
@@ -4022,6 +4024,91 @@ async function doDelGasto(id){
     _cache.gastos=(_cache.gastos||[]).filter(x=>x.id!==id);
     render();showToast('Eliminado','ok');
   }
+}
+
+// ═══════════════════════════════════════════════
+// ═══════════════════════════════════════════════
+//  COBROS PENDIENTES
+// ═══════════════════════════════════════════════
+function pgCobros(){
+  const cfg=_cache.cfg; const mon=cfg.moneda||'€';
+  const hoy=new Date();
+
+  const pendientes=(_cache.pedidos||[]).filter(o=>{
+    if(o.cobrado===true) return false;
+    return ['terminado','entregado','imprimiendo','pendiente'].includes(o.estado);
+  }).map(o=>{
+    const dias=o.fecha?Math.floor((hoy-new Date(o.fecha))/(1000*60*60*24)):0;
+    return {...o, _dias:dias, _coste:calcOrderCosts(o,cfg).fp};
+  }).sort((a,b)=>b._dias-a._dias);
+
+  const totalPendiente=pendientes.reduce((s,o)=>s+o._coste,0);
+  const urgentes=pendientes.filter(o=>o._dias>=7&&(o.estado==='terminado'||o.estado==='entregado'));
+  const enCurso=pendientes.filter(o=>o.estado==='imprimiendo'||o.estado==='pendiente');
+
+  if(pendientes.length===0) return`
+    <div class="page-header"><h2 class="page-title">Cobros pendientes</h2></div>
+    <div class="card" style="text-align:center;padding:48px 24px">
+      <div style="font-size:48px;margin-bottom:12px">🎉</div>
+      <div style="font-size:18px;font-weight:700;color:var(--text2);margin-bottom:8px">Todo cobrado</div>
+      <div style="font-size:14px;color:var(--text4)">No tienes pedidos pendientes de cobro.</div>
+    </div>`;
+
+  const fila=(o)=>{
+    const cl=_cache.clientes.find(x=>x.id===o.clienteId)||{};
+    const urgente=o._dias>=14&&(o.estado==='terminado'||o.estado==='entregado');
+    const aviso=o._dias>=7&&(o.estado==='terminado'||o.estado==='entregado');
+    const border=urgente?'rgba(239,68,68,.35)':aviso?'rgba(245,158,11,.3)':'rgba(255,255,255,.06)';
+    const bg=urgente?'linear-gradient(145deg,#1a0808,#0f0505)':aviso?'linear-gradient(145deg,#1a1200,#0f0d00)':'var(--bg2)';
+    const diasColor=urgente?'#f87171':aviso?'#fbbf24':'var(--text4)';
+    const waMsg=encodeURIComponent(`Hola ${cl.nombre||''}, te recuerdo que el pedido "${o.proyecto}" está listo para recoger/cobrar. Total: ${o._coste.toFixed(2)}${mon}. ¡Gracias!`);
+    const waTel=cl.telefono?cl.telefono.replace(/\s/g,''):'';
+    return`<div style="background:${bg};border:1px solid ${border};border-radius:14px;padding:16px 18px;margin-bottom:10px">
+      <div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap">
+        <div style="flex:1;min-width:200px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
+            <span style="font-size:14px;font-weight:700;color:var(--text2)">${esc(o.proyecto)}</span>
+            ${mkBadge(o.estado)}
+            ${urgente?'<span style="background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3);border-radius:99px;padding:1px 8px;font-size:10px;font-weight:800">URGENTE</span>':''}
+          </div>
+          <div style="display:flex;gap:16px;font-size:12px;color:var(--text4);flex-wrap:wrap">
+            ${cl.nombre?`<span>👤 ${esc(cl.nombre)}</span>`:''}
+            ${o.fecha?`<span>📅 ${esc(o.fecha)}</span>`:''}
+            <span style="color:${diasColor};font-weight:700">⏱ ${o._dias} día${o._dias!==1?'s':''}</span>
+            ${o.presNum?`<span style="color:var(--text5)">Ref: ${esc(o.presNum)}</span>`:''}
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap">
+          <span style="font-size:20px;font-weight:900;color:#34d399;font-family:monospace;letter-spacing:-1px">${o._coste.toFixed(2)}${mon}</span>
+          ${waTel?`<a href="https://wa.me/${waTel}?text=${waMsg}" target="_blank" style="background:rgba(37,211,102,.12);border:1px solid rgba(37,211,102,.3);color:#25d366;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap">💬 WhatsApp</a>`:''}
+          <button onclick="editO('${o.id}')" style="background:rgba(52,211,153,.15);border:1px solid rgba(52,211,153,.3);color:#34d399;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;white-space:nowrap">✅ Cobrar</button>
+        </div>
+      </div>
+    </div>`;
+  };
+
+  return`
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+    <div><h2 class="page-title">Cobros pendientes</h2><div class="page-subtitle">${pendientes.length} pedido${pendientes.length!==1?'s':''} · ${totalPendiente.toFixed(2)}${mon} por cobrar</div></div>
+  </div>
+  <div class="flexwrap" style="margin-bottom:20px">
+    <div class="card stat-card" style="flex:1;min-width:160px;padding:18px 20px">
+      <div style="font-size:10px;font-weight:800;color:var(--text5);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:8px">Por cobrar</div>
+      <div style="font-size:26px;font-weight:900;color:#34d399;font-family:monospace;letter-spacing:-1px">${totalPendiente.toFixed(2)}${mon}</div>
+    </div>
+    <div class="card stat-card" style="flex:1;min-width:140px;padding:18px 20px">
+      <div style="font-size:10px;font-weight:800;color:var(--text5);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:8px">Urgentes (+7 días)</div>
+      <div style="font-size:26px;font-weight:900;color:${urgentes.length>0?'#f87171':'#34d399'};font-family:monospace">${urgentes.length}</div>
+    </div>
+    <div class="card stat-card" style="flex:1;min-width:140px;padding:18px 20px">
+      <div style="font-size:10px;font-weight:800;color:var(--text5);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:8px">En curso</div>
+      <div style="font-size:26px;font-weight:900;color:#60a5fa;font-family:monospace">${enCurso.length}</div>
+    </div>
+  </div>
+  ${urgentes.length>0?`<div style="font-size:10px;font-weight:800;color:#f87171;text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px">🔴 Urgentes — más de 7 días sin cobrar</div>${urgentes.map(fila).join('')}<div style="margin-bottom:18px"></div>`:''}
+  ${enCurso.length>0?`<div style="font-size:10px;font-weight:800;color:#60a5fa;text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px">🔵 En curso — pendiente o imprimiendo</div>${enCurso.map(fila).join('')}`:''}
+  ${pendientes.filter(o=>!urgentes.includes(o)&&!enCurso.includes(o)).length>0?`<div style="font-size:10px;font-weight:800;color:var(--text4);text-transform:uppercase;letter-spacing:1.4px;margin:18px 0 10px">🟡 Terminados recientes</div>${pendientes.filter(o=>!urgentes.includes(o)&&!enCurso.includes(o)).map(fila).join('')}`:''}
+  `;
 }
 
 // ═══════════════════════════════════════════════
