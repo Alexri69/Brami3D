@@ -44,27 +44,28 @@ stable
 security definer
 set search_path = public
 as $$
+#variable_conflict use_variable
 declare
-  caller_id    uuid := auth.uid();
-  caller_email text;
-  has_admin_plan boolean;
+  caller_id uuid := auth.uid();
 begin
   if caller_id is null then
     return false;
   end if;
 
   -- Comprobar email whitelist (ADMIN_EMAILS_SQL)
-  select lower(email) into caller_email from auth.users where id = caller_id;
-  if caller_email = 'alexri69@gmail.com' then
+  if exists (
+    select 1 from auth.users u
+    where u.id = caller_id
+      and lower(u.email) = 'alexri69@gmail.com'
+  ) then
     return true;
   end if;
 
   -- Comprobar plan='admin' en user_plans
-  select (plan = 'admin') into has_admin_plan
-  from public.user_plans
-  where user_id = caller_id;
-
-  return coalesce(has_admin_plan, false);
+  return coalesce(
+    (select (p.plan = 'admin') from public.user_plans p where p.user_id = caller_id),
+    false
+  );
 end;
 $$;
 
