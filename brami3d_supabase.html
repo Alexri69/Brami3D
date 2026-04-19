@@ -2833,10 +2833,19 @@ ${filAlert}
 // ═══════════════════════════════════════════════
 //  CLIENTES
 // ═══════════════════════════════════════════════
-let _cSearch='';
+let _cSearch='', _cPage=0;
+const _C_PAGE_SIZE=25;
 function pgClientes(){
-  const items=_cache.clientes.filter(i=>[i.nombre,i.empresa,i.email,i.telefono].join(' ').toLowerCase().includes(_cSearch.toLowerCase()));
+  const all=_cache.clientes.filter(i=>[i.nombre,i.empresa,i.email,i.telefono].join(' ').toLowerCase().includes(_cSearch.toLowerCase()));
+  const totalPages=Math.max(1,Math.ceil(all.length/_C_PAGE_SIZE));
+  _cPage=Math.min(_cPage,totalPages-1);
+  const items=all.slice(_cPage*_C_PAGE_SIZE,(_cPage+1)*_C_PAGE_SIZE);
   const isMob=window.innerWidth<=768;
+  const pager=all.length>_C_PAGE_SIZE?`<div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:16px;font-size:13px;color:var(--text4)">
+    <button class="btn-secondary" style="padding:6px 14px" ${_cPage===0?'disabled':''} onclick="_cPage--;render()">← Anterior</button>
+    <span>Página <b style="color:var(--text2)">${_cPage+1}</b> de ${totalPages} · ${all.length} clientes</span>
+    <button class="btn-secondary" style="padding:6px 14px" ${_cPage>=totalPages-1?'disabled':''} onclick="_cPage++;render()">Siguiente →</button>
+  </div>`:'';
 
   const rows=items.length===0
     ? (isMob?'<p style="color:var(--text5);text-align:center;padding:32px">Sin clientes</p>':'<tr><td colspan="6" style="text-align:center;color:var(--text5);padding:28px">Sin clientes</td></tr>')
@@ -2864,10 +2873,10 @@ function pgClientes(){
   <button class="btn-primary" onclick="editC(null)">+ Nuevo</button>
 </div>
 </div>
-<input style="margin-bottom:14px" placeholder="🔍 Buscar…" value="${esc(_cSearch)}" oninput="_cSearch=this.value;render()">
+<input style="margin-bottom:14px" placeholder="🔍 Buscar…" value="${esc(_cSearch)}" oninput="_cSearch=this.value;_cPage=0;render()">
 ${isMob
-  ? `<div>${rows}</div>`
-  : `<div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table><thead><tr><th>Nombre</th><th>NIF/CIF</th><th>Empresa</th><th>Teléfono</th><th>Email</th><th>Notas</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`
+  ? `<div>${rows}</div>${pager}`
+  : `<div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table><thead><tr><th>Nombre</th><th>NIF/CIF</th><th>Empresa</th><th>Teléfono</th><th>Email</th><th>Notas</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>${pager}`
 }`;
 }
 function clienteFrm(x={}){ return fld('Nombre *','nombre',x.nombre||'')+fld('NIF / CIF','nif',x.nif||'')+fld('Empresa','empresa',x.empresa||'')+fld('Dirección','direccion',x.direccion||'')+fld('Teléfono','telefono',x.telefono||'')+fld('Email','email',x.email||'','email')+fld('Notas','notas',x.notas||'','textarea'); }
@@ -3237,19 +3246,28 @@ async function doDelPz(id){ if(await dbDel('piezas',id)){_cache.piezas=_cache.pi
 // ═══════════════════════════════════════════════
 //  PEDIDOS
 // ═══════════════════════════════════════════════
-let _pFilt='todos',_pSearch='';
+let _pFilt='todos',_pSearch='',_pPage=0;
+const _P_PAGE_SIZE=20;
 function pgPedidos(){
   const orders=_cache.pedidos; const clients=_cache.clientes; const cfg=_cache.cfg;
   const ESTADOS=['todos','pendiente','imprimiendo','terminado','entregado','cobrado'];
   const rowHl={pendiente:'rgba(245,158,11,.06)',imprimiendo:'rgba(59,130,246,.06)',terminado:'rgba(16,185,129,.04)',entregado:'rgba(139,92,246,.05)',cobrado:'rgba(34,197,94,.06)'};
-  const chips=ESTADOS.map(e=>`<button class="chip${_pFilt===e?' active':''}" onclick="_pFilt='${e}';render()">${e}</button>`).join('');
+  const chips=ESTADOS.map(e=>`<button class="chip${_pFilt===e?' active':''}" onclick="_pFilt='${e}';_pPage=0;render()">${e}</button>`).join('');
   const fl=orders.filter(o=>{
     if(_pFilt==='cobrado') return o.cobrado===true;
     if(_pFilt!=='todos'&&o.estado!==_pFilt)return false;
     if(_pSearch&&!o.proyecto?.toLowerCase().includes(_pSearch.toLowerCase()))return false;
     return true;
   });
-  const rows=fl.length===0?'<tr><td colspan="9" style="text-align:center;color:var(--text5);padding:32px">Sin pedidos — crea tu primer pedido 👆</td></tr>':fl.map(o=>{
+  const totalPPages=Math.max(1,Math.ceil(fl.length/_P_PAGE_SIZE));
+  _pPage=Math.min(_pPage,totalPPages-1);
+  const flPaged=fl.slice(_pPage*_P_PAGE_SIZE,(_pPage+1)*_P_PAGE_SIZE);
+  const pPager=fl.length>_P_PAGE_SIZE?`<div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:16px;font-size:13px;color:var(--text4)">
+    <button class="btn-secondary" style="padding:6px 14px" ${_pPage===0?'disabled':''} onclick="_pPage--;render()">← Anterior</button>
+    <span>Página <b style="color:var(--text2)">${_pPage+1}</b> de ${totalPPages} · ${fl.length} pedidos</span>
+    <button class="btn-secondary" style="padding:6px 14px" ${_pPage>=totalPPages-1?'disabled':''} onclick="_pPage++;render()">Siguiente →</button>
+  </div>`:'' ;
+  const rows=flPaged.length===0?'<tr><td colspan="9" style="text-align:center;color:var(--text5);padding:32px">Sin pedidos — crea tu primer pedido 👆</td></tr>':flPaged.map(o=>{
     const cl=clients.find(x=>x.id===o.clienteId)||{};
     const c=calcOrderCosts(o,cfg);
     const bg=rowHl[o.estado]||'';
@@ -3285,7 +3303,7 @@ function pgPedidos(){
 
   const isMob=window.innerWidth<=768;
 
-  const mobCards=fl.length===0?'<p style="color:var(--text5);text-align:center;padding:32px">Sin pedidos — crea tu primer pedido 👆</p>':fl.map(o=>{
+  const mobCards=flPaged.length===0?'<p style="color:var(--text5);text-align:center;padding:32px">Sin pedidos — crea tu primer pedido 👆</p>':flPaged.map(o=>{
     const cl=clients.find(x=>x.id===o.clienteId)||{};
     const c=calcOrderCosts(o,cfg);
     const hasFactura=!!o.facturaNum;
@@ -3322,11 +3340,11 @@ function pgPedidos(){
   }).join('');
 
   return`<div class="page-header"><div><h2 class="page-title">Pedidos</h2><div class="page-subtitle">${orders.length} pedido${orders.length!==1?'s':''} en total</div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-secondary" onclick="exportPedidosCSV()" style="display:flex;align-items:center;gap:6px">📊 Exportar Excel</button><button class="btn-primary" onclick="editO(null)">+ Nuevo</button></div></div>
-<div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center">${chips}${!isMob?`<input style="flex:1;min-width:160px" placeholder="🔍 Buscar…" value="${esc(_pSearch)}" oninput="_pSearch=this.value;render()">`:''}</div>
-${isMob?`<input style="margin-bottom:12px" placeholder="🔍 Buscar proyecto…" value="${esc(_pSearch)}" oninput="_pSearch=this.value;render()">`:``}
+<div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center">${chips}${!isMob?`<input style="flex:1;min-width:160px" placeholder="🔍 Buscar…" value="${esc(_pSearch)}" oninput="_pSearch=this.value;_pPage=0;render()">`:''}</div>
+${isMob?`<input style="margin-bottom:12px" placeholder="🔍 Buscar proyecto…" value="${esc(_pSearch)}" oninput="_pSearch=this.value;_pPage=0;render()">`:``}
 ${isMob
-  ? `<div>${mobCards}</div>`
-  : `<div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table><thead><tr><th>Nº / Factura</th><th>Proyecto</th><th>Cliente</th><th>Material</th><th>Peso</th><th>Precio</th><th>Estado</th><th>Fecha</th><th style="min-width:140px"></th></tr></thead><tbody>${rows}</tbody></table></div></div>`
+  ? `<div>${mobCards}</div>${pPager}`
+  : `<div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table><thead><tr><th>Nº / Factura</th><th>Proyecto</th><th>Cliente</th><th>Material</th><th>Peso</th><th>Precio</th><th>Estado</th><th>Fecha</th><th style="min-width:140px"></th></tr></thead><tbody>${rows}</tbody></table></div></div>${pPager}`
 }`;
 }
 
