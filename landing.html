@@ -42,7 +42,7 @@
 <style>
 :root{--bg:#04090f;--bg2:#080f1a;--bg3:#0d1926;--blue:#2563eb;--blue3:#60a5fa;--blue4:#93c5fd;--text:#e2eaf4;--text2:#7a9ab8;--text3:#2e4a6a;--border:#0f2040}
 *{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
+html{scroll-behavior:auto}
 body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 40px;display:flex;align-items:center;justify-content:space-between;background:rgba(4,9,15,.9);backdrop-filter:blur(20px);border-bottom:1px solid rgba(37,99,235,.15)}
 .nav-logo{display:flex;align-items:center;gap:12px;text-decoration:none}
@@ -417,8 +417,17 @@ window.addEventListener('load', hardScrollTop);
 // Repetir durante 1.2s por si layout shifts (fuentes tardías, etc.)
 // empujan el scroll en desktop.
 [50,150,300,600,1200].forEach(ms=>setTimeout(hardScrollTop, ms));
-// Reactivar el smooth scroll después del arranque para los enlaces ancla.
-setTimeout(()=>{document.documentElement.style.scrollBehavior='';}, 1300);
+// Smooth scroll solo para links de anclaje internos (href="#algo"), nunca global.
+document.addEventListener('click', function(e){
+  const a = e.target.closest('a[href^="#"]');
+  if(!a) return;
+  const hash = a.getAttribute('href');
+  if(!hash || hash === '#') return;
+  const target = document.querySelector(hash);
+  if(!target) return;
+  e.preventDefault();
+  target.scrollIntoView({behavior:'smooth'});
+});
 
 // Observer con salvaguarda: si algo impide que se dispare correctamente,
 // a los 2 segundos revelamos todo lo que no haya recibido .visible. Así
