@@ -2260,10 +2260,9 @@ async function sendWA(id){
   const c=calcOrderCosts(o,cfg);
   const mon=cfg.moneda||'€';
 
-  // Generar presupuesto y mostrar modal
-  await genPDF(id);
+  // Asegurar que tiene número de presupuesto
+  if(!o.presNum){await genPDF(id);return;}
 
-  // Mensaje WhatsApp
   const msg=`¡Hola${cl.nombre?' '+cl.nombre:''}! 👋
 
 Te envío el presupuesto para tu pedido:
@@ -2271,18 +2270,41 @@ Te envío el presupuesto para tu pedido:
 📋 *${o.proyecto}*
 💰 *Precio total: ${c.fp.toFixed(2)} ${mon}*${o.presNum?'\n🔢 Presupuesto Nº: '+o.presNum:''}
 
-Te he adjuntado el presupuesto en PDF 📎
+Te adjunto el presupuesto en PDF.
 
 _¿Tienes alguna pregunta? Estoy a tu disposición._`;
 
   let ph=(cl.telefono||'').replace(/[^\d+]/g,'');
-  if(ph && !ph.startsWith('+')){
-    if(ph.startsWith('34')) ph='+'+ph;
-    else ph='+34'+ph;
+  if(ph&&!ph.startsWith('+')){ph=ph.startsWith('34')?'+'+ph:'+34'+ph;}
+
+  const html=buildPDFHtml(id);if(!html)return;
+  const filename=`Presupuesto_${(o.presNum||o.proyecto).replace(/\s+/g,'_')}.html`;
+  const blob=new Blob([html],{type:'text/html'});
+
+  // Móvil: Web Share API — comparte directamente a WhatsApp u otras apps
+  if(navigator.share&&navigator.canShare){
+    const file=new File([blob],filename,{type:'text/html'});
+    if(navigator.canShare({files:[file]})){
+      try{
+        await navigator.share({files:[file],title:`Presupuesto ${o.presNum||o.proyecto}`,text:msg});
+        return;
+      }catch(e){if(e.name==='AbortError')return;}
+    }
   }
 
-  // Abrir WhatsApp después de un momento para que el modal cargue
-  setTimeout(()=>window.open(`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`,'_blank'), 1200);
+  // Desktop: descargar el archivo + abrir WhatsApp con el texto
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),10000);
+
+  // Abrir WhatsApp (el usuario adjunta el archivo descargado)
+  if(ph){
+    setTimeout(()=>window.open(`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`,'_blank'),600);
+    showToast('📎 Archivo descargado — adjúntalo en WhatsApp','ok',5000);
+  } else {
+    showToast('Archivo descargado. Adjúntalo manualmente en WhatsApp.','ok',5000);
+  }
 }
 
 // ═══════════════════════════════════════════════
