@@ -2,204 +2,207 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<title>Brami3D — Promo Instagram</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Brami3D — Promo</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{width:414px;height:736px;overflow:hidden;background:#000;font-family:'Segoe UI',system-ui,sans-serif}
+html,body{height:100%;background:#000;font-family:'Segoe UI',system-ui,sans-serif;overflow:hidden}
 
-/* ── SLIDES ── */
-.reel{position:relative;width:414px;height:736px;overflow:hidden}
-.slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 28px;opacity:0;transform:translateY(40px);transition:opacity .6s ease,transform .6s ease;pointer-events:none}
+.reel{
+  position:fixed;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  background:#000;
+}
+
+/* Contenedor vertical 9:16 escalado al viewport */
+.frame{
+  position:relative;
+  width:min(100vw, calc(100vh * 9/16));
+  height:min(100vh, calc(100vw * 16/9));
+  overflow:hidden;
+  border-radius:0;
+}
+
+.slide{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:clamp(20px,5%,40px) clamp(16px,7%,36px);
+  opacity:0;
+  transition:opacity .5s ease,transform .5s ease;
+  transform:translateY(30px);
+  pointer-events:none;
+}
 .slide.active{opacity:1;transform:translateY(0);pointer-events:auto}
-.slide.exit{opacity:0;transform:translateY(-40px)}
+.slide.out{opacity:0;transform:translateY(-30px)}
 
-/* ── BG GRADIENTS ── */
-.bg1{background:linear-gradient(160deg,#0a0e1a 0%,#0f172a 50%,#0a1628 100%)}
-.bg2{background:linear-gradient(160deg,#050d1a 0%,#0c1a2e 60%,#071220 100%)}
-.bg3{background:linear-gradient(160deg,#0d0a1a 0%,#150f2a 60%,#0a0d1f 100%)}
-.bg4{background:linear-gradient(160deg,#0a1a0e 0%,#0c2618 60%,#061410 100%)}
-.bg5{background:linear-gradient(160deg,#1a0a0a 0%,#2a0f0f 40%,#1a0707 100%)}
-.bg6{background:linear-gradient(160deg,#0a0d1a 0%,#101528 50%,#080b18 100%)}
+/* Fondos */
+.bg1{background:linear-gradient(160deg,#0a0e1a,#0f172a,#0a1628)}
+.bg2{background:linear-gradient(160deg,#060d1c,#0c1a30,#071422)}
+.bg3{background:linear-gradient(160deg,#0d0a1a,#160f2c,#0a0d20)}
+.bg4{background:linear-gradient(160deg,#081a0d,#0c2618,#051410)}
+.bg5{background:linear-gradient(160deg,#0a0e1a,#0f172a,#0a1628)}
 
-/* ── GLOW ── */
-.glow-blue{position:absolute;width:300px;height:300px;background:radial-gradient(circle,rgba(59,130,246,.25) 0%,transparent 70%);top:-60px;right:-60px;pointer-events:none}
-.glow-green{position:absolute;width:280px;height:280px;background:radial-gradient(circle,rgba(52,211,153,.2) 0%,transparent 70%);bottom:-40px;left:-40px;pointer-events:none}
-.glow-purple{position:absolute;width:260px;height:260px;background:radial-gradient(circle,rgba(139,92,246,.2) 0%,transparent 70%);top:20px;left:-50px;pointer-events:none}
+/* Brillo de fondo */
+.glow{position:absolute;border-radius:50%;pointer-events:none;opacity:.5}
+.glow-bl{width:60%;padding-top:60%;background:radial-gradient(circle,rgba(59,130,246,.3),transparent 70%);top:-10%;right:-10%}
+.glow-gr{width:55%;padding-top:55%;background:radial-gradient(circle,rgba(52,211,153,.25),transparent 70%);bottom:-10%;left:-10%}
+.glow-pu{width:55%;padding-top:55%;background:radial-gradient(circle,rgba(139,92,246,.25),transparent 70%);top:5%;left:-15%}
 
-/* ── LOGO ── */
-.logo{font-size:36px;font-weight:900;letter-spacing:-2px;color:#f1f5f9;line-height:1}
+/* Tipografía escalada */
+.logo{font-size:clamp(28px,8vw,42px);font-weight:900;letter-spacing:-2px;color:#f1f5f9}
 .logo span{color:#3b82f6}
-.logo-sub{font-size:11px;font-weight:700;letter-spacing:3px;color:#3b82f6;text-transform:uppercase;margin-top:6px}
+.logo-sub{font-size:clamp(9px,2.5vw,12px);font-weight:700;letter-spacing:3px;color:#3b82f6;text-transform:uppercase;margin-top:6px}
 
-/* ── TYPOGRAPHY ── */
-.tag{display:inline-block;background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.4);color:#60a5fa;font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:5px 14px;border-radius:99px;margin-bottom:18px}
+.tag{display:inline-block;background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.4);color:#60a5fa;font-size:clamp(9px,2.2vw,11px);font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:5px 14px;border-radius:99px;margin-bottom:14px}
 .tag.green{background:rgba(52,211,153,.15);border-color:rgba(52,211,153,.4);color:#34d399}
 .tag.purple{background:rgba(139,92,246,.15);border-color:rgba(139,92,246,.4);color:#a78bfa}
 .tag.amber{background:rgba(245,158,11,.15);border-color:rgba(245,158,11,.4);color:#fbbf24}
-.headline{font-size:30px;font-weight:900;color:#f1f5f9;line-height:1.15;text-align:center;letter-spacing:-1px}
+
+.headline{font-size:clamp(22px,6.5vw,32px);font-weight:900;color:#f1f5f9;line-height:1.15;text-align:center;letter-spacing:-1px}
 .headline em{color:#3b82f6;font-style:normal}
-.sub{font-size:14px;color:#94a3b8;text-align:center;line-height:1.6;margin-top:12px;max-width:320px}
+.sub{font-size:clamp(12px,3.2vw,15px);color:#94a3b8;text-align:center;line-height:1.6;margin-top:10px;max-width:90%}
 
-/* ── CARDS ── */
-.feat-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:18px 20px;width:100%;margin-bottom:12px;display:flex;align-items:center;gap:14px}
-.feat-icon{font-size:28px;flex-shrink:0;width:48px;height:48px;background:rgba(255,255,255,.06);border-radius:12px;display:flex;align-items:center;justify-content:center}
-.feat-title{font-size:15px;font-weight:800;color:#f1f5f9;margin-bottom:3px}
-.feat-desc{font-size:12px;color:#64748b;line-height:1.4}
+/* Cards */
+.feat-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:14px;padding:clamp(10px,3%,16px) clamp(12px,4%,18px);width:100%;margin-bottom:8px;display:flex;align-items:center;gap:12px}
+.feat-icon{font-size:clamp(20px,5vw,26px);width:clamp(36px,9vw,46px);height:clamp(36px,9vw,46px);background:rgba(255,255,255,.06);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.feat-title{font-size:clamp(12px,3.2vw,15px);font-weight:800;color:#f1f5f9;margin-bottom:2px}
+.feat-desc{font-size:clamp(10px,2.5vw,12px);color:#64748b;line-height:1.4}
 
-/* ── TAX GRID ── */
-.tax-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%}
-.tax-item{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 16px;text-align:center}
-.tax-name{font-size:18px;font-weight:900;color:#f1f5f9;letter-spacing:-.5px}
-.tax-region{font-size:10px;color:#64748b;margin-top:3px;font-weight:600}
+/* Tax grid */
+.tax-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;width:100%}
+.tax-item{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:clamp(10px,3%,14px);text-align:center}
+.tax-name{font-size:clamp(14px,4vw,18px);font-weight:900;color:#f1f5f9}
+.tax-region{font-size:clamp(9px,2.2vw,11px);color:#64748b;margin-top:3px;font-weight:600}
 
-/* ── PHONE MOCKUP ── */
-.phone{position:relative;background:linear-gradient(160deg,#1e293b,#0f172a);border:2px solid rgba(255,255,255,.12);border-radius:24px;padding:16px;width:280px;box-shadow:0 24px 60px rgba(0,0,0,.6)}
-.phone-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.07)}
-.phone-title{font-size:13px;font-weight:800;color:#f1f5f9}
-.phone-dot{width:8px;height:8px;border-radius:50%}
+/* Stats */
+.stat-row{display:flex;gap:8px;width:100%}
+.stat-box{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:clamp(10px,3%,14px);text-align:center}
+.stat-val{font-size:clamp(18px,5vw,24px);font-weight:900;letter-spacing:-1px}
+.stat-lbl{font-size:clamp(8px,2.2vw,10px);color:#64748b;font-weight:600;margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
 
-/* ── STAT ROW ── */
-.stat-row{display:flex;gap:10px;width:100%}
-.stat-box{flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px;text-align:center}
-.stat-val{font-size:22px;font-weight:900;letter-spacing:-1px}
-.stat-lbl{font-size:10px;color:#64748b;font-weight:600;margin-top:4px;text-transform:uppercase;letter-spacing:.5px}
+/* Mock phone */
+.phone{background:rgba(15,23,42,.9);border:1.5px solid rgba(255,255,255,.12);border-radius:20px;padding:clamp(12px,3%,16px);width:90%;max-width:280px;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.phone-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.07)}
+.phone-title{font-size:clamp(11px,3vw,13px);font-weight:800;color:#f1f5f9}
 
-/* ── WA BUBBLE ── */
-.wa-bubble{background:#1d3a2c;border:1px solid rgba(37,211,102,.3);border-radius:16px 16px 16px 4px;padding:14px 18px;width:100%;margin-top:8px}
-.wa-name{font-size:11px;font-weight:800;color:#25d366;margin-bottom:6px}
-.wa-text{font-size:13px;color:#e2e8f0;line-height:1.6}
-.wa-time{font-size:10px;color:#4b7a5e;text-align:right;margin-top:6px}
+/* WA */
+.wa-bubble{background:#1d3a2c;border:1px solid rgba(37,211,102,.3);border-radius:16px 16px 16px 4px;padding:clamp(10px,3%,14px) clamp(12px,4%,18px);width:90%;max-width:280px;margin-top:8px}
+.wa-name{font-size:clamp(10px,2.5vw,12px);font-weight:800;color:#25d366;margin-bottom:5px}
+.wa-text{font-size:clamp(11px,3vw,13px);color:#e2e8f0;line-height:1.6}
+.wa-time{font-size:clamp(9px,2.2vw,10px);color:#4b7a5e;text-align:right;margin-top:5px}
 
-/* ── PROGRESS BAR ── */
-.progress-wrap{position:absolute;top:16px;left:28px;right:28px;display:flex;gap:4px;z-index:99}
+/* Progress */
+.progress-wrap{position:absolute;top:clamp(10px,3%,18px);left:clamp(12px,4%,24px);right:clamp(12px,4%,24px);display:flex;gap:4px;z-index:99}
 .progress-seg{height:3px;flex:1;background:rgba(255,255,255,.2);border-radius:99px;overflow:hidden}
-.progress-fill{height:100%;background:#f1f5f9;border-radius:99px;width:0%;transition:width linear}
+.progress-fill{height:100%;background:#f1f5f9;border-radius:99px;width:0;transition:width linear}
 
-/* ── CTA ── */
-.cta-url{font-size:22px;font-weight:900;color:#3b82f6;letter-spacing:-1px;margin-top:16px}
-.cta-arrow{font-size:32px;margin-top:12px;animation:bounce .8s ease infinite alternate}
+.slide-counter{position:absolute;bottom:clamp(10px,3%,18px);right:clamp(14px,4%,22px);font-size:clamp(10px,2.5vw,12px);color:rgba(255,255,255,.3);font-weight:600;z-index:99}
+
+/* CTA */
+.cta-url{font-size:clamp(18px,5.5vw,24px);font-weight:900;color:#3b82f6;letter-spacing:-1px;margin-top:14px}
 @keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-8px)}}
+.cta-arrow{font-size:clamp(24px,7vw,34px);margin-top:10px;display:inline-block;animation:bounce .8s ease infinite alternate}
 
-/* ── PULSE ── */
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
-.pulse{animation:pulse 2s ease infinite}
+/* Entrada items */
+@keyframes up{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.u1{animation:up .45s ease .15s both}
+.u2{animation:up .45s ease .3s both}
+.u3{animation:up .45s ease .45s both}
+.u4{animation:up .45s ease .6s both}
+.u5{animation:up .45s ease .75s both}
 
-/* ── FLOAT ── */
-@keyframes floatUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-.float-1{animation:floatUp .5s ease .1s both}
-.float-2{animation:floatUp .5s ease .3s both}
-.float-3{animation:floatUp .5s ease .5s both}
-.float-4{animation:floatUp .5s ease .7s both}
+/* Emoji central */
+.big-emoji{font-size:clamp(48px,13vw,70px);margin:clamp(16px,5%,28px) 0;display:block}
 
-/* ── COUNTER ── */
-.slide-counter{position:absolute;bottom:20px;right:24px;font-size:11px;color:rgba(255,255,255,.3);font-weight:600;letter-spacing:.5px;z-index:99}
+/* Tap hint */
+.tap-hint{position:absolute;bottom:clamp(28px,7%,42px);left:50%;transform:translateX(-50%);font-size:clamp(9px,2.2vw,11px);color:rgba(255,255,255,.25);letter-spacing:1px;text-transform:uppercase;font-weight:600;z-index:99;white-space:nowrap}
 </style>
 </head>
 <body>
-<div class="reel" id="reel">
+<div class="reel">
+<div class="frame" id="frame">
 
-  <!-- PROGRESS -->
   <div class="progress-wrap" id="progress"></div>
   <div class="slide-counter" id="counter">1 / 7</div>
+  <div class="tap-hint" id="tap-hint">Toca para avanzar</div>
 
-  <!-- ── SLIDE 1: Intro ── -->
-  <div class="slide bg1 active" data-dur="3500">
-    <div class="glow-blue"></div>
-    <div class="glow-green"></div>
-    <div class="logo float-1">Brami<span>3D</span></div>
-    <div class="logo-sub float-2">Print Studio Manager</div>
-    <div style="margin:32px 0;font-size:64px;animation:floatUp .5s ease .4s both">🖨️</div>
-    <div class="headline float-3">Gestiona tu negocio de impresión 3D</div>
-    <div class="sub float-4">Todo en uno. Sin complicaciones. Desde cualquier dispositivo.</div>
+  <!-- 1 · Intro -->
+  <div class="slide bg1" id="s0">
+    <div class="glow glow-bl"></div>
+    <div class="glow glow-gr"></div>
+    <div class="logo u1">Brami<span>3D</span></div>
+    <div class="logo-sub u1">Print Studio Manager</div>
+    <span class="big-emoji u2">🖨️</span>
+    <div class="headline u3">Gestiona tu negocio<br>de impresión 3D</div>
+    <div class="sub u4">Todo en uno · Sin instalación · Desde cualquier dispositivo</div>
   </div>
 
-  <!-- ── SLIDE 2: Features ── -->
-  <div class="slide bg2" data-dur="4000">
-    <div class="glow-blue"></div>
-    <div class="tag">Todo incluido</div>
-    <div class="headline" style="margin-bottom:24px">Una app para <em>todo</em></div>
-    <div class="feat-card float-1">
-      <div class="feat-icon">📋</div>
-      <div><div class="feat-title">Pedidos y presupuestos</div><div class="feat-desc">PDF profesional con un clic</div></div>
-    </div>
-    <div class="feat-card float-2">
-      <div class="feat-icon">👥</div>
-      <div><div class="feat-title">Clientes y facturación</div><div class="feat-desc">Facturas legales con QR AEAT</div></div>
-    </div>
-    <div class="feat-card float-3">
-      <div class="feat-icon">🧵</div>
-      <div><div class="feat-title">Stock de filamentos</div><div class="feat-desc">Alertas cuando quede poco</div></div>
-    </div>
-    <div class="feat-card float-4">
-      <div class="feat-icon">📊</div>
-      <div><div class="feat-title">Dashboard con gráficos</div><div class="feat-desc">Ingresos, estados y materiales</div></div>
-    </div>
+  <!-- 2 · Features -->
+  <div class="slide bg2" id="s1">
+    <div class="glow glow-bl"></div>
+    <div class="tag u1">Todo incluido</div>
+    <div class="headline u1" style="margin-bottom:16px">Una app para <em>todo</em></div>
+    <div class="feat-card u2"><div class="feat-icon">📋</div><div><div class="feat-title">Pedidos y presupuestos</div><div class="feat-desc">PDF profesional con un clic</div></div></div>
+    <div class="feat-card u3"><div class="feat-icon">🧾</div><div><div class="feat-title">Facturas legales</div><div class="feat-desc">Con QR AEAT y registro inmutable</div></div></div>
+    <div class="feat-card u4"><div class="feat-icon">🧵</div><div><div class="feat-title">Stock de filamentos</div><div class="feat-desc">Alertas cuando quede poco</div></div></div>
+    <div class="feat-card u5"><div class="feat-icon">📊</div><div><div class="feat-title">Dashboard con gráficos</div><div class="feat-desc">Ingresos, estados y materiales</div></div></div>
   </div>
 
-  <!-- ── SLIDE 3: Calculadora ── -->
-  <div class="slide bg3" data-dur="4000">
-    <div class="glow-purple"></div>
-    <div class="tag purple">Calculadora rápida</div>
-    <div class="headline" style="margin-bottom:20px">¿Cuánto cobrar por <em>esta pieza</em>?</div>
-    <div class="phone float-1">
+  <!-- 3 · Calculadora -->
+  <div class="slide bg3" id="s2">
+    <div class="glow glow-pu"></div>
+    <div class="tag purple u1">Calculadora rápida</div>
+    <div class="headline u1" style="margin-bottom:14px">¿Cuánto cobrar<br>por esta pieza?</div>
+    <div class="phone u2">
       <div class="phone-bar">
-        <div class="phone-title">🧮 Calculadora</div>
-        <div style="display:flex;gap:4px">
-          <div class="phone-dot" style="background:#ef4444"></div>
-          <div class="phone-dot" style="background:#f59e0b"></div>
-          <div class="phone-dot" style="background:#22c55e"></div>
-        </div>
+        <span class="phone-title">🧮 Calculadora</span>
+        <span style="font-size:10px;color:#64748b">85g · 3.5h · PLA</span>
       </div>
-      <div style="font-size:11px;color:#64748b;margin-bottom:4px">Peso: 85g · Tiempo: 3.5h · PLA</div>
-      <div style="height:1px;background:rgba(255,255,255,.07);margin:10px 0"></div>
-      <div style="display:flex;justify-content:space-between;font-size:11px;color:#94a3b8;margin-bottom:6px"><span>🧵 Material</span><span style="color:#f1f5f9;font-weight:700">2.55€</span></div>
-      <div style="display:flex;justify-content:space-between;font-size:11px;color:#94a3b8;margin-bottom:6px"><span>⚡ Electricidad</span><span style="color:#f1f5f9;font-weight:700">1.05€</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:clamp(10px,2.8vw,12px);color:#94a3b8;margin-bottom:5px"><span>🧵 Material</span><span style="color:#f1f5f9;font-weight:700">2,55€</span></div>
+      <div style="display:flex;justify-content:space-between;font-size:clamp(10px,2.8vw,12px);color:#94a3b8;margin-bottom:5px"><span>⚡ Electricidad</span><span style="color:#f1f5f9;font-weight:700">1,05€</span></div>
       <div style="height:1px;background:rgba(255,255,255,.07);margin:8px 0"></div>
-      <div style="background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);border-radius:10px;padding:12px;text-align:center;margin-top:4px">
-        <div style="font-size:10px;color:#64748b;margin-bottom:2px">Precio sugerido (30% margen)</div>
-        <div style="font-size:28px;font-weight:900;color:#34d399;letter-spacing:-1px">4.68€</div>
-        <div style="font-size:11px;color:#34d399;margin-top:2px">✅ Beneficio: 1.13€ · ROI: 32%</div>
+      <div style="background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.3);border-radius:10px;padding:10px;text-align:center">
+        <div style="font-size:clamp(9px,2.2vw,11px);color:#64748b;margin-bottom:2px">Precio sugerido (30% margen)</div>
+        <div style="font-size:clamp(24px,7vw,30px);font-weight:900;color:#34d399;letter-spacing:-1px">4,68€</div>
+        <div style="font-size:clamp(9px,2.5vw,11px);color:#34d399;margin-top:2px">✅ Beneficio: 1,13€ · ROI: 32%</div>
       </div>
     </div>
-    <div class="sub float-2" style="margin-top:16px">Sin crear pedido. Solo introduce el peso y el tiempo.</div>
+    <div class="sub u3" style="margin-top:10px">Sin crear pedido. Calcula en segundos.</div>
   </div>
 
-  <!-- ── SLIDE 4: WhatsApp ── -->
-  <div class="slide bg4" data-dur="4000">
-    <div class="glow-green"></div>
-    <div class="tag green">WhatsApp integrado</div>
-    <div class="headline" style="margin-bottom:20px">Envía el presupuesto <em>al instante</em></div>
-    <div style="width:100%;max-width:320px">
-      <div class="phone float-1" style="width:100%">
-        <div class="phone-bar">
-          <div class="phone-title">📋 Pedido guardado ✅</div>
-        </div>
-        <div style="text-align:center;padding:8px 0">
-          <div style="font-size:13px;font-weight:700;color:#f1f5f9;margin-bottom:4px">Carcasa impresora</div>
-          <div style="font-size:24px;font-weight:900;color:#34d399">12.50€</div>
-          <div style="font-size:10px;color:#64748b;margin-top:2px">Nº B3D-2025-042</div>
-        </div>
-        <div style="display:flex;gap:8px;margin-top:12px">
-          <div style="flex:1;background:rgba(37,211,102,.15);border:1px solid rgba(37,211,102,.3);border-radius:10px;padding:10px;text-align:center;font-size:13px;font-weight:700;color:#25d366">💬 WhatsApp</div>
-          <div style="flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:10px;text-align:center;font-size:13px;color:#64748b">Ahora no</div>
-        </div>
+  <!-- 4 · WhatsApp -->
+  <div class="slide bg4" id="s3">
+    <div class="glow glow-gr"></div>
+    <div class="tag green u1">WhatsApp integrado</div>
+    <div class="headline u1" style="margin-bottom:14px">Envía el presupuesto<br><em>al instante</em></div>
+    <div class="phone u2">
+      <div class="phone-bar"><span class="phone-title">📋 Pedido guardado ✅</span></div>
+      <div style="text-align:center;padding:6px 0">
+        <div style="font-size:clamp(12px,3.2vw,14px);font-weight:700;color:#f1f5f9;margin-bottom:3px">Carcasa impresora</div>
+        <div style="font-size:clamp(22px,6vw,26px);font-weight:900;color:#34d399">12,50€</div>
+        <div style="font-size:clamp(9px,2.2vw,11px);color:#64748b;margin-top:2px">Nº B3D-2025-042</div>
       </div>
-      <div class="wa-bubble float-2">
-        <div class="wa-name">Brami3D</div>
-        <div class="wa-text">¡Hola María! 👋<br><br>📋 *Carcasa impresora*<br>💰 *Precio: 12,50€*<br>🔢 Presupuesto Nº: B3D-2025-042</div>
-        <div class="wa-time">✓✓ ahora</div>
+      <div style="display:flex;gap:7px;margin-top:10px">
+        <div style="flex:1;background:rgba(37,211,102,.15);border:1px solid rgba(37,211,102,.3);border-radius:9px;padding:9px;text-align:center;font-size:clamp(11px,3vw,13px);font-weight:700;color:#25d366">💬 WhatsApp</div>
+        <div style="flex:1;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:9px;text-align:center;font-size:clamp(11px,3vw,13px);color:#64748b">Ahora no</div>
       </div>
+    </div>
+    <div class="wa-bubble u3">
+      <div class="wa-name">Brami3D</div>
+      <div class="wa-text">¡Hola María! 👋<br>📋 *Carcasa impresora*<br>💰 *Precio: 12,50€*<br>🔢 Presupuesto Nº B3D-2025-042</div>
+      <div class="wa-time">✓✓ ahora</div>
     </div>
   </div>
 
-  <!-- ── SLIDE 5: Multi-país ── -->
-  <div class="slide bg1" data-dur="4500">
-    <div class="glow-blue"></div>
-    <div class="glow-purple" style="bottom:-40px;right:-40px;left:auto;top:auto"></div>
-    <div class="tag">Multi-país</div>
-    <div class="headline" style="margin-bottom:8px">Funciona en <em>cualquier país</em></div>
-    <div class="sub" style="margin-bottom:20px;margin-top:0">Configura el impuesto de tu región</div>
-    <div class="tax-grid float-1">
+  <!-- 5 · Multi-país -->
+  <div class="slide bg1" id="s4">
+    <div class="glow glow-bl"></div>
+    <div class="glow glow-pu" style="bottom:-10%;right:-15%;left:auto;top:auto"></div>
+    <div class="tag u1">Multi-país</div>
+    <div class="headline u1" style="margin-bottom:8px">Funciona en<br><em>cualquier país</em></div>
+    <div class="sub u2" style="margin-bottom:14px;margin-top:0">Configura el impuesto de tu región</div>
+    <div class="tax-grid u3">
       <div class="tax-item"><div class="tax-name">IVA</div><div class="tax-region">🇪🇸 España</div></div>
       <div class="tax-item"><div class="tax-name">IGIC</div><div class="tax-region">🇮🇨 Canarias</div></div>
       <div class="tax-item"><div class="tax-name">VAT</div><div class="tax-region">🇬🇧 UK / Europa</div></div>
@@ -207,118 +210,113 @@ html,body{width:414px;height:736px;overflow:hidden;background:#000;font-family:'
       <div class="tax-item"><div class="tax-name">Sales Tax</div><div class="tax-region">🇺🇸 EEUU</div></div>
       <div class="tax-item"><div class="tax-name">GST+PST</div><div class="tax-region">🇨🇦 Canadá</div></div>
     </div>
-    <div class="stat-row float-2" style="margin-top:14px">
+    <div class="stat-row u4" style="margin-top:10px">
       <div class="stat-box"><div class="stat-val" style="color:#60a5fa">€ $ £</div><div class="stat-lbl">Cualquier moneda</div></div>
-      <div class="stat-box"><div class="stat-val" style="color:#34d399">3</div><div class="stat-lbl">Formatos de fecha</div></div>
+      <div class="stat-box"><div class="stat-val" style="color:#34d399;font-size:clamp(14px,4vw,18px)">DD/MM<br>MM/DD</div><div class="stat-lbl">Formato fecha</div></div>
     </div>
   </div>
 
-  <!-- ── SLIDE 6: Stats ── -->
-  <div class="slide bg2" data-dur="3500">
-    <div class="glow-blue"></div>
-    <div class="tag amber">Tu negocio en números</div>
-    <div class="headline" style="margin-bottom:24px">Siempre sabes <em>dónde estás</em></div>
-    <div class="stat-row float-1">
+  <!-- 6 · Stats -->
+  <div class="slide bg2" id="s5">
+    <div class="glow glow-bl"></div>
+    <div class="tag amber u1">Tu negocio en números</div>
+    <div class="headline u1" style="margin-bottom:16px">Siempre sabes<br><em>dónde estás</em></div>
+    <div class="stat-row u2">
       <div class="stat-box"><div class="stat-val" style="color:#34d399">📈</div><div class="stat-lbl">Ingresos mensuales</div></div>
       <div class="stat-box"><div class="stat-val" style="color:#f87171">💸</div><div class="stat-lbl">Gastos y costes</div></div>
     </div>
-    <div class="stat-row float-2" style="margin-top:10px">
+    <div class="stat-row u3" style="margin-top:8px">
       <div class="stat-box"><div class="stat-val" style="color:#a78bfa">📋</div><div class="stat-lbl">Estado pedidos</div></div>
       <div class="stat-box"><div class="stat-val" style="color:#fbbf24">🧵</div><div class="stat-lbl">Stock filamentos</div></div>
     </div>
-    <div class="feat-card float-3" style="margin-top:14px">
-      <div class="feat-icon">📄</div>
-      <div><div class="feat-title">Informe anual en PDF</div><div class="feat-desc">12 meses, KPIs y mejor/peor mes</div></div>
-    </div>
-    <div class="feat-card float-4">
-      <div class="feat-icon">💾</div>
-      <div><div class="feat-title">Funciona offline</div><div class="feat-desc">Datos en caché local siempre disponibles</div></div>
+    <div class="feat-card u4" style="margin-top:10px"><div class="feat-icon">📄</div><div><div class="feat-title">Informe anual en PDF</div><div class="feat-desc">12 meses, KPIs y mejor/peor mes</div></div></div>
+    <div class="feat-card u5"><div class="feat-icon">💾</div><div><div class="feat-title">Funciona offline</div><div class="feat-desc">Datos en caché local siempre disponibles</div></div></div>
+  </div>
+
+  <!-- 7 · CTA -->
+  <div class="slide bg5" id="s6">
+    <div class="glow glow-bl"></div>
+    <div class="glow glow-gr"></div>
+    <div class="logo u1" style="font-size:clamp(32px,9vw,46px)">Brami<span>3D</span></div>
+    <div class="logo-sub u1">Print Studio Manager</div>
+    <span class="big-emoji u2">🚀</span>
+    <div class="headline u3">Empieza gratis hoy</div>
+    <div class="sub u4">Sin tarjeta · Sin instalación<br>Abre el navegador y listo</div>
+    <div class="cta-url u4">brami3d.app</div>
+    <span class="cta-arrow u5">👇</span>
+    <div style="display:flex;gap:6px;margin-top:12px;flex-wrap:wrap;justify-content:center;animation:up .45s ease .9s both">
+      <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:99px;padding:5px 12px;font-size:clamp(9px,2.2vw,11px);font-weight:700;color:#94a3b8">#impresion3d</div>
+      <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:99px;padding:5px 12px;font-size:clamp(9px,2.2vw,11px);font-weight:700;color:#94a3b8">#3dprinting</div>
+      <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:99px;padding:5px 12px;font-size:clamp(9px,2.2vw,11px);font-weight:700;color:#94a3b8">#maker</div>
     </div>
   </div>
 
-  <!-- ── SLIDE 7: CTA ── -->
-  <div class="slide bg6" data-dur="5000">
-    <div class="glow-blue"></div>
-    <div class="glow-green"></div>
-    <div class="logo float-1" style="font-size:44px">Brami<span>3D</span></div>
-    <div class="logo-sub float-1">Print Studio Manager</div>
-    <div style="margin:28px 0 20px;font-size:56px;animation:floatUp .5s ease .3s both">🚀</div>
-    <div class="headline float-2">Empieza gratis hoy</div>
-    <div class="sub float-3">Sin tarjeta. Sin instalación. Abre el navegador y listo.</div>
-    <div class="cta-url float-3">brami3d.app</div>
-    <div class="cta-arrow float-4">👇</div>
-    <div style="margin-top:20px;display:flex;gap:8px;animation:floatUp .5s ease .8s both">
-      <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:99px;padding:6px 16px;font-size:11px;font-weight:700;color:#94a3b8">#impresion3d</div>
-      <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:99px;padding:6px 16px;font-size:11px;font-weight:700;color:#94a3b8">#3dprinting</div>
-      <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:99px;padding:6px 16px;font-size:11px;font-weight:700;color:#94a3b8">#maker</div>
-    </div>
-  </div>
-
-</div>
+</div><!-- /frame -->
+</div><!-- /reel -->
 
 <script>
 const slides=document.querySelectorAll('.slide');
-const progressWrap=document.getElementById('progress');
+const prog=document.getElementById('progress');
 const counter=document.getElementById('counter');
+const tapHint=document.getElementById('tap-hint');
 const N=slides.length;
-let cur=0, timer=null, fillTimer=null;
+let cur=0,fillT=null,autoT=null;
+const DURS=[3500,4000,4000,4000,4500,4000,5000];
 
-// Build progress segments
-slides.forEach((_,i)=>{
-  const seg=document.createElement('div');
-  seg.className='progress-seg';
-  const fill=document.createElement('div');
-  fill.className='progress-fill';
-  seg.appendChild(fill);
-  progressWrap.appendChild(seg);
-});
+// Build progress bar
+for(let i=0;i<N;i++){
+  const s=document.createElement('div');s.className='progress-seg';
+  const f=document.createElement('div');f.className='progress-fill';
+  s.appendChild(f);prog.appendChild(s);
+}
+const fills=()=>prog.querySelectorAll('.progress-fill');
 
-function getSegs(){ return progressWrap.querySelectorAll('.progress-fill'); }
-
-function goTo(n){
-  if(n<0||n>=N) return;
-  // Exit current
+function show(n){
+  if(n<0||n>=N)return;
   slides[cur].classList.remove('active');
-  slides[cur].classList.add('exit');
-  setTimeout(()=>slides[cur].classList.remove('exit'),600);
-  // Mark past segs full
-  const segs=getSegs();
-  for(let i=0;i<n;i++) segs[i].style.width='100%';
-  if(n<cur) for(let i=n;i<N;i++) segs[i].style.width='0%';
+  slides[cur].classList.add('out');
+  const prev=cur;
+  setTimeout(()=>slides[prev].classList.remove('out'),500);
+
   cur=n;
   slides[cur].classList.add('active');
   counter.textContent=(cur+1)+' / '+N;
-  startFill();
+
+  // Update fills
+  const fs=fills();
+  for(let i=0;i<N;i++) fs[i].style.transition='none', fs[i].style.width=i<cur?'100%':'0%';
+
+  // Animate current fill
+  clearTimeout(autoT);
+  const dur=DURS[cur]||3500;
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    fs[cur].style.transition=`width ${dur}ms linear`;
+    fs[cur].style.width='100%';
+  }));
+  autoT=setTimeout(()=>{if(cur<N-1)show(cur+1);},dur);
+
+  // Hide tap hint after first tap
+  tapHint.style.opacity='0';
 }
 
-function startFill(){
-  clearInterval(fillTimer);
-  clearTimeout(timer);
-  const dur=parseInt(slides[cur].dataset.dur)||3500;
-  const seg=getSegs()[cur];
-  seg.style.transition='none';
-  seg.style.width='0%';
-  requestAnimationFrame(()=>{
-    requestAnimationFrame(()=>{
-      seg.style.transition=`width ${dur}ms linear`;
-      seg.style.width='100%';
-    });
-  });
-  timer=setTimeout(()=>{
-    if(cur<N-1) goTo(cur+1);
-    else{ seg.style.width='100%'; } // loop: goTo(0)
-  },dur);
-}
+// Show first slide immediately (no transition on load)
+slides[0].style.opacity='1';
+slides[0].style.transform='translateY(0)';
+slides[0].classList.add('active');
+counter.textContent='1 / '+N;
+const dur0=DURS[0];
+requestAnimationFrame(()=>requestAnimationFrame(()=>{
+  fills()[0].style.transition=`width ${dur0}ms linear`;
+  fills()[0].style.width='100%';
+}));
+autoT=setTimeout(()=>show(1),dur0);
 
-// Click to advance
-document.getElementById('reel').addEventListener('click',e=>{
-  const x=e.clientX;
-  if(x<140 && cur>0) goTo(cur-1);
-  else if(cur<N-1) goTo(cur+1);
+// Tap / click navigation
+document.getElementById('frame').addEventListener('click',e=>{
+  const x=e.clientX, w=document.getElementById('frame').offsetWidth;
+  if(x<w*0.35 && cur>0) show(cur-1);
+  else show(Math.min(cur+1,N-1));
 });
-
-// Start
-goTo(0);
 </script>
 </body>
 </html>
