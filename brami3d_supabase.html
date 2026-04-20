@@ -1790,6 +1790,7 @@ const NAV=[
   {id:'archivos',lbl:'Archivos',icon:'📁'},
   {id:'gastos',lbl:'Gastos',icon:'💸'},
   {id:'registro',lbl:'Registro fiscal',icon:'📜'},
+  {id:'calculadora',lbl:'Calculadora',icon:'🧮'},
   {id:'configuracion',lbl:'Configuración',icon:'⚙️'},
 ];
 
@@ -1829,6 +1830,7 @@ function mobMore(){
     {id:'gastos',        lbl:'Gastos',         ico:'💸'},
     {id:'archivos',      lbl:'Archivos',       ico:'📁'},
     {id:'registro',      lbl:'Registro fiscal',ico:'📜'},
+    {id:'calculadora',   lbl:'Calculadora',    ico:'🧮'},
     {id:'configuracion', lbl:'Configuración',  ico:'⚙️'},
   ];
   if(_plan.isAdmin) items.push({id:'admin', lbl:'Admin', ico:'🛡️'});
@@ -1985,7 +1987,7 @@ document.addEventListener('click', e=>{
 //  RENDER
 // ═══════════════════════════════════════════════
 function render(){
-  const map={dashboard:pgDashboard,clientes:pgClientes,pedidos:pgPedidos,impresoras:pgImpresoras,filamentos:pgFilamentos,piezas:pgPiezas,archivos:pgArchivos,gastos:pgGastos,cobros:pgCobros,registro:pgRegistro,configuracion:pgConfig,admin:pgAdmin};
+  const map={dashboard:pgDashboard,clientes:pgClientes,pedidos:pgPedidos,impresoras:pgImpresoras,filamentos:pgFilamentos,piezas:pgPiezas,archivos:pgArchivos,gastos:pgGastos,cobros:pgCobros,registro:pgRegistro,calculadora:pgCalculadora,configuracion:pgConfig,admin:pgAdmin};
   // Gate admin page: si alguien hace goTo('admin') sin ser admin, redirige.
   if(PAGE==='admin' && !_plan.isAdmin){ PAGE='dashboard'; }
   const fn=map[PAGE];
@@ -4742,6 +4744,166 @@ async function adminResetPassword(email){
     showToast('Error: '+(e.message||e),'err');
     console.error(e);
   }
+}
+
+// ═══════════════════════════════════════════════
+//  CALCULADORA RÁPIDA
+// ═══════════════════════════════════════════════
+function pgCalculadora(){
+  const cfg=_cache.cfg;
+  const filamentos=_cache.filamentos;
+  const impresoras=_cache.impresoras;
+  const mon=cfg.moneda||'€';
+  const margenDef=parseFloat(cfg.margen)||30;
+  const kwhPrice=parseFloat(cfg.costePorHora)||0.15;
+  const costGDef=parseFloat(cfg.costePorGramo)||0.03;
+
+  const filOpts=[{v:'',l:'── Coste manual (€/kg) ──'},...filamentos.map(f=>({v:f.id,l:`${f.tipo||''} ${f.marca||''} ${f.color?'· '+f.color:''}`.trim()+` (${((parseFloat(f.precioPorKg)||0)/1000*1000).toFixed(0)}€/kg)`}))].map(o=>`<option value="${esc(o.v)}">${esc(o.l)}</option>`).join('');
+  const impOpts=[{v:'',l:'── Sin impresora (200W) ──'},...impresoras.map(i=>({v:i.id,l:`${i.nombre||'Impresora'} (${i.consumoW||200}W)`}))].map(o=>`<option value="${esc(o.v)}">${esc(o.l)}</option>`).join('');
+
+  return`<div class="page-header"><div><h2 class="page-title">🧮 Calculadora rápida</h2><div class="page-subtitle">Estima coste y precio sin crear un pedido</div></div></div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:900px" id="calc-wrap">
+  <!-- INPUTS -->
+  <div class="card" style="padding:24px;display:flex;flex-direction:column;gap:16px">
+    <h3 style="margin:0 0 4px;font-size:15px;color:var(--text2);font-weight:800">Parámetros de impresión</h3>
+
+    <div>
+      <label style="font-size:12px;color:var(--text4);font-weight:600;display:block;margin-bottom:5px">Filamento</label>
+      <select id="cc-fil" onchange="calcUpdate()" style="width:100%">${filOpts}</select>
+    </div>
+    <div id="cc-costeg-wrap">
+      <label style="font-size:12px;color:var(--text4);font-weight:600;display:block;margin-bottom:5px">Coste filamento (€/kg)</label>
+      <input id="cc-costeg" type="number" min="0" step="0.01" value="${(costGDef*1000).toFixed(2)}" oninput="calcUpdate()" placeholder="Ej: 20">
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div>
+        <label style="font-size:12px;color:var(--text4);font-weight:600;display:block;margin-bottom:5px">Peso (g)</label>
+        <input id="cc-peso" type="number" min="0" step="1" value="" oninput="calcUpdate()" placeholder="Ej: 85">
+      </div>
+      <div>
+        <label style="font-size:12px;color:var(--text4);font-weight:600;display:block;margin-bottom:5px">Tiempo impresión (h)</label>
+        <input id="cc-tiempo" type="number" min="0" step="0.1" value="" oninput="calcUpdate()" placeholder="Ej: 3.5">
+      </div>
+    </div>
+
+    <div>
+      <label style="font-size:12px;color:var(--text4);font-weight:600;display:block;margin-bottom:5px">Impresora</label>
+      <select id="cc-imp" onchange="calcUpdate()" style="width:100%">${impOpts}</select>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+      <div>
+        <label style="font-size:12px;color:var(--text4);font-weight:600;display:block;margin-bottom:5px">Postprocesado (${mon})</label>
+        <input id="cc-post" type="number" min="0" step="0.01" value="0" oninput="calcUpdate()" placeholder="0">
+      </div>
+      <div>
+        <label style="font-size:12px;color:var(--text4);font-weight:600;display:block;margin-bottom:5px">Diseño / modeling (${mon})</label>
+        <input id="cc-diseno" type="number" min="0" step="0.01" value="0" oninput="calcUpdate()" placeholder="0">
+      </div>
+    </div>
+
+    <div style="border-top:1px solid var(--border);padding-top:16px">
+      <label style="font-size:12px;color:var(--text4);font-weight:600;display:block;margin-bottom:5px">Margen de beneficio (%)</label>
+      <input id="cc-margen" type="number" min="0" step="1" value="${margenDef}" oninput="calcUpdate()" placeholder="${margenDef}">
+    </div>
+
+    <div>
+      <label style="font-size:12px;color:var(--text4);font-weight:600;display:block;margin-bottom:5px">Precio final manual (${mon}) <span style="font-weight:400;color:var(--text5)">— deja vacío para calcular automático</span></label>
+      <input id="cc-precio" type="number" min="0" step="0.01" value="" oninput="calcUpdate()" placeholder="Opcional">
+    </div>
+  </div>
+
+  <!-- RESULTADO -->
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div class="card" style="padding:24px" id="cc-result">
+      <div style="color:var(--text5);text-align:center;padding:40px 0;font-size:14px">Introduce los datos para ver el desglose</div>
+    </div>
+    <div class="card" style="padding:20px" id="cc-scenarios" style="display:none"></div>
+  </div>
+</div>
+
+<style>
+@media(max-width:640px){#calc-wrap{grid-template-columns:1fr!important}}
+</style>`;
+}
+
+function calcUpdate(){
+  const cfg=_cache.cfg;
+  const mon=cfg.moneda||'€';
+  const kwhPrice=parseFloat(cfg.costePorHora)||0.15;
+
+  const filId=document.getElementById('cc-fil')?.value||'';
+  let costGkg;
+  if(filId){
+    const fil=_cache.filamentos.find(f=>f.id===filId);
+    costGkg=fil?parseFloat(fil.precioPorKg)||0:0;
+    const w=document.getElementById('cc-costeg-wrap');
+    if(w) w.style.display='none';
+  } else {
+    const w=document.getElementById('cc-costeg-wrap');
+    if(w) w.style.display='';
+    costGkg=parseFloat(document.getElementById('cc-costeg')?.value)||0;
+  }
+  const costG=costGkg/1000;
+
+  const peso=parseFloat(document.getElementById('cc-peso')?.value)||0;
+  const tiempo=parseFloat(document.getElementById('cc-tiempo')?.value)||0;
+  const impId=document.getElementById('cc-imp')?.value||'';
+  const pp=parseFloat(document.getElementById('cc-post')?.value)||0;
+  const pd=parseFloat(document.getElementById('cc-diseno')?.value)||0;
+  const margen=parseFloat(document.getElementById('cc-margen')?.value)||30;
+  const precioManual=document.getElementById('cc-precio')?.value;
+
+  let consumoKW=0.2;
+  if(impId){
+    const imp=_cache.impresoras.find(i=>i.id===impId);
+    if(imp&&parseFloat(imp.consumoW)>0) consumoKW=parseFloat(imp.consumoW)/1000;
+  }
+
+  const mc=peso*costG;
+  const ec=tiempo*consumoKW*kwhPrice;
+  const tc=mc+ec+pp+pd;
+  const fp=precioManual!==''&&precioManual!=null?parseFloat(precioManual)||0:tc*(1+margen/100);
+  const profit=fp-tc;
+  const roi=tc>0?(profit/tc*100):0;
+
+  const res=document.getElementById('cc-result');
+  if(!res) return;
+
+  if(peso===0&&tiempo===0){
+    res.innerHTML='<div style="color:var(--text5);text-align:center;padding:40px 0;font-size:14px">Introduce los datos para ver el desglose</div>';
+    const sc=document.getElementById('cc-scenarios'); if(sc) sc.innerHTML='';
+    return;
+  }
+
+  const row=(lbl,val,color='var(--text3)',bold=false)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border)"><span style="font-size:13px;color:var(--text4)">${lbl}</span><span style="font-size:13px;font-weight:${bold?800:600};color:${color}">${val}</span></div>`;
+
+  res.innerHTML=`
+    <h3 style="margin:0 0 16px;font-size:15px;color:var(--text2);font-weight:800">Desglose de costes</h3>
+    ${row('🧵 Material ('+peso+'g × '+costGkg.toFixed(2)+'€/kg)',mc.toFixed(2)+mon)}
+    ${row('⚡ Electricidad ('+tiempo+'h × '+(consumoKW*1000).toFixed(0)+'W × '+kwhPrice+'€/kWh)',ec.toFixed(2)+mon)}
+    ${pp>0?row('🔧 Postprocesado',pp.toFixed(2)+mon):''}
+    ${pd>0?row('✏️ Diseño',pd.toFixed(2)+mon):''}
+    ${row('💰 Coste total',tc.toFixed(2)+mon,'var(--text2)',true)}
+    <div style="margin-top:16px;padding:16px;background:${profit>=0?'rgba(52,211,153,.08)':'rgba(248,113,113,.08)'};border:1.5px solid ${profit>=0?'rgba(52,211,153,.3)':'rgba(248,113,113,.3)'};border-radius:12px;text-align:center">
+      <div style="font-size:12px;color:var(--text4);margin-bottom:4px">${precioManual?'Precio manual':'Precio sugerido ('+margen+'% margen)'}</div>
+      <div style="font-size:32px;font-weight:900;color:${profit>=0?'#34d399':'#f87171'}">${fp.toFixed(2)}${mon}</div>
+      <div style="font-size:13px;color:${profit>=0?'#34d399':'#f87171'};margin-top:4px">${profit>=0?'✅':'⚠️'} Beneficio: <b>${profit.toFixed(2)}${mon}</b> · ROI: <b>${roi.toFixed(0)}%</b></div>
+    </div>`;
+
+  // Tabla de escenarios por margen
+  const sc=document.getElementById('cc-scenarios');
+  if(!sc) return;
+  const mgs=[10,20,30,40,50,75,100];
+  sc.innerHTML=`<h3 style="margin:0 0 12px;font-size:14px;color:var(--text2);font-weight:800">Tabla de precios por margen</h3>
+    <div style="overflow-x:auto"><table style="font-size:12px"><thead><tr><th>Margen</th><th>Precio</th><th>Beneficio</th></tr></thead><tbody>
+    ${mgs.map(m=>{
+      const p=tc*(1+m/100); const b=p-tc;
+      const activo=Math.round(margen)===m;
+      return`<tr style="${activo?'background:rgba(59,130,246,.1);font-weight:700':''}"><td>${m}%</td><td style="color:${activo?'#60a5fa':'var(--text2)'};font-weight:800">${p.toFixed(2)}${mon}</td><td style="color:#34d399">${b.toFixed(2)}${mon}</td></tr>`;
+    }).join('')}
+    </tbody></table></div>`;
 }
 
 // ═══════════════════════════════════════════════
