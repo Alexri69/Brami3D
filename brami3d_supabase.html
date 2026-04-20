@@ -576,6 +576,20 @@ function checkPlanLimit(action, editingId){
 // ═══════════════════════════════════════════════
 const uid  = () => crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)+Date.now().toString(36);
 const today= () => new Date().toISOString().split('T')[0];
+
+function fmtNum(val, cfg){
+  const s=parseFloat(val||0).toFixed(2);
+  return (cfg?.separadorDecimal||'.')===',' ? s.replace('.',',') : s;
+}
+function fmtFecha(isoDate, cfg){
+  if(!isoDate) return '';
+  const [y,m,d]=(isoDate.split('T')[0]).split('-');
+  if(!y||!m||!d) return isoDate;
+  const fmt=cfg?.formatoFecha||'DD/MM/YYYY';
+  if(fmt==='MM/DD/YYYY') return `${m}/${d}/${y}`;
+  if(fmt==='YYYY-MM-DD') return `${y}-${m}-${d}`;
+  return `${d}/${m}/${y}`;
+}
 const esc  = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const $    = id => document.getElementById(id);
 
@@ -1222,7 +1236,12 @@ function mapCfg(r){ return {
   costePorGramo:r.coste_por_gramo,costePorHora:r.coste_por_hora,
   margen:r.margen,moneda:r.moneda,empresa:r.empresa,telefono:r.telefono,email:r.email,
   nif:r.nif||'', direccion:r.direccion||'', logo:r.logo||'',
-  tipoIva:Number(r.tipo_iva||0), nombreImpuesto:r.nombre_impuesto||'IVA'
+  tipoIva:Number(r.tipo_iva||0), nombreImpuesto:r.nombre_impuesto||'IVA',
+  tipoIva2:Number(r.tipo_iva2||0), nombreImpuesto2:r.nombre_impuesto2||'',
+  formatoFecha:r.formato_fecha||'DD/MM/YYYY',
+  separadorDecimal:r.separador_decimal||'.',
+  prefijoPres:r.prefijo_presupuesto||'B3D',
+  prefijoFact:r.prefijo_factura||'B3D-F'
 };}
 
 // ═══════════════════════════════════════════════
@@ -1430,9 +1449,11 @@ async function nextPresNum(){
     const {data:row}=await sb.from('contadores').select('valor').eq('user_id',CU.id).eq('tipo','presnum').eq('anio',year).maybeSingle();
     const n=(row?.valor||0)+1;
     await sb.from('contadores').upsert({user_id:CU.id,tipo:'presnum',anio:year,valor:n},{onConflict:'user_id,tipo,anio'});
-    return `B3D-${year}-${String(n).padStart(3,'0')}`;
+    const pfx=_cache.cfg?.prefijoPres||'B3D';
+    return `${pfx}-${year}-${String(n).padStart(3,'0')}`;
   } catch(e) {
-    return `B3D-${year}-${String(Date.now()).slice(-3)}`;
+    const pfx=_cache.cfg?.prefijoPres||'B3D';
+    return `${pfx}-${year}-${String(Date.now()).slice(-3)}`;
   }
 }
 
@@ -1442,9 +1463,11 @@ async function nextFacturaNum(){
     const {data:row}=await sb.from('contadores').select('valor').eq('user_id',CU.id).eq('tipo','factnum').eq('anio',year).maybeSingle();
     const n=(row?.valor||0)+1;
     await sb.from('contadores').upsert({user_id:CU.id,tipo:'factnum',anio:year,valor:n},{onConflict:'user_id,tipo,anio'});
-    return `B3D-F-${year}-${String(n).padStart(3,'0')}`;
+    const pfx=_cache.cfg?.prefijoFact||'B3D-F';
+    return `${pfx}-${year}-${String(n).padStart(3,'0')}`;
   } catch(e) {
-    return `B3D-F-${year}-${String(Date.now()).slice(-3)}`;
+    const pfx=_cache.cfg?.prefijoFact||'B3D-F';
+    return `${pfx}-${year}-${String(Date.now()).slice(-3)}`;
   }
 }
 
@@ -2144,7 +2167,7 @@ function buildPDFHtml(id){
   const cfg=_cache.cfg; const biz=cfg;
   const c=calcOrderCosts(o,cfg);
   const mon=cfg.moneda||'€';
-  const dateStr=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
+  const dateStr=fmtFecha(today(),cfg);
 
   const lineasHTML=o.lineas&&o.lineas.length>0?`
     <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:4px">
@@ -2335,8 +2358,8 @@ async function genFactura(id){
   const cl=_cache.clientes.find(x=>x.id===o.clienteId)||{};
   const cfg=_cache.cfg; const biz=cfg;
   const c=calcOrderCosts(o,cfg); const mon=cfg.moneda||'€';
-  const dateStr=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
-  const factDateStr=o.facturaFecha?new Date(o.facturaFecha).toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'}):dateStr;
+  const dateStr=fmtFecha(today(),cfg);
+  const factDateStr=fmtFecha(o.facturaFecha||today(),cfg);
 
   // Registro fiscal inmutable (RD 1007/2023 No-Verifactu): hash encadenado.
   // Si ya existe para este factura_num lo reutilizamos; si no, lo creamos.
@@ -2397,7 +2420,7 @@ async function genFactura(id){
 <div class="meta-row"><div style="flex:1"><div class="slbl">Facturar a</div><div class="client-card"><div class="client-name">${cl.nombre||'—'}</div><div class="client-sub">${cl.nif?`<div><b>NIF/CIF: ${cl.nif}</b></div>`:''}${cl.empresa?`<div>${cl.empresa}</div>`:''}${cl.direccion?`<div>📍 ${cl.direccion}</div>`:''}${cl.email?`<div>${cl.email}</div>`:''}${cl.telefono?`<div>${cl.telefono}</div>`:''}</div></div></div>
 <div><div class="slbl">Datos del pedido</div><div class="info-card"><div class="info-row"><span class="info-lbl">Proyecto</span><span class="info-val">${o.proyecto}</span></div><div class="info-row"><span class="info-lbl">Fecha</span><span class="info-val">${o.fecha||'—'}</span></div><div class="info-row"><span class="info-lbl">Peso total</span><span class="info-val">${o.peso||'—'}g</span></div><div class="info-row"><span class="info-lbl">Tiempo</span><span class="info-val">${o.tiempoImpresion||'—'}h</span></div></div></div></div>
 <div class="items-section"><div class="slbl">Detalle del servicio</div><div class="items-wrap">${lineasHTML}</div></div>
-<div class="totals-wrap"><div class="totals">${c.pd>0?`<div class="totals-row"><span class="totals-lbl">Diseño</span><span class="totals-val">${c.pd.toFixed(2)} ${mon}</span></div>`:''}${c.pp>0?`<div class="totals-row"><span class="totals-lbl">Postprocesado</span><span class="totals-val">${c.pp.toFixed(2)} ${mon}</span></div>`:''}${(()=>{const tiva=Number(cfg.tipoIva||0);if(tiva<=0)return'';const cuota=(c.fp*tiva/100);return`<div class="totals-row"><span class="totals-lbl">Base imponible</span><span class="totals-val">${c.fp.toFixed(2)} ${mon}</span></div><div class="totals-row"><span class="totals-lbl">${esc(cfg.nombreImpuesto||'IVA')} (${tiva}%)</span><span class="totals-val">${cuota.toFixed(2)} ${mon}</span></div>`;})()}<div class="total-final"><span class="total-final-lbl">Total facturado</span><div style="display:flex;align-items:baseline"><span class="total-final-amt">${(()=>{const tiva=Number(cfg.tipoIva||0);return tiva>0?(c.fp*(1+tiva/100)).toFixed(2):c.fp.toFixed(2);})()}</span><span class="total-final-mon">${mon}</span></div></div></div></div>
+<div class="totals-wrap"><div class="totals">${c.pd>0?`<div class="totals-row"><span class="totals-lbl">Diseño</span><span class="totals-val">${fmtNum(c.pd,cfg)} ${mon}</span></div>`:''}${c.pp>0?`<div class="totals-row"><span class="totals-lbl">Postprocesado</span><span class="totals-val">${fmtNum(c.pp,cfg)} ${mon}</span></div>`:''}${(()=>{const t1=Number(cfg.tipoIva||0);const t2=Number(cfg.tipoIva2||0);const n2=cfg.nombreImpuesto2||'';if(t1<=0&&t2<=0)return'';let rows=`<div class="totals-row"><span class="totals-lbl">Base imponible</span><span class="totals-val">${fmtNum(c.fp,cfg)} ${mon}</span></div>`;if(t1>0)rows+=`<div class="totals-row"><span class="totals-lbl">${esc(cfg.nombreImpuesto||'IVA')} (${t1}%)</span><span class="totals-val">${fmtNum(c.fp*t1/100,cfg)} ${mon}</span></div>`;if(t2>0&&n2)rows+=`<div class="totals-row"><span class="totals-lbl">${esc(n2)} (${t2}%)</span><span class="totals-val">${fmtNum(c.fp*t2/100,cfg)} ${mon}</span></div>`;return rows;})()}<div class="total-final"><span class="total-final-lbl">Total facturado</span><div style="display:flex;align-items:baseline"><span class="total-final-amt">${(()=>{const t1=Number(cfg.tipoIva||0);const t2=Number(cfg.tipoIva2||0);return fmtNum(c.fp*(1+t1/100+t2/100),cfg);})()}</span><span class="total-final-mon">${mon}</span></div></div></div></div>
 ${o.notas?`<div class="notas-box"><b>Notas:</b> ${o.notas}</div>`:''}
 ${huella?`<div class="compl"><div class="compl-txt"><div><b>Sistema:</b> Brami3D v${SIF_VERSION} · Conforme RD 1007/2023 (modo No-Verifactu)</div><div><b>Huella SHA-256:</b> <span class="huella">${huellaFmt}</span></div><div class="verify">Escanee el QR para verificar esta factura en la sede electrónica de la AEAT (sede.agenciatributaria.gob.es).</div></div>${qrImg?`<div class="compl-qr"><img src="${qrImg}" alt="QR verificación AEAT"></div>`:''}</div>`:''}
 </div>
@@ -4996,6 +5019,25 @@ ${fld('Email de contacto','biz_email',cfg.email||'')}
 </div>
 <button class="btn-primary" id="scb2" onclick="saveBiz()">Guardar datos empresa</button>
 </div>
+<div class="card" style="flex:1;min-width:280px">
+<div class="card-title">🌍 Formato internacional</div>
+<p style="font-size:12px;color:var(--text4);margin-bottom:14px;line-height:1.5">Configura el formato de fechas, decimales y numeración para adaptarte a cualquier país.</p>
+${fld('Formato de fecha','formatoFecha',cfg.formatoFecha||'DD/MM/YYYY','text',[{value:'DD/MM/YYYY',label:'DD/MM/YYYY — España, UK, Latinoamérica'},{value:'MM/DD/YYYY',label:'MM/DD/YYYY — EEUU, Canadá'},{value:'YYYY-MM-DD',label:'YYYY-MM-DD — ISO internacional'}])}
+${fld('Separador decimal','separadorDecimal',cfg.separadorDecimal||'.','text',[{value:'.',label:'Punto — 1,234.56 (EEUU, UK, México)'},{value:',',label:'Coma — 1.234,56 (España, Alemania, Francia)'}])}
+<div style="border-top:1px solid var(--border);margin:14px 0;padding-top:14px">
+<div style="font-size:12px;color:var(--text2);font-weight:700;margin-bottom:10px">Numeración de documentos</div>
+${fld('Prefijo presupuestos','prefijoPres',cfg.prefijoPres||'B3D')}
+${fld('Prefijo facturas','prefijoFact',cfg.prefijoFact||'B3D-F')}
+<p style="font-size:11px;color:var(--text4);margin-top:-8px;line-height:1.5">Resultado: <b id="prev-pres" style="color:var(--text2)">${esc((cfg.prefijoPres||'B3D')+'-'+new Date().getFullYear()+'-001')}</b> / <b id="prev-fact" style="color:var(--text2)">${esc((cfg.prefijoFact||'B3D-F')+'-'+new Date().getFullYear()+'-001')}</b></p>
+</div>
+<div style="border-top:1px solid var(--border);margin:14px 0;padding-top:14px">
+<div style="font-size:12px;color:var(--text2);font-weight:700;margin-bottom:10px">Segundo impuesto (opcional)</div>
+<p style="font-size:11px;color:var(--text4);margin-bottom:10px;line-height:1.5">Canadá (GST+PST), EEUU (State+Local tax), etc. Aparece como línea adicional en la factura.</p>
+${fld('Nombre segundo impuesto','nombreImpuesto2',cfg.nombreImpuesto2||'')}
+${fld('Tipo segundo impuesto (%)','tipoIva2',cfg.tipoIva2||0,'number')}
+</div>
+<button class="btn-primary" id="scb3" onclick="saveConfigIntl()">Guardar formato</button>
+</div>
 <div class="card" style="flex:1;min-width:240px">
 <div class="card-title">👤 Mi cuenta</div>
 <div style="color:var(--text4);font-size:13px;margin-bottom:6px">Email: <b style="color:var(--text2)">${esc(CU.email)}</b></div>
@@ -5058,6 +5100,30 @@ async function saveConfig(){
   _cache.cfg={..._cache.cfg,...mapCfg(row)};
   const b=$('scb');if(b){b.textContent='✅ Guardado';setTimeout(()=>{b.textContent='Guardar configuración';},2000);}
   showToast('Configuración guardada','ok');
+}
+
+async function saveConfigIntl(){
+  const d=gfd(['formatoFecha','separadorDecimal','prefijoPres','prefijoFact','nombreImpuesto2','tipoIva2']);
+  const tipoIva2=numVal(d.tipoIva2,{min:0,max:100});
+  const row={user_id:CU.id,
+    formato_fecha:d.formatoFecha||'DD/MM/YYYY',
+    separador_decimal:d.separadorDecimal||'.',
+    prefijo_presupuesto:d.prefijoPres||'B3D',
+    prefijo_factura:d.prefijoFact||'B3D-F',
+    nombre_impuesto2:d.nombreImpuesto2||'',
+    tipo_iva2:tipoIva2,
+    // mantener campos existentes
+    coste_por_gramo:_cache.cfg.costePorGramo,coste_por_hora:_cache.cfg.costePorHora,
+    margen:_cache.cfg.margen,moneda:_cache.cfg.moneda,
+    empresa:_cache.cfg.empresa||'',nif:_cache.cfg.nif||'',
+    direccion:_cache.cfg.direccion||'',telefono:_cache.cfg.telefono||'',email:_cache.cfg.email||'',
+    logo:_cache.cfg.logo||'',tipo_iva:_cache.cfg.tipoIva||0,nombre_impuesto:_cache.cfg.nombreImpuesto||'IVA'
+  };
+  const {error}=await sb.from('config').upsert(row,{onConflict:'user_id'});
+  if(error){showToast('Error: '+error.message,'err');return;}
+  _cache.cfg={..._cache.cfg,...mapCfg(row)};
+  const b=$('scb3');if(b){b.textContent='✅ Guardado';setTimeout(()=>{b.textContent='Guardar formato';},2000);}
+  showToast('Formato internacional guardado','ok');
 }
 
 async function saveBiz(){
