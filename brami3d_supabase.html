@@ -4032,9 +4032,26 @@ async function saveO(id){
   if(ok){
     const mapped={id:row.id,clienteId:d.clienteId,proyecto:d.proyecto,material:mainMat,peso:pesoTotal,tiempoImpresion:tiempoTotal,estado:d.estado,notas:d.notas,fecha:d.fecha,gananciaManual:d.gananciaManual,precioFinal:d.precioFinal!==''?parseFloat(d.precioFinal):null,costePostprocesado:d.costePostprocesado,costeDiseno:d.costeDiseno||0,presNum:presNum,facturaNum:prevOrder?.facturaNum||null,facturaFecha:prevOrder?.facturaFecha||null,lineas:_lineas,fotoUrl:fotoUrl||null,fotoPath:_fotoPath||null,impresoraId:d.impresoraId||null,cobrado:nuevoCobrado,fechaCobrado:fechaCobradoFinal,fechaEntrega:d.fechaEntrega||null};
     if(id)_cache.pedidos=_cache.pedidos.map(o=>o.id===id?mapped:o);else _cache.pedidos.unshift(mapped);
-    closeModal();render();refreshAlerts();showToast('✅ Pedido guardado','ok');
+    render();refreshAlerts();
     // Si se acaba de marcar como cobrado, generar factura
-    if(nuevoCobrado&&!eraYaCobrado) setTimeout(()=>genFactura(row.id),400);
+    if(nuevoCobrado&&!eraYaCobrado){ closeModal(); setTimeout(()=>genFactura(row.id),400); return; }
+    // Ofrecer envío por WhatsApp si el cliente tiene teléfono
+    const cl=_cache.clientes.find(x=>x.id===d.clienteId)||{};
+    if(cl.telefono){
+      const savedId=row.id;
+      openModal(msh('✅ Pedido guardado',`
+        <div style="text-align:center;padding:8px 0 16px">
+          <div style="font-size:44px;margin-bottom:10px">✅</div>
+          <div style="font-size:16px;font-weight:800;color:var(--text2);margin-bottom:6px">Pedido guardado correctamente</div>
+          <div style="font-size:13px;color:var(--text4);margin-bottom:22px">¿Envías el presupuesto a <b style="color:var(--text2)">${esc(cl.nombre)}</b>?</div>
+          <div style="display:flex;gap:10px;justify-content:center">
+            <button class="btn-primary" style="display:flex;align-items:center;gap:8px;padding:11px 22px" onclick="closeModal();sendWA('${savedId}')">💬 Enviar por WhatsApp</button>
+            <button class="btn-secondary" onclick="closeModal()">Ahora no</button>
+          </div>
+        </div>`));
+    } else {
+      closeModal();showToast('✅ Pedido guardado','ok');
+    }
   }
 }
 
