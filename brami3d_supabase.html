@@ -2405,82 +2405,6 @@ function buildPresupuestoPdf(id){
   return {doc, blob:doc.output('blob'), filename, o, c, cl, mon};
 }
 
-function buildPDFHtml(id){
-  const o=_cache.pedidos.find(x=>x.id===id);if(!o)return null;
-  const cl=_cache.clientes.find(x=>x.id===o.clienteId)||{};
-  const cfg=_cache.cfg; const biz=cfg;
-  const c=calcOrderCosts(o,cfg);
-  const mon=cfg.moneda||'€';
-  const dateStr=fmtFecha(today(),cfg);
-
-  const lineasHTML=o.lineas&&o.lineas.length>0?`
-    <table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:4px">
-      <thead><tr style="border-bottom:2px solid #e2e8f0">
-        <th style="text-align:left;padding:6px 8px;color:#94a3b8;font-size:10px;text-transform:uppercase">Pieza</th>
-        <th style="text-align:left;padding:6px 8px;color:#94a3b8;font-size:10px;text-transform:uppercase">Filamento</th>
-        <th style="text-align:right;padding:6px 8px;color:#94a3b8;font-size:10px;text-transform:uppercase">Uds</th>
-        <th style="text-align:right;padding:6px 8px;color:#94a3b8;font-size:10px;text-transform:uppercase">Peso</th>
-        <th style="text-align:right;padding:6px 8px;color:#94a3b8;font-size:10px;text-transform:uppercase">Tiempo</th>
-      </tr></thead><tbody>
-      ${o.lineas.map(l=>{
-        const fil=l.filamentoId&&l.filamentoId!=='__manual__'?_cache.filamentos.find(f=>f.id===l.filamentoId):null;
-        const dot=fil&&fil.color?`<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${fil.color};margin-right:5px;vertical-align:middle"></span>`:'';
-        const filLabel=fil?`${dot}${fil.tipo} · ${fil.marca}`:l.material||'—';
-        return`<tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 8px;font-weight:600;color:#0f172a">${l.nombre||'—'}</td><td style="padding:7px 8px;color:#475569">${filLabel}</td><td style="padding:7px 8px;text-align:right;color:#475569">${l.qty||1}</td><td style="padding:7px 8px;text-align:right;color:#475569">${l.peso?l.peso+'g':'—'}</td><td style="padding:7px 8px;text-align:right;color:#475569">${l.tiempoImpresion?l.tiempoImpresion+'h':'—'}</td></tr>`;
-      }).join('')}
-      </tbody></table>
-      <div style="display:flex;gap:24px;padding:8px 8px 0;border-top:2px solid #e2e8f0">
-        <span style="font-size:12px;color:#64748b">Peso total: <b style="color:#0f172a">${o.peso}g</b></span>
-        <span style="font-size:12px;color:#64748b">Tiempo total: <b style="color:#0f172a">${o.tiempoImpresion}h</b></span>
-      </div>`
-    :`<div class="row"><span class="lbl">Material</span><span class="val">${o.material}</span></div>
-      <div class="row"><span class="lbl">Peso</span><span class="val">${o.peso} g</span></div>
-      <div class="row"><span class="lbl">Tiempo</span><span class="val">${o.tiempoImpresion} h</span></div>`;
-
-  return`<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>Presupuesto ${o.presNum||''}</title>
-<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#0f172a;max-width:700px;margin:0 auto;padding:48px 40px}
-.hdr{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:28px;border-bottom:3px solid #2563eb;margin-bottom:36px}
-.hdr-left{display:flex;align-items:center;gap:14px}.brand-name{font-size:22px;font-weight:900;color:#0f172a;letter-spacing:-1.5px}.brand-sub{font-size:9px;color:#3b82f6;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;margin-top:2px}
-.biz-info{text-align:right;font-size:12px;color:#64748b;line-height:1.85}.biz-name{font-size:15px;font-weight:800;color:#0f172a;margin-bottom:2px}
-.doc-meta{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:36px}
-.doc-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:#94a3b8;margin-bottom:6px}
-.doc-title{font-size:30px;font-weight:900;color:#0f172a;letter-spacing:-1px;line-height:1.1}
-.doc-num{text-align:right;font-size:12px;color:#94a3b8;line-height:1.8}.doc-num b{color:#475569}
-.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px}
-.section{background:#f8fafc;border-radius:10px;padding:18px 20px}
-.section-title{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:2px;color:#94a3b8;margin-bottom:14px}
-.row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #e2e8f0}.row:last-child{border:none}
-.lbl{font-size:12px;color:#64748b}.val{font-size:12px;font-weight:700;color:#0f172a;text-align:right;max-width:55%}
-.price-section{background:#0f172a;border-radius:14px;padding:28px 32px;display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}
-.price-lbl{font-size:13px;color:#94a3b8;font-weight:500}.price-val{font-size:36px;font-weight:900;color:#fff;letter-spacing:-1.5px}.price-mon{font-size:22px;font-weight:700;color:#3b82f6;margin-left:6px}
-.payment{background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:16px 20px;display:flex;align-items:center;gap:16px;margin-bottom:24px}
-.payment-label{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#0369a1;margin-bottom:4px}
-.payment-title{font-size:13px;font-weight:700;color:#0f172a;margin-bottom:2px}
-.payment-num{font-size:20px;font-weight:900;color:#0369a1;letter-spacing:1px;font-family:'Courier New',monospace}
-.payment-sub{font-size:10px;color:#64748b;margin-top:3px}
-.footer{padding-top:20px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;font-size:11px;color:#94a3b8}
-@media print{body{padding:24px 28px}@page{margin:.5cm}}</style></head><body>
-<div class="hdr">${brandHeaderHtml(cfg,{size:44,layoutClass:'hdr-left'})}
-<div class="biz-info"><div class="biz-name">${esc(brandFooterName(biz))}</div>${biz.nif?`<div>NIF/CIF: ${esc(biz.nif)}</div>`:''}${biz.direccion?`<div>📍 ${esc(biz.direccion)}</div>`:''}${biz.email?`<div>✉ ${esc(biz.email)}</div>`:''}${biz.telefono?`<div>📞 ${esc(biz.telefono)}</div>`:''}</div></div>
-<div class="doc-meta"><div><div class="doc-label">Documento</div><div class="doc-title">Presupuesto</div></div>
-<div class="doc-num"><div><b>Nº:</b> ${o.presNum||'—'}</div><div><b>Proyecto:</b> ${o.proyecto}</div><div><b>Fecha:</b> ${dateStr}</div>${o.fecha&&o.fecha!==today()?`<div><b>Fecha pedido:</b> ${o.fecha}</div>`:''}</div></div>
-<div class="two-col">
-<div class="section"><div class="section-title">Cliente</div>
-${cl.nombre?`<div class="row"><span class="lbl">Nombre</span><span class="val">${cl.nombre}</span></div>`:'<div class="row"><span class="lbl">Cliente</span><span class="val">—</span></div>'}
-${cl.nif?`<div class="row"><span class="lbl">NIF/CIF</span><span class="val">${cl.nif}</span></div>`:''}
-${cl.empresa?`<div class="row"><span class="lbl">Empresa</span><span class="val">${cl.empresa}</span></div>`:''}
-${cl.direccion?`<div class="row"><span class="lbl">Dirección</span><span class="val">${cl.direccion}</span></div>`:''}
-${cl.email?`<div class="row"><span class="lbl">Email</span><span class="val">${cl.email}</span></div>`:''}
-${cl.telefono?`<div class="row"><span class="lbl">Teléfono</span><span class="val">${cl.telefono}</span></div>`:''}</div>
-<div class="section"><div class="section-title">Detalles</div>${lineasHTML}${o.notas?`<div class="row" style="margin-top:8px"><span class="lbl">Notas</span><span class="val">${o.notas}</span></div>`:''}</div></div>
-<div class="price-section"><div><div class="price-lbl">PRECIO TOTAL</div><div style="font-size:11px;color:#475569;margin-top:4px">${Number(cfg.tipoIva||0)>0?(cfg.nombreImpuesto||'IVA')+' no incluido':'Impuestos no incluidos'}</div></div>
-<div style="display:flex;align-items:baseline"><div class="price-val">${c.fp.toFixed(2)}</div><div class="price-mon">${mon}</div></div></div>
-<div class="payment"><div style="font-size:28px;flex-shrink:0">📱</div><div><div class="payment-label">Forma de pago</div><div class="payment-title">Bizum</div>
-${biz.telefono?`<div class="payment-num">${biz.telefono}</div><div class="payment-sub">Puedes realizar el pago por Bizum al número indicado</div>`:`<div class="payment-sub" style="font-size:12px;font-weight:600">Consultar forma de pago</div>`}</div></div>
-<div class="footer"><span>¡Gracias por confiar en nosotros! 🙏</span><span>Generado con B3D · ${dateStr}${biz.empresa?' · '+biz.empresa:''}</span></div>
-<script>setTimeout(()=>window.print(),500)<\/script></body></html>`;
-}
-
 async function genPDF(id){
   const o=await ensurePresNum(id); if(!o) return;
   let built;
@@ -2514,17 +2438,6 @@ function abrirDocModal(html, filename){
       <iframe src="${dataUrl}" style="flex:1;border:none;width:100%;background:#fff"></iframe>
     </div></div>`;
   }
-}
-
-function downloadPDFFile(id){
-  const html=buildPDFHtml(id);if(!html)return null;
-  const o=_cache.pedidos.find(x=>x.id===id);if(!o)return null;
-  const blob=new Blob([html],{type:'text/html'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download=`Presupuesto_${o.proyecto.replace(/\s+/g,'_')}.html`;
-  document.body.appendChild(a);a.click();document.body.removeChild(a);
-  setTimeout(()=>URL.revokeObjectURL(url),2000);
-  return o;
 }
 
 async function sendWA(id){
@@ -2672,6 +2585,164 @@ ${huella?`<div class="compl"><div class="compl-txt"><div><b>Sistema:</b> Brami3D
 }
 
 // ═══════════════════════════════════════════════
+//  HELPERS PDF (informes) — jsPDF directo
+// ═══════════════════════════════════════════════
+const _PDF = {
+  NAVY:[15,23,42], BLUE:[37,99,235], GREY:[100,116,139], LGREY:[148,163,184],
+  GREEN:[21,128,61], RED:[220,38,38], BLUET:[29,78,216], BORD:[226,232,240]
+};
+
+// Acorta un texto con "…" para que quepa en maxW (mm). La fuente/tamaño deben
+// estar ya fijados (getTextWidth depende del estado actual del doc).
+function _pdfFit(doc, txt, maxW){
+  txt=String(txt==null?'':txt);
+  if(doc.getTextWidth(txt)<=maxW) return txt;
+  let t=txt;
+  while(t.length>1 && doc.getTextWidth(t+'…')>maxW){ t=t.slice(0,-1); }
+  return t+'…';
+}
+
+// Crea un doc A4 con utilidades de dibujo y paginación. Devuelve un contexto.
+function _pdfMake(){
+  const Ctor=_pdfCtor();
+  if(!Ctor) throw new Error('La librería de PDF aún no se ha cargado. Espera unos segundos e inténtalo de nuevo.');
+  const doc=new Ctor({unit:'mm',format:'a4',orientation:'portrait'});
+  const ctx={doc,PW:210,PH:297,ML:15,MR:15,MT:16,MB:16,W:180,y:16};
+  ctx.setColor=rgb=>doc.setTextColor(rgb[0],rgb[1],rgb[2]);
+  ctx.linea=(x1,y1,x2,y2,col,gr)=>{doc.setDrawColor(col[0],col[1],col[2]);doc.setLineWidth(gr);doc.line(x1,y1,x2,y2);};
+  ctx.check=h=>{ if(ctx.y+h>ctx.PH-ctx.MB){ doc.addPage(); ctx.y=ctx.MT; } };
+  return ctx;
+}
+
+// Cabecera de marca (logo+empresa) + "Generado el" + banda de título oscura.
+function _pdfReportHeader(ctx, titulo, subtitulo){
+  const {doc,ML,MR,PW,W}=ctx; const biz=_cache.cfg;
+  ctx.dateStr=new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
+  let y=ctx.y, hx=ML;
+  if(biz.logo && typeof biz.logo==='string' && biz.logo.startsWith('data:image')){
+    try{ const fmt=biz.logo.includes('image/png')?'PNG':(biz.logo.includes('jpeg')||biz.logo.includes('jpg'))?'JPEG':'PNG'; doc.addImage(biz.logo,fmt,ML,y,15,15); hx=ML+19; }catch(_){}
+  }
+  doc.setFont('helvetica','bold'); doc.setFontSize(16); ctx.setColor(_PDF.NAVY);
+  doc.text(brandFooterName(biz), hx, y+6);
+  let yI=y+11; doc.setFont('helvetica','normal'); doc.setFontSize(9); ctx.setColor(_PDF.GREY);
+  [biz.nif?`NIF/CIF: ${biz.nif}`:null, biz.email||null, biz.telefono?`Tel: ${biz.telefono}`:null]
+    .filter(Boolean).forEach(t=>{ doc.text(String(t),hx,yI); yI+=4; });
+  ctx.setColor(_PDF.GREY); doc.setFontSize(9);
+  doc.text('Generado el '+ctx.dateStr, PW-MR, y+5, {align:'right'});
+  y=Math.max(yI,y+11)+3;
+  ctx.linea(ML,y,PW-MR,y,_PDF.BLUE,0.8); y+=6;
+  doc.setFillColor(_PDF.NAVY[0],_PDF.NAVY[1],_PDF.NAVY[2]); doc.roundedRect(ML,y,W,16,3,3,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(15); ctx.setColor([255,255,255]);
+  doc.text(titulo, ML+7, subtitulo?y+7:y+10);
+  if(subtitulo){ doc.setFont('helvetica','normal'); doc.setFontSize(10); ctx.setColor(_PDF.LGREY); doc.text(subtitulo, ML+7, y+12.5); }
+  ctx.y=y+22;
+}
+
+// Pie con leyenda + nombre/fecha/paginación en todas las páginas.
+function _pdfReportFooter(ctx, leyenda){
+  const {doc,ML,MR,PW,PH}=ctx;
+  const tot=doc.internal.getNumberOfPages();
+  for(let p=1;p<=tot;p++){
+    doc.setPage(p);
+    ctx.linea(ML,PH-13,PW-MR,PH-13,_PDF.BORD,0.3);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); ctx.setColor(_PDF.LGREY);
+    doc.text(leyenda, ML, PH-8);
+    doc.text(`${brandFooterName(_cache.cfg)} · ${ctx.dateStr} · Pág. ${p}/${tot}`, PW-MR, PH-8, {align:'right'});
+  }
+}
+
+// Título de sección con subrayado.
+function _pdfSection(ctx, titulo){
+  const {doc,ML,W}=ctx;
+  ctx.check(12); ctx.y+=2;
+  doc.setFont('helvetica','bold'); doc.setFontSize(9); ctx.setColor(_PDF.LGREY);
+  doc.text(String(titulo).toUpperCase(), ML, ctx.y+3);
+  ctx.y+=5; ctx.linea(ML,ctx.y,ML+W,ctx.y,_PDF.BORD,0.3); ctx.y+=5;
+}
+
+// Fila de cajas de estadística. items=[{label,value,sub,color}].
+function _pdfStats(ctx, items){
+  const {doc,ML,W}=ctx;
+  const n=items.length, gap=4, bw=(W-gap*(n-1))/n, bh=21;
+  ctx.check(bh+2);
+  let x=ML;
+  items.forEach(it=>{
+    doc.setDrawColor(_PDF.BORD[0],_PDF.BORD[1],_PDF.BORD[2]); doc.setLineWidth(0.3);
+    doc.setFillColor(250,251,252); doc.roundedRect(x,ctx.y,bw,bh,2,2,'FD');
+    doc.setFont('helvetica','bold'); doc.setFontSize(7); ctx.setColor(_PDF.LGREY);
+    doc.text(_pdfFit(doc,String(it.label).toUpperCase(),bw-6), x+4, ctx.y+6);
+    doc.setFont('helvetica','bold'); doc.setFontSize(13.5); ctx.setColor(it.color||_PDF.NAVY);
+    doc.text(_pdfFit(doc,it.value,bw-6), x+4, ctx.y+13);
+    if(it.sub){ doc.setFont('helvetica','normal'); doc.setFontSize(7.5); ctx.setColor(_PDF.GREY); doc.text(_pdfFit(doc,it.sub,bw-6), x+4, ctx.y+18); }
+    x+=bw+gap;
+  });
+  ctx.y+=bh+6;
+}
+
+// Tabla genérica. cols=[{title,width,align}]. rows=[[cell,...]] donde cell es
+// string o {text,color,bold}. opts.foot = fila de totales (mismo formato).
+function _pdfTable(ctx, cols, rows, opts={}){
+  const {doc,ML,W}=ctx;
+  const headFill=opts.headFill||_PDF.NAVY;
+  const drawHead=()=>{
+    doc.setFillColor(headFill[0],headFill[1],headFill[2]); doc.rect(ML,ctx.y,W,7,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); ctx.setColor([255,255,255]);
+    let x=ML;
+    cols.forEach(c=>{
+      const tx=c.align==='right'?x+c.width-2:c.align==='center'?x+c.width/2:x+2;
+      doc.text(c.title, tx, ctx.y+4.8, {align:c.align||'left'});
+      x+=c.width;
+    });
+    ctx.y+=7;
+  };
+  ctx.check(14); drawHead();
+  rows.forEach((r,ri)=>{
+    if(ctx.y+6.5>ctx.PH-ctx.MB){ doc.addPage(); ctx.y=ctx.MT; drawHead(); }
+    if(ri%2===1){ doc.setFillColor(248,250,252); doc.rect(ML,ctx.y,W,6.5,'F'); }
+    let cx=ML;
+    cols.forEach((c,ci)=>{
+      const cell=r[ci];
+      const obj=(cell&&typeof cell==='object')?cell:{text:cell};
+      doc.setFont('helvetica', obj.bold?'bold':'normal'); doc.setFontSize(9);
+      ctx.setColor(obj.color||_PDF.NAVY);
+      const tx=c.align==='right'?cx+c.width-2:c.align==='center'?cx+c.width/2:cx+2;
+      doc.text(_pdfFit(doc,obj.text,c.width-3), tx, ctx.y+4.5, {align:c.align||'left'});
+      cx+=c.width;
+    });
+    ctx.y+=6.5; ctx.linea(ML,ctx.y,ML+W,ctx.y,_PDF.BORD,0.15);
+  });
+  if(opts.foot){
+    if(ctx.y+7>ctx.PH-ctx.MB){ doc.addPage(); ctx.y=ctx.MT; }
+    doc.setFillColor(241,245,249); doc.rect(ML,ctx.y,W,7,'F');
+    let fx=ML; doc.setFontSize(9);
+    cols.forEach((c,ci)=>{
+      const cell=opts.foot[ci];
+      if(cell!=null && cell!==''){
+        const obj=(cell&&typeof cell==='object')?cell:{text:cell};
+        doc.setFont('helvetica', obj.bold===false?'normal':'bold');
+        ctx.setColor(obj.color||_PDF.NAVY);
+        const tx=c.align==='right'?fx+c.width-2:c.align==='center'?fx+c.width/2:fx+2;
+        doc.text(_pdfFit(doc,obj.text,c.width-3), tx, ctx.y+4.8, {align:c.align||'left'});
+      }
+      fx+=c.width;
+    });
+    ctx.y+=7;
+  }
+  ctx.y+=4;
+}
+
+// Abre el PDF: pestaña nueva (desktop) o descarga (móvil/iOS).
+function _openPdf(doc, filename){
+  if(window.innerWidth>768){
+    const url=URL.createObjectURL(doc.output('blob'));
+    window.open(url,'_blank');
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
+  } else {
+    doc.save(filename);
+  }
+}
+
+// ═══════════════════════════════════════════════
 //  INFORME MENSUAL PDF
 // ═══════════════════════════════════════════════
 function abrirInforme(){
@@ -2743,180 +2814,65 @@ function generarInforme(){
     }
   });
 
-  const dateStr = new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'});
-
-  const pedidosRows = ordenes.length===0
-    ? `<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:20px">Sin pedidos este mes</td></tr>`
-    : ordenes.map(o=>{
-        const cl=_cache.clientes.find(x=>x.id===o.clienteId)||{};
-        const c=calcOrderCosts(o,cfg);
-        const estadoColor={pagado:'#15803d',pendiente:'#b45309',imprimiendo:'#1d4ed8',terminado:'#065f46',entregado:'#5b21b6'}[o.estado]||'#475569';
-        return`<tr style="border-bottom:1px solid #f1f5f9">
-          <td style="padding:8px 10px;font-size:12px;font-weight:600;color:#0f172a">${o.proyecto}</td>
-          <td style="padding:8px 10px;font-size:12px;color:#64748b">${cl.nombre||'—'}</td>
-          <td style="padding:8px 10px;font-size:12px;color:#64748b">${o.fecha||'—'}</td>
-          <td style="padding:8px 10px;font-size:12px;text-align:right;color:#0f172a;font-weight:700">${c.fp.toFixed(2)} ${mon}</td>
-          <td style="padding:8px 10px;font-size:11px;text-align:center"><span style="background:${estadoColor}22;color:${estadoColor};border:1px solid ${estadoColor}44;border-radius:99px;padding:2px 8px;font-weight:700">${o.estado}</span></td>
-        </tr>`;
-      }).join('');
-
   // Gastos del mes
-  const gastosMes=(_cache.gastos||[]).filter(g=>(g.fecha||'').startsWith(prefix));
+  const gastosMes=(_cache.gastos||[]).filter(g=>(g.fecha||"").startsWith(prefix));
   const totGastosMes=gastosMes.reduce((s,g)=>s+parseFloat(g.importe||0),0);
-  const gastosByCat={};
-  gastosMes.forEach(g=>{gastosByCat[g.categoria]=(gastosByCat[g.categoria]||0)+parseFloat(g.importe||0);});
   const beneficioReal=totIngresos-totCostes-totGastosMes;
+  const fmt=v=>v.toFixed(2)+" "+mon;
 
-  const gastosRows=gastosMes.length===0
-    ?`<tr><td colspan="4" style="text-align:center;color:#94a3b8;padding:12px">Sin gastos este mes</td></tr>`
-    :gastosMes.map(g=>`
-        <tr style="border-bottom:1px solid #f1f5f9">
-          <td style="padding:7px 10px;font-size:12px;font-weight:600;color:#0f172a">${g.descripcion}</td>
-          <td style="padding:7px 10px;font-size:11px;color:#64748b">${g.categoria}</td>
-          <td style="padding:7px 10px;font-size:12px;color:#64748b">${g.proveedor||'—'}</td>
-          <td style="padding:7px 10px;font-size:12px;text-align:right;color:#dc2626;font-weight:700">-${parseFloat(g.importe).toFixed(2)} ${mon}</td>
-        </tr>`).join('');
+  let ctx;
+  try { ctx=_pdfMake(); } catch(e){ showToast(e.message,"err",5000); return; }
+  const {doc}=ctx;
+  _pdfReportHeader(ctx, "Informe mensual", mesNombre+" "+anio);
 
-  const filRows = Object.entries(filConsumo).length===0
-    ? `<tr><td colspan="2" style="text-align:center;color:#94a3b8;padding:12px">Sin consumo registrado</td></tr>`
-    : Object.entries(filConsumo).map(([mat,peso])=>`
-        <tr style="border-bottom:1px solid #f1f5f9">
-          <td style="padding:7px 10px;font-size:12px;font-weight:600;color:#0f172a">${mat}</td>
-          <td style="padding:7px 10px;font-size:12px;color:#475569;text-align:right">${peso.toFixed(1)} g</td>
-        </tr>`).join('');
+  _pdfStats(ctx, [
+    {label:"Ingresos", value:fmt(totIngresos), sub:pagados.length+" cobrado"+(pagados.length!==1?"s":""), color:_PDF.GREEN},
+    {label:"Gastos totales", value:"-"+fmt(totCostes+totGastosMes), sub:"Produccion + gastos", color:_PDF.RED},
+    {label:"Beneficio neto", value:fmt(beneficioReal), sub:"Margen: "+margenMedio.toFixed(1)+"%", color:beneficioReal>=0?_PDF.GREEN:_PDF.RED}
+  ]);
+  _pdfStats(ctx, [
+    {label:"Total pedidos", value:String(ordenes.length)},
+    {label:"Pendientes", value:String(pendientes.length), color:[180,83,9]},
+    {label:"Imprimiendo", value:String(imprimiendo.length), color:_PDF.BLUET}
+  ]);
 
-  const html=`<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
-<title>Informe ${mesNombre} ${anio}</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#0f172a;max-width:720px;margin:0 auto;padding:40px 36px}
-.hdr{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:24px;border-bottom:3px solid #2563eb;margin-bottom:32px}
-.hdr-left{display:flex;align-items:center;gap:12px}
-.brand{font-size:20px;font-weight:900;color:#0f172a;letter-spacing:-1.5px}
-.brand-sub{font-size:8px;color:#3b82f6;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-top:2px}
-.biz{text-align:right;font-size:11px;color:#64748b;line-height:1.8}
-.biz-name{font-size:14px;font-weight:800;color:#0f172a;margin-bottom:2px}
-.title-band{background:#0f172a;border-radius:12px;padding:20px 28px;margin-bottom:28px;display:flex;justify-content:space-between;align-items:center}
-.title-band h1{font-size:22px;font-weight:900;color:#fff;letter-spacing:-.5px}
-.title-band .sub{font-size:12px;color:#94a3b8;margin-top:4px}
-.title-band .date{font-size:11px;color:#475569;text-align:right}
-.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:28px}
-.stat{border-radius:10px;padding:16px 18px;border:1px solid #e2e8f0}
-.stat-lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#94a3b8;margin-bottom:8px}
-.stat-val{font-size:24px;font-weight:900;letter-spacing:-1px;font-family:'Courier New',monospace}
-.stat-sub{font-size:11px;color:#94a3b8;margin-top:4px}
-.section{margin-bottom:28px}
-.section-title{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#94a3b8;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid #e2e8f0}
-table{width:100%;border-collapse:collapse}
-thead tr{background:#f8fafc}
-th{text-align:left;padding:8px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#94a3b8}
-th:last-child{text-align:right}
-.summary{background:#f8fafc;border-radius:10px;padding:16px 20px;margin-bottom:28px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
-.sum-item{text-align:center}
-.sum-lbl{font-size:10px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
-.sum-val{font-size:16px;font-weight:800;color:#0f172a}
-.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;font-size:10px;color:#94a3b8}
-@media print{body{padding:24px}@page{margin:.5cm}}
-</style></head><body>
+  _pdfSection(ctx, "Pedidos del mes");
+  const cP=[{title:"Proyecto",width:58},{title:"Cliente",width:45},{title:"Fecha",width:25},{title:"Precio",width:27,align:"right"},{title:"Estado",width:25,align:"center"}];
+  const rP = ordenes.length===0 ? [[{text:"Sin pedidos este mes",color:_PDF.LGREY}]] :
+    ordenes.map(o=>{ const cl=_cache.clientes.find(x=>x.id===o.clienteId)||{}; const c=calcOrderCosts(o,cfg);
+      return [ {text:o.proyecto||"—",bold:true}, cl.nombre||"—", o.fecha||"—", {text:fmt(c.fp),bold:true}, {text:o.estado||"—",align:"center"} ]; });
+  _pdfTable(ctx, cP, rP);
 
-<div class="hdr">
-  <div class="hdr-left">
-    ${brandLogo(cfg,40)}
-    <div>${(()=>{const bt=brandTitle(cfg);return `<div class="brand">${esc(bt.name)}</div>${bt.sub?`<div class="brand-sub">${esc(bt.sub)}</div>`:''}`;})()}</div>
-  </div>
-  <div class="biz">
-    ${biz.empresa?`<div class="biz-name">${esc(biz.empresa)}</div>`:''}
-    ${biz.email?`<div>✉ ${esc(biz.email)}</div>`:''}
-    ${biz.telefono?`<div>📞 ${esc(biz.telefono)}</div>`:''}
-  </div>
-</div>
+  _pdfSection(ctx, "Gastos del mes");
+  const cG=[{title:"Descripcion",width:70},{title:"Categoria",width:38},{title:"Proveedor",width:42},{title:"Importe",width:30,align:"right"}];
+  const rG = gastosMes.length===0 ? [[{text:"Sin gastos este mes",color:_PDF.LGREY}]] :
+    gastosMes.map(g=>[ {text:g.descripcion||"—",bold:true}, g.categoria||"—", g.proveedor||"—", {text:"-"+fmt(parseFloat(g.importe||0)),color:_PDF.RED,bold:true} ]);
+  _pdfTable(ctx, cG, rG, totGastosMes>0?{foot:["","","Total gastos",{text:"-"+fmt(totGastosMes),color:_PDF.RED}]}:{});
 
-<div class="title-band">
-  <div>
-    <h1>Informe mensual</h1>
-    <div class="sub">${mesNombre} ${anio}</div>
-  </div>
-  <div class="date">Generado el<br><b style="color:var(--text2)">${dateStr}</b></div>
-</div>
+  _pdfSection(ctx, "Consumo de filamento (pedidos cobrados)");
+  const cF=[{title:"Material",width:130},{title:"Consumido",width:50,align:"right"}];
+  const fEnt=Object.entries(filConsumo);
+  const rF = fEnt.length===0 ? [[{text:"Sin consumo registrado",color:_PDF.LGREY}]] :
+    fEnt.map(([mat,peso])=>[ {text:mat,bold:true}, {text:peso.toFixed(1)+" g"} ]);
+  _pdfTable(ctx, cF, rF);
 
-<div class="stats">
-  <div class="stat" style="background:#f0fdf4;border-color:#bbf7d0">
-    <div class="stat-lbl">Ingresos</div>
-    <div class="stat-val" style="color:#15803d">${totIngresos.toFixed(2)} ${mon}</div>
-    <div class="stat-sub">${pagados.length} pedido${pagados.length!==1?'s':''} cobrado${pagados.length!==1?'s':''}</div>
-  </div>
-  <div class="stat" style="background:#fef2f2;border-color:#fecaca">
-    <div class="stat-lbl">Gastos totales</div>
-    <div class="stat-val" style="color:#dc2626">-${(totCostes+totGastosMes).toFixed(2)} ${mon}</div>
-    <div class="stat-sub">Producción + gastos</div>
-  </div>
-  <div class="stat" style="background:${beneficioReal>=0?'#f0fdf4':'#fef2f2'};border-color:${beneficioReal>=0?'#bbf7d0':'#fecaca'}">
-    <div class="stat-lbl">Beneficio neto</div>
-    <div class="stat-val" style="color:${beneficioReal>=0?'#15803d':'#dc2626'}">${beneficioReal.toFixed(2)} ${mon}</div>
-    <div class="stat-sub">Margen: ${margenMedio.toFixed(1)}%</div>
-  </div>
-</div>
+  _pdfSection(ctx, "Desglose de costes de produccion");
+  const cC=[{title:"Concepto",width:100},{title:"Coste",width:45,align:"right"},{title:"% del total",width:35,align:"right"}];
+  const cbk=[["Material",costeMat],["Electricidad",costeElec],["Diseno",costeDis],["Postprocesado",costePost]].filter(([,v])=>v>0);
+  const rC = cbk.length===0 ? [[{text:"Sin pedidos cobrados",color:_PDF.LGREY}]] :
+    cbk.map(([lbl,v])=>[ {text:lbl,bold:true}, {text:"-"+fmt(v),color:_PDF.RED,bold:true}, {text:(totCostes>0?((v/totCostes)*100).toFixed(1):0)+"%",color:_PDF.GREY} ]);
+  _pdfTable(ctx, cC, rC, totCostes>0?{foot:["Total costes produccion",{text:"-"+fmt(totCostes),color:_PDF.RED},""]}:{});
 
-<div class="summary">
-  <div class="sum-item"><div class="sum-lbl">Total pedidos</div><div class="sum-val">${ordenes.length}</div></div>
-  <div class="sum-item"><div class="sum-lbl">Pendientes</div><div class="sum-val" style="color:#b45309">${pendientes.length}</div></div>
-  <div class="sum-item"><div class="sum-lbl">Imprimiendo</div><div class="sum-val" style="color:#1d4ed8">${imprimiendo.length}</div></div>
-</div>
+  if(topClientes.length){
+    _pdfSection(ctx, "Top clientes del mes");
+    const cT=[{title:"Cliente",width:100},{title:"Facturado",width:45,align:"right"},{title:"% ingresos",width:35,align:"right"}];
+    const rT=topClientes.map(([nombre,total])=>[ {text:nombre,bold:true}, {text:fmt(total),color:_PDF.GREEN,bold:true}, {text:(totIngresos>0?((total/totIngresos)*100).toFixed(1):0)+"%",color:_PDF.GREY} ]);
+    _pdfTable(ctx, cT, rT);
+  }
 
-<div class="section">
-  <div class="section-title">Pedidos del mes</div>
-  <table>
-    <thead><tr><th>Proyecto</th><th>Cliente</th><th>Fecha</th><th style="text-align:right">Precio</th><th style="text-align:center">Estado</th></tr></thead>
-    <tbody>${pedidosRows}</tbody>
-  </table>
-</div>
-
-<div class="section">
-  <div class="section-title">Gastos del mes</div>
-  <table>
-    <thead><tr><th>Descripción</th><th>Categoría</th><th>Proveedor</th><th style="text-align:right">Importe</th></tr></thead>
-    <tbody>${gastosRows}</tbody>
-  </table>
-  ${totGastosMes>0?`<div style="text-align:right;margin-top:8px;font-size:13px;font-weight:700;color:#dc2626">Total gastos: -${totGastosMes.toFixed(2)} ${mon}</div>`:''}
-</div>
-
-<div class="section">
-  <div class="section-title">Consumo de filamento (pedidos cobrados)</div>
-  <table>
-    <thead><tr><th>Material</th><th style="text-align:right">Consumido</th></tr></thead>
-    <tbody>${filRows}</tbody>
-  </table>
-</div>
-
-<div class="section">
-  <div class="section-title">Desglose de costes de producción</div>
-  <table>
-    <thead><tr><th>Concepto</th><th style="text-align:right">Coste</th><th style="text-align:right">% del total</th></tr></thead>
-    <tbody>
-      ${[['Material',costeMat],['Electricidad',costeElec],['Diseño',costeDis],['Postprocesado',costePost]].filter(([,v])=>v>0).map(([lbl,v])=>`<tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-size:12px;font-weight:600;color:#0f172a">${lbl}</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#dc2626;font-weight:700">-${v.toFixed(2)} ${mon}</td><td style="padding:7px 10px;font-size:11px;text-align:right;color:#64748b">${totCostes>0?((v/totCostes)*100).toFixed(1):0}%</td></tr>`).join('') || '<tr><td colspan="3" style="text-align:center;color:#94a3b8;padding:12px">Sin pedidos cobrados</td></tr>'}
-    </tbody>
-  </table>
-  ${totCostes>0?`<div style="text-align:right;margin-top:8px;font-size:13px;font-weight:700;color:#dc2626">Total costes producción: -${totCostes.toFixed(2)} ${mon}</div>`:''}
-</div>
-
-${topClientes.length>0?`<div class="section">
-  <div class="section-title">Top clientes del mes</div>
-  <table>
-    <thead><tr><th>Cliente</th><th style="text-align:right">Facturado</th><th style="text-align:right">% ingresos</th></tr></thead>
-    <tbody>${topClientes.map(([nombre,total])=>`<tr style="border-bottom:1px solid #f1f5f9"><td style="padding:7px 10px;font-size:12px;font-weight:600;color:#0f172a">${nombre}</td><td style="padding:7px 10px;font-size:12px;text-align:right;color:#15803d;font-weight:700">${total.toFixed(2)} ${mon}</td><td style="padding:7px 10px;font-size:11px;text-align:right;color:#64748b">${totIngresos>0?((total/totIngresos)*100).toFixed(1):0}%</td></tr>`).join('')}</tbody>
-  </table>
-</div>`:''}
-
-<div class="footer">
-  <span>${esc(brandFooterName(cfg))} · Informe ${mesNombre} ${anio}</span>
-  <span>Generado con B3D · ${dateStr}</span>
-</div>
-
-<script>setTimeout(()=>window.print(),500)<\/script>
-</body></html>`;
-
+  _pdfReportFooter(ctx, "Informe "+mesNombre+" "+anio);
   closeModal();
-  abrirDocModal(html, `Informe_${mesNombre}_${anio}.html`);
+  _openPdf(doc, "Informe_"+mesNombre+"_"+anio+".pdf");
 }
 
 // ═══════════════════════════════════════════════
@@ -2968,130 +2924,49 @@ function generarInformeAnual(){
   const mejorMes=mesesConIngresos.length?mesesConIngresos.reduce((a,b)=>a.ingresos>b.ingresos?a:b):null;
   const peorMes=mesesConIngresos.length?mesesConIngresos.reduce((a,b)=>a.ingresos<b.ingresos?a:b):null;
 
-  // Barra visual proporcional
-  const maxIngreso=Math.max(...porMes.map(m=>m.ingresos),1);
-  const barW=(v)=>Math.round((v/maxIngreso)*120);
+  const fmt=v=>v.toFixed(2)+" "+mon;
 
-  const filasMes=porMes.map((m,i)=>{
-    const bg=i%2===0?'#fff':'#f8fafc';
-    const bColor=m.beneficio>=0?'#15803d':'#dc2626';
-    const bar=m.ingresos>0?`<div style="display:inline-block;width:${barW(m.ingresos)}px;height:6px;background:#2563eb;border-radius:3px;vertical-align:middle"></div>`:'';
-    return`<tr style="border-bottom:1px solid #f1f5f9;background:${bg}">
-      <td style="padding:8px 10px;font-size:12px;font-weight:700;color:#0f172a">${m.nombre}</td>
-      <td style="padding:8px 10px;font-size:12px;text-align:right;color:#15803d;font-weight:700">${m.ingresos>0?m.ingresos.toFixed(2)+' '+mon:'—'}</td>
-      <td style="padding:8px 10px;font-size:12px;text-align:right;color:#dc2626">${m.costes>0?'-'+m.costes.toFixed(2)+' '+mon:'—'}</td>
-      <td style="padding:8px 10px;font-size:12px;text-align:right;color:#dc2626">${m.gastos>0?'-'+m.gastos.toFixed(2)+' '+mon:'—'}</td>
-      <td style="padding:8px 10px;font-size:12px;text-align:right;color:${bColor};font-weight:700">${m.ingresos>0?m.beneficio.toFixed(2)+' '+mon:'—'}</td>
-      <td style="padding:8px 10px;font-size:11px;text-align:center;color:#475569">${m.cobrados}/${m.pedidos}</td>
-      <td style="padding:8px 10px">${bar}</td>
-    </tr>`;
-  }).join('');
+  let ctx;
+  try { ctx=_pdfMake(); } catch(e){ showToast(e.message,"err",5000); return; }
+  const {doc}=ctx;
+  _pdfReportHeader(ctx, "Informe anual "+anio, "Resumen completo · "+totPedidos+" pedidos · "+totCobrados+" cobrados");
 
-  const html=`<!DOCTYPE html><html lang="es"><head><meta charset="utf-8">
-<title>Informe Anual ${anio}</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#0f172a;max-width:780px;margin:0 auto;padding:40px 36px}
-.hdr{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:24px;border-bottom:3px solid #2563eb;margin-bottom:32px}
-.brand{font-size:20px;font-weight:900;color:#0f172a;letter-spacing:-1.5px}
-.biz{text-align:right;font-size:11px;color:#64748b;line-height:1.8}
-.biz-name{font-size:14px;font-weight:800;color:#0f172a;margin-bottom:2px}
-.title-band{background:#0f172a;border-radius:12px;padding:20px 28px;margin-bottom:28px;display:flex;justify-content:space-between;align-items:center}
-.title-band h1{font-size:26px;font-weight:900;color:#fff;letter-spacing:-.5px}
-.title-band .sub{font-size:13px;color:#94a3b8;margin-top:4px}
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:28px}
-.kpi{border-radius:10px;padding:16px 18px;border:1px solid #e2e8f0}
-.kpi-lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#94a3b8;margin-bottom:8px}
-.kpi-val{font-size:22px;font-weight:900;letter-spacing:-1px;font-family:'Courier New',monospace}
-.kpi-sub{font-size:11px;color:#94a3b8;margin-top:4px}
-.highlights{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:28px}
-.hl{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px 18px}
-.hl-lbl{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#94a3b8;margin-bottom:6px}
-.hl-val{font-size:16px;font-weight:800;color:#0f172a}
-.hl-sub{font-size:11px;color:#64748b;margin-top:2px}
-.section-title{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#94a3b8;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid #e2e8f0}
-table{width:100%;border-collapse:collapse}
-thead tr{background:#f8fafc}
-th{text-align:left;padding:8px 10px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#94a3b8}
-.tfoot td{padding:10px;font-size:13px;font-weight:800;border-top:2px solid #e2e8f0;background:#f8fafc}
-.footer{margin-top:32px;padding-top:16px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;font-size:10px;color:#94a3b8}
-@media print{body{padding:24px}@page{margin:.5cm}}
-</style></head><body>
+  _pdfStats(ctx, [
+    {label:"Ingresos totales", value:fmt(totIngresos), sub:totCobrados+" pedidos cobrados", color:_PDF.GREEN},
+    {label:"Gastos totales", value:"-"+fmt(totCostes+totGastos), sub:"Produccion + gastos", color:_PDF.RED},
+    {label:"Beneficio neto", value:fmt(totBeneficio), sub:"Margen "+margenAnual.toFixed(1)+"%", color:totBeneficio>=0?_PDF.GREEN:_PDF.RED},
+    {label:"Media mensual", value:fmt(totIngresos/12), sub:(totPedidos/12).toFixed(1)+" pedidos/mes", color:_PDF.BLUET}
+  ]);
 
-<div class="hdr">
-  <div style="display:flex;align-items:center;gap:12px">
-    ${brandLogo(cfg,40)}
-    <div><div class="brand">${esc(brandFooterName(cfg))}</div></div>
-  </div>
-  <div class="biz">
-    ${cfg.nif?`<div>${esc(cfg.nif)}</div>`:''}
-    ${cfg.email?`<div>✉ ${esc(cfg.email)}</div>`:''}
-  </div>
-</div>
+  if(mejorMes||peorMes){
+    const cajas=[];
+    if(mejorMes) cajas.push({label:"Mejor mes", value:mejorMes.nombre, sub:fmt(mejorMes.ingresos)+" · "+mejorMes.cobrados+" cobrados", color:_PDF.GREEN});
+    if(peorMes&&peorMes!==mejorMes) cajas.push({label:"Mes mas flojo", value:peorMes.nombre, sub:fmt(peorMes.ingresos)+" · "+peorMes.cobrados+" cobrados", color:[180,83,9]});
+    if(cajas.length) _pdfStats(ctx, cajas);
+  }
 
-<div class="title-band">
-  <div>
-    <h1>Informe anual ${anio}</h1>
-    <div class="sub">Resumen completo · ${totPedidos} pedidos · ${totCobrados} cobrados</div>
-  </div>
-  <div style="font-size:11px;color:#475569;text-align:right">Generado el<br><b>${dateStr}</b></div>
-</div>
+  _pdfSection(ctx, "Desglose mensual");
+  const cM=[{title:"Mes",width:30},{title:"Ingresos",width:32,align:"right"},{title:"Costes prod.",width:32,align:"right"},{title:"Gastos",width:26,align:"right"},{title:"Beneficio",width:32,align:"right"},{title:"Pedidos",width:28,align:"center"}];
+  const rM=porMes.map(m=>[
+    {text:m.nombre,bold:true},
+    {text:m.ingresos>0?fmt(m.ingresos):"—", color:m.ingresos>0?_PDF.GREEN:_PDF.LGREY},
+    {text:m.costes>0?"-"+fmt(m.costes):"—", color:m.costes>0?_PDF.RED:_PDF.LGREY},
+    {text:m.gastos>0?"-"+fmt(m.gastos):"—", color:m.gastos>0?_PDF.RED:_PDF.LGREY},
+    {text:m.ingresos>0?fmt(m.beneficio):"—", color:m.ingresos>0?(m.beneficio>=0?_PDF.GREEN:_PDF.RED):_PDF.LGREY, bold:true},
+    {text:m.cobrados+"/"+m.pedidos, color:_PDF.GREY}
+  ]);
+  _pdfTable(ctx, cM, rM, {foot:[
+    {text:"TOTAL "+anio},
+    {text:fmt(totIngresos),color:_PDF.GREEN},
+    {text:"-"+fmt(totCostes),color:_PDF.RED},
+    {text:"-"+fmt(totGastos),color:_PDF.RED},
+    {text:fmt(totBeneficio),color:totBeneficio>=0?_PDF.GREEN:_PDF.RED},
+    {text:totCobrados+"/"+totPedidos}
+  ]});
 
-<div class="kpis">
-  <div class="kpi" style="background:#f0fdf4;border-color:#bbf7d0">
-    <div class="kpi-lbl">Ingresos totales</div>
-    <div class="kpi-val" style="color:#15803d">${totIngresos.toFixed(2)}</div>
-    <div class="kpi-sub">${mon} · ${totCobrados} pedidos cobrados</div>
-  </div>
-  <div class="kpi" style="background:#fef2f2;border-color:#fecaca">
-    <div class="kpi-lbl">Gastos totales</div>
-    <div class="kpi-val" style="color:#dc2626">-${(totCostes+totGastos).toFixed(2)}</div>
-    <div class="kpi-sub">${mon} · producción + gastos</div>
-  </div>
-  <div class="kpi" style="background:${totBeneficio>=0?'#f0fdf4':'#fef2f2'};border-color:${totBeneficio>=0?'#bbf7d0':'#fecaca'}">
-    <div class="kpi-lbl">Beneficio neto</div>
-    <div class="kpi-val" style="color:${totBeneficio>=0?'#15803d':'#dc2626'}">${totBeneficio.toFixed(2)}</div>
-    <div class="kpi-sub">${mon} · margen ${margenAnual.toFixed(1)}%</div>
-  </div>
-  <div class="kpi" style="background:#eff6ff;border-color:#bfdbfe">
-    <div class="kpi-lbl">Media mensual</div>
-    <div class="kpi-val" style="color:#1d4ed8">${(totIngresos/12).toFixed(2)}</div>
-    <div class="kpi-sub">${mon}/mes · ${(totPedidos/12).toFixed(1)} pedidos/mes</div>
-  </div>
-</div>
-
-${mejorMes||peorMes?`<div class="highlights">
-  ${mejorMes?`<div class="hl"><div class="hl-lbl">Mejor mes</div><div class="hl-val">${mejorMes.nombre}</div><div class="hl-sub">${mejorMes.ingresos.toFixed(2)} ${mon} facturados · ${mejorMes.cobrados} pedidos cobrados</div></div>`:''}
-  ${peorMes&&peorMes!==mejorMes?`<div class="hl"><div class="hl-lbl">Mes más flojo</div><div class="hl-val">${peorMes.nombre}</div><div class="hl-sub">${peorMes.ingresos.toFixed(2)} ${mon} facturados · ${peorMes.cobrados} pedidos cobrados</div></div>`:''}
-</div>`:''}
-
-<div style="margin-bottom:28px">
-  <div class="section-title">Desglose mensual</div>
-  <table>
-    <thead><tr><th>Mes</th><th style="text-align:right">Ingresos</th><th style="text-align:right">Costes prod.</th><th style="text-align:right">Gastos</th><th style="text-align:right">Beneficio</th><th style="text-align:center">Pedidos</th><th>Volumen</th></tr></thead>
-    <tbody>${filasMes}</tbody>
-    <tfoot><tr class="tfoot">
-      <td>TOTAL ${anio}</td>
-      <td style="text-align:right;color:#15803d">${totIngresos.toFixed(2)} ${mon}</td>
-      <td style="text-align:right;color:#dc2626">-${totCostes.toFixed(2)} ${mon}</td>
-      <td style="text-align:right;color:#dc2626">-${totGastos.toFixed(2)} ${mon}</td>
-      <td style="text-align:right;color:${totBeneficio>=0?'#15803d':'#dc2626'}">${totBeneficio.toFixed(2)} ${mon}</td>
-      <td style="text-align:center">${totCobrados}/${totPedidos}</td>
-      <td></td>
-    </tr></tfoot>
-  </table>
-</div>
-
-<div class="footer">
-  <span>${esc(brandFooterName(cfg))} · Informe anual ${anio}</span>
-  <span>Generado con Brami3D · ${dateStr}</span>
-</div>
-
-<script>setTimeout(()=>window.print(),500)<\/script>
-</body></html>`;
-
+  _pdfReportFooter(ctx, "Informe anual "+anio);
   closeModal();
-  abrirDocModal(html, `Informe_Anual_${anio}.html`);
+  _openPdf(doc, "Informe_Anual_"+anio+".pdf");
 }
 
 // ═══════════════════════════════════════════════
