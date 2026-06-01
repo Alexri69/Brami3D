@@ -1,4 +1,4 @@
-const CACHE_NAME = 'b3d-cdn-v4';
+const CACHE_NAME = 'b3d-cdn-v5';
 
 // Solo cacheamos recursos CDN externos (no cambian)
 const CDN_SHELL = [
@@ -9,8 +9,10 @@ const CDN_SHELL = [
 ];
 
 self.addEventListener('install', e => {
+  // Ya NO hacemos skipWaiting automático: el SW nuevo queda "waiting" hasta que
+  // el usuario acepta actualizar (la app muestra un aviso y envía SKIP_WAITING).
   e.waitUntil(
-    caches.open(CACHE_NAME).then(c => c.addAll(CDN_SHELL)).then(() => self.skipWaiting())
+    caches.open(CACHE_NAME).then(c => c.addAll(CDN_SHELL))
   );
 });
 
@@ -20,6 +22,11 @@ self.addEventListener('activate', e => {
       Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
+});
+
+// La app pide activar la versión nueva al pulsar "Actualizar".
+self.addEventListener('message', e => {
+  if (e.data && e.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('fetch', e => {
