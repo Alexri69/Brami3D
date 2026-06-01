@@ -648,7 +648,7 @@ function updateNetIndicator(online){
     if(ind) ind.style.borderColor = '#ef4444';
   }
 }
-window.addEventListener('online',  () => { updateNetIndicator(true);  showToast('✅ Conexión restaurada','success'); try { resumeSync(true); } catch(_){} });
+window.addEventListener('online',  () => { updateNetIndicator(true);  showToast('✅ Conexión restaurada','success'); try { flushOutbox(); } catch(_){} try { resumeSync(true); } catch(_){} });
 window.addEventListener('offline', () => { updateNetIndicator(false); showToast('⚠️ Sin conexión — modo offline','warn'); });
 // Set initial state
 document.addEventListener('DOMContentLoaded', () => updateNetIndicator(navigator.onLine));
@@ -791,48 +791,55 @@ async function doAuth(){
   const email=$('a-email').value.trim();
   const pass =$('a-pass').value;
   const name =$('a-name').value.trim();
+  const lbl  = authMode==='login'?'Entrar':'Crear cuenta';
   $('a-err').className='err-msg hidden';
-  setLoading('auth-btn',true);
 
+  // Validación básica antes de tocar la red.
+  if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ showAuthErr('Introduce un email válido'); return; }
+  if(!pass){ showAuthErr('Introduce tu contraseña'); return; }
+
+  setLoading('auth-btn',true);
   let err=null;
-  if(authMode==='login'){
-    const r=await sb.auth.signInWithPassword({email,password:pass});
-    err=r.error;
-    // Detectar email no confirmado para ofrecer reenviar
-    if(err && /not confirmed|confirm|verification/i.test(err.message||'')){
-      showEmailNotConfirmed(email);
-      setLoading('auth-btn',false,'Entrar');
-      return;
-    }
-  } else {
-    if(!name||!email||!pass){ showAuthErr('Rellena todos los campos'); setLoading('auth-btn',false,'Crear cuenta'); return; }
-    if(pass.length < 6){ showAuthErr('La contraseña debe tener al menos 6 caracteres'); setLoading('auth-btn',false,'Crear cuenta'); return; }
-    const r=await sb.auth.signUp({
-      email, password:pass,
-      options:{
-        data:{name},
-        emailRedirectTo: location.origin + '/brami3d_supabase.html'
-      }
-    });
-    err=r.error;
-    if(!err){
-      // Si identities está vacío, significa que el email ya estaba registrado
-      // (Supabase devuelve ok silenciosamente para no filtrar qué cuentas existen).
-      const identitiesLen = r.data?.user?.identities?.length ?? 1;
-      if(identitiesLen === 0){
-        showAuthErr('Este email ya está registrado. Intenta iniciar sesión o recuperar tu contraseña.');
-        setLoading('auth-btn',false,'Crear cuenta');
+  try {
+    if(authMode==='login'){
+      const r=await sb.auth.signInWithPassword({email,password:pass});
+      err=r.error;
+      // Detectar email no confirmado para ofrecer reenviar
+      if(err && /not confirmed|confirm|verification/i.test(err.message||'')){
+        showEmailNotConfirmed(email);
         return;
       }
-      // Signup OK: el usuario tiene que confirmar el email antes de poder entrar.
-      showSignupSuccess(email);
-      setLoading('auth-btn',false,'Crear cuenta');
-      return;
+    } else {
+      if(!name){ showAuthErr('Rellena todos los campos'); return; }
+      if(pass.length < 6){ showAuthErr('La contraseña debe tener al menos 6 caracteres'); return; }
+      const r=await sb.auth.signUp({
+        email, password:pass,
+        options:{
+          data:{name},
+          emailRedirectTo: location.origin + '/brami3d_supabase.html'
+        }
+      });
+      err=r.error;
+      if(!err){
+        // Si identities está vacío, significa que el email ya estaba registrado
+        // (Supabase devuelve ok silenciosamente para no filtrar qué cuentas existen).
+        const identitiesLen = r.data?.user?.identities?.length ?? 1;
+        if(identitiesLen === 0){
+          showAuthErr('Este email ya está registrado. Intenta iniciar sesión o recuperar tu contraseña.');
+          return;
+        }
+        // Signup OK: el usuario tiene que confirmar el email antes de poder entrar.
+        showSignupSuccess(email);
+        return;
+      }
     }
+    if(err) showAuthErr(err.message);
+  } catch(e){
+    // Fallo de red / promesa rechazada: antes dejaba el botón en "Cargando…" para siempre.
+    showAuthErr(navigator.onLine ? ('No se pudo conectar: '+(e.message||e)) : 'Sin conexión. Revisa tu red e inténtalo de nuevo.');
+  } finally {
+    setLoading('auth-btn',false,lbl);
   }
-
-  setLoading('auth-btn',false, authMode==='login'?'Entrar':'Crear cuenta');
-  if(err) showAuthErr(err.message);
 }
 
 // Reenvía el email de confirmación de signup.
@@ -1006,6 +1013,7 @@ let _cacheSaveT = null;
 function _cacheK(t){ return CACHE_KEY+'_'+CU.id+'_'+t; }
 function _cacheTsK(){ return CACHE_KEY+'_'+CU.id+'_ts'; }
 
+let _quotaWarned = false;
 function _cachePersist(){
   if(!CU || !CU.id || !_cacheDirty.size) return;
   try {
@@ -1015,7 +1023,26 @@ function _cachePersist(){
     });
     localStorage.setItem(_cacheTsK(), String(Date.now()));
     _cacheDirty.clear();
-  } catch(_){}
+  } catch(e){
+    // QuotaExceededError: el caché (logo en base64, fotos, muchos pedidos) llenó
+    // localStorage. Antes se tragaba en silencio y el caché dejaba de actualizarse.
+    const quota = e && (e.name==='QuotaExceededError' || e.code===22 || e.code===1014);
+    if(quota){
+      // Liberar espacio: las fotos firmadas (foto_url) se regeneran en cada carga,
+      // así que podemos no cachearlas. Reintentamos una vez sin ellas.
+      try {
+        const lean = (_cache.pedidos||[]).map(p => ({...p, fotoUrl:null}));
+        localStorage.setItem(_cacheK('pedidos'), JSON.stringify(lean));
+        localStorage.setItem(_cacheTsK(), String(Date.now()));
+        _cacheDirty.clear();
+        return;
+      } catch(_){}
+      if(!_quotaWarned){
+        _quotaWarned = true;
+        showToast('Almacenamiento local lleno: el modo offline puede quedar desactualizado.', 'warn', 6000);
+      }
+    }
+  }
 }
 
 // saveLocalCache()           → marca TODAS las tablas dirty (tras loadAll)
@@ -1125,6 +1152,7 @@ async function bootApp(){
       checkAndNotify();
       registrarInicioSIF();
       subscribeRealtime();
+      _updatePendingBadge(); flushOutbox();
     }).catch(e=>{ console.warn('Refresco en segundo plano falló:', e); });
   } else {
     $('content').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:60vh"><div style="text-align:center"><div class="loading-spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto 16px"></div><div style="color:var(--text4);font-size:13px">Cargando...</div></div></div>';
@@ -1137,6 +1165,7 @@ async function bootApp(){
       handleShortcut();
       registrarInicioSIF();
       subscribeRealtime();
+      _updatePendingBadge(); flushOutbox();
     } catch(e) {
       // Permitir reintento real: el botón llama de nuevo a bootApp() y la guarda
       // de reentrada lo rechazaría si no reseteamos _bootedFor.
@@ -1172,6 +1201,7 @@ async function resumeSync(force){
   // teardown+resubscribe en cada cambio de pestaña.
   const st = _rtChannel && _rtChannel.state;
   if(!_rtChannel || st === 'closed' || st === 'errored'){ subscribeRealtime(); }
+  try { flushOutbox(); } catch(_){}
 }
 
 document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) resumeSync(false); });
@@ -1216,7 +1246,7 @@ async function loadAll(silent=false){
     qry(fetchAllPages(()=>sb.from('piezas').select('*').eq('user_id',userId).order('created_at')), 'piezas'),
     qry(fetchAllPages(()=>sb.from('archivos').select('*').eq('user_id',userId).order('created_at')), 'archivos'),
     qry(fetchAllPages(()=>sb.from('gastos').select('*').eq('user_id',userId).order('fecha',{ascending:false})), 'gastos'),
-    qry(sb.from('config').select('*').eq('user_id',userId).single(), 'config'),
+    qry(sb.from('config').select('*').eq('user_id',userId).maybeSingle(), 'config'),
     qry(sb.from('user_plans').select('*').eq('user_id',userId).maybeSingle(), 'user_plans').catch(()=>({data:null,error:null}))
   ]);
 
@@ -1455,6 +1485,66 @@ const NON_NEG_FIELDS = {
 };
 
 // Generic save (insert or update)
+// ── COLA DE ESCRITURA OFFLINE ──────────────────────────────────────────────
+// Cuando no hay red, las escrituras (dbSave/dbDel) se encolan en localStorage y
+// se reintentan al recuperar conexión. dbSave/dbDel devuelven true igualmente
+// (optimista) para que la UI y el caché local se actualicen al instante.
+const OUTBOX_KEY = 'b3d_outbox';
+let _flushing = false;
+function _outboxK(){ return OUTBOX_KEY+'_'+CU.id; }
+function _outboxGet(){ try { return JSON.parse(localStorage.getItem(_outboxK())||'[]'); } catch(_){ return []; } }
+function _outboxSet(a){ try { localStorage.setItem(_outboxK(), JSON.stringify(a)); } catch(_){} }
+function _outboxAdd(entry){ const a=_outboxGet(); entry.ts=Date.now(); a.push(entry); _outboxSet(a); _updatePendingBadge(); }
+function _outboxCount(){ return _outboxGet().length; }
+function _isNetErr(e){
+  if(!navigator.onLine) return true;
+  const m=((e&&e.message)||'').toLowerCase();
+  return m.includes('fetch')||m.includes('network')||m.includes('load failed')||m.includes('failed to');
+}
+
+// Indicador de pendientes en la barra superior (reutiliza el dot de red).
+function _updatePendingBadge(){
+  const dot=$('net-dot'), lbl=$('net-label');
+  if(!dot) return;
+  const n=_outboxCount();
+  if(n>0){
+    dot.style.background='#f59e0b';
+    if(lbl){ lbl.style.display='inline'; lbl.textContent=n+' sin sincronizar'; }
+  } else {
+    updateNetIndicator(navigator.onLine);
+  }
+}
+
+// Reintenta las operaciones pendientes. Las que fallan por red se conservan;
+// las que fallan por error de servidor (RLS, constraint) se descartan para no
+// bloquear la cola indefinidamente.
+async function flushOutbox(){
+  if(_flushing || !CU || !CU.id || !navigator.onLine) return;
+  const queue=_outboxGet();
+  if(!queue.length) return;
+  _flushing=true;
+  const rest=[]; let stop=false;
+  for(const e of queue){
+    if(stop){ rest.push(e); continue; }
+    try {
+      let error;
+      if(e.op==='del'){ ({error}=await sb.from(e.table).delete().eq('id',e.id).eq('user_id',CU.id)); }
+      else { ({error}=await sb.from(e.table).upsert(e.payload,{onConflict:'id'})); }
+      if(error){
+        if(_isNetErr(error)){ rest.push(e); stop=true; }      // sigue sin red → parar y conservar
+        else { console.warn('outbox: descartada op con error de servidor', e.table, error.message); }
+      }
+    } catch(err){ rest.push(e); stop=true; }                  // promesa rechazada (red) → parar
+  }
+  _outboxSet(rest);
+  _flushing=false;
+  _updatePendingBadge();
+  if(rest.length===0){
+    showToast('✅ Cambios sincronizados','success');
+    try { await loadAll(true); saveLocalCache(); render(); refreshAlerts(); } catch(_){}
+  }
+}
+
 async function dbSave(table, data){
   const nonNeg = NON_NEG_FIELDS[table] || [];
   const cleaned = {};
@@ -1468,17 +1558,36 @@ async function dbSave(table, data){
     }
   }
   const payload = {...cleaned, user_id: CU.id};
-  const {error} = await sb.from(table).upsert(payload, {onConflict: 'id'});
-  if(error){ showToast('Error: '+error.message,'err'); console.error(table, error); }
-  else { saveLocalCache(table === 'config' ? 'cfg' : table); }
-  return !error;
+  try {
+    const {error} = await sb.from(table).upsert(payload, {onConflict: 'id'});
+    if(error){
+      if(_isNetErr(error)){ _outboxAdd({op:'save',table,payload}); saveLocalCache(table==='config'?'cfg':table); showToast('Sin conexión: guardado local, se sincronizará','warn',3500); return true; }
+      showToast('Error: '+error.message,'err'); console.error(table, error); return false;
+    }
+    saveLocalCache(table === 'config' ? 'cfg' : table);
+    return true;
+  } catch(e){
+    _outboxAdd({op:'save',table,payload});
+    saveLocalCache(table==='config'?'cfg':table);
+    showToast('Sin conexión: guardado local, se sincronizará','warn',3500);
+    return true;
+  }
 }
 
 async function dbDel(table, id){
-  const {error}=await sb.from(table).delete().eq('id',id).eq('user_id',CU.id);
-  if(error) showToast('Error al eliminar: '+error.message,'err');
-  else { saveLocalCache(table === 'config' ? 'cfg' : table); }
-  return !error;
+  try {
+    const {error}=await sb.from(table).delete().eq('id',id).eq('user_id',CU.id);
+    if(error){
+      if(_isNetErr(error)){ _outboxAdd({op:'del',table,id}); saveLocalCache(table==='config'?'cfg':table); return true; }
+      showToast('Error al eliminar: '+error.message,'err'); return false;
+    }
+    saveLocalCache(table === 'config' ? 'cfg' : table);
+    return true;
+  } catch(e){
+    _outboxAdd({op:'del',table,id});
+    saveLocalCache(table==='config'?'cfg':table);
+    return true;
+  }
 }
 
 // ═══════════════════════════════════════════════
