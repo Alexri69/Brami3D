@@ -58,6 +58,7 @@ if ('serviceWorker' in navigator) {
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
 <script>
 // Fallback de QRious sin document.write (que puede borrar el documento si se
@@ -2229,6 +2230,181 @@ function mkBadge(val){
 // ═══════════════════════════════════════════════
 //  PDF — PRESUPUESTO
 // ═══════════════════════════════════════════════
+// ── PDF REAL del presupuesto (jsPDF directo, texto seleccionable, sin html2canvas) ──
+function _pdfCtor(){ return (window.jspdf && window.jspdf.jsPDF) || window.jsPDF; }
+
+// Asigna número de presupuesto si aún no lo tiene y persiste. Devuelve el pedido actualizado.
+async function ensurePresNum(id){
+  let o=_cache.pedidos.find(x=>x.id===id);
+  if(!o) return null;
+  if(o.presNum) return o;
+  const pn=await nextPresNum();
+  const ok=await dbSave('pedidos',{id:o.id,pres_num:pn,user_id:CU.id,
+    proyecto:o.proyecto,estado:o.estado,material:o.material,peso:o.peso,
+    tiempo_impresion:o.tiempoImpresion,cliente_id:o.clienteId,notas:o.notas,
+    fecha:o.fecha,ganancia_manual:o.gananciaManual,coste_postprocesado:o.costePostprocesado,
+    coste_diseno:o.costeDiseno||0,lineas:o.lineas,cobrado:o.cobrado,fecha_cobrado:o.fechaCobrado,
+    factura_num:o.facturaNum,factura_fecha:o.facturaFecha,impresora_id:o.impresoraId
+  });
+  if(ok){ o={...o,presNum:pn}; _cache.pedidos=_cache.pedidos.map(x=>x.id===id?o:x); render(); }
+  return o;
+}
+
+// Construye el PDF del presupuesto y devuelve {doc, blob, filename, o, c, cl, mon}.
+function buildPresupuestoPdf(id){
+  const Ctor=_pdfCtor();
+  if(!Ctor) throw new Error('La librería de PDF aún no se ha cargado. Espera unos segundos e inténtalo de nuevo.');
+  const o=_cache.pedidos.find(x=>x.id===id); if(!o) return null;
+  const cl=_cache.clientes.find(x=>x.id===o.clienteId)||{};
+  const cfg=_cache.cfg, biz=cfg;
+  const c=calcOrderCosts(o,cfg);
+  const mon=cfg.moneda||'€';
+  const dateStr=fmtFecha(today(),cfg);
+
+  const doc=new Ctor({unit:'mm',format:'a4',orientation:'portrait'});
+  const PW=210, PH=297, ML=15, MR=15, MT=18, MB=18, W=PW-ML-MR;
+  let y=MT;
+  const NAVY=[15,23,42], BLUE=[37,99,235], GREY=[100,116,139], LGREY=[148,163,184], BORD=[226,232,240];
+  const setColor=rgb=>doc.setTextColor(rgb[0],rgb[1],rgb[2]);
+  const linea=(x1,y1,x2,y2,col,gr)=>{doc.setDrawColor(col[0],col[1],col[2]);doc.setLineWidth(gr);doc.line(x1,y1,x2,y2);};
+  const checkPage=h=>{ if(y+h>PH-MB){ doc.addPage(); y=MT; } };
+
+  // ── Cabecera: empresa + logo (izq), documento (der) ──
+  let headerX=ML;
+  if(biz.logo && typeof biz.logo==='string' && biz.logo.startsWith('data:image')){
+    try {
+      const fmt = biz.logo.includes('image/png') ? 'PNG' : (biz.logo.includes('jpeg')||biz.logo.includes('jpg')) ? 'JPEG' : 'PNG';
+      doc.addImage(biz.logo, fmt, ML, y, 16, 16);
+      headerX = ML+20;
+    } catch(_){}
+  }
+  doc.setFont('helvetica','bold'); doc.setFontSize(17); setColor(NAVY);
+  doc.text(brandFooterName(biz), headerX, y+6);
+  let yIzq=y+11;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); setColor(GREY);
+  [ biz.nif?`NIF/CIF: ${biz.nif}`:null, biz.direccion||null, biz.email||null, biz.telefono?`Tel: ${biz.telefono}`:null ]
+    .filter(Boolean).forEach(t=>{ doc.text(String(t), headerX, yIzq); yIzq+=4; });
+
+  let yDer=y;
+  doc.setFont('helvetica','bold'); doc.setFontSize(20); setColor(BLUE);
+  doc.text('PRESUPUESTO', PW-MR, yDer+6, {align:'right'}); yDer+=13;
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); setColor(GREY);
+  doc.text(`Nº: ${o.presNum||'—'}`, PW-MR, yDer, {align:'right'}); yDer+=5;
+  doc.text(`Proyecto: ${o.proyecto||''}`, PW-MR, yDer, {align:'right'}); yDer+=5;
+  doc.text(`Fecha: ${dateStr}`, PW-MR, yDer, {align:'right'}); yDer+=5;
+
+  y=Math.max(yIzq,yDer)+3;
+  linea(ML,y,PW-MR,y,BLUE,0.8); y+=7;
+
+  // ── Cliente ──
+  const cliRows=[
+    cl.nombre?['Nombre',cl.nombre]:null,
+    cl.nif?['NIF/CIF',cl.nif]:null,
+    cl.empresa?['Empresa',cl.empresa]:null,
+    cl.telefono?['Teléfono',cl.telefono]:null,
+    cl.email?['Email',cl.email]:null
+  ].filter(Boolean);
+  if(cliRows.length){
+    const cliH=10+cliRows.length*5;
+    doc.setFillColor(245,247,250); doc.rect(ML,y,W,cliH,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); setColor(LGREY);
+    doc.text('CLIENTE', ML+4, y+6);
+    let cy=y+11;
+    cliRows.forEach(([k,v])=>{
+      doc.setFont('helvetica','normal'); doc.setFontSize(9); setColor(GREY);
+      doc.text(k, ML+4, cy);
+      doc.setFont('helvetica','bold'); setColor(NAVY);
+      doc.text(String(v), ML+W-4, cy, {align:'right'});
+      cy+=5;
+    });
+    y+=cliH+6;
+  }
+
+  // ── Detalle (líneas o material simple) ──
+  const colUds=ML+W-58, colPeso=ML+W-32, colTiempo=ML+W-2;
+  if(o.lineas && o.lineas.length){
+    checkPage(16);
+    doc.setFillColor(NAVY[0],NAVY[1],NAVY[2]); doc.rect(ML,y,W,8,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8.5); setColor([255,255,255]);
+    doc.text('PIEZA / FILAMENTO', ML+3, y+5.5);
+    doc.text('Uds', colUds, y+5.5, {align:'right'});
+    doc.text('Peso', colPeso, y+5.5, {align:'right'});
+    doc.text('Tiempo', colTiempo, y+5.5, {align:'right'});
+    y+=8;
+    o.lineas.forEach(l=>{
+      const fil=l.filamentoId&&l.filamentoId!=='__manual__'?_cache.filamentos.find(f=>f.id===l.filamentoId):null;
+      const filLabel=fil?`${fil.tipo} · ${fil.marca}`:(l.material||'—');
+      checkPage(11);
+      doc.setFont('helvetica','bold'); doc.setFontSize(9.5); setColor(NAVY);
+      doc.text(String(l.nombre||'—'), ML+3, y+4);
+      doc.setFont('helvetica','normal'); doc.setFontSize(8.5); setColor(GREY);
+      doc.text(filLabel, ML+3, y+8);
+      doc.setFontSize(9.5); setColor(NAVY);
+      doc.text(String(l.qty||1), colUds, y+5, {align:'right'});
+      doc.text(l.peso?l.peso+'g':'—', colPeso, y+5, {align:'right'});
+      doc.text(l.tiempoImpresion?l.tiempoImpresion+'h':'—', colTiempo, y+5, {align:'right'});
+      y+=11;
+      linea(ML,y,ML+W,y,BORD,0.2);
+    });
+    y+=2;
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); setColor(GREY);
+    doc.text(`Peso total: ${o.peso||0}g      Tiempo total: ${o.tiempoImpresion||0}h`, ML+3, y+3);
+    y+=8;
+  } else {
+    doc.setFontSize(10);
+    [['Material',o.material||'—'],['Peso',(o.peso||0)+' g'],['Tiempo',(o.tiempoImpresion||0)+' h']].forEach(([k,v])=>{
+      doc.setFont('helvetica','normal'); setColor(GREY); doc.text(k,ML+3,y+4);
+      doc.setFont('helvetica','bold'); setColor(NAVY); doc.text(String(v),ML+W-3,y+4,{align:'right'});
+      y+=6; linea(ML,y,ML+W,y,BORD,0.2);
+    });
+    y+=4;
+  }
+
+  if(o.notas){
+    doc.setFont('helvetica','italic'); doc.setFontSize(9); setColor(GREY);
+    const nl=doc.splitTextToSize('Notas: '+o.notas, W);
+    checkPage(nl.length*4+4);
+    doc.text(nl, ML, y+3); y+=nl.length*4+6;
+  }
+
+  // ── Precio total (banda) ──
+  checkPage(26); y+=2;
+  doc.setFillColor(NAVY[0],NAVY[1],NAVY[2]); doc.roundedRect(ML,y,W,20,3,3,'F');
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); setColor(LGREY);
+  doc.text('PRECIO TOTAL', ML+8, y+8);
+  doc.setFontSize(7.5);
+  doc.text(Number(cfg.tipoIva||0)>0?((cfg.nombreImpuesto||'IVA')+' no incluido'):'Impuestos no incluidos', ML+8, y+13);
+  doc.setFont('helvetica','bold'); doc.setFontSize(22); setColor([255,255,255]);
+  doc.text(`${c.fp.toFixed(2)} ${mon}`, ML+W-8, y+13, {align:'right'});
+  y+=26;
+
+  // ── Forma de pago (Bizum) ──
+  if(biz.telefono){
+    checkPage(18);
+    doc.setFillColor(240,249,255); doc.setDrawColor(186,230,253); doc.setLineWidth(0.3);
+    doc.roundedRect(ML,y,W,16,2,2,'FD');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); setColor([3,105,161]);
+    doc.text('FORMA DE PAGO — BIZUM', ML+5, y+6);
+    doc.setFontSize(13); doc.text(String(biz.telefono), ML+5, y+12.5);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); setColor(GREY);
+    doc.text('Pago por Bizum al número indicado', ML+W-5, y+12.5, {align:'right'});
+    y+=20;
+  }
+
+  // ── Pie en todas las páginas ──
+  const totalP=doc.internal.getNumberOfPages();
+  for(let p=1;p<=totalP;p++){
+    doc.setPage(p);
+    linea(ML,PH-14,PW-MR,PH-14,BORD,0.3);
+    doc.setFont('helvetica','normal'); doc.setFontSize(8); setColor(LGREY);
+    doc.text('¡Gracias por confiar en nosotros!', ML, PH-9);
+    doc.text(`${brandFooterName(biz)} · ${dateStr}`, PW-MR, PH-9, {align:'right'});
+  }
+
+  const filename=`Presupuesto_${(o.presNum||o.proyecto||'B3D').replace(/[^a-zA-Z0-9_-]/g,'_')}.pdf`;
+  return {doc, blob:doc.output('blob'), filename, o, c, cl, mon};
+}
+
 function buildPDFHtml(id){
   const o=_cache.pedidos.find(x=>x.id===id);if(!o)return null;
   const cl=_cache.clientes.find(x=>x.id===o.clienteId)||{};
@@ -2306,24 +2482,19 @@ ${biz.telefono?`<div class="payment-num">${biz.telefono}</div><div class="paymen
 }
 
 async function genPDF(id){
-  let o=_cache.pedidos.find(x=>x.id===id);if(!o)return;
-  if(!o.presNum){
-    const pn=await nextPresNum();
-    const ok=await dbSave('pedidos',{id:o.id,pres_num:pn,user_id:CU.id,
-      proyecto:o.proyecto,estado:o.estado,material:o.material,peso:o.peso,
-      tiempo_impresion:o.tiempoImpresion,cliente_id:o.clienteId,notas:o.notas,
-      fecha:o.fecha,ganancia_manual:o.gananciaManual,coste_postprocesado:o.costePostprocesado,
-      coste_diseno:o.costeDiseno||0,lineas:o.lineas,cobrado:o.cobrado,fecha_cobrado:o.fechaCobrado,
-      factura_num:o.facturaNum,factura_fecha:o.facturaFecha,impresora_id:o.impresoraId
-    });
-    if(ok){
-      o={...o,presNum:pn};
-      _cache.pedidos=_cache.pedidos.map(x=>x.id===id?o:x);
-      render();
-    }
+  const o=await ensurePresNum(id); if(!o) return;
+  let built;
+  try { built=buildPresupuestoPdf(id); } catch(e){ showToast(e.message,'err',5000); return; }
+  if(!built) return;
+  // Desktop: abrir el PDF en una pestaña nueva (visor del navegador → ver/guardar/imprimir).
+  // Móvil/iOS: descargar directamente (los blob URL en pestaña nueva fallan en iOS Safari).
+  if(window.innerWidth>768){
+    const url=URL.createObjectURL(built.blob);
+    window.open(url,'_blank');
+    setTimeout(()=>URL.revokeObjectURL(url),60000);
+  } else {
+    built.doc.save(built.filename);
   }
-  const html=buildPDFHtml(id);if(!html)return;
-  abrirDocModal(html, `Presupuesto_${o.presNum||o.proyecto}.html`);
 }
 
 function abrirDocModal(html, filename){
@@ -2357,7 +2528,7 @@ function downloadPDFFile(id){
 }
 
 async function sendWA(id){
-  const o=_cache.pedidos.find(x=>x.id===id);if(!o)return;
+  const o=await ensurePresNum(id); if(!o) return;
   const cfg=_cache.cfg;
   const cl=_cache.clientes.find(x=>x.id===o.clienteId)||{};
   const c=calcOrderCosts(o,cfg);
@@ -2376,36 +2547,39 @@ _¿Tienes alguna pregunta? Estoy a tu disposición._`;
   if(ph&&!ph.startsWith('+')){ph=ph.startsWith('34')?'+'+ph:'+34'+ph;}
   const waUrl=`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`;
 
-  if(window.innerWidth>768){
-    // Desktop: abrir PDF en nueva pestaña + WA con delay
-    await genPDF(id);
-    setTimeout(()=>window.open(waUrl,'_blank'),1200);
-  } else {
-    // Móvil: asignar presNum si no tiene, luego mostrar modal
-    if(!o.presNum){
-      const pn=await nextPresNum();
-      const ok=await dbSave('pedidos',{id:o.id,pres_num:pn,user_id:CU.id,
-        proyecto:o.proyecto,estado:o.estado,material:o.material,peso:o.peso,
-        tiempo_impresion:o.tiempoImpresion,cliente_id:o.clienteId,notas:o.notas,
-        fecha:o.fecha,ganancia_manual:o.gananciaManual,coste_postprocesado:o.costePostprocesado,
-        coste_diseno:o.costeDiseno||0,lineas:o.lineas,cobrado:o.cobrado,fecha_cobrado:o.fechaCobrado
-      });
-      if(ok){o={...o,presNum:pn};_cache.pedidos=_cache.pedidos.map(x=>x.id===id?o:x);}
+  // Generar el PDF real del presupuesto.
+  let built;
+  try { built=buildPresupuestoPdf(id); } catch(e){ showToast(e.message,'err',5000); return; }
+  if(!built) return;
+  const file=new File([built.blob], built.filename, {type:'application/pdf'});
+
+  // 1) Web Share API con archivo: adjunta el PDF de verdad. En móvil abre la hoja
+  //    de compartir nativa (eliges WhatsApp y se adjunta el PDF) y en Chrome desktop
+  //    reciente también funciona.
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    try {
+      await navigator.share({files:[file], title:'Presupuesto '+(o.presNum||o.proyecto), text:msg});
+      return;
+    } catch(err){
+      if(err && err.name==='AbortError') return; // el usuario canceló
+      console.warn('Web Share falló, usando descarga:', err);
     }
-    // Modal con botones — onclick directo del usuario (no bloqueado por iOS)
-    const waUrlEncoded=waUrl;
-    openModal(msh('Enviar presupuesto',`
-      <div style="display:flex;flex-direction:column;gap:12px;padding:4px 0">
-        <div style="background:var(--bg4);border:1px solid var(--border);border-radius:12px;padding:14px 16px">
-          <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:4px">${esc(o.proyecto)}</div>
-          <div style="font-size:22px;font-weight:900;color:#34d399">${c.fp.toFixed(2)}${mon}</div>
-          ${o.presNum?`<div style="font-size:11px;color:var(--text4);margin-top:4px">Nº ${esc(o.presNum)}</div>`:''}
-        </div>
-        <button onclick="closeModal();genPDF('${id}')" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;background:var(--bg4);border:1.5px solid var(--border);border-radius:12px;color:var(--text2);font-size:14px;font-weight:700">📄 Ver presupuesto</button>
-        ${ph?`<button onclick="closeModal();window.location.href='${waUrlEncoded.replace(/'/g,"\\'")}'" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;background:rgba(37,211,102,.12);border:1.5px solid rgba(37,211,102,.3);border-radius:12px;color:#25d366;font-size:14px;font-weight:700">💬 Abrir WhatsApp</button>`:'<div style="color:var(--text5);font-size:12px;text-align:center">Sin teléfono registrado</div>'}
-        <button onclick="closeModal()" style="padding:10px;background:transparent;border:1px solid var(--border);border-radius:10px;color:var(--text4);font-size:13px">Cancelar</button>
-      </div>`));
   }
+
+  // 2) Fallback (navegadores sin compartir archivos): descargar el PDF y abrir
+  //    WhatsApp con el mensaje para que el usuario adjunte el archivo manualmente.
+  built.doc.save(built.filename);
+  openModal(msh('Enviar presupuesto',`
+    <div style="display:flex;flex-direction:column;gap:12px;padding:4px 0">
+      <div style="background:var(--bg4);border:1px solid var(--border);border-radius:12px;padding:14px 16px">
+        <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:4px">${esc(o.proyecto)}</div>
+        <div style="font-size:22px;font-weight:900;color:#34d399">${c.fp.toFixed(2)}${mon}</div>
+        ${o.presNum?`<div style="font-size:11px;color:var(--text4);margin-top:4px">Nº ${esc(o.presNum)}</div>`:''}
+      </div>
+      <div style="font-size:12px;color:var(--text4);line-height:1.5;background:var(--bg3);border-radius:10px;padding:11px 13px">📥 Se ha descargado <b style="color:var(--text3)">${esc(built.filename)}</b>. Pulsa "Abrir WhatsApp" y adjúntalo con el clip 📎.</div>
+      ${ph?`<button onclick="closeModal();window.open('${waUrl.replace(/'/g,"\\'")}','_blank')" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;background:rgba(37,211,102,.12);border:1.5px solid rgba(37,211,102,.3);border-radius:12px;color:#25d366;font-size:14px;font-weight:700">💬 Abrir WhatsApp</button>`:'<div style="color:var(--text5);font-size:12px;text-align:center">Sin teléfono registrado — adjunta el PDF manualmente</div>'}
+      <button onclick="closeModal()" style="padding:10px;background:transparent;border:1px solid var(--border);border-radius:10px;color:var(--text4);font-size:13px">Cerrar</button>
+    </div>`));
 }
 
 // ═══════════════════════════════════════════════

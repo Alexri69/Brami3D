@@ -3,7 +3,8 @@ const CACHE_NAME = 'b3d-cdn-v3';
 // Solo cacheamos recursos CDN externos (no cambian)
 const CDN_SHELL = [
   'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
-  'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js'
+  'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
+  'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js'
 ];
 
 self.addEventListener('install', e => {
