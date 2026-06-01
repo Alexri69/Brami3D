@@ -4457,6 +4457,7 @@ function pgPedidos(){
         +'<button class="btn-icon" title="'+t('ped.tPresupuesto')+'" onclick="genPDF(\''+o.id+'\')">📄</button>'
         +'<button class="btn-icon" title="'+t('ped.tWhatsApp')+'" onclick="sendWA(\''+o.id+'\')">💬</button>'
         +(_hasShare?'<button class="btn-icon" title="'+t('share.tShare')+'" onclick="sharePresupuestoLink(\''+o.id+'\')">🔗</button>':'')
+        +'<button class="btn-icon" title="'+t('email.title')+'" onclick="sendPresupuestoEmail(\''+o.id+'\')">✉️</button>'
         +cobrarBtn
         +factBtn
         +'<button class="btn-icon" title="'+t('ped.tDuplicar')+'" onclick="cloneO(\''+o.id+'\')">📋</button>'
@@ -4496,6 +4497,7 @@ function pgPedidos(){
         <button onclick="genPDF('${o.id}')" style="flex:1;padding:10px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:13px">📄 PDF</button>
         <button onclick="sendWA('${o.id}')" style="flex:1;padding:10px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:13px">💬 WA</button>
         ${_hasShare?`<button onclick="sharePresupuestoLink('${o.id}')" title="${t('share.tShare')}" style="padding:10px 14px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:16px">🔗</button>`:''}
+        <button onclick="sendPresupuestoEmail('${o.id}')" title="${t('email.title')}" style="padding:10px 14px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:16px">✉️</button>
         ${!o.cobrado
           ?`<button onclick="marcarCobrado('${o.id}')" style="flex:1;padding:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;color:#4ade80;font-size:12px;font-weight:700">💰 ${t('dash.collect')}</button>`
           :`<button onclick="genFactura('${o.id}')" style="flex:1;padding:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;color:#4ade80;font-size:13px">🧾</button><button onclick="sendFacturaWA('${o.id}')" title="Enviar factura" style="flex:1;padding:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;color:#4ade80;font-size:13px">📤</button>`
