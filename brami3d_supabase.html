@@ -445,6 +445,8 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
           <span id="net-dot" style="width:8px;height:8px;border-radius:50%;background:#22c55e;flex-shrink:0;transition:background .3s"></span>
           <span id="net-label" style="display:none">Sin conexión</span>
         </div>
+        <button onclick="toggleLang()" id="lang-btn" title="Cambiar idioma (ES/EN)"
+          style="background:var(--bg4);border:1.5px solid var(--border2);border-radius:10px;padding:8px 11px;font-size:12px;font-weight:800;color:var(--text3);flex-shrink:0;line-height:1;letter-spacing:.04em">EN</button>
         <button onclick="toggleTheme()" id="theme-btn" title="Cambiar tema"
           style="background:var(--bg4);border:1.5px solid var(--border2);border-radius:10px;padding:8px 12px;font-size:18px;color:var(--text3);flex-shrink:0;line-height:1">
           🌙
@@ -612,6 +614,56 @@ function checkPlanLimit(action, editingId){
 }
 
 // ═══════════════════════════════════════════════
+//  I18N — español (por defecto) / inglés
+// ═══════════════════════════════════════════════
+// Por defecto español; el inglés es opt-in con el selector. Lo no traducido cae a
+// español. El módulo fiscal (SIF/AEAT) se oculta en inglés (es específico de España).
+let LANG = (localStorage.getItem('b3d_lang')==='en') ? 'en' : 'es';
+const I18N = {
+  es: {
+    'nav.dashboard':'Dashboard','nav.clientes':'Clientes','nav.pedidos':'Pedidos','nav.impresoras':'Impresoras',
+    'nav.filamentos':'Filamentos','nav.piezas':'Piezas','nav.cobros':'Cobros','nav.archivos':'Archivos',
+    'nav.gastos':'Gastos','nav.registro':'Registro fiscal','nav.calculadora':'Calculadora','nav.configuracion':'Configuración','nav.admin':'Admin',
+    'common.logout':'Cerrar sesión','common.menu':'Menú','common.cancel':'Cancelar','common.save':'Guardar','common.new':'+ Nuevo','common.delete':'Eliminar',
+    'topbar.searchDesk':'Buscar clientes, pedidos, piezas…','net.offline':'Sin conexión','net.unsynced':'sin sincronizar',
+    'theme.toggle':'Cambiar tema','lang.toggle':'Cambiar idioma (ES/EN)'
+  },
+  en: {
+    'nav.dashboard':'Dashboard','nav.clientes':'Customers','nav.pedidos':'Orders','nav.impresoras':'Printers',
+    'nav.filamentos':'Filaments','nav.piezas':'Parts','nav.cobros':'Payments','nav.archivos':'Files',
+    'nav.gastos':'Expenses','nav.registro':'Tax record','nav.calculadora':'Calculator','nav.configuracion':'Settings','nav.admin':'Admin',
+    'common.logout':'Sign out','common.menu':'Menu','common.cancel':'Cancel','common.save':'Save','common.new':'+ New','common.delete':'Delete',
+    'topbar.searchDesk':'Search customers, orders, parts…','net.offline':'Offline','net.unsynced':'unsynced',
+    'theme.toggle':'Toggle theme','lang.toggle':'Change language (ES/EN)'
+  }
+};
+function t(key, vars){
+  let s = (I18N[LANG] && I18N[LANG][key]) || (I18N.es && I18N.es[key]) || key;
+  if(vars) for(const k in vars) s = s.replace(new RegExp('\\{'+k+'\\}','g'), vars[k]);
+  return s;
+}
+// Aplica traducciones a los elementos estáticos del HTML (los que no pasan por render()).
+function applyStaticI18n(){
+  document.documentElement.lang = LANG;
+  const set=(id,txt)=>{ const e=$(id); if(e) e.textContent=txt; };
+  set('logout-lbl', t('common.logout'));
+  const gs=$('global-search'); if(gs) gs.placeholder=t('topbar.searchDesk');
+  const nl=$('net-label'); if(nl && !_outboxCount()) nl.textContent=t('net.offline');
+  const lb=$('lang-btn'); if(lb) lb.textContent = LANG==='es'?'EN':'ES';
+  const tb=$('theme-btn'); if(tb) tb.title=t('theme.toggle');
+}
+function setLang(l){
+  LANG = (l==='en')?'en':'es';
+  try{ localStorage.setItem('b3d_lang', LANG); }catch(_){}
+  applyStaticI18n();
+  try{ buildNav(); }catch(_){}
+  try{ refreshBizHeader(); }catch(_){}
+  try{ render(); }catch(_){}
+  try{ _updatePendingBadge(); }catch(_){}
+}
+function toggleLang(){ setLang(LANG==='es'?'en':'es'); }
+
+// ═══════════════════════════════════════════════
 //  UTILS
 // ═══════════════════════════════════════════════
 const uid  = () => crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)+Date.now().toString(36);
@@ -673,7 +725,7 @@ function updateNetIndicator(online){
     if(ind) ind.style.borderColor = '';
   } else {
     dot.style.background = '#ef4444';
-    if(lbl){ lbl.style.display = 'inline'; lbl.textContent = 'Sin conexión'; }
+    if(lbl){ lbl.style.display = 'inline'; lbl.textContent = t('net.offline'); }
     if(ind) ind.style.borderColor = '#ef4444';
   }
 }
@@ -1266,6 +1318,7 @@ async function bootApp(){
   $('auth-screen').className='hidden';
   $('app').className='';
   if(window.innerWidth<=768) $('mob-nav').className='';
+  applyStaticI18n();
   buildNav();
 
   // Load from local cache instantly if available
@@ -1646,7 +1699,7 @@ function _updatePendingBadge(){
   const n=_outboxCount();
   if(n>0){
     dot.style.background='#f59e0b';
-    if(lbl){ lbl.style.display='inline'; lbl.textContent=n+' sin sincronizar'; }
+    if(lbl){ lbl.style.display='inline'; lbl.textContent=n+' '+t('net.unsynced'); }
   } else {
     updateNetIndicator(navigator.onLine);
   }
@@ -2106,13 +2159,15 @@ const NAV=[
 
 function buildNav(){
   // Admin-only: añadir entry "Admin" al final si el usuario es admin.
-  const items = _plan.isAdmin
-    ? [...NAV, {id:'admin', lbl:'Admin', icon:'🛡️'}]
+  let items = _plan.isAdmin
+    ? [...NAV, {id:'admin', icon:'🛡️'}]
     : NAV;
+  // El módulo fiscal (registro SIF/AEAT) es específico de España: se oculta en inglés.
+  if(LANG!=='es') items = items.filter(n=>n.id!=='registro');
   $('sb-nav').innerHTML=items.map(n=>`
     <button class="nav-btn${PAGE===n.id?' active':''}" id="nb-${n.id}" onclick="goTo('${n.id}')">
       <span style="font-size:18px;flex-shrink:0">${n.icon}</span>
-      <span class="nl">${n.lbl}</span>
+      <span class="nl">${t('nav.'+n.id)}</span>
       ${n.id==='impresoras'?'<span id="pw-badge" style="display:none;background:#f59e0b;color:#000;border-radius:99px;padding:1px 7px;font-size:10px;font-weight:800"></span>':''}
     </button>`).join('');
   refreshAlerts();
@@ -2133,25 +2188,26 @@ function goToEstado(e){ _pFilt=e;_pSearch=''; goTo('pedidos'); }
 function mobMore(){
   // Show a bottom sheet with remaining nav items (los que no caben en la bottom nav).
   // Se añade Admin al final si el usuario es admin.
-  const items = [
-    {id:'impresoras',    lbl:'Impresoras',     ico:'🖨️'},
-    {id:'piezas',        lbl:'Piezas',         ico:'🧩'},
-    {id:'cobros',        lbl:'Cobros',          ico:'💳'},
-    {id:'gastos',        lbl:'Gastos',         ico:'💸'},
-    {id:'archivos',      lbl:'Archivos',       ico:'📁'},
-    {id:'registro',      lbl:'Registro fiscal',ico:'📜'},
-    {id:'calculadora',   lbl:'Calculadora',    ico:'🧮'},
-    {id:'configuracion', lbl:'Configuración',  ico:'⚙️'},
+  let items = [
+    {id:'impresoras',    ico:'🖨️'},
+    {id:'piezas',        ico:'🧩'},
+    {id:'cobros',        ico:'💳'},
+    {id:'gastos',        ico:'💸'},
+    {id:'archivos',      ico:'📁'},
+    {id:'registro',      ico:'📜'},
+    {id:'calculadora',   ico:'🧮'},
+    {id:'configuracion', ico:'⚙️'},
   ];
-  if(_plan.isAdmin) items.push({id:'admin', lbl:'Admin', ico:'🛡️'});
-  openModal(msh('Menú',`
+  if(LANG!=='es') items = items.filter(n=>n.id!=='registro');
+  if(_plan.isAdmin) items.push({id:'admin', ico:'🛡️'});
+  openModal(msh(t('common.menu'),`
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
       ${items.map(n=>`
         <button onclick="goTo('${n.id}');closeModal()" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px;background:var(--bg4);border:1.5px solid #132540;border-radius:14px;color:var(--text3);font-size:13px;font-weight:600;text-align:center">
-          <span style="font-size:28px">${n.ico}</span>${n.lbl}
+          <span style="font-size:28px">${n.ico}</span>${t('nav.'+n.id)}
         </button>`).join('')}
     </div>
-    <button onclick="logout()" style="width:100%;padding:14px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:12px;color:#f87171;font-size:14px;font-weight:700;margin-top:4px">🚪 Cerrar sesión</button>
+    <button onclick="logout()" style="width:100%;padding:14px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:12px;color:#f87171;font-size:14px;font-weight:700;margin-top:4px">🚪 ${t('common.logout')}</button>
   `));
 }
 
