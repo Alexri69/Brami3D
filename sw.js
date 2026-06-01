@@ -1,4 +1,4 @@
-const CACHE_NAME = 'b3d-cdn-v2';
+const CACHE_NAME = 'b3d-cdn-v3';
 
 // Solo cacheamos recursos CDN externos (no cambian)
 const CDN_SHELL = [
@@ -38,16 +38,21 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // CDN y otros recursos → cache-first
+  // CDN y otros recursos → stale-while-revalidate.
+  // Servimos de caché al instante (rápido y offline) pero revalidamos en segundo
+  // plano, así las librerías ancladas a tags móviles (@supabase/supabase-js@2,
+  // chart.js) se actualizan en la siguiente visita en vez de quedarse congeladas
+  // para siempre como con cache-first puro.
   e.respondWith(
     caches.match(e.request).then(cached => {
-      if (cached) return cached;
-      return fetch(e.request).then(res => {
-        if (!res || res.status !== 200 || res.type === 'opaque') return res;
-        const clone = res.clone();
-        caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
+      const network = fetch(e.request).then(res => {
+        if (res && res.status === 200 && res.type !== 'opaque') {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
+        }
         return res;
-      });
+      }).catch(() => cached);
+      return cached || network;
     })
   );
 });

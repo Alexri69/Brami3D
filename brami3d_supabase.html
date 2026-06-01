@@ -59,7 +59,15 @@ if ('serviceWorker' in navigator) {
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
-<script>window.QRious||document.write('<script src="https://unpkg.com/qrious@4.0.2/dist/qrious.min.js"><\/script>');</script>
+<script>
+// Fallback de QRious sin document.write (que puede borrar el documento si se
+// ejecuta tras el parseo). Carga síncrona desde unpkg sólo si jsdelivr falló.
+if(!window.QRious){
+  var _qr=document.createElement('script');
+  _qr.src='https://unpkg.com/qrious@4.0.2/dist/qrious.min.js';
+  document.head.appendChild(_qr);
+}
+</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden}
@@ -450,9 +458,11 @@ const sb = createClient(SUPA_URL, SUPA_KEY);
 let CU    = null;   // current user (supabase user object)
 let PAGE  = 'dashboard';
 let SB_OPEN = true;
+let _bootedFor = null;   // id del usuario para el que ya se ejecutó bootApp (evita doble arranque)
+let _lastSyncAt = 0;     // timestamp del último loadAll OK (throttle de resumeSync)
 
 // In-memory cache (reloaded on every page navigation)
-let _cache = { clientes:[], pedidos:[], impresoras:[], filamentos:[], piezas:[], archivos:[], cfg:{} };
+let _cache = { clientes:[], pedidos:[], impresoras:[], filamentos:[], piezas:[], archivos:[], gastos:[], cfg:{} };
 
 // ═══════════════════════════════════════════════
 //  PLANES / LÍMITES
@@ -637,7 +647,7 @@ function updateNetIndicator(online){
     if(ind) ind.style.borderColor = '#ef4444';
   }
 }
-window.addEventListener('online',  () => { updateNetIndicator(true);  showToast('✅ Conexión restaurada','success'); });
+window.addEventListener('online',  () => { updateNetIndicator(true);  showToast('✅ Conexión restaurada','success'); try { resumeSync(true); } catch(_){} });
 window.addEventListener('offline', () => { updateNetIndicator(false); showToast('⚠️ Sin conexión — modo offline','warn'); });
 // Set initial state
 document.addEventListener('DOMContentLoaded', () => updateNetIndicator(navigator.onLine));
@@ -896,20 +906,30 @@ function showAuthErr(msg){
   e.className='err-msg';
 }
 
-// Listen to auth state
+// Listen to auth state.
+// IMPORTANTE: solo arrancamos la app en el login inicial. TOKEN_REFRESHED y
+// USER_UPDATED se disparan periódicamente (el JWT caduca cada ~1h y se refresca
+// al volver a la pestaña tras inactividad); antes relanzaban bootApp() entero,
+// recargando toda la app y dando la sensación de "tarda en coger los datos".
+// Ahora esos eventos solo actualizan CU en memoria. La re-sincronización ligera
+// la maneja resumeSync() (visibilitychange / online).
 sb.auth.onAuthStateChange(async (event, session)=>{
-  if(session?.user){
-    CU=session.user;
-    await bootApp();
-  } else {
+  if(event === 'SIGNED_OUT' || !session?.user){
     CU=null;
+    _bootedFor=null;
     $('app').className='hidden';
     $('auth-screen').className='';
     openLoginModal('login');
+    return;
   }
+  CU=session.user;
+  if(event === 'SIGNED_IN' || event === 'INITIAL_SESSION'){
+    await bootApp();
+  }
+  // TOKEN_REFRESHED, USER_UPDATED, PASSWORD_RECOVERY… → no rebootear.
 });
 
-// Also check session on load immediately
+// Also check session on load immediately (por si INITIAL_SESSION tarda).
 (async()=>{
   const {data:{session}}=await sb.auth.getSession();
   if(session?.user && !CU){
@@ -920,6 +940,7 @@ sb.auth.onAuthStateChange(async (event, session)=>{
 
 async function logout(){
   try { unsubscribeRealtime(); } catch(_){}
+  _bootedFor=null;
   clearLocalCache();
   await sb.auth.signOut();
 }
@@ -1018,8 +1039,11 @@ function loadLocalCache(){
   if(!CU || !CU.id) return false;
   const dflCfg = {costePorGramo:0.03,costePorHora:0.15,margen:30,moneda:'€',empresa:'',telefono:'',email:'',tipoIva:0,nombreImpuesto:'IVA'};
   try {
+    // Ventana de 7 días: con caché válida siempre mostramos datos al instante y
+    // refrescamos en segundo plano, evitando la rama bloqueante con spinner tras
+    // una inactividad larga. loadAll(true) actualiza igualmente al arrancar.
     const ts = parseInt(localStorage.getItem(_cacheTsK())||'0', 10);
-    if(ts && Date.now()-ts <= 24*60*60*1000){
+    if(ts && Date.now()-ts <= 7*24*60*60*1000){
       const read = t => {
         const raw = localStorage.getItem(_cacheK(t));
         return raw ? JSON.parse(raw) : null;
@@ -1074,6 +1098,12 @@ function clearLocalCache(){
 //  BOOT
 // ═══════════════════════════════════════════════
 async function bootApp(){
+  // Guarda de reentrada: el IIFE de getSession() y el evento INITIAL_SESSION de
+  // onAuthStateChange pueden dispararse casi a la vez en el arranque en frío.
+  // Sin esto se ejecutaban dos bootApp() → dos loadAll() en paralelo.
+  if(CU && _bootedFor === CU.id) return;
+  _bootedFor = CU ? CU.id : null;
+
   $('auth-screen').className='hidden';
   $('app').className='';
   if(window.innerWidth<=768) $('mob-nav').className='';
@@ -1094,7 +1124,7 @@ async function bootApp(){
       checkAndNotify();
       registrarInicioSIF();
       subscribeRealtime();
-    }).catch(()=>{});
+    }).catch(e=>{ console.warn('Refresco en segundo plano falló:', e); });
   } else {
     $('content').innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:60vh"><div style="text-align:center"><div class="loading-spinner" style="width:32px;height:32px;border-width:3px;margin:0 auto 16px"></div><div style="color:var(--text4);font-size:13px">Cargando...</div></div></div>';
     try {
@@ -1107,10 +1137,43 @@ async function bootApp(){
       registrarInicioSIF();
       subscribeRealtime();
     } catch(e) {
-      $('content').innerHTML='<div style="padding:32px;color:#f87171;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:12px;margin:24px">❌ Error al cargar: '+e.message+'<br><br><button class="btn-primary" onclick="bootApp()">🔄 Reintentar</button></div>';
+      // Permitir reintento real: el botón llama de nuevo a bootApp() y la guarda
+      // de reentrada lo rechazaría si no reseteamos _bootedFor.
+      _bootedFor = null;
+      if(e && e.message === 'account blocked'){
+        // El logout + reload ya están programados en loadAll(); mensaje claro mientras tanto.
+        $('content').innerHTML='<div style="padding:32px;color:#f87171;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:12px;margin:24px">🔒 Tu cuenta está suspendida. Cerrando sesión…</div>';
+      } else {
+        $('content').innerHTML='<div style="padding:32px;color:#f87171;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:12px;margin:24px">❌ Error al cargar: '+e.message+'<br><br><button class="btn-primary" onclick="bootApp()">🔄 Reintentar</button></div>';
+      }
     }
   }
 }
+
+// ═══════════════════════════════════════════════
+//  RESUME / RECONNECT
+// ═══════════════════════════════════════════════
+// Al volver el foco a la pestaña o recuperar conexión NO rebooteamos la app:
+// solo refrescamos datos en silencio y re-suscribimos realtime (el WebSocket
+// muere durante la inactividad y nada lo reanimaba antes). Throttle de 60s para
+// no recargar en cada cambio de pestaña.
+async function resumeSync(force){
+  if(!CU || !CU.id) return;
+  if(force || Date.now() - _lastSyncAt > 60000){
+    try {
+      await loadAll(true);
+      saveLocalCache();
+      render();
+      refreshAlerts();
+    } catch(e){ console.warn('resumeSync:', e); }
+  }
+  // Reabrir realtime SOLO si el canal se cayó. No tocamos un canal sano para no
+  // teardown+resubscribe en cada cambio de pestaña.
+  const st = _rtChannel && _rtChannel.state;
+  if(!_rtChannel || st === 'closed' || st === 'errored'){ subscribeRealtime(); }
+}
+
+document.addEventListener('visibilitychange', ()=>{ if(!document.hidden) resumeSync(false); });
 
 // ═══════════════════════════════════════════════
 //  DATA LAYER — Supabase CRUD
@@ -1162,21 +1225,6 @@ async function loadAll(silent=false){
   if(p.error) throw new Error('pedidos: '+p.error.message);
   _cache.pedidos = mapPedidos(p.data||[]);
 
-  // Refresh signed URLs for pedido photos. foto_path is the persistent pointer;
-  // foto_url is a short-lived session token (1h) that we regenerate on every load
-  // so nothing stored in the DB is valid for more than one session window.
-  try {
-    const withFoto = _cache.pedidos.filter(o => o.fotoPath);
-    if(withFoto.length){
-      const paths = withFoto.map(o => o.fotoPath);
-      const { data: sigs } = await sb.storage.from('archivos').createSignedUrls(paths, 60*60);
-      if(sigs){
-        const byPath = new Map(sigs.filter(s=>!s.error && s.signedUrl).map(s=>[s.path,s.signedUrl]));
-        withFoto.forEach(o => { const u=byPath.get(o.fotoPath); if(u) o.fotoUrl=u; });
-      }
-    }
-  } catch(e){ console.warn('Signed URL refresh failed:', e); }
-
   _cache.impresoras = mapImpresoras(im.data||[]);
   _cache.filamentos = mapFilamentos(fi.data||[]);
   _cache.piezas     = mapPiezas(pz.data||[]);
@@ -1200,6 +1248,26 @@ async function loadAll(silent=false){
   }
 
   refreshBizHeader();
+  _lastSyncAt = Date.now();
+
+  // Refresh signed URLs de las fotos de pedidos EN SEGUNDO PLANO. foto_path es el
+  // puntero persistente; foto_url es un token efímero (1h) que regeneramos en cada
+  // carga. Antes esto bloqueaba loadAll con un round-trip extra a Storage; ahora se
+  // resuelve aparte y re-renderiza cuando llega, sin retrasar el pintado de datos.
+  (async()=>{
+    try {
+      const withFoto = _cache.pedidos.filter(o => o.fotoPath);
+      if(!withFoto.length) return;
+      const paths = withFoto.map(o => o.fotoPath);
+      const { data: sigs } = await sb.storage.from('archivos').createSignedUrls(paths, 60*60);
+      if(sigs){
+        const byPath = new Map(sigs.filter(s=>!s.error && s.signedUrl).map(s=>[s.path,s.signedUrl]));
+        withFoto.forEach(o => { const u=byPath.get(o.fotoPath); if(u) o.fotoUrl=u; });
+        saveLocalCache('pedidos');
+        try { if(typeof render === 'function') render(); } catch(_){}
+      }
+    } catch(e){ console.warn('Signed URL refresh failed:', e); }
+  })();
 }
 
 // Map DB column names → app property names
