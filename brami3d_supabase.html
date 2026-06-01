@@ -3156,29 +3156,26 @@ async function _sendViaEdge(built,{to,subject,text}){
   const cfg=_cache.cfg;
   let pdfBase64='';
   try { pdfBase64=(built.doc.output('datauristring').split(',')[1])||''; } catch(_){}
-  let resp;
+  // Llamada directa con la clave pública en las cabeceras (como el ejemplo de
+  // Supabase). functions.invoke enviaba el token de usuario y la puerta de entrada
+  // lo rechazaba con el sistema de claves nuevo, por eso el POST no llegaba.
+  let r, j;
   try {
-    resp=await sb.functions.invoke('enviar-doc',{body:{
-      to, subject, text,
-      fromName:(cfg.empresa||'').trim()||'Brami3D',
-      replyTo:(cfg.email||'').trim()||undefined,
-      filename:built.filename, pdfBase64
-    }});
-  } catch(e){ resp={error:e}; }
-  const {data,error}=resp;
-  if(error){
-    let msg=error.message||'Error';
-    try {
-      const ctx=error.context;
-      if(ctx && typeof ctx.text==='function'){
-        const txt=await ctx.text();
-        try { const b=JSON.parse(txt); if(b&&b.error) msg=b.error; else if(txt) msg=txt; }
-        catch(_){ if(txt) msg=txt; }
-      }
-    } catch(_){}
-    showToast(t('email.errPrefix')+': '+msg,'err',7000); return false;
+    r=await fetch(SUPA_URL+'/functions/v1/enviar-doc',{
+      method:'POST',
+      headers:{ 'Content-Type':'application/json', 'apikey':SUPA_KEY, 'Authorization':'Bearer '+SUPA_KEY },
+      body:JSON.stringify({
+        to, subject, text,
+        fromName:(cfg.empresa||'').trim()||'Brami3D',
+        replyTo:(cfg.email||'').trim()||undefined,
+        filename:built.filename, pdfBase64
+      })
+    });
+    j=await r.json().catch(()=>({}));
+  } catch(e){ showToast(t('email.errPrefix')+': '+(e.message||e),'err',7000); return false; }
+  if(!r.ok || (j&&j.error)){
+    showToast(t('email.errPrefix')+': '+((j&&j.error)||('HTTP '+r.status)),'err',7000); return false;
   }
-  if(data&&data.error){ showToast(t('email.errPrefix')+': '+data.error,'err',6000); return false; }
   showToast(t('email.sent'),'ok',4000); return true;
 }
 
