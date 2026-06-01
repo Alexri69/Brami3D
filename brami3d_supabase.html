@@ -653,6 +653,7 @@ const I18N = {
     'ped.tDuplicar':'Duplicar pedido','ped.tSoloPagados':'Solo para pedidos pagados','ped.types':'tipos','ped.units':'uds',
     'ped.overdue':'vencido','ped.delivery':'entrega','ped.paidBadge':'cobrado','ped.deposit':'Anticipo','ped.balance':'pendiente',
     'share.title':'Compartir presupuesto','share.linkReady':'Enlace de aceptación listo. Cópialo o envíalo al cliente — podrá verlo y aceptarlo online:','share.copy':'📋 Copiar enlace','share.copied':'Enlace copiado','share.openWa':'💬 Enviar por WhatsApp','share.waMsg':'¡Hola! Aquí tienes tu presupuesto para "{p}". Puedes verlo y aceptarlo aquí: {url}','share.needSql':'Función no disponible todavía: ejecuta la migración sql/010 en Supabase.','share.accepted':'Aceptado','share.tShare':'Compartir enlace de aceptación',
+    'email.title':'Enviar por email','email.recipient':'Email del destinatario:','email.testNote':'En pruebas, el correo solo llega a TU dirección (la de tu cuenta de Resend) hasta que verifiquemos el dominio.','email.send':'Enviar','email.invalidTo':'Introduce un email válido','email.sent':'✅ Email enviado','email.errPrefix':'No se pudo enviar','email.hi':'Hola','email.regards':'Un saludo,','email.subjQuote':'Presupuesto {n}','email.subjInvoice':'Factura {n}','email.quoteIntro':'Te envío el presupuesto para "{p}".','email.invoiceIntro':'Adjunto la factura {n} correspondiente a "{p}".','email.priceLine':'Precio total: {v}.','email.totalLine':'Total: {v}.',
     'frm.editOrder':'Editar pedido','frm.newOrder':'Nuevo pedido','frm.saveOrder':'💾 Guardar pedido','frm.noClient':'Sin cliente',
     'frm.projectName':'Nombre del proyecto *','frm.orderDate':'Fecha pedido','frm.deliveryDate':'Fecha de entrega (opcional)',
     'frm.printer':'Impresora','frm.noPrinter':'Sin impresora (200W por defecto)',
@@ -729,6 +730,7 @@ const I18N = {
     'ped.tDuplicar':'Duplicate order','ped.tSoloPagados':'Paid orders only','ped.types':'types','ped.units':'units',
     'ped.overdue':'overdue','ped.delivery':'delivery','ped.paidBadge':'paid','ped.deposit':'Deposit','ped.balance':'balance',
     'share.title':'Share quote','share.linkReady':'Acceptance link ready. Copy it or send it to the client — they can view and accept it online:','share.copy':'📋 Copy link','share.copied':'Link copied','share.openWa':'💬 Send via WhatsApp','share.waMsg':'Hi! Here is your quote for "{p}". You can view and accept it here: {url}','share.needSql':'Feature not available yet: run migration sql/010 in Supabase.','share.accepted':'Accepted','share.tShare':'Share acceptance link',
+    'email.title':'Send by email','email.recipient':'Recipient email:','email.testNote':'In test mode, email only reaches YOUR address (your Resend account) until the domain is verified.','email.send':'Send','email.invalidTo':'Enter a valid email','email.sent':'✅ Email sent','email.errPrefix':'Could not send','email.hi':'Hi','email.regards':'Best regards,','email.subjQuote':'Quote {n}','email.subjInvoice':'Invoice {n}','email.quoteIntro':'Here is the quote for "{p}".','email.invoiceIntro':'Attached is invoice {n} for "{p}".','email.priceLine':'Total price: {v}.','email.totalLine':'Total: {v}.',
     'frm.editOrder':'Edit order','frm.newOrder':'New order','frm.saveOrder':'💾 Save order','frm.noClient':'No customer',
     'frm.projectName':'Project name *','frm.orderDate':'Order date','frm.deliveryDate':'Delivery date (optional)',
     'frm.printer':'Printer','frm.noPrinter':'No printer (200W default)',
@@ -3146,24 +3148,63 @@ _Gracias por tu confianza._`;
 
 // Comparte un PDF ya generado por email: Web Share con archivo y, si no, descarga
 // + abre el cliente de correo (mailto no permite adjuntar, así que se adjunta a mano).
-async function _shareEmail(built, {subject, body, to}){
-  const file=new File([built.blob], built.filename, {type:'application/pdf'});
-  if(navigator.canShare && navigator.canShare({files:[file]})){
-    try { await navigator.share({files:[file], title:subject, text:body}); return; }
-    catch(err){ if(err && err.name==='AbortError') return; }
+// ── ENVÍO DE EMAIL REAL (Edge Function 'enviar-doc' + Resend) ──
+// El PDF se envía adjunto desde el servidor. El remitente lleva el nombre del
+// negocio (cfg.empresa) y el Reply-To su email, para que las respuestas le lleguen.
+let _pendingEmail=null;
+async function _sendViaEdge(built,{to,subject,text}){
+  const cfg=_cache.cfg;
+  let pdfBase64='';
+  try { pdfBase64=(built.doc.output('datauristring').split(',')[1])||''; } catch(_){}
+  let resp;
+  try {
+    resp=await sb.functions.invoke('enviar-doc',{body:{
+      to, subject, text,
+      fromName:(cfg.empresa||'').trim()||'Brami3D',
+      replyTo:(cfg.email||'').trim()||undefined,
+      filename:built.filename, pdfBase64
+    }});
+  } catch(e){ resp={error:e}; }
+  const {data,error}=resp;
+  if(error){
+    let msg=error.message||'Error';
+    try { const b=await error.context.json(); if(b&&b.error) msg=b.error; } catch(_){}
+    showToast(t('email.errPrefix')+': '+msg,'err',6000); return false;
   }
-  built.doc.save(built.filename);
-  const mailto='mailto:'+encodeURIComponent(to||'')+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body+'\n\n(Adjunta el PDF descargado: '+built.filename+')');
-  window.open(mailto,'_blank');
+  if(data&&data.error){ showToast(t('email.errPrefix')+': '+data.error,'err',6000); return false; }
+  showToast(t('email.sent'),'ok',4000); return true;
+}
+
+// Modal para confirmar/editar el destinatario antes de enviar.
+function emailDocModal(built, defTo, subject, text){
+  _pendingEmail={built,subject,text};
+  openModal(msh(t('email.title'),`
+    <div style="display:flex;flex-direction:column;gap:12px;padding:4px 0">
+      <div style="font-size:13px;color:var(--text4)">${t('email.recipient')}</div>
+      <input id="email-to" type="email" value="${esc(defTo||'')}" placeholder="cliente@email.com" style="width:100%;padding:11px 12px;border:1px solid var(--border);border-radius:10px;background:var(--bg4);color:var(--text2);font-size:14px">
+      <div style="font-size:11px;color:var(--text5);line-height:1.5;background:var(--bg3);border-radius:10px;padding:9px 11px">${t('email.testNote')}</div>
+      <button class="btn-primary" id="email-send-btn" style="justify-content:center" onclick="_doEmailSend()">✉️ ${t('email.send')}</button>
+      <button onclick="closeModal();_pendingEmail=null" style="padding:10px;background:transparent;border:1px solid var(--border);border-radius:10px;color:var(--text4);font-size:13px">${t('common.cancel')}</button>
+    </div>`));
+}
+async function _doEmailSend(){
+  const to=(($('email-to')||{}).value||'').trim();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)){ showToast(t('email.invalidTo'),'err'); return; }
+  const p=_pendingEmail; if(!p) return;
+  setLoading('email-send-btn',true);
+  const ok=await _sendViaEdge(p.built,{to,subject:p.subject,text:p.text});
+  setLoading('email-send-btn',false,'✉️ '+t('email.send'));
+  if(ok){ _pendingEmail=null; closeModal(); }
 }
 
 async function sendPresupuestoEmail(id){
   const o=await ensurePresNum(id); if(!o) return;
   const cfg=_cache.cfg; const cl=_cache.clientes.find(x=>x.id===o.clienteId)||{}; const c=calcOrderCosts(o,cfg); const mon=cfg.moneda||'€';
   let built; try{ built=buildPresupuestoPdf(id); }catch(e){ showToast(e.message,'err',5000); return; } if(!built) return;
-  const subject='Presupuesto '+(o.presNum||o.proyecto);
-  const body=`Hola${cl.nombre?' '+cl.nombre:''},\n\nTe envío el presupuesto para "${o.proyecto}".\nPrecio total: ${c.fp.toFixed(2)} ${mon}.\n\nUn saludo,\n${brandFooterName(cfg)}`;
-  await _shareEmail(built,{subject,body,to:cl.email});
+  const subject=t('email.subjQuote',{n:o.presNum||o.proyecto});
+  const saludo=t('email.hi')+(cl.nombre?' '+cl.nombre:'');
+  const body=`${saludo},\n\n${t('email.quoteIntro',{p:o.proyecto})}\n${t('email.priceLine',{v:c.fp.toFixed(2)+' '+mon})}\n\n${t('email.regards')}\n${brandFooterName(cfg)}`;
+  emailDocModal(built, cl.email, subject, body);
 }
 
 // Genera/recupera el enlace público de aceptación del presupuesto y lo ofrece para
@@ -3197,9 +3238,10 @@ async function sendFacturaEmail(id){
   const cfg=_cache.cfg; const cl=_cache.clientes.find(x=>x.id===o.clienteId)||{}; const c=calcOrderCosts(o,cfg); const mon=cfg.moneda||'€';
   const t1=Number(cfg.tipoIva||0),t2=Number(cfg.tipoIva2||0); const total=c.fp*(1+t1/100+t2/100);
   let built; try{ built=await buildFacturaPdf(id); }catch(e){ showToast(e.message,'err',5000); return; } if(!built) return;
-  const subject='Factura '+o.facturaNum;
-  const body=`Hola${cl.nombre?' '+cl.nombre:''},\n\nAdjunto la factura ${o.facturaNum} correspondiente a "${o.proyecto}".\nTotal: ${fmtNum(total,cfg)} ${mon}.\n\nGracias por tu confianza,\n${brandFooterName(cfg)}`;
-  await _shareEmail(built,{subject,body,to:cl.email});
+  const subject=t('email.subjInvoice',{n:o.facturaNum});
+  const saludo=t('email.hi')+(cl.nombre?' '+cl.nombre:'');
+  const body=`${saludo},\n\n${t('email.invoiceIntro',{n:o.facturaNum,p:o.proyecto})}\n${t('email.totalLine',{v:fmtNum(total,cfg)+' '+mon})}\n\n${t('email.regards')}\n${brandFooterName(cfg)}`;
+  emailDocModal(built, cl.email, subject, body);
 }
 
 // ═══════════════════════════════════════════════
