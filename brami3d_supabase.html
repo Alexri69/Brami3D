@@ -60,8 +60,10 @@ if ('serviceWorker' in navigator) {
     const b = document.createElement('div');
     b.id = 'sw-update-banner';
     b.style.cssText = 'position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:10000;background:#1d4ed8;color:#fff;padding:12px 16px;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.45);display:flex;align-items:center;gap:14px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;max-width:92vw';
-    b.innerHTML = '<span>🚀 Hay una versión nueva disponible.</span>'
-      + '<button id="sw-update-btn" style="background:#fff;color:#1d4ed8;border:none;padding:8px 14px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer">Actualizar</button>'
+    var _tu=(window.t?t('toast.update'):'🚀 Hay una versión nueva disponible.');
+    var _tb=(window.t?t('toast.updateBtn'):'Actualizar');
+    b.innerHTML = '<span>'+_tu+'</span>'
+      + '<button id="sw-update-btn" style="background:#fff;color:#1d4ed8;border:none;padding:8px 14px;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer">'+_tb+'</button>'
       + '<button id="sw-update-dismiss" style="background:transparent;color:#bfdbfe;border:none;font-size:18px;cursor:pointer;line-height:1">✕</button>';
     document.body.appendChild(b);
     document.getElementById('sw-update-btn').onclick = () => { try { worker.postMessage({type:'SKIP_WAITING'}); } catch(_){} b.remove(); };
@@ -676,6 +678,7 @@ const I18N = {
     'gas.title':'Gastos','gas.subtitle':'Control de todos tus gastos','gas.new':'+ Nuevo gasto','gas.empty':'Sin gastos registrados','gas.total':'Total gastos','gas.registered':'gastos registrados','gas.thisMonth':'Este mes','gas.byCat':'Por categoría','gas.noData':'Sin datos','gas.editTitle':'Editar gasto','gas.newTitle':'Nuevo gasto','gas.fDesc':'Descripción *','gas.fCat':'Categoría','gas.fAmount':'Importe (€)','gas.fDate':'Fecha','gas.fSupplier':'Proveedor','gas.descReq':'Descripción obligatoria','gas.saved':'Gasto guardado','gas.delete':'¿Eliminar este gasto?',
     'arch.title':'Archivos','arch.hint':'STL e imágenes — guardados en Supabase Storage (máx. 50MB).','arch.drop':'Arrastra archivos o haz clic','arch.dropHint':'STL · JPG · PNG · WebP · GIF · SVG · Máx. 50MB','arch.empty':'Sin archivos',
     'cob.title':'Cobros pendientes','cob.toCollect':'por cobrar','calc.title':'🧮 Calculadora rápida','calc.subtitle':'Estima coste y precio sin crear un pedido','calc.printParams':'Parámetros de impresión','calc.filament':'Filamento','calc.filManual':'── Coste manual (€/kg) ──','calc.filCost':'Coste filamento (€/kg)','calc.weightG':'Peso (g)','calc.printTime':'Tiempo impresión (h)','calc.printer':'Impresora','calc.noPrinter':'── Sin impresora (200W) ──','calc.postproc':'Postprocesado','calc.design':'Diseño / modeling','calc.margin':'Margen de beneficio (%)','calc.manualPrice':'Precio final manual','calc.manualPriceHint':'— deja vacío para calcular automático','calc.optional':'Opcional','calc.enterData':'Introduce los datos para ver el desglose','calc.breakdown':'Desglose de costes','calc.cMaterial':'Material','calc.cElectricity':'Electricidad','calc.cPostproc':'Postprocesado','calc.cDesign':'Diseño','calc.cTotalCost':'Coste total','calc.manualPriceLbl':'Precio manual','calc.suggestedPrice':'Precio sugerido','calc.marginWord':'margen','calc.profit':'Beneficio','calc.priceByMargin':'Tabla de precios por margen','calc.colMargin':'Margen','calc.colPrice':'Precio','calc.colProfit':'Beneficio',
+    'toast.connRestored':'✅ Conexión restaurada','toast.offline':'⚠️ Sin conexión — modo offline','toast.notifNotSupported':'Tu navegador no soporta notificaciones','toast.notifOn':'Notificaciones activadas','toast.permDenied':'Permiso denegado','toast.photoTooBig':'La foto supera 10MB','toast.logoFormat':'Formato no válido. Usa PNG, JPG, WebP o SVG.','toast.notesSaved':'Notas guardadas','toast.planUpdated':'Plan actualizado','toast.csvInvalid':'CSV no válido','toast.csvEmpty':'El CSV está vacío','toast.csvNoName':'No se encontró ninguna fila con nombre','toast.uploading':'Subiendo','toast.update':'🚀 Hay una versión nueva disponible.','toast.updateBtn':'Actualizar',
     'cob.allCollected':'Todo cobrado','cob.nonePending':'No tienes pedidos pendientes de cobro.','cob.urgent':'URGENTE','cob.collect':'✅ Cobrar','cob.ref':'Ref:',
     'cob.toCollectLbl':'Por cobrar','cob.urgent7':'Urgentes (+7 días)','cob.inProgress':'En curso','cob.secUrgent':'🔴 Urgentes — más de 7 días sin cobrar','cob.secInProgress':'🔵 En curso — pendiente o imprimiendo','cob.secRecent':'🟡 Terminados recientes',
     'cob.reminder':'Hola {n}, te recuerdo que el pedido "{p}" está listo para recoger/cobrar. Total: {tot}. ¡Gracias!',
@@ -749,6 +752,7 @@ const I18N = {
     'gas.title':'Expenses','gas.subtitle':'Track all your expenses','gas.new':'+ New expense','gas.empty':'No expenses recorded','gas.total':'Total expenses','gas.registered':'expenses recorded','gas.thisMonth':'This month','gas.byCat':'By category','gas.noData':'No data','gas.editTitle':'Edit expense','gas.newTitle':'New expense','gas.fDesc':'Description *','gas.fCat':'Category','gas.fAmount':'Amount (€)','gas.fDate':'Date','gas.fSupplier':'Supplier','gas.descReq':'Description is required','gas.saved':'Expense saved','gas.delete':'Delete this expense?',
     'arch.title':'Files','arch.hint':'STL and images — stored in Supabase Storage (max 50MB).','arch.drop':'Drag files or click','arch.dropHint':'STL · JPG · PNG · WebP · GIF · SVG · Max 50MB','arch.empty':'No files',
     'cob.title':'Pending payments','cob.toCollect':'to collect','calc.title':'🧮 Quick calculator','calc.subtitle':'Estimate cost and price without creating an order','calc.printParams':'Print parameters','calc.filament':'Filament','calc.filManual':'── Manual cost (€/kg) ──','calc.filCost':'Filament cost (€/kg)','calc.weightG':'Weight (g)','calc.printTime':'Print time (h)','calc.printer':'Printer','calc.noPrinter':'── No printer (200W) ──','calc.postproc':'Post-processing','calc.design':'Design / modeling','calc.margin':'Profit margin (%)','calc.manualPrice':'Manual final price','calc.manualPriceHint':'— leave empty to calculate automatically','calc.optional':'Optional','calc.enterData':'Enter data to see the breakdown','calc.breakdown':'Cost breakdown','calc.cMaterial':'Material','calc.cElectricity':'Electricity','calc.cPostproc':'Post-processing','calc.cDesign':'Design','calc.cTotalCost':'Total cost','calc.manualPriceLbl':'Manual price','calc.suggestedPrice':'Suggested price','calc.marginWord':'margin','calc.profit':'Profit','calc.priceByMargin':'Price table by margin','calc.colMargin':'Margin','calc.colPrice':'Price','calc.colProfit':'Profit',
+    'toast.connRestored':'✅ Connection restored','toast.offline':'⚠️ Offline — offline mode','toast.notifNotSupported':'Your browser does not support notifications','toast.notifOn':'Notifications enabled','toast.permDenied':'Permission denied','toast.photoTooBig':'Photo exceeds 10MB','toast.logoFormat':'Invalid format. Use PNG, JPG, WebP or SVG.','toast.notesSaved':'Notes saved','toast.planUpdated':'Plan updated','toast.csvInvalid':'Invalid CSV','toast.csvEmpty':'CSV is empty','toast.csvNoName':'No row with a name found','toast.uploading':'Uploading','toast.update':'🚀 A new version is available.','toast.updateBtn':'Update',
     'cob.allCollected':'All collected','cob.nonePending':'You have no pending payments.','cob.urgent':'URGENT','cob.collect':'✅ Collect','cob.ref':'Ref:',
     'cob.toCollectLbl':'To collect','cob.urgent7':'Urgent (+7 days)','cob.inProgress':'In progress','cob.secUrgent':'🔴 Urgent — unpaid for over 7 days','cob.secInProgress':'🔵 In progress — pending or printing','cob.secRecent':'🟡 Recently finished',
     'cob.reminder':'Hi {n}, a reminder that your order "{p}" is ready for pickup/payment. Total: {tot}. Thank you!',
@@ -859,8 +863,8 @@ function updateNetIndicator(online){
     if(ind) ind.style.borderColor = '#ef4444';
   }
 }
-window.addEventListener('online',  () => { updateNetIndicator(true);  showToast('✅ Conexión restaurada','success'); try { flushOutbox(); } catch(_){} try { resumeSync(true); } catch(_){} });
-window.addEventListener('offline', () => { updateNetIndicator(false); showToast('⚠️ Sin conexión — modo offline','warn'); });
+window.addEventListener('online',  () => { updateNetIndicator(true);  showToast(t('toast.connRestored'),'success'); try { flushOutbox(); } catch(_){} try { resumeSync(true); } catch(_){} });
+window.addEventListener('offline', () => { updateNetIndicator(false); showToast(t('toast.offline'),'warn'); });
 // Set initial state
 document.addEventListener('DOMContentLoaded', () => updateNetIndicator(navigator.onLine));
 
@@ -870,14 +874,14 @@ document.addEventListener('DOMContentLoaded', () => updateNetIndicator(navigator
 const NOTIF_KEY = 'b3d_notif_last';
 
 async function requestNotifPermission(){
-  if(!('Notification' in window)){ showToast('Tu navegador no soporta notificaciones','err'); return; }
+  if(!('Notification' in window)){ showToast(t('toast.notifNotSupported'),'err'); return; }
   const perm = await Notification.requestPermission();
   if(perm === 'granted'){
     localStorage.setItem('b3d_notif_enabled','1');
-    showToast('Notificaciones activadas','ok');
+    showToast(t('toast.notifOn'),'ok');
     checkAndNotify();
   } else {
-    showToast('Permiso denegado','err');
+    showToast(t('toast.permDenied'),'err');
   }
 }
 
@@ -3910,8 +3914,8 @@ function pickClientesCSV(){
 
 let _pendingClientes=null;
 function previewClientesCSV(text){
-  let rows; try{ rows=_parseCSV(text); }catch(_){ showToast('CSV no válido','err'); return; }
-  if(!rows.length){ showToast('El CSV está vacío','err'); return; }
+  let rows; try{ rows=_parseCSV(text); }catch(_){ showToast(t('toast.csvInvalid'),'err'); return; }
+  if(!rows.length){ showToast(t('toast.csvEmpty'),'err'); return; }
   const head=rows[0].map(h=>(h||'').trim().toLowerCase());
   const hasHeader=head.some(h=>/nombre|nif|cif|empresa|tel|email|correo|cliente/.test(h));
   const idx = hasHeader ? {
@@ -3929,7 +3933,7 @@ function previewClientesCSV(text){
     nombre:g(r,idx.nombre), nif:g(r,idx.nif), empresa:g(r,idx.empresa),
     telefono:g(r,idx.telefono), email:g(r,idx.email), notas:g(r,idx.notas)
   })).filter(c=>c.nombre);
-  if(!_pendingClientes.length){ showToast('No se encontró ninguna fila con nombre','err'); return; }
+  if(!_pendingClientes.length){ showToast(t('toast.csvNoName'),'err'); return; }
   openModal(msh('Importar clientes',`
     <p style="color:var(--text3);font-size:13px;line-height:1.6;margin-bottom:8px">Se importarán <b>${_pendingClientes.length}</b> cliente(s) como nuevos registros. Columnas detectadas: nombre, NIF, empresa, teléfono, email, notas.</p>
     <div style="max-height:160px;overflow:auto;background:var(--bg);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--text4);margin-bottom:16px">${_pendingClientes.slice(0,10).map(c=>esc(c.nombre)+(c.email?' · '+esc(c.email):'')).join('<br>')}${_pendingClientes.length>10?'<br>…':''}</div>
@@ -3988,7 +3992,7 @@ function exportGastosCSV(){
 }
 
 function delC(id){ confirmDel(t('cli.deleteConfirm'),`doDelC('${id}')`); }
-async function doDelC(id){ if(await dbDel('clientes',id)){_cache.clientes=_cache.clientes.filter(x=>x.id!==id);render();showToast('Eliminado','ok');} }
+async function doDelC(id){ if(await dbDel('clientes',id)){_cache.clientes=_cache.clientes.filter(x=>x.id!==id);render();showToast(t('common.deleted'),'ok');} }
 
 function verHistorial(clienteId){
   const cl=_cache.clientes.find(c=>c.id===clienteId)||{};
@@ -4656,7 +4660,7 @@ let _fotoPath = null;   // Storage path of current foto
 
 function previewFoto(input){
   const f = input.files[0]; if(!f) return;
-  if(f.size > 10*1024*1024){ showToast('La foto supera 10MB','err'); return; }
+  if(f.size > 10*1024*1024){ showToast(t('toast.photoTooBig'),'err'); return; }
   _fotoFile = f;
   const reader = new FileReader();
   reader.onload = e => {
@@ -4883,7 +4887,7 @@ async function saveO(id){
 }
 
 function delO(id){ confirmDel('¿Eliminar este pedido?',`doDelO('${id}')`); }
-async function doDelO(id){ if(await dbDel('pedidos',id)){_cache.pedidos=_cache.pedidos.filter(x=>x.id!==id);render();showToast('Eliminado','ok');} }
+async function doDelO(id){ if(await dbDel('pedidos',id)){_cache.pedidos=_cache.pedidos.filter(x=>x.id!==id);render();showToast(t('common.deleted'),'ok');} }
 
 // Duplica un pedido como borrador nuevo (sin nº de presupuesto/factura, no cobrado).
 async function cloneO(id){
@@ -5019,7 +5023,7 @@ async function procFiles(fl){
     const err=_validarArchivo(f);
     if(err){showToast(f.name+': '+err,'err');continue;}
     if(f.size>50*1024*1024){showToast(f.name+' supera 50MB','err');continue;}
-    showToast('Subiendo '+f.name+'…','ok',8000);
+    showToast(t('toast.uploading')+' '+f.name+'…','ok',8000);
     const safeExt='.'+f.name.split('.').pop().toLowerCase();
     const safeName=Date.now()+'_'+f.name.replace(/[^a-zA-Z0-9._-]/g,'_');
     const path=`${CU.id}/${safeName}`;
@@ -5051,7 +5055,7 @@ async function delFile(id){
   await sb.storage.from('archivos').remove([f.storage_path]);
   await dbDel('archivos',id);
   _cache.archivos=_cache.archivos.filter(x=>x.id!==id);
-  render();showToast('Eliminado','ok');
+  render();showToast(t('common.deleted'),'ok');
 }
 
 async function prevFile(id){
@@ -5563,7 +5567,7 @@ async function adminSavePlan(userId){
       new_trial_until: null
     });
     if(error) throw error;
-    showToast('Plan actualizado','ok');
+    showToast(t('toast.planUpdated'),'ok');
     closeModal();
     await adminLoadUsers();
   } catch(e){
@@ -5620,7 +5624,7 @@ async function adminSaveNotes(userId){
       new_notes: notes
     });
     if(error) throw error;
-    showToast('Notas guardadas','ok');
+    showToast(t('toast.notesSaved'),'ok');
     closeModal();
     await adminLoadUsers();
   } catch(e){
@@ -5990,7 +5994,7 @@ function onLogoChange(ev){
     return;
   }
   if(!/^image\//.test(file.type)){
-    showToast('Formato no válido. Usa PNG, JPG, WebP o SVG.','err');
+    showToast(t('toast.logoFormat'),'err');
     ev.target.value='';
     return;
   }
