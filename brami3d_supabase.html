@@ -1436,36 +1436,8 @@ function subscribeRealtime(){
 // ═══════════════════════════════════════════════
 //  BRANDING (marca blanca)
 // ═══════════════════════════════════════════════
-// Logo y nombre en presupuestos/facturas/informes.
-// Si el usuario configura empresa y/o sube un logo, se usa el suyo.
-// Si no, fallback al branding "B3D Print Studio" por defecto.
-const B3D_LOGO_SVG_44 = `<svg width="44" height="44" viewBox="0 0 38 38" fill="none"><rect width="38" height="38" rx="9" fill="#1d4ed8"/><polygon points="19,7 30,13 30,25 19,31 8,25 8,13" fill="none" stroke="#93c5fd" stroke-width="1.5"/><polygon points="19,7 30,13 19,19 8,13" fill="#3b82f6" opacity="0.8"/><polygon points="8,13 19,19 19,31 8,25" fill="#2563eb"/><polygon points="30,13 19,19 19,31 30,25" fill="#1d4ed8"/></svg>`;
-const B3D_LOGO_SVG_40 = B3D_LOGO_SVG_44.replace('width="44" height="44"','width="40" height="40"');
-
-function brandLogo(cfg, size){
-  const px = size===40?40:44;
-  if(cfg && cfg.logo && typeof cfg.logo==='string' && cfg.logo.startsWith('data:image')){
-    return `<img src="${esc(cfg.logo)}" alt="Logo" style="width:${px}px;height:${px}px;object-fit:contain;border-radius:8px;background:#fff">`;
-  }
-  return px===40 ? B3D_LOGO_SVG_40 : B3D_LOGO_SVG_44;
-}
-
-// Devuelve {name, sub} para el header del documento.
-// - Usuario con empresa configurada → {name: cfg.empresa, sub: ''}
-// - Sin configurar → {name: 'B3D', sub: 'Print Studio'} (branding por defecto)
-function brandTitle(cfg){
-  if(cfg && cfg.empresa && cfg.empresa.trim()){
-    return {name: cfg.empresa.trim(), sub: ''};
-  }
-  return {name:'B3D', sub:'Print Studio'};
-}
-
-function brandHeaderHtml(cfg, {size=44, layoutClass='hdr-left'}={}){
-  const bt = brandTitle(cfg);
-  return `<div class="${layoutClass}">${brandLogo(cfg,size)}<div><div class="brand-name">${esc(bt.name)}</div>${bt.sub?`<div class="brand-sub">${esc(bt.sub)}</div>`:''}</div></div>`;
-}
-
-// Nombre para footer/meta: prefiere cfg.empresa, si no 'B3D Print Studio'.
+// Nombre para documentos (PDFs): prefiere cfg.empresa, si no 'B3D Print Studio'.
+// El logo se incrusta directamente en los PDF con doc.addImage(cfg.logo, …).
 function brandFooterName(cfg){
   return (cfg && cfg.empresa && cfg.empresa.trim()) ? cfg.empresa.trim() : 'B3D Print Studio';
 }
@@ -2421,25 +2393,6 @@ async function genPDF(id){
   }
 }
 
-function abrirDocModal(html, filename){
-  if(window.innerWidth>768){
-    const blob=new Blob([html],{type:'text/html'});
-    const blobUrl=URL.createObjectURL(blob);
-    window.open(blobUrl,'_blank');
-    setTimeout(()=>URL.revokeObjectURL(blobUrl),60000);
-  } else {
-    // Móvil: data URL en iframe (blob URLs bloqueados en iOS Safari)
-    const dataUrl='data:text/html;base64,'+btoa(unescape(encodeURIComponent(html)));
-    $('modal-root').innerHTML=`<div class="overlay" onclick="event.stopPropagation()"><div style="position:fixed;inset:0;background:var(--bg1);display:flex;flex-direction:column;z-index:9999">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);flex-shrink:0">
-        <span style="font-weight:700;color:var(--text2);font-size:14px">📄 ${esc(filename)}</span>
-        <button onclick="closeModal()" style="padding:8px 14px;background:var(--bg4);border:1px solid var(--border);border-radius:9px;color:var(--text3);font-size:13px;font-weight:600">✕ Cerrar</button>
-      </div>
-      <iframe src="${dataUrl}" style="flex:1;border:none;width:100%;background:#fff"></iframe>
-    </div></div>`;
-  }
-}
-
 async function sendWA(id){
   const o=await ensurePresNum(id); if(!o) return;
   const cfg=_cache.cfg;
@@ -2498,90 +2451,227 @@ _¿Tienes alguna pregunta? Estoy a tu disposición._`;
 // ═══════════════════════════════════════════════
 //  FACTURA
 // ═══════════════════════════════════════════════
-async function genFactura(id){
-  let o=_cache.pedidos.find(x=>x.id===id);if(!o)return;
-  if(!o.cobrado){alert('Solo pedidos cobrados');return;}
-  if(!o.facturaNum){
-    const fn=await nextFacturaNum();
-    const fd=today();
-    const ok=await dbSave('pedidos',{id:o.id,factura_num:fn,factura_fecha:fd,user_id:CU.id,proyecto:o.proyecto,estado:o.estado,material:o.material,peso:o.peso,tiempo_impresion:o.tiempoImpresion,cliente_id:o.clienteId,notas:o.notas,fecha:o.fecha,ganancia_manual:o.gananciaManual,coste_postprocesado:o.costePostprocesado,pres_num:o.presNum,lineas:o.lineas});
-    if(!ok)return;
-    o={...o,facturaNum:fn,facturaFecha:fd};
-    _cache.pedidos=_cache.pedidos.map(x=>x.id===id?o:x);
-    render();
-  }
+async function ensureFacturaNum(id){
+  let o=_cache.pedidos.find(x=>x.id===id);
+  if(!o) return null;
+  if(!o.cobrado){ alert('Solo pedidos cobrados'); return null; }
+  if(o.facturaNum) return o;
+  const fn=await nextFacturaNum();
+  const fd=today();
+  const ok=await dbSave('pedidos',{id:o.id,factura_num:fn,factura_fecha:fd,user_id:CU.id,proyecto:o.proyecto,estado:o.estado,material:o.material,peso:o.peso,tiempo_impresion:o.tiempoImpresion,cliente_id:o.clienteId,notas:o.notas,fecha:o.fecha,ganancia_manual:o.gananciaManual,coste_postprocesado:o.costePostprocesado,pres_num:o.presNum,lineas:o.lineas});
+  if(!ok) return null;
+  o={...o,facturaNum:fn,facturaFecha:fd};
+  _cache.pedidos=_cache.pedidos.map(x=>x.id===id?o:x);
+  render();
+  return o;
+}
+
+// Construye el PDF real de la factura (jsPDF directo) con QR AEAT y huella SIF.
+// Es async: registra el evento fiscal (hash encadenado) y genera el QR como imagen.
+async function buildFacturaPdf(id){
+  const o=_cache.pedidos.find(x=>x.id===id); if(!o) return null;
   const cl=_cache.clientes.find(x=>x.id===o.clienteId)||{};
-  const cfg=_cache.cfg; const biz=cfg;
+  const cfg=_cache.cfg, biz=cfg;
   const c=calcOrderCosts(o,cfg); const mon=cfg.moneda||'€';
-  const dateStr=fmtFecha(today(),cfg);
   const factDateStr=fmtFecha(o.facturaFecha||today(),cfg);
 
-  // Registro fiscal inmutable (RD 1007/2023 No-Verifactu): hash encadenado.
-  // Si ya existe para este factura_num lo reutilizamos; si no, lo creamos.
+  // Registro fiscal inmutable (RD 1007/2023, No-Verifactu).
   const reg=await registrarFactura(o,cl,cfg);
   const huella=reg?.hash||'';
   const huellaFmt=huella?huella.slice(0,8)+'…'+huella.slice(-8):'';
-  // QR AEAT conforme Orden HAC/1177/2024 (ISO/IEC 18004, nivel M).
-  const qrUrlAEAT=qrAEATUrl({emisorNif:cfg.nif||'',numSerie:o.facturaNum||'',fecha:o.facturaFecha||'',importe:c.fp||0});
-  const qrImg=await qrDataUrl(qrUrlAEAT,260);
+  let qrImg='';
+  if(huella){
+    try { qrImg=await qrDataUrl(qrAEATUrl({emisorNif:cfg.nif||'',numSerie:o.facturaNum||'',fecha:o.facturaFecha||'',importe:c.fp||0}),260); } catch(_){}
+  }
 
-  const lineasHTML=o.lineas&&o.lineas.length>0?`<table style="width:100%;border-collapse:collapse"><thead><tr style="background:#0f172a;color:#94a3b8"><th style="text-align:left;padding:8px 12px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px">Descripción</th><th style="text-align:center;padding:8px 12px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px">Uds</th><th style="text-align:right;padding:8px 12px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:1px">Material</th></tr></thead><tbody>${o.lineas.map((l,i)=>`<tr style="border-bottom:1px solid #f1f5f9;background:${i%2===0?'#fff':'#f8fafc'}"><td style="padding:8px 12px;font-size:11px;font-weight:600;color:#0f172a">${l.nombre||'—'}</td><td style="padding:8px 12px;font-size:11px;color:#475569;text-align:center">${l.qty||1}</td><td style="padding:8px 12px;font-size:11px;color:#475569;text-align:right">${l.material||'—'}</td></tr>`).join('')}</tbody></table>`:
-  `<table style="width:100%;border-collapse:collapse"><thead><tr style="background:#0f172a;color:#94a3b8"><th style="text-align:left;padding:8px 12px;font-size:9px;font-weight:700;text-transform:uppercase">Descripción</th><th style="text-align:right;padding:8px 12px;font-size:9px;font-weight:700;text-transform:uppercase">Material</th></tr></thead><tbody><tr style="border-bottom:1px solid #f1f5f9"><td style="padding:8px 12px;font-size:11px;font-weight:600;color:#0f172a">${o.proyecto}</td><td style="padding:8px 12px;font-size:11px;color:#475569;text-align:right">${o.material||'—'}</td></tr></tbody></table>`;
+  const t1=Number(cfg.tipoIva||0), t2=Number(cfg.tipoIva2||0), n2=cfg.nombreImpuesto2||'';
+  const total=c.fp*(1+t1/100+t2/100);
 
-  const html=`<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>Factura ${o.facturaNum}</title>
-<style>*{box-sizing:border-box;margin:0;padding:0}html,body{width:210mm;height:297mm;overflow:hidden}body{font-family:'Segoe UI',Arial,sans-serif;background:#fff;color:#0f172a;font-size:11px;line-height:1.3}
-.page{width:210mm;height:297mm;display:flex;flex-direction:column;overflow:hidden}
-.hdr{background:linear-gradient(135deg,#0f172a,#1e293b);padding:16px 26px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
-.hdr-brand{display:flex;align-items:center;gap:10px}.brand-name{font-size:19px;font-weight:900;color:#f1f5f9;letter-spacing:-1.5px}.brand-sub{font-size:7px;color:#3b82f6;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-top:2px}
-.hdr-biz{text-align:right;font-size:9px;color:#94a3b8;line-height:1.7}.hdr-biz-name{font-size:12px;font-weight:800;color:#f1f5f9;margin-bottom:2px}
-.fact-band{background:#2563eb;padding:8px 26px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
-.fact-label{font-size:7px;font-weight:800;color:rgba(255,255,255,.65);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:1px}.fact-value{font-size:12px;font-weight:900;color:#fff}
-.body{padding:12px 26px;flex:1;display:flex;flex-direction:column;gap:10px;overflow:hidden;min-height:0}
-.stamp{display:inline-flex;align-items:center;gap:5px;background:rgba(34,197,94,.1);border:1.5px solid rgba(34,197,94,.35);border-radius:6px;padding:4px 10px;align-self:flex-start;flex-shrink:0}
-.stamp-text{font-size:10px;font-weight:800;color:#15803d;letter-spacing:.5px}
-.slbl{font-size:7px;font-weight:800;text-transform:uppercase;letter-spacing:1.5px;color:#94a3b8;margin-bottom:4px}
-.meta-row{display:flex;gap:10px;flex-shrink:0}
-.client-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:9px 13px;flex:1}
-.client-name{font-size:13px;font-weight:800;color:#0f172a;margin-bottom:2px}.client-sub{font-size:10px;color:#64748b;line-height:1.5}
-.info-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:7px;padding:9px 13px;min-width:150px}
-.info-row{display:flex;justify-content:space-between;font-size:10px;padding:2px 0;border-bottom:1px solid #f1f5f9}.info-row:last-child{border:none}
-.info-lbl{color:#94a3b8}.info-val{color:#0f172a;font-weight:700}
-.items-section{min-height:0;overflow:hidden;display:flex;flex-direction:column}
-.items-wrap{border:1px solid #e2e8f0;border-radius:7px;overflow:hidden;flex:1;min-height:0}
-.totals-wrap{display:flex;justify-content:flex-end;flex-shrink:0}
-.totals{border:1px solid #e2e8f0;border-radius:7px;overflow:hidden;min-width:240px}
-.totals-row{display:flex;justify-content:space-between;padding:6px 13px;border-bottom:1px solid #f1f5f9;font-size:10px}.totals-row:last-child{border:none}
-.totals-lbl{color:#64748b}.totals-val{color:#0f172a;font-weight:700}
-.total-final{background:#0f172a;padding:10px 14px;display:flex;justify-content:space-between;align-items:center}
-.total-final-lbl{font-size:9px;color:#94a3b8;font-weight:700;text-transform:uppercase;letter-spacing:1px}
-.total-final-amt{font-size:22px;font-weight:900;color:#fff;letter-spacing:-1px}.total-final-mon{font-size:13px;font-weight:700;color:#3b82f6;margin-left:3px}
-.notas-box{background:#fffbeb;border:1px solid #fde68a;border-radius:7px;padding:7px 12px;font-size:10px;color:#92400e;flex-shrink:0}
-.footer{background:#f8fafc;border-top:1px solid #e2e8f0;padding:9px 26px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
-.footer-thanks{font-size:11px;font-weight:700;color:#0f172a}.footer-note{font-size:8px;color:#94a3b8;text-align:right;line-height:1.7}
-.compl{background:#f1f5f9;border:1px solid #e2e8f0;border-radius:6px;padding:8px 12px;font-size:8px;color:#475569;line-height:1.6;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-shrink:0}
-.compl b{color:#0f172a;font-weight:700}.compl .huella{font-family:'Courier New',monospace;letter-spacing:.3px}
-.compl-txt{flex:1;min-width:0}
-.compl-txt .verify{font-size:7px;color:#64748b;margin-top:4px;line-height:1.5}
-.compl-qr{width:34mm;height:34mm;flex-shrink:0;background:#fff;padding:1mm;border:1px solid #cbd5e1;border-radius:3px;display:flex;align-items:center;justify-content:center}
-.compl-qr img{width:100%;height:100%;display:block;image-rendering:pixelated}
-@media print{.compl-qr{width:32mm;height:32mm;padding:0.5mm}}
-@media print{html,body{width:210mm;height:297mm;margin:0;padding:0;overflow:hidden}.page{height:297mm;overflow:hidden}@page{size:A4 portrait;margin:0}}</style></head><body>
-<div class="page">
-<div class="hdr">${brandHeaderHtml(cfg,{size:44,layoutClass:'hdr-brand'})}
-<div class="hdr-biz"><div class="hdr-biz-name">${esc(brandFooterName(biz))}</div>${biz.nif?`<div>NIF/CIF: ${esc(biz.nif)}</div>`:''}${biz.direccion?`<div>📍 ${esc(biz.direccion)}</div>`:''}${biz.email?`<div>✉ ${esc(biz.email)}</div>`:''}${biz.telefono?`<div>📞 ${esc(biz.telefono)}</div>`:''}</div></div>
-<div class="fact-band"><div><div class="fact-label">Número de factura</div><div class="fact-value">${o.facturaNum}</div></div><div style="text-align:center"><div class="fact-label">Fecha de factura</div><div class="fact-value">${factDateStr}</div></div><div style="text-align:right"><div class="fact-label">Presupuesto ref.</div><div class="fact-value">${o.presNum||'—'}</div></div></div>
-<div class="body">
-<div class="stamp"><span>✅</span><span class="stamp-text">PAGADO</span></div>
-<div class="meta-row"><div style="flex:1"><div class="slbl">Facturar a</div><div class="client-card"><div class="client-name">${cl.nombre||'—'}</div><div class="client-sub">${cl.nif?`<div><b>NIF/CIF: ${cl.nif}</b></div>`:''}${cl.empresa?`<div>${cl.empresa}</div>`:''}${cl.direccion?`<div>📍 ${cl.direccion}</div>`:''}${cl.email?`<div>${cl.email}</div>`:''}${cl.telefono?`<div>${cl.telefono}</div>`:''}</div></div></div>
-<div><div class="slbl">Datos del pedido</div><div class="info-card"><div class="info-row"><span class="info-lbl">Proyecto</span><span class="info-val">${o.proyecto}</span></div><div class="info-row"><span class="info-lbl">Fecha</span><span class="info-val">${o.fecha||'—'}</span></div><div class="info-row"><span class="info-lbl">Peso total</span><span class="info-val">${o.peso||'—'}g</span></div><div class="info-row"><span class="info-lbl">Tiempo</span><span class="info-val">${o.tiempoImpresion||'—'}h</span></div></div></div></div>
-<div class="items-section"><div class="slbl">Detalle del servicio</div><div class="items-wrap">${lineasHTML}</div></div>
-<div class="totals-wrap"><div class="totals">${c.pd>0?`<div class="totals-row"><span class="totals-lbl">Diseño</span><span class="totals-val">${fmtNum(c.pd,cfg)} ${mon}</span></div>`:''}${c.pp>0?`<div class="totals-row"><span class="totals-lbl">Postprocesado</span><span class="totals-val">${fmtNum(c.pp,cfg)} ${mon}</span></div>`:''}${(()=>{const t1=Number(cfg.tipoIva||0);const t2=Number(cfg.tipoIva2||0);const n2=cfg.nombreImpuesto2||'';if(t1<=0&&t2<=0)return'';let rows=`<div class="totals-row"><span class="totals-lbl">Base imponible</span><span class="totals-val">${fmtNum(c.fp,cfg)} ${mon}</span></div>`;if(t1>0)rows+=`<div class="totals-row"><span class="totals-lbl">${esc(cfg.nombreImpuesto||'IVA')} (${t1}%)</span><span class="totals-val">${fmtNum(c.fp*t1/100,cfg)} ${mon}</span></div>`;if(t2>0&&n2)rows+=`<div class="totals-row"><span class="totals-lbl">${esc(n2)} (${t2}%)</span><span class="totals-val">${fmtNum(c.fp*t2/100,cfg)} ${mon}</span></div>`;return rows;})()}<div class="total-final"><span class="total-final-lbl">Total facturado</span><div style="display:flex;align-items:baseline"><span class="total-final-amt">${(()=>{const t1=Number(cfg.tipoIva||0);const t2=Number(cfg.tipoIva2||0);return fmtNum(c.fp*(1+t1/100+t2/100),cfg);})()}</span><span class="total-final-mon">${mon}</span></div></div></div></div>
-${o.notas?`<div class="notas-box"><b>Notas:</b> ${o.notas}</div>`:''}
-${huella?`<div class="compl"><div class="compl-txt"><div><b>Sistema:</b> Brami3D v${SIF_VERSION} · Conforme RD 1007/2023 (modo No-Verifactu)</div><div><b>Huella SHA-256:</b> <span class="huella">${huellaFmt}</span></div><div class="verify">Escanee el QR para verificar esta factura en la sede electrónica de la AEAT (sede.agenciatributaria.gob.es).</div></div>${qrImg?`<div class="compl-qr"><img src="${qrImg}" alt="QR verificación AEAT"></div>`:''}</div>`:''}
-</div>
-<div class="footer"><div class="footer-thanks">¡Gracias por su confianza! 🙏</div><div class="footer-note"><div>Factura generada el ${dateStr}</div><div>${esc(brandFooterName(biz))}</div></div></div>
-</div><script>setTimeout(()=>window.print(),500)<\/script></body></html>`;
-  abrirDocModal(html, `Factura_${o.facturaNum}.html`);
+  const ctx=_pdfMake();
+  const {doc,ML,MR,PW,W}=ctx;
+  let y=ctx.y;
+
+  // ── Cabecera: marca + datos de factura ──
+  let hx=ML;
+  if(biz.logo && typeof biz.logo==='string' && biz.logo.startsWith('data:image')){
+    try{ const fmt=biz.logo.includes('image/png')?'PNG':(biz.logo.includes('jpeg')||biz.logo.includes('jpg'))?'JPEG':'PNG'; doc.addImage(biz.logo,fmt,ML,y,15,15); hx=ML+19; }catch(_){}
+  }
+  doc.setFont('helvetica','bold'); doc.setFontSize(16); ctx.setColor(_PDF.NAVY);
+  doc.text(brandFooterName(biz), hx, y+6);
+  let yI=y+11; doc.setFont('helvetica','normal'); doc.setFontSize(9); ctx.setColor(_PDF.GREY);
+  [biz.nif?`NIF/CIF: ${biz.nif}`:null, biz.direccion||null, biz.email||null, biz.telefono?`Tel: ${biz.telefono}`:null]
+    .filter(Boolean).forEach(t=>{ doc.text(String(t),hx,yI); yI+=4; });
+
+  let yD=y;
+  doc.setFont('helvetica','bold'); doc.setFontSize(20); ctx.setColor(_PDF.BLUE);
+  doc.text('FACTURA', PW-MR, yD+6, {align:'right'}); yD+=12;
+  doc.setFont('helvetica','normal'); doc.setFontSize(10); ctx.setColor(_PDF.GREY);
+  doc.text(`Nº: ${o.facturaNum||'—'}`, PW-MR, yD, {align:'right'}); yD+=5;
+  doc.text(`Fecha: ${factDateStr}`, PW-MR, yD, {align:'right'}); yD+=5;
+  if(o.presNum){ doc.text(`Presupuesto ref.: ${o.presNum}`, PW-MR, yD, {align:'right'}); yD+=5; }
+
+  y=Math.max(yI,yD)+3;
+  ctx.linea(ML,y,PW-MR,y,_PDF.BLUE,0.8); y+=6;
+
+  // ── Sello PAGADO ──
+  doc.setFillColor(240,253,244); doc.setDrawColor(34,197,94); doc.setLineWidth(0.4);
+  doc.roundedRect(ML,y,30,8,2,2,'FD');
+  doc.setFont('helvetica','bold'); doc.setFontSize(9.5); ctx.setColor(_PDF.GREEN);
+  doc.text('PAGADO', ML+6.5, y+5.5);
+  y+=14; ctx.y=y;
+
+  // ── Cliente + datos del pedido (dos columnas) ──
+  const colW=(W-6)/2;
+  const cliLines=[ cl.nif?`NIF/CIF: ${cl.nif}`:null, cl.empresa||null, cl.direccion||null, cl.email||null, cl.telefono||null ].filter(Boolean);
+  const pedLines=[ ['Proyecto', o.proyecto||'—'], ['Fecha', o.fecha||'—'], ['Peso total', (o.peso||'—')+'g'], ['Tiempo', (o.tiempoImpresion||'—')+'h'] ];
+  const boxH=Math.max(15+cliLines.length*4.5, 11+pedLines.length*5);
+  doc.setFillColor(248,250,252); doc.setDrawColor(_PDF.BORD[0],_PDF.BORD[1],_PDF.BORD[2]); doc.setLineWidth(0.3);
+  doc.roundedRect(ML,y,colW,boxH,2,2,'FD');
+  doc.setFont('helvetica','bold'); doc.setFontSize(7.5); ctx.setColor(_PDF.LGREY); doc.text('FACTURAR A', ML+4, y+5);
+  doc.setFont('helvetica','bold'); doc.setFontSize(11); ctx.setColor(_PDF.NAVY); doc.text(_pdfFit(doc,cl.nombre||'—',colW-8), ML+4, y+10.5);
+  let cyy=y+15.5; doc.setFont('helvetica','normal'); doc.setFontSize(8.5); ctx.setColor(_PDF.GREY);
+  cliLines.forEach(t=>{ doc.text(_pdfFit(doc,String(t),colW-8), ML+4, cyy); cyy+=4.5; });
+  const px=ML+colW+6;
+  doc.setFillColor(248,250,252); doc.setDrawColor(_PDF.BORD[0],_PDF.BORD[1],_PDF.BORD[2]); doc.setLineWidth(0.3);
+  doc.roundedRect(px,y,colW,boxH,2,2,'FD');
+  doc.setFont('helvetica','bold'); doc.setFontSize(7.5); ctx.setColor(_PDF.LGREY); doc.text('DATOS DEL PEDIDO', px+4, y+5);
+  let pyy=y+11;
+  pedLines.forEach(([k,v])=>{
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); ctx.setColor(_PDF.GREY); doc.text(k, px+4, pyy);
+    doc.setFont('helvetica','bold'); ctx.setColor(_PDF.NAVY); doc.text(_pdfFit(doc,String(v),colW/2), px+colW-4, pyy, {align:'right'});
+    pyy+=5;
+  });
+  y+=boxH+4; ctx.y=y;
+
+  // ── Detalle del servicio ──
+  _pdfSection(ctx, 'Detalle del servicio');
+  let cI, rI;
+  if(o.lineas && o.lineas.length){
+    cI=[{title:'Descripción',width:110},{title:'Uds',width:25,align:'center'},{title:'Material',width:45,align:'right'}];
+    rI=o.lineas.map(l=>[ {text:l.nombre||'—',bold:true}, {text:String(l.qty||1)}, l.material||'—' ]);
+  } else {
+    cI=[{title:'Descripción',width:135},{title:'Material',width:45,align:'right'}];
+    rI=[[ {text:o.proyecto||'—',bold:true}, o.material||'—' ]];
+  }
+  _pdfTable(ctx, cI, rI);
+
+  // ── Totales (caja a la derecha) ──
+  const totRows=[];
+  if(c.pd>0) totRows.push(['Diseño', fmtNum(c.pd,cfg)+' '+mon]);
+  if(c.pp>0) totRows.push(['Postprocesado', fmtNum(c.pp,cfg)+' '+mon]);
+  if(t1>0||t2>0){
+    totRows.push(['Base imponible', fmtNum(c.fp,cfg)+' '+mon]);
+    if(t1>0) totRows.push([`${cfg.nombreImpuesto||'IVA'} (${t1}%)`, fmtNum(c.fp*t1/100,cfg)+' '+mon]);
+    if(t2>0&&n2) totRows.push([`${n2} (${t2}%)`, fmtNum(c.fp*t2/100,cfg)+' '+mon]);
+  }
+  const boxW=82, bx=ML+W-boxW;
+  ctx.check(totRows.length*6+15);
+  let ty=ctx.y;
+  totRows.forEach(([k,v])=>{
+    doc.setFont('helvetica','normal'); doc.setFontSize(9); ctx.setColor(_PDF.GREY); doc.text(k, bx+2, ty+4.5);
+    doc.setFont('helvetica','bold'); ctx.setColor(_PDF.NAVY); doc.text(v, ML+W-2, ty+4.5, {align:'right'});
+    ty+=6; ctx.linea(bx,ty,ML+W,ty,_PDF.BORD,0.15);
+  });
+  doc.setFillColor(_PDF.NAVY[0],_PDF.NAVY[1],_PDF.NAVY[2]); doc.rect(bx,ty,boxW,11,'F');
+  doc.setFont('helvetica','bold'); doc.setFontSize(8); ctx.setColor(_PDF.LGREY); doc.text('TOTAL FACTURADO', bx+2, ty+7);
+  doc.setFont('helvetica','bold'); doc.setFontSize(13); ctx.setColor([255,255,255]); doc.text(fmtNum(total,cfg)+' '+mon, ML+W-2, ty+7.5, {align:'right'});
+  ctx.y=ty+11+6;
+
+  // ── Notas ──
+  if(o.notas){
+    doc.setFont('helvetica','italic'); doc.setFontSize(9);
+    const nl=doc.splitTextToSize('Notas: '+o.notas, W-6);
+    ctx.check(nl.length*4+6);
+    doc.setFillColor(255,251,235); doc.setDrawColor(253,230,138); doc.setLineWidth(0.3);
+    doc.roundedRect(ML,ctx.y,W,nl.length*4+5,2,2,'FD');
+    ctx.setColor([146,64,14]); doc.text(nl, ML+3, ctx.y+5); ctx.y+=nl.length*4+5+5;
+  }
+
+  // ── Cumplimiento SIF + QR AEAT ──
+  if(huella){
+    const boxH2=qrImg?32:18;
+    ctx.check(boxH2+4);
+    doc.setFillColor(241,245,249); doc.setDrawColor(_PDF.BORD[0],_PDF.BORD[1],_PDF.BORD[2]); doc.setLineWidth(0.3);
+    doc.roundedRect(ML,ctx.y,W,boxH2,2,2,'FD');
+    const qrSz=qrImg?28:0;
+    if(qrImg){ try{ doc.addImage(qrImg,'PNG',ML+W-qrSz-2,ctx.y+2,qrSz,qrSz); }catch(_){} }
+    const txtW=W-qrSz-12;
+    let sy=ctx.y+5;
+    doc.setFont('helvetica','bold'); doc.setFontSize(7.5); ctx.setColor(_PDF.NAVY); doc.text('Sistema: ', ML+4, sy);
+    doc.setFont('helvetica','normal'); ctx.setColor(_PDF.GREY); doc.text(_pdfFit(doc,`Brami3D v${SIF_VERSION} · Conforme RD 1007/2023 (No-Verifactu)`, txtW-doc.getTextWidth('Sistema: ')), ML+4+doc.getTextWidth('Sistema: '), sy);
+    sy+=4.5;
+    doc.setFont('helvetica','bold'); doc.setFontSize(7.5); ctx.setColor(_PDF.NAVY); doc.text('Huella SHA-256: ', ML+4, sy);
+    doc.setFont('courier','normal'); ctx.setColor(_PDF.GREY); doc.text(huellaFmt, ML+4+doc.getTextWidth('Huella SHA-256: '), sy);
+    sy+=5;
+    doc.setFont('helvetica','normal'); doc.setFontSize(7); ctx.setColor(_PDF.GREY);
+    const vl=doc.splitTextToSize('Escanee el QR para verificar esta factura en la sede electrónica de la AEAT (sede.agenciatributaria.gob.es).', txtW);
+    doc.text(vl, ML+4, sy);
+    ctx.y+=boxH2+6;
+  }
+
+  _pdfReportFooter(ctx, `Factura ${o.facturaNum}`);
+
+  const filename=`Factura_${String(o.facturaNum||'B3D').replace(/[^a-zA-Z0-9_-]/g,'_')}.pdf`;
+  return {doc, blob:doc.output('blob'), filename, o, c, cl, mon, total};
+}
+
+async function genFactura(id){
+  const o=await ensureFacturaNum(id); if(!o) return;
+  let built;
+  try { built=await buildFacturaPdf(id); } catch(e){ showToast(e.message,'err',5000); return; }
+  if(!built) return;
+  _openPdf(built.doc, built.filename);
+}
+
+// Envía la factura como PDF adjunto vía Web Share API (con fallback a descarga + WhatsApp).
+async function sendFacturaWA(id){
+  const o=await ensureFacturaNum(id); if(!o) return;
+  const cfg=_cache.cfg; const cl=_cache.clientes.find(x=>x.id===o.clienteId)||{};
+  const c=calcOrderCosts(o,cfg); const mon=cfg.moneda||'€';
+  const t1=Number(cfg.tipoIva||0), t2=Number(cfg.tipoIva2||0);
+  const total=c.fp*(1+t1/100+t2/100);
+
+  const msg=`¡Hola${cl.nombre?' '+cl.nombre:''}! 👋
+
+Te adjunto la factura de tu pedido:
+
+🧾 *Factura ${o.facturaNum}*
+📋 ${o.proyecto}
+💰 *Total: ${fmtNum(total,cfg)} ${mon}*
+
+_Gracias por tu confianza._`;
+
+  let ph=(cl.telefono||'').replace(/[^\d+]/g,'');
+  if(ph&&!ph.startsWith('+')){ph=ph.startsWith('34')?'+'+ph:'+34'+ph;}
+  const waUrl=`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`;
+
+  let built;
+  try { built=await buildFacturaPdf(id); } catch(e){ showToast(e.message,'err',5000); return; }
+  if(!built) return;
+  const file=new File([built.blob], built.filename, {type:'application/pdf'});
+
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    try {
+      await navigator.share({files:[file], title:'Factura '+o.facturaNum, text:msg});
+      return;
+    } catch(err){
+      if(err && err.name==='AbortError') return;
+      console.warn('Web Share factura falló, usando descarga:', err);
+    }
+  }
+
+  built.doc.save(built.filename);
+  openModal(msh('Enviar factura',`
+    <div style="display:flex;flex-direction:column;gap:12px;padding:4px 0">
+      <div style="background:var(--bg4);border:1px solid var(--border);border-radius:12px;padding:14px 16px">
+        <div style="font-size:13px;font-weight:700;color:var(--text2);margin-bottom:4px">🧾 ${esc(o.facturaNum)}</div>
+        <div style="font-size:22px;font-weight:900;color:#34d399">${fmtNum(total,cfg)}${mon}</div>
+        <div style="font-size:11px;color:var(--text4);margin-top:4px">${esc(o.proyecto)}</div>
+      </div>
+      <div style="font-size:12px;color:var(--text4);line-height:1.5;background:var(--bg3);border-radius:10px;padding:11px 13px">📥 Se ha descargado <b style="color:var(--text3)">${esc(built.filename)}</b>. Pulsa "Abrir WhatsApp" y adjúntalo con el clip 📎.</div>
+      ${ph?`<button onclick="closeModal();window.open('${waUrl.replace(/'/g,"\\'")}','_blank')" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;background:rgba(37,211,102,.12);border:1.5px solid rgba(37,211,102,.3);border-radius:12px;color:#25d366;font-size:14px;font-weight:700">💬 Abrir WhatsApp</button>`:'<div style="color:var(--text5);font-size:12px;text-align:center">Sin teléfono registrado — adjunta el PDF manualmente</div>'}
+      <button onclick="closeModal()" style="padding:10px;background:transparent;border:1px solid var(--border);border-radius:10px;color:var(--text4);font-size:13px">Cerrar</button>
+    </div>`));
 }
 
 // ═══════════════════════════════════════════════
@@ -3660,7 +3750,8 @@ function pgPedidos(){
     const hasFactura=!!o.facturaNum;
     const piezasCount=(o.lineas||[]).reduce((s,l)=>s+(parseInt(l.qty)||1),0)||'—';
     let factBtn;
-    if(isPagado){factBtn='<button class="btn-icon fact-btn" title="'+(hasFactura?'Ver factura':'Generar factura')+'" onclick="genFactura(\''+o.id+'\')" style="font-size:18px">🧾</button>';}
+    if(isPagado){factBtn='<button class="btn-icon fact-btn" title="'+(hasFactura?'Ver factura PDF':'Generar factura')+'" onclick="genFactura(\''+o.id+'\')" style="font-size:18px">🧾</button>'
+      +'<button class="btn-icon" title="Enviar factura por WhatsApp" onclick="sendFacturaWA(\''+o.id+'\')" style="font-size:16px">📤</button>';}
     else{factBtn='<button class="btn-icon" title="Solo para pedidos pagados" style="opacity:.18;cursor:not-allowed;font-size:18px">🧾</button>';}
     const factBadge=hasFactura?'<div style="margin-top:3px"><span style="display:inline-block;background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800;font-family:monospace">🧾 '+esc(o.facturaNum)+'</span></div>':'';
     const multiPieza=(o.lineas&&o.lineas.length>1)?'<div style="font-size:10px;color:var(--text4);margin-top:2px">'+o.lineas.length+' tipos · '+piezasCount+' uds</div>':'';
@@ -3718,7 +3809,7 @@ function pgPedidos(){
         <button onclick="sendWA('${o.id}')" style="flex:1;padding:10px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:13px">💬 WA</button>
         ${!o.cobrado
           ?`<button onclick="marcarCobrado('${o.id}')" style="flex:1;padding:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;color:#4ade80;font-size:12px;font-weight:700">💰 Cobrar</button>`
-          :`<button onclick="genFactura('${o.id}')" style="flex:1;padding:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;color:#4ade80;font-size:13px">🧾</button>`
+          :`<button onclick="genFactura('${o.id}')" style="flex:1;padding:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;color:#4ade80;font-size:13px">🧾</button><button onclick="sendFacturaWA('${o.id}')" title="Enviar factura" style="flex:1;padding:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;color:#4ade80;font-size:13px">📤</button>`
         }
         <button onclick="editO('${o.id}')" style="padding:10px 14px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:16px">✏️</button>
         <button onclick="delO('${o.id}')" style="padding:10px 14px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:#f87171;font-size:16px">🗑️</button>
