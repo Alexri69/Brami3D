@@ -59,8 +59,17 @@ async function load(){
   if(!token){ err('Enlace no válido.'); return; }
   let data, error;
   try { ({data,error}=await sb.rpc('get_presupuesto_publico',{tok:token})); }
-  catch(e){ err('No se pudo cargar el presupuesto. Revisa tu conexión.'); return; }
-  if(error || !data){ err('Presupuesto no encontrado o enlace caducado.'); return; }
+  catch(e){ error=e; }
+  if(error){
+    const m=(error.message||'')+'';
+    if(/function|does not exist|schema cache|not find/i.test(m)){
+      err('La función pública aún no está disponible. Si acabas de configurarlo, espera 1 minuto y recarga (la caché de la base de datos se actualiza sola).');
+    } else {
+      err('No se pudo cargar el presupuesto. ('+esc(m||'error')+')');
+    }
+    return;
+  }
+  if(!data){ err('Presupuesto no encontrado o enlace caducado.'); return; }
   render(data);
 }
 
