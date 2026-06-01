@@ -708,6 +708,17 @@ function checkAndNotify(){
     const nombres = desgastadas.map(p=>p.nombre).join(', ');
     showNotif('🔧 Mantenimiento recomendado', desgastadas.length + ' impresora' + (desgastadas.length>1?'s':'') + ' con desgaste >80%: ' + nombres);
   }
+
+  // Entregas próximas o vencidas (pedidos no cobrados con fecha de entrega ≤ 2 días).
+  const hoyISO = today();
+  const limite = new Date(); limite.setDate(limite.getDate()+2);
+  const limISO = limite.toISOString().split('T')[0];
+  const entregas = (_cache.pedidos||[]).filter(o => o.fechaEntrega && !o.cobrado && o.estado!=='entregado' && o.fechaEntrega <= limISO);
+  if(entregas.length){
+    const vencidas = entregas.filter(o => o.fechaEntrega < hoyISO).length;
+    const detalle = vencidas ? (vencidas + ' con entrega vencida') : (entregas.length + ' con entrega en ≤2 días');
+    showNotif('📅 Entregas pendientes', detalle + ' — revisa tus pedidos');
+  }
 }
 
 // ═══════════════════════════════════════════════
@@ -2574,6 +2585,7 @@ _¿Tienes alguna pregunta? Estoy a tu disposición._`;
       </div>
       <div style="font-size:12px;color:var(--text4);line-height:1.5;background:var(--bg3);border-radius:10px;padding:11px 13px">📥 Se ha descargado <b style="color:var(--text3)">${esc(built.filename)}</b>. Pulsa "Abrir WhatsApp" y adjúntalo con el clip 📎.</div>
       ${ph?`<button onclick="closeModal();window.open('${waUrl.replace(/'/g,"\\'")}','_blank')" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;background:rgba(37,211,102,.12);border:1.5px solid rgba(37,211,102,.3);border-radius:12px;color:#25d366;font-size:14px;font-weight:700">💬 Abrir WhatsApp</button>`:'<div style="color:var(--text5);font-size:12px;text-align:center">Sin teléfono registrado — adjunta el PDF manualmente</div>'}
+      <button onclick="closeModal();sendPresupuestoEmail('${id}')" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;background:var(--bg4);border:1.5px solid var(--border);border-radius:12px;color:var(--text2);font-size:14px;font-weight:700">✉️ Enviar por email</button>
       <button onclick="closeModal()" style="padding:10px;background:transparent;border:1px solid var(--border);border-radius:10px;color:var(--text4);font-size:13px">Cerrar</button>
     </div>`));
 }
@@ -2800,8 +2812,41 @@ _Gracias por tu confianza._`;
       </div>
       <div style="font-size:12px;color:var(--text4);line-height:1.5;background:var(--bg3);border-radius:10px;padding:11px 13px">📥 Se ha descargado <b style="color:var(--text3)">${esc(built.filename)}</b>. Pulsa "Abrir WhatsApp" y adjúntalo con el clip 📎.</div>
       ${ph?`<button onclick="closeModal();window.open('${waUrl.replace(/'/g,"\\'")}','_blank')" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;background:rgba(37,211,102,.12);border:1.5px solid rgba(37,211,102,.3);border-radius:12px;color:#25d366;font-size:14px;font-weight:700">💬 Abrir WhatsApp</button>`:'<div style="color:var(--text5);font-size:12px;text-align:center">Sin teléfono registrado — adjunta el PDF manualmente</div>'}
+      <button onclick="closeModal();sendFacturaEmail('${o.id}')" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;background:var(--bg4);border:1.5px solid var(--border);border-radius:12px;color:var(--text2);font-size:14px;font-weight:700">✉️ Enviar por email</button>
       <button onclick="closeModal()" style="padding:10px;background:transparent;border:1px solid var(--border);border-radius:10px;color:var(--text4);font-size:13px">Cerrar</button>
     </div>`));
+}
+
+// Comparte un PDF ya generado por email: Web Share con archivo y, si no, descarga
+// + abre el cliente de correo (mailto no permite adjuntar, así que se adjunta a mano).
+async function _shareEmail(built, {subject, body, to}){
+  const file=new File([built.blob], built.filename, {type:'application/pdf'});
+  if(navigator.canShare && navigator.canShare({files:[file]})){
+    try { await navigator.share({files:[file], title:subject, text:body}); return; }
+    catch(err){ if(err && err.name==='AbortError') return; }
+  }
+  built.doc.save(built.filename);
+  const mailto='mailto:'+encodeURIComponent(to||'')+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent(body+'\n\n(Adjunta el PDF descargado: '+built.filename+')');
+  window.open(mailto,'_blank');
+}
+
+async function sendPresupuestoEmail(id){
+  const o=await ensurePresNum(id); if(!o) return;
+  const cfg=_cache.cfg; const cl=_cache.clientes.find(x=>x.id===o.clienteId)||{}; const c=calcOrderCosts(o,cfg); const mon=cfg.moneda||'€';
+  let built; try{ built=buildPresupuestoPdf(id); }catch(e){ showToast(e.message,'err',5000); return; } if(!built) return;
+  const subject='Presupuesto '+(o.presNum||o.proyecto);
+  const body=`Hola${cl.nombre?' '+cl.nombre:''},\n\nTe envío el presupuesto para "${o.proyecto}".\nPrecio total: ${c.fp.toFixed(2)} ${mon}.\n\nUn saludo,\n${brandFooterName(cfg)}`;
+  await _shareEmail(built,{subject,body,to:cl.email});
+}
+
+async function sendFacturaEmail(id){
+  const o=await ensureFacturaNum(id); if(!o) return;
+  const cfg=_cache.cfg; const cl=_cache.clientes.find(x=>x.id===o.clienteId)||{}; const c=calcOrderCosts(o,cfg); const mon=cfg.moneda||'€';
+  const t1=Number(cfg.tipoIva||0),t2=Number(cfg.tipoIva2||0); const total=c.fp*(1+t1/100+t2/100);
+  let built; try{ built=await buildFacturaPdf(id); }catch(e){ showToast(e.message,'err',5000); return; } if(!built) return;
+  const subject='Factura '+o.facturaNum;
+  const body=`Hola${cl.nombre?' '+cl.nombre:''},\n\nAdjunto la factura ${o.facturaNum} correspondiente a "${o.proyecto}".\nTotal: ${fmtNum(total,cfg)} ${mon}.\n\nGracias por tu confianza,\n${brandFooterName(cfg)}`;
+  await _shareEmail(built,{subject,body,to:cl.email});
 }
 
 // ═══════════════════════════════════════════════
@@ -3904,6 +3949,7 @@ function pgPedidos(){
         +'<button class="btn-icon" title="WhatsApp" onclick="sendWA(\''+o.id+'\')">💬</button>'
         +cobrarBtn
         +factBtn
+        +'<button class="btn-icon" title="Duplicar pedido" onclick="cloneO(\''+o.id+'\')">📋</button>'
         +'<button class="btn-icon" onclick="editO(\''+o.id+'\')">✏️</button>'
         +'<button class="btn-icon" onclick="delO(\''+o.id+'\')">🗑️</button>'
       +'</td></tr>';
@@ -3934,13 +3980,14 @@ function pgPedidos(){
         ${o.material?`<span>🧵 ${esc(o.material)}</span>`:''}
       </div>
       ${hasFactura?`<div style="margin-bottom:10px"><span style="background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800;font-family:monospace">🧾 ${esc(o.facturaNum)}</span></div>`:''}
-      <div style="display:flex;gap:8px;padding-top:10px;border-top:1px solid var(--border)">
+      <div style="display:flex;gap:8px;padding-top:10px;border-top:1px solid var(--border);flex-wrap:wrap">
         <button onclick="genPDF('${o.id}')" style="flex:1;padding:10px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:13px">📄 PDF</button>
         <button onclick="sendWA('${o.id}')" style="flex:1;padding:10px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:13px">💬 WA</button>
         ${!o.cobrado
           ?`<button onclick="marcarCobrado('${o.id}')" style="flex:1;padding:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;color:#4ade80;font-size:12px;font-weight:700">💰 Cobrar</button>`
           :`<button onclick="genFactura('${o.id}')" style="flex:1;padding:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;color:#4ade80;font-size:13px">🧾</button><button onclick="sendFacturaWA('${o.id}')" title="Enviar factura" style="flex:1;padding:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;color:#4ade80;font-size:13px">📤</button>`
         }
+        <button onclick="cloneO('${o.id}')" title="Duplicar" style="padding:10px 14px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:16px">📋</button>
         <button onclick="editO('${o.id}')" style="padding:10px 14px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:16px">✏️</button>
         <button onclick="delO('${o.id}')" style="padding:10px 14px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:#f87171;font-size:16px">🗑️</button>
       </div>
@@ -4426,8 +4473,8 @@ async function saveO(id){
     const mapped={id:row.id,clienteId:d.clienteId,proyecto:d.proyecto,material:mainMat,peso:pesoTotal,tiempoImpresion:tiempoTotal,estado:d.estado,notas:d.notas,fecha:d.fecha,gananciaManual:d.gananciaManual,precioFinal:d.precioFinal!==''?parseFloat(d.precioFinal):null,costePostprocesado:d.costePostprocesado,costeDiseno:d.costeDiseno||0,presNum:presNum,facturaNum:prevOrder?.facturaNum||null,facturaFecha:prevOrder?.facturaFecha||null,lineas:_lineas,fotoUrl:fotoUrl||null,fotoPath:_fotoPath||null,impresoraId:d.impresoraId||null,cobrado:nuevoCobrado,fechaCobrado:fechaCobradoFinal,fechaEntrega:d.fechaEntrega||null};
     if(id)_cache.pedidos=_cache.pedidos.map(o=>o.id===id?mapped:o);else _cache.pedidos.unshift(mapped);
     render();refreshAlerts();
-    // Si se acaba de marcar como cobrado, generar factura
-    if(nuevoCobrado&&!eraYaCobrado){ closeModal(); setTimeout(()=>genFactura(row.id),400); return; }
+    // Si se acaba de marcar como cobrado: descontar filamento y generar factura.
+    if(nuevoCobrado&&!eraYaCobrado){ descontarFilamento(mapped); closeModal(); setTimeout(()=>genFactura(row.id),400); return; }
     // Ofrecer envío por WhatsApp si el cliente tiene teléfono
     const cl=_cache.clientes.find(x=>x.id===d.clienteId)||{};
     if(cl.telefono){
@@ -4451,6 +4498,61 @@ async function saveO(id){
 function delO(id){ confirmDel('¿Eliminar este pedido?',`doDelO('${id}')`); }
 async function doDelO(id){ if(await dbDel('pedidos',id)){_cache.pedidos=_cache.pedidos.filter(x=>x.id!==id);render();showToast('Eliminado','ok');} }
 
+// Duplica un pedido como borrador nuevo (sin nº de presupuesto/factura, no cobrado).
+async function cloneO(id){
+  const o=_cache.pedidos.find(x=>x.id===id); if(!o) return;
+  const newId=uid();
+  const row={
+    id:newId,
+    proyecto:(o.proyecto||'Pedido')+' (copia)',
+    cliente_id:o.clienteId||null, material:o.material, peso:o.peso, tiempo_impresion:o.tiempoImpresion,
+    estado:'pendiente', notas:o.notas||null, fecha:today(),
+    ganancia_manual:o.gananciaManual, precio_final:o.precioFinal??null,
+    coste_postprocesado:o.costePostprocesado, coste_diseno:o.costeDiseno||0,
+    pres_num:null, lineas:o.lineas||[], factura_num:null, factura_fecha:null,
+    impresora_id:o.impresoraId||null, cobrado:false, fecha_cobrado:null,
+    foto_url:null, foto_path:null, fecha_entrega:null
+  };
+  const ok=await dbSave('pedidos',row);
+  if(ok){
+    const mapped={id:newId,clienteId:o.clienteId,proyecto:row.proyecto,material:o.material,peso:o.peso,tiempoImpresion:o.tiempoImpresion,estado:'pendiente',notas:o.notas,fecha:row.fecha,gananciaManual:o.gananciaManual,precioFinal:o.precioFinal??null,costePostprocesado:o.costePostprocesado,costeDiseno:o.costeDiseno||0,presNum:null,facturaNum:null,facturaFecha:null,lineas:o.lineas||[],fotoUrl:null,fotoPath:null,impresoraId:o.impresoraId||null,cobrado:false,fechaCobrado:null,fechaEntrega:null};
+    _cache.pedidos.unshift(mapped); render(); refreshAlerts();
+    showToast('📋 Pedido duplicado','ok');
+  }
+}
+
+// Descuenta del stock de filamento el peso consumido por un pedido. Idempotente:
+// guarda en localStorage los pedidos ya descontados para no restar dos veces si se
+// re-marca como cobrado. Solo afecta a líneas con filamento asignado.
+async function descontarFilamento(o){
+  if(!o || !CU || !o.lineas || !o.lineas.length) return;
+  const guardKey='b3d_filDesc_'+CU.id;
+  let done=[]; try{ done=JSON.parse(localStorage.getItem(guardKey)||'[]'); }catch(_){}
+  if(done.includes(o.id)) return;
+  const consumo={};
+  o.lineas.forEach(l=>{
+    if(l.filamentoId && l.filamentoId!=='__manual__'){
+      const g=(parseFloat(l.peso)||0)*(parseInt(l.qty)||1);
+      if(g>0) consumo[l.filamentoId]=(consumo[l.filamentoId]||0)+g;
+    }
+  });
+  const ids=Object.keys(consumo);
+  if(!ids.length) return;
+  const resumen=[];
+  for(const fid of ids){
+    const f=_cache.filamentos.find(x=>x.id===fid);
+    if(!f) continue;
+    const nuevo=Math.max(0,(parseFloat(f.pesoRestante)||0)-consumo[fid]);
+    const ok=await dbSave('filamentos',{id:f.id,tipo:f.tipo,marca:f.marca,color:f.color,peso_restante:nuevo,precio_por_kg:f.precioPorKg});
+    if(ok){ f.pesoRestante=nuevo; resumen.push(`${Math.round(consumo[fid])}g de ${f.tipo||'filamento'}`); }
+  }
+  if(resumen.length){
+    done.push(o.id); try{ localStorage.setItem(guardKey, JSON.stringify(done)); }catch(_){}
+    showToast('🧵 Stock actualizado: -'+resumen.join(', '), 'ok', 4000);
+    render();
+  }
+}
+
 async function marcarCobrado(id){
   const o=_cache.pedidos.find(x=>x.id===id); if(!o) return;
   const ahora=today();
@@ -4467,6 +4569,8 @@ async function marcarCobrado(id){
   if(ok){
     _cache.pedidos=_cache.pedidos.map(x=>x.id===id?{...x,cobrado:true,fechaCobrado:ahora}:x);
     render();showToast('✅ Marcado como cobrado','ok');
+    // Descontar el filamento consumido del stock (idempotente).
+    descontarFilamento(_cache.pedidos.find(x=>x.id===id));
     // Generar factura automáticamente
     setTimeout(()=>genFactura(id),400);
   }
