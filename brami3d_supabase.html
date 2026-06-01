@@ -2174,13 +2174,34 @@ function render(){
 // ═══════════════════════════════════════════════
 //  MODAL
 // ═══════════════════════════════════════════════
+let _modalPrevFocus=null;
 function openModal(html,wide=false){
-  $('modal-root').innerHTML=`<div class="overlay" onclick="closeModal()"><div class="modal${wide?' modal-wide':''}" onclick="event.stopPropagation()">${html}</div></div>`;
+  _modalPrevFocus = document.activeElement;
+  $('modal-root').innerHTML=`<div class="overlay" onclick="closeModal()"><div class="modal${wide?' modal-wide':''}" role="dialog" aria-modal="true" tabindex="-1" onclick="event.stopPropagation()">${html}</div></div>`;
   document.addEventListener('keydown',_onKey);
+  // Foco inicial: primer campo de entrada si lo hay; si no, el propio modal (no
+  // un botón, para no enfocar acciones destructivas como "Eliminar").
+  const m=$('modal-root').querySelector('.modal');
+  if(m){ const f=m.querySelector('input,select,textarea'); (f||m).focus(); }
 }
-function closeModal(){$('modal-root').innerHTML='';document.removeEventListener('keydown',_onKey);}
-function _onKey(e){if(e.key==='Escape')closeModal();}
-function msh(title,body){return`<div class="modal-header"><span class="modal-title">${esc(title)}</span><button class="close-btn" onclick="closeModal()">✕</button></div><div class="modal-body">${body}</div>`;}
+function closeModal(){
+  $('modal-root').innerHTML='';
+  document.removeEventListener('keydown',_onKey);
+  if(_modalPrevFocus && _modalPrevFocus.focus){ try{ _modalPrevFocus.focus(); }catch(_){} }
+  _modalPrevFocus=null;
+}
+function _onKey(e){
+  if(e.key==='Escape'){ closeModal(); return; }
+  if(e.key==='Tab'){
+    const m=$('modal-root').querySelector('.modal'); if(!m) return;
+    const f=[...m.querySelectorAll('input,select,textarea,button,a[href],[tabindex]:not([tabindex="-1"])')].filter(el=>!el.disabled && el.offsetParent!==null);
+    if(!f.length) return;
+    const first=f[0], last=f[f.length-1];
+    if(e.shiftKey && document.activeElement===first){ e.preventDefault(); last.focus(); }
+    else if(!e.shiftKey && document.activeElement===last){ e.preventDefault(); first.focus(); }
+  }
+}
+function msh(title,body){return`<div class="modal-header"><span class="modal-title">${esc(title)}</span><button class="close-btn" aria-label="Cerrar" onclick="closeModal()">✕</button></div><div class="modal-body">${body}</div>`;}
 function confirmDel(msg,code){openModal(msh('Confirmar',`<p style="color:#cbd5e1;margin-bottom:20px">${esc(msg)}</p><div style="display:flex;gap:10px"><button class="btn-danger" onclick="${code};closeModal()">Eliminar</button><button class="btn-secondary" onclick="closeModal()">Cancelar</button></div>`));}
 
 // ═══════════════════════════════════════════════

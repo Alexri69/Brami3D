@@ -1,11 +1,20 @@
 {
   "name": "B3D Print Studio",
   "short_name": "B3D",
-  "start_url": "/brami3d_supabase.html",
+  "id": "/brami3d_supabase.html",
+  "description": "Gestión para negocios de impresión 3D: pedidos, clientes, presupuestos y facturas (PDF), filamentos, gastos e informes.",
+  "lang": "es",
+  "dir": "ltr",
+  "categories": ["business", "productivity", "utilities"],
+  "start_url": "/brami3d_supabase.html?source=pwa",
   "scope": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#070e1c",
   "theme_color": "#070e1c",
+  "screenshots": [
+    { "src": "/og-image.png", "sizes": "1200x630", "type": "image/png", "form_factor": "wide", "label": "Panel de B3D Print Studio" }
+  ],
   "icons": [
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
     { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
