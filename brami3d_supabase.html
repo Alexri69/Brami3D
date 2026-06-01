@@ -625,16 +625,40 @@ const I18N = {
     'nav.filamentos':'Filamentos','nav.piezas':'Piezas','nav.cobros':'Cobros','nav.archivos':'Archivos',
     'nav.gastos':'Gastos','nav.registro':'Registro fiscal','nav.calculadora':'Calculadora','nav.configuracion':'Configuración','nav.admin':'Admin',
     'common.logout':'Cerrar sesión','common.menu':'Menú','common.cancel':'Cancelar','common.save':'Guardar','common.new':'+ Nuevo','common.delete':'Eliminar',
+    'common.day':'día','common.days':'días','common.prev':'← Anterior','common.next':'Siguiente →',
     'topbar.searchDesk':'Buscar clientes, pedidos, piezas…','net.offline':'Sin conexión','net.unsynced':'sin sincronizar',
-    'theme.toggle':'Cambiar tema','lang.toggle':'Cambiar idioma (ES/EN)'
+    'theme.toggle':'Cambiar tema','lang.toggle':'Cambiar idioma (ES/EN)',
+    'col.num':'Nº','col.project':'Proyecto','col.material':'Material','col.price':'Precio','col.status':'Estado','col.date':'Fecha',
+    'dash.title':'Dashboard','dash.subtitle':'Resumen de tu negocio','dash.monthlyReport':'Informe mensual','dash.annualReport':'Informe anual',
+    'dash.incomeCollected':'Ingresos cobrados','dash.paidOrders':'pedidos pagados','dash.prodCosts':'Costes producción',
+    'dash.totalExpenses':'Gastos totales','dash.expenses':'gastos','dash.netProfit':'Beneficio neto','dash.marginOk':'Margen positivo ✓','dash.checkPrices':'Revisar precios',
+    'dash.totalOrders':'Total pedidos','dash.pending':'pendientes','dash.printing':'imprimiendo',
+    'dash.incomeByMonth':'Ingresos por mes','dash.byStatus':'Por estado','dash.tapToFilter':'— toca para filtrar','dash.topMaterials':'Materiales más usados',
+    'dash.recentOrders':'Últimos pedidos','dash.noOrdersYet':'Sin pedidos aún','dash.noOrders':'Sin pedidos',
+    'dash.lowFilament':'Stock bajo de filamento','dash.gLeft':'g restantes','dash.restock':'Reponer',
+    'dash.pendingCollect':'Pendiente de cobrar','dash.finishedUnpaid':'pedidos sin cobrar','dash.collect':'Cobrar',
+    'dash.staleOrders':'Pedidos sin actualizar','dash.staleSub':'Llevan más de 3 días en el mismo estado','dash.update':'Actualizar',
+    'st.todos':'todos','st.pendiente':'pendiente','st.imprimiendo':'imprimiendo','st.terminado':'terminado','st.entregado':'entregado','st.cobrado':'cobrado','st.pagado':'pagado','st.activa':'activa','st.mantenimiento':'mantenimiento','st.averiada':'averiada'
   },
   en: {
     'nav.dashboard':'Dashboard','nav.clientes':'Customers','nav.pedidos':'Orders','nav.impresoras':'Printers',
     'nav.filamentos':'Filaments','nav.piezas':'Parts','nav.cobros':'Payments','nav.archivos':'Files',
     'nav.gastos':'Expenses','nav.registro':'Tax record','nav.calculadora':'Calculator','nav.configuracion':'Settings','nav.admin':'Admin',
     'common.logout':'Sign out','common.menu':'Menu','common.cancel':'Cancel','common.save':'Save','common.new':'+ New','common.delete':'Delete',
+    'common.day':'day','common.days':'days','common.prev':'← Previous','common.next':'Next →',
     'topbar.searchDesk':'Search customers, orders, parts…','net.offline':'Offline','net.unsynced':'unsynced',
-    'theme.toggle':'Toggle theme','lang.toggle':'Change language (ES/EN)'
+    'theme.toggle':'Toggle theme','lang.toggle':'Change language (ES/EN)',
+    'col.num':'No.','col.project':'Project','col.material':'Material','col.price':'Price','col.status':'Status','col.date':'Date',
+    'dash.title':'Dashboard','dash.subtitle':'Your business at a glance','dash.monthlyReport':'Monthly report','dash.annualReport':'Annual report',
+    'dash.incomeCollected':'Income collected','dash.paidOrders':'paid orders','dash.prodCosts':'Production costs',
+    'dash.totalExpenses':'Total expenses','dash.expenses':'expenses','dash.netProfit':'Net profit','dash.marginOk':'Positive margin ✓','dash.checkPrices':'Review pricing',
+    'dash.totalOrders':'Total orders','dash.pending':'pending','dash.printing':'printing',
+    'dash.incomeByMonth':'Income by month','dash.byStatus':'By status','dash.tapToFilter':'— tap to filter','dash.topMaterials':'Most used materials',
+    'dash.recentOrders':'Recent orders','dash.noOrdersYet':'No orders yet','dash.noOrders':'No orders',
+    'dash.lowFilament':'Low filament stock','dash.gLeft':'g left','dash.restock':'Restock',
+    'dash.pendingCollect':'Pending payment','dash.finishedUnpaid':'unpaid orders','dash.collect':'Collect',
+    'dash.staleOrders':'Stale orders','dash.staleSub':'Same status for 3+ days','dash.update':'Update',
+    'st.todos':'all','st.pendiente':'pending','st.imprimiendo':'printing','st.terminado':'finished','st.entregado':'delivered','st.cobrado':'paid','st.pagado':'paid','st.activa':'active','st.mantenimiento':'maintenance','st.averiada':'broken'
   }
 };
 function t(key, vars){
@@ -2519,7 +2543,8 @@ function calcOrderCosts(order,cfg){
 function mkBadge(val){
   const map={pendiente:{bg:'rgba(245,158,11,.15)',color:'#fbbf24',border:'rgba(245,158,11,.3)'},imprimiendo:{bg:'rgba(59,130,246,.15)',color:'#60a5fa',border:'rgba(59,130,246,.3)'},terminado:{bg:'rgba(16,185,129,.15)',color:'#34d399',border:'rgba(16,185,129,.3)'},entregado:{bg:'rgba(139,92,246,.15)',color:'#a78bfa',border:'rgba(139,92,246,.3)'},cobrado:{bg:'rgba(34,197,94,.15)',color:'#4ade80',border:'rgba(34,197,94,.3)'},pagado:{bg:'rgba(34,197,94,.15)',color:'#4ade80',border:'rgba(34,197,94,.3)'},activa:{bg:'rgba(16,185,129,.15)',color:'#34d399',border:'rgba(16,185,129,.3)'},mantenimiento:{bg:'rgba(245,158,11,.15)',color:'#fbbf24',border:'rgba(245,158,11,.3)'},averiada:{bg:'rgba(239,68,68,.15)',color:'#f87171',border:'rgba(239,68,68,.3)'}};
   const s=map[val]||{bg:'rgba(148,163,184,.12)',color:'#64748b',border:'rgba(100,116,139,.25)'};
-  return`<span class="badge" style="background:${s.bg};color:${s.color};border:1px solid ${s.border}">${esc(val)}</span>`;
+  const lbl=(I18N[LANG]&&I18N[LANG]['st.'+val])||val;
+  return`<span class="badge" style="background:${s.bg};color:${s.color};border:1px solid ${s.border}">${esc(lbl)}</span>`;
 }
 
 // ═══════════════════════════════════════════════
@@ -3498,7 +3523,7 @@ function pgDashboard(){
 
   // chart data prepared below
 
-  const eList=Object.entries(byE).length===0?'<p style="color:var(--text5);font-size:13px">Sin pedidos</p>':Object.entries(byE).map(([k,v])=>`<button onclick="goToEstado('${k}')" style="display:flex;justify-content:space-between;align-items:center;width:100%;padding:10px 12px;margin-bottom:6px;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:all .18s;text-align:left" onmouseover="this.style.background='rgba(59,130,246,.08)';this.style.borderColor='#2563eb40'" onmouseout="this.style.background='rgba(255,255,255,.02)';this.style.borderColor='#132540'">${mkBadge(k)}<span style="color:#93c5fd;font-weight:800;font-size:18px;font-family:monospace">${v}</span></button>`).join('');
+  const eList=Object.entries(byE).length===0?`<p style="color:var(--text5);font-size:13px">${t('dash.noOrders')}</p>`:Object.entries(byE).map(([k,v])=>`<button onclick="goToEstado('${k}')" style="display:flex;justify-content:space-between;align-items:center;width:100%;padding:10px 12px;margin-bottom:6px;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:all .18s;text-align:left" onmouseover="this.style.background='rgba(59,130,246,.08)';this.style.borderColor='#2563eb40'" onmouseout="this.style.background='rgba(255,255,255,.02)';this.style.borderColor='#132540'">${mkBadge(k)}<span style="color:#93c5fd;font-weight:800;font-size:18px;font-family:monospace">${v}</span></button>`).join('');
 
   const recent6=recent.map(o=>{const c=calcOrderCosts(o,cfg);return`<tr><td><span class="num-badge">${esc(o.presNum||'—')}</span></td><td><span style="color:var(--text2);font-weight:700">${esc(o.proyecto)}</span></td><td style="color:var(--text3)">${esc(o.material)}</td><td style="color:#34d399;font-weight:800">${c.fp.toFixed(2)}${cfg.moneda||'€'}</td><td>${mkBadge(o.estado)}</td><td style="color:var(--text5)">${esc(o.fecha)}</td></tr>`;}).join('');
 
@@ -3508,7 +3533,7 @@ function pgDashboard(){
     `<div class="card" style="margin-top:18px;border-color:rgba(245,158,11,.3);background:linear-gradient(145deg,#1a1200,#0f0d00)">
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
         <span style="font-size:20px">🧵</span>
-        <span style="font-size:10px;font-weight:800;color:#f59e0b;text-transform:uppercase;letter-spacing:1.4px">Stock bajo de filamento</span>
+        <span style="font-size:10px;font-weight:800;color:#f59e0b;text-transform:uppercase;letter-spacing:1.4px">${t('dash.lowFilament')}</span>
       </div>
       ${lowFils.map(f=>{
         const pct=Math.max(0,Math.min((parseFloat(f.pesoRestante)/1000)*100,100));
@@ -3519,10 +3544,10 @@ function pgDashboard(){
             <div style="font-size:13px;font-weight:700;color:var(--text2)">${esc(f.tipo)} · ${esc(f.marca)}</div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
               <div style="flex:1;height:5px;background:#1e293b;border-radius:99px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${col};border-radius:99px"></div></div>
-              <span style="font-size:11px;color:${col};font-weight:700;white-space:nowrap">${parseFloat(f.pesoRestante).toFixed(0)}g restantes</span>
+              <span style="font-size:11px;color:${col};font-weight:700;white-space:nowrap">${parseFloat(f.pesoRestante).toFixed(0)}${t('dash.gLeft')}</span>
             </div>
           </div>
-          <button onclick="goTo('filamentos')" style="background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:#f59e0b;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;white-space:nowrap">Reponer</button>
+          <button onclick="goTo('filamentos')" style="background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.3);color:#f59e0b;border-radius:8px;padding:5px 10px;font-size:11px;font-weight:700;white-space:nowrap">${t('dash.restock')}</button>
         </div>`;}).join('')}
     </div>`;
 
@@ -3543,8 +3568,8 @@ function pgDashboard(){
         <div style="display:flex;align-items:center;gap:10px">
           <span style="font-size:20px">💸</span>
           <div>
-            <div style="font-size:10px;font-weight:800;color:#34d399;text-transform:uppercase;letter-spacing:1.4px">Pendiente de cobrar</div>
-            <div style="font-size:11px;color:#064e3b;margin-top:1px">${sinCobrar.length} pedido${sinCobrar.length!==1?'s':''} terminado${sinCobrar.length!==1?'s':''} sin cobrar</div>
+            <div style="font-size:10px;font-weight:800;color:#34d399;text-transform:uppercase;letter-spacing:1.4px">${t('dash.pendingCollect')}</div>
+            <div style="font-size:11px;color:#064e3b;margin-top:1px">${sinCobrar.length} ${t('dash.finishedUnpaid')}</div>
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:10px">
@@ -3563,12 +3588,12 @@ function pgDashboard(){
             <div style="display:flex;align-items:center;gap:8px;margin-top:3px;flex-wrap:wrap">
               ${mkBadge(o.estado)}
               ${cl.nombre?`<span style="font-size:11px;color:var(--text4)">${esc(cl.nombre)}</span>`:''}
-              <span style="font-size:11px;color:${urgente?'#f87171':'#fbbf24'};font-weight:700">${urgente?'🔴':'🟡'} ${dias} día${dias!==1?'s':''}</span>
+              <span style="font-size:11px;color:${urgente?'#f87171':'#fbbf24'};font-weight:700">${urgente?'🔴':'🟡'} ${dias} ${dias!==1?t('common.days'):t('common.day')}</span>
             </div>
           </div>
           <div style="text-align:right;flex-shrink:0">
             <div style="font-size:14px;font-weight:900;color:#34d399">${c.fp.toFixed(2)}${cfg.moneda||'€'}</div>
-            <button onclick="editO('${o.id}')" style="margin-top:4px;background:rgba(52,211,153,.15);border:1px solid rgba(52,211,153,.3);color:#34d399;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700">Cobrar</button>
+            <button onclick="editO('${o.id}')" style="margin-top:4px;background:rgba(52,211,153,.15);border:1px solid rgba(52,211,153,.3);color:#34d399;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700">${t('dash.collect')}</button>
           </div>
         </div>`;}).join('')}
     </div>`;
@@ -3587,8 +3612,8 @@ function pgDashboard(){
         <div style="display:flex;align-items:center;gap:10px">
           <span style="font-size:20px">⏰</span>
           <div>
-            <div style="font-size:10px;font-weight:800;color:#f87171;text-transform:uppercase;letter-spacing:1.4px">Pedidos sin actualizar</div>
-            <div style="font-size:11px;color:#7f1d1d;margin-top:1px">Llevan más de 3 días en el mismo estado</div>
+            <div style="font-size:10px;font-weight:800;color:#f87171;text-transform:uppercase;letter-spacing:1.4px">${t('dash.staleOrders')}</div>
+            <div style="font-size:11px;color:#7f1d1d;margin-top:1px">${t('dash.staleSub')}</div>
           </div>
         </div>
         <span style="background:rgba(239,68,68,.2);color:#f87171;border:1px solid rgba(239,68,68,.4);border-radius:99px;padding:2px 10px;font-size:12px;font-weight:800">${pendOld.length}</span>
@@ -3603,53 +3628,53 @@ function pgDashboard(){
             <div style="display:flex;align-items:center;gap:8px;margin-top:3px">
               ${mkBadge(o.estado)}
               ${cl.nombre?`<span style="font-size:11px;color:var(--text4)">${esc(cl.nombre)}</span>`:''}
-              <span style="font-size:11px;color:#f87171;font-weight:700">⏱ ${dias} día${dias!==1?'s':''}</span>
+              <span style="font-size:11px;color:#f87171;font-weight:700">⏱ ${dias} ${dias!==1?t('common.days'):t('common.day')}</span>
             </div>
           </div>
           <div style="text-align:right;flex-shrink:0">
             <div style="font-size:13px;font-weight:800;color:#34d399">${c.fp.toFixed(2)}${cfg.moneda||'€'}</div>
-            <button onclick="editO('${o.id}')" style="margin-top:4px;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#f87171;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700">Actualizar</button>
+            <button onclick="editO('${o.id}')" style="margin-top:4px;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#f87171;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700">${t('dash.update')}</button>
           </div>
         </div>`;}).join('')}
     </div>`;
 
   return`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;flex-wrap:wrap;gap:12px">
-  <div><h2 class="page-title">Dashboard</h2><div class="page-subtitle">Resumen de tu negocio</div></div>
+  <div><h2 class="page-title">${t('dash.title')}</h2><div class="page-subtitle">${t('dash.subtitle')}</div></div>
   <div style="display:flex;gap:8px;flex-wrap:wrap">
-    <button class="btn-secondary" onclick="abrirInforme()" style="display:flex;align-items:center;gap:8px;white-space:nowrap"><span>📊</span> Informe mensual</button>
-    <button class="btn-secondary" onclick="abrirInformeAnual()" style="display:flex;align-items:center;gap:8px;white-space:nowrap"><span>📈</span> Informe anual</button>
+    <button class="btn-secondary" onclick="abrirInforme()" style="display:flex;align-items:center;gap:8px;white-space:nowrap"><span>📊</span> ${t('dash.monthlyReport')}</button>
+    <button class="btn-secondary" onclick="abrirInformeAnual()" style="display:flex;align-items:center;gap:8px;white-space:nowrap"><span>📈</span> ${t('dash.annualReport')}</button>
   </div>
 </div>
 <div class="flexwrap" style="margin-bottom:22px">
-  ${stC('Ingresos cobrados',totI.toFixed(2)+(cfg.moneda||'€'),'💰','#34d399',`${paid.length} pedido${paid.length!==1?'s':''} pagados`)}
-  ${stC('Costes producción',totC.toFixed(2)+(cfg.moneda||'€'),'📦','#fbbf24','')}
-  ${stC('Gastos totales',totGastos.toFixed(2)+(cfg.moneda||'€'),'💸','#f87171',`${(_cache.gastos||[]).length} gastos`)}
-  ${stC('Beneficio neto',ben.toFixed(2)+(cfg.moneda||'€'),'📈',ben>=0?'#34d399':'#f87171',ben>=0?'Margen positivo ✓':'Revisar precios')}
-  ${stC('Total pedidos',orders.length,'🖨️','#93c5fd',`${pendCount} pendiente${pendCount!==1?'s':''} · ${impCount} imprimiendo`)}
+  ${stC(t('dash.incomeCollected'),totI.toFixed(2)+(cfg.moneda||'€'),'💰','#34d399',`${paid.length} ${t('dash.paidOrders')}`)}
+  ${stC(t('dash.prodCosts'),totC.toFixed(2)+(cfg.moneda||'€'),'📦','#fbbf24','')}
+  ${stC(t('dash.totalExpenses'),totGastos.toFixed(2)+(cfg.moneda||'€'),'💸','#f87171',`${(_cache.gastos||[]).length} ${t('dash.expenses')}`)}
+  ${stC(t('dash.netProfit'),ben.toFixed(2)+(cfg.moneda||'€'),'📈',ben>=0?'#34d399':'#f87171',ben>=0?t('dash.marginOk'):t('dash.checkPrices'))}
+  ${stC(t('dash.totalOrders'),orders.length,'🖨️','#93c5fd',`${pendCount} ${t('dash.pending')} · ${impCount} ${t('dash.printing')}`)}
 </div>
 ${cobroAlert}
 ${pendAlert}
 ${filAlert}
 <div class="flexwrap" style="margin-top:18px">
   <div class="card" style="flex:2;min-width:260px">
-    <div class="card-title">Ingresos por mes (${cfg.moneda||'\u20ac'})</div>
+    <div class="card-title">${t('dash.incomeByMonth')} (${cfg.moneda||'\u20ac'})</div>
     <div style="position:relative;height:160px"><canvas id="ch-ingresos"></canvas></div>
   </div>
   <div class="card" style="flex:1;min-width:200px">
-    <div class="card-title" style="margin-bottom:12px">Por estado <span style="font-size:9px;color:var(--text5);font-weight:600;text-transform:none;letter-spacing:0;margin-left:4px">— toca para filtrar</span></div>
+    <div class="card-title" style="margin-bottom:12px">${t('dash.byStatus')} <span style="font-size:9px;color:var(--text5);font-weight:600;text-transform:none;letter-spacing:0;margin-left:4px">${t('dash.tapToFilter')}</span></div>
     <div style="position:relative;height:140px;margin-bottom:10px"><canvas id="ch-estados"></canvas></div>
     ${eList}
   </div>
 </div>
 <div class="flexwrap" style="margin-top:14px">
   <div class="card" style="flex:1;min-width:260px">
-    <div class="card-title">Materiales más usados</div>
+    <div class="card-title">${t('dash.topMaterials')}</div>
     <div style="position:relative;height:140px"><canvas id="ch-materiales"></canvas></div>
   </div>
 </div>
 <div class="card" style="margin-top:18px;padding:0;overflow:hidden">
-  <div style="padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px"><span>🕐</span><span class="card-title" style="margin:0">Últimos pedidos</span></div>
-  <div style="overflow-x:auto"><table><thead><tr><th>Nº</th><th>Proyecto</th><th>Material</th><th>Precio</th><th>Estado</th><th>Fecha</th></tr></thead><tbody>${recent6.length?recent6:'<tr><td colspan="6" style="text-align:center;color:var(--text5);padding:32px">Sin pedidos aún</td></tr>'}</tbody></table></div>
+  <div style="padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px"><span>🕐</span><span class="card-title" style="margin:0">${t('dash.recentOrders')}</span></div>
+  <div style="overflow-x:auto"><table><thead><tr><th>${t('col.num')}</th><th>${t('col.project')}</th><th>${t('col.material')}</th><th>${t('col.price')}</th><th>${t('col.status')}</th><th>${t('col.date')}</th></tr></thead><tbody>${recent6.length?recent6:`<tr><td colspan="6" style="text-align:center;color:var(--text5);padding:32px">${t('dash.noOrdersYet')}</td></tr>`}</tbody></table></div>
 </div>`;
 }
 
