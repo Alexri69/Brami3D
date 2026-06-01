@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>Presupuesto · B3D</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#070e1c;color:#e2eaf4;min-height:100vh;padding:20px 14px;line-height:1.5}
+.wrap{max-width:640px;margin:0 auto}
+.card{background:#0d1727;border:1px solid #132540;border-radius:16px;padding:24px;margin-bottom:16px}
+.hdr{display:flex;align-items:center;gap:14px;border-bottom:1px solid #132540;padding-bottom:18px;margin-bottom:18px}
+.hdr img{width:52px;height:52px;object-fit:contain;border-radius:10px;background:#fff;flex-shrink:0}
+.logo-fallback{width:52px;height:52px;border-radius:10px;background:#1d4ed8;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;color:#fff;flex-shrink:0}
+.biz-name{font-size:18px;font-weight:800;color:#fff}
+.biz-sub{font-size:12px;color:#7a90b0;margin-top:2px}
+.doc-label{font-size:11px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:#60a5fa;margin-bottom:4px}
+.proj{font-size:22px;font-weight:900;color:#fff;letter-spacing:-.5px}
+.meta{font-size:12px;color:#7a90b0;margin-top:4px}
+table{width:100%;border-collapse:collapse;margin-top:8px}
+th{text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#7a90b0;padding:8px 6px;border-bottom:1px solid #132540}
+td{padding:9px 6px;font-size:13px;border-bottom:1px solid #0f1d33}
+.tr{text-align:right}.tc{text-align:center}
+.price-box{background:linear-gradient(135deg,#0f172a,#1e293b);border:1px solid #1d3a6e;border-radius:14px;padding:22px;display:flex;justify-content:space-between;align-items:center;margin-top:6px}
+.price-lbl{font-size:12px;color:#94a3b8;font-weight:600}
+.price-tax{font-size:10px;color:#64748b;margin-top:2px}
+.price-val{font-size:30px;font-weight:900;color:#fff;letter-spacing:-1px}
+.price-mon{font-size:18px;color:#60a5fa;font-weight:700;margin-left:4px}
+.btn{display:block;width:100%;padding:16px;border:none;border-radius:14px;font-size:16px;font-weight:800;cursor:pointer;text-align:center;margin-top:6px}
+.btn-accept{background:#22c55e;color:#04210f}
+.btn-accept:disabled{opacity:.6;cursor:default}
+.accepted{background:rgba(34,197,94,.12);border:1.5px solid rgba(34,197,94,.4);border-radius:14px;padding:18px;text-align:center;color:#4ade80;font-weight:700;margin-top:6px}
+.notas{background:#0b1626;border:1px solid #132540;border-radius:10px;padding:12px 14px;font-size:13px;color:#9fb3d0;margin-top:14px}
+.foot{text-align:center;font-size:11px;color:#54688a;margin-top:20px}
+.center{text-align:center;padding:60px 20px;color:#7a90b0}
+.spinner{width:34px;height:34px;border:3px solid #1d3a6e;border-top-color:#60a5fa;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+a.contact{color:#60a5fa;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap" id="root">
+  <div class="center"><div class="spinner"></div>Cargando presupuesto…</div>
+</div>
+
+<script>
+const SUPA_URL='https://uzgzfxizpoigzcnlunpr.supabase.co';
+const SUPA_KEY='sb_publishable_4gEjOV3kyfh8_I0f861iow__6b1ueIi';
+const sb=supabase.createClient(SUPA_URL,SUPA_KEY);
+const root=document.getElementById('root');
+const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const token=new URLSearchParams(location.search).get('t');
+
+function err(msg){ root.innerHTML=`<div class="card"><div class="center" style="padding:40px 10px">😕<div style="margin-top:10px">${esc(msg)}</div></div></div>`; }
+
+async function load(){
+  if(!token){ err('Enlace no válido.'); return; }
+  let data, error;
+  try { ({data,error}=await sb.rpc('get_presupuesto_publico',{tok:token})); }
+  catch(e){ err('No se pudo cargar el presupuesto. Revisa tu conexión.'); return; }
+  if(error || !data){ err('Presupuesto no encontrado o enlace caducado.'); return; }
+  render(data);
+}
+
+function render(p){
+  const mon=p.moneda||'€';
+  const t1=Number(p.tipo_iva||0);
+  const base=Number(p.precio||0);
+  const total=base*(1+t1/100);
+  const lineas=Array.isArray(p.lineas)?p.lineas:[];
+  const logoHtml=p.logo&&String(p.logo).startsWith('data:image')
+    ? `<img src="${esc(p.logo)}" alt="logo">`
+    : `<div class="logo-fallback">${esc((p.empresa||'B3D').trim().charAt(0).toUpperCase()||'B')}</div>`;
+  const empresa=(p.empresa&&p.empresa.trim())?p.empresa.trim():'B3D Print Studio';
+
+  const filas=lineas.length
+    ? lineas.map(l=>`<tr><td><b style="color:#cbd9ee">${esc(l.nombre||'—')}</b></td><td class="tc">${esc(String(l.qty||1))}</td><td class="tr">${l.peso?esc(String(l.peso))+'g':'—'}</td></tr>`).join('')
+    : `<tr><td><b style="color:#cbd9ee">${esc(p.proyecto||'—')}</b></td><td class="tc">1</td><td class="tr">${p.peso?esc(String(p.peso))+'g':'—'}</td></tr>`;
+
+  const taxLine = t1>0 ? `${esc(p.nombre_impuesto||'IVA')} (${t1}%) incluido` : 'Impuestos no incluidos';
+
+  const aceptadoHtml = p.aceptado
+    ? `<div class="accepted">✅ Presupuesto aceptado${p.aceptado_fecha?' el '+new Date(p.aceptado_fecha).toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'}):''}</div>`
+    : `<button class="btn btn-accept" id="accept-btn" onclick="aceptar()">✅ Aceptar presupuesto</button>`;
+
+  root.innerHTML=`
+    <div class="card">
+      <div class="hdr">
+        ${logoHtml}
+        <div><div class="biz-name">${esc(empresa)}</div>${p.telefono?`<div class="biz-sub">📞 ${esc(p.telefono)}</div>`:''}</div>
+      </div>
+      <div class="doc-label">Presupuesto</div>
+      <div class="proj">${esc(p.proyecto||'')}</div>
+      <div class="meta">${p.pres_num?'Nº '+esc(p.pres_num)+' · ':''}${p.cliente_nombre?'Para '+esc(p.cliente_nombre):''}</div>
+
+      <table>
+        <thead><tr><th>Concepto</th><th class="tc">Uds</th><th class="tr">Peso</th></tr></thead>
+        <tbody>${filas}</tbody>
+      </table>
+
+      <div class="price-box">
+        <div><div class="price-lbl">Precio total</div><div class="price-tax">${taxLine}</div></div>
+        <div><span class="price-val">${total.toFixed(2)}</span><span class="price-mon">${esc(mon)}</span></div>
+      </div>
+
+      ${p.notas?`<div class="notas"><b>Notas:</b> ${esc(p.notas)}</div>`:''}
+      ${aceptadoHtml}
+    </div>
+    <div class="foot">${p.email?`¿Dudas? <a class="contact" href="mailto:${esc(p.email)}">${esc(p.email)}</a> · `:''}Generado con Brami3D</div>
+  `;
+}
+
+async function aceptar(){
+  const btn=document.getElementById('accept-btn');
+  if(btn){ btn.disabled=true; btn.textContent='Aceptando…'; }
+  let error;
+  try { ({error}=await sb.rpc('aceptar_presupuesto',{tok:token})); }
+  catch(e){ error=e; }
+  if(error){ if(btn){ btn.disabled=false; btn.textContent='✅ Aceptar presupuesto'; } alert('No se pudo aceptar. Inténtalo de nuevo.'); return; }
+  const box=document.querySelector('.btn-accept');
+  if(box) box.outerHTML=`<div class="accepted">✅ ¡Presupuesto aceptado! Gracias. Nos pondremos en contacto contigo.</div>`;
+}
+
+load();
+</script>
+</body>
+</html>

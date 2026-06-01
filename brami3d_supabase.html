@@ -494,6 +494,7 @@ let SB_OPEN = true;
 let _bootedFor = null;   // id del usuario para el que ya se ejecutó bootApp (evita doble arranque)
 let _lastSyncAt = 0;     // timestamp del último loadAll OK (throttle de resumeSync)
 let _hasAnticipo = false; // ¿existe la columna pedidos.anticipo? (migración sql/009)
+let _hasShare = false;    // ¿existen las columnas de aceptación pública? (migración sql/010)
 
 // In-memory cache (reloaded on every page navigation)
 let _cache = { clientes:[], pedidos:[], impresoras:[], filamentos:[], piezas:[], archivos:[], gastos:[], cfg:{} };
@@ -651,6 +652,7 @@ const I18N = {
     'ped.tVerFactura':'Ver factura PDF','ped.tGenFactura':'Generar factura','ped.tEnviarFactura':'Enviar factura por WhatsApp',
     'ped.tDuplicar':'Duplicar pedido','ped.tSoloPagados':'Solo para pedidos pagados','ped.types':'tipos','ped.units':'uds',
     'ped.overdue':'vencido','ped.delivery':'entrega','ped.paidBadge':'cobrado','ped.deposit':'Anticipo','ped.balance':'pendiente',
+    'share.title':'Compartir presupuesto','share.linkReady':'Enlace de aceptación listo. Cópialo o envíalo al cliente — podrá verlo y aceptarlo online:','share.copy':'📋 Copiar enlace','share.copied':'Enlace copiado','share.openWa':'💬 Enviar por WhatsApp','share.waMsg':'¡Hola! Aquí tienes tu presupuesto para "{p}". Puedes verlo y aceptarlo aquí: {url}','share.needSql':'Función no disponible todavía: ejecuta la migración sql/010 en Supabase.','share.accepted':'Aceptado','share.tShare':'Compartir enlace de aceptación',
     'frm.editOrder':'Editar pedido','frm.newOrder':'Nuevo pedido','frm.saveOrder':'💾 Guardar pedido','frm.noClient':'Sin cliente',
     'frm.projectName':'Nombre del proyecto *','frm.orderDate':'Fecha pedido','frm.deliveryDate':'Fecha de entrega (opcional)',
     'frm.printer':'Impresora','frm.noPrinter':'Sin impresora (200W por defecto)',
@@ -726,6 +728,7 @@ const I18N = {
     'ped.tVerFactura':'View invoice PDF','ped.tGenFactura':'Create invoice','ped.tEnviarFactura':'Send invoice via WhatsApp',
     'ped.tDuplicar':'Duplicate order','ped.tSoloPagados':'Paid orders only','ped.types':'types','ped.units':'units',
     'ped.overdue':'overdue','ped.delivery':'delivery','ped.paidBadge':'paid','ped.deposit':'Deposit','ped.balance':'balance',
+    'share.title':'Share quote','share.linkReady':'Acceptance link ready. Copy it or send it to the client — they can view and accept it online:','share.copy':'📋 Copy link','share.copied':'Link copied','share.openWa':'💬 Send via WhatsApp','share.waMsg':'Hi! Here is your quote for "{p}". You can view and accept it here: {url}','share.needSql':'Feature not available yet: run migration sql/010 in Supabase.','share.accepted':'Accepted','share.tShare':'Share acceptance link',
     'frm.editOrder':'Edit order','frm.newOrder':'New order','frm.saveOrder':'💾 Save order','frm.noClient':'No customer',
     'frm.projectName':'Project name *','frm.orderDate':'Order date','frm.deliveryDate':'Delivery date (optional)',
     'frm.printer':'Printer','frm.noPrinter':'No printer (200W default)',
@@ -1578,8 +1581,11 @@ async function loadAll(silent=false){
 
   // Detectar si la columna `anticipo` existe (migración sql/009 aplicada).
   // Con filas la deducimos sin coste; sin filas hacemos una sonda mínima.
-  if(p.data && p.data.length){ _hasAnticipo = ('anticipo' in p.data[0]); }
-  else { try { const {error}=await sb.from('pedidos').select('anticipo').limit(1); _hasAnticipo=!error; } catch(_){ _hasAnticipo=false; } }
+  if(p.data && p.data.length){ _hasAnticipo = ('anticipo' in p.data[0]); _hasShare = ('share_token' in p.data[0]); }
+  else {
+    try { const {error}=await sb.from('pedidos').select('anticipo').limit(1); _hasAnticipo=!error; } catch(_){ _hasAnticipo=false; }
+    try { const {error}=await sb.from('pedidos').select('share_token').limit(1); _hasShare=!error; } catch(_){ _hasShare=false; }
+  }
 
   _cache.impresoras = mapImpresoras(im.data||[]);
   _cache.filamentos = mapFilamentos(fi.data||[]);
@@ -1638,7 +1644,9 @@ function mapPedidos(rows){ return rows.map(r=>({
   impresoraId:r.impresora_id||null,
   cobrado:r.cobrado||false, fechaCobrado:r.fecha_cobrado||null,
   fechaEntrega:r.fecha_entrega||null,
-  anticipo:r.anticipo!=null?parseFloat(r.anticipo):0
+  anticipo:r.anticipo!=null?parseFloat(r.anticipo):0,
+  shareToken:r.share_token||null, precioPublico:r.precio_publico!=null?parseFloat(r.precio_publico):null,
+  aceptado:r.aceptado||false, aceptadoFecha:r.aceptado_fecha||null
 }));}
 
 function mapImpresoras(rows){ return rows.map(r=>({
@@ -1802,7 +1810,7 @@ function brandFooterName(cfg){
 // (typo, paste, dev tools) is normalized before it hits the DB.
 // ganancia_manual intentionally omitted: user may legitimately sell at a loss.
 const NON_NEG_FIELDS = {
-  pedidos:    ['peso','tiempo_impresion','precio_final','coste_postprocesado','coste_diseno','anticipo'],
+  pedidos:    ['peso','tiempo_impresion','precio_final','coste_postprocesado','coste_diseno','anticipo','precio_publico'],
   impresoras: ['horas_uso','desgaste','consumo_w'],
   filamentos: ['peso_restante','precio_por_kg'],
   piezas:     ['peso','tiempo_impresion','precio_por_kg'],
@@ -3158,6 +3166,32 @@ async function sendPresupuestoEmail(id){
   await _shareEmail(built,{subject,body,to:cl.email});
 }
 
+// Genera/recupera el enlace público de aceptación del presupuesto y lo ofrece para
+// copiar o enviar por WhatsApp. El cliente lo abre en p.html (sin login).
+async function sharePresupuestoLink(id){
+  if(!_hasShare){ showToast(t('share.needSql'),'warn',6000); return; }
+  const o=await ensurePresNum(id); if(!o) return;
+  const cfg=_cache.cfg; const c=calcOrderCosts(o,cfg);
+  let token=o.shareToken;
+  if(!token) token=(crypto.randomUUID?crypto.randomUUID():uid()+uid()).replace(/-/g,'');
+  // Congela el precio de venta actual para mostrarlo en el enlace público.
+  const ok=await dbSave('pedidos',{id:o.id, share_token:token, precio_publico:c.fp});
+  if(!ok) return;
+  _cache.pedidos=_cache.pedidos.map(x=>x.id===id?{...x,shareToken:token,precioPublico:c.fp}:x);
+  const url=location.origin+'/p.html?t='+token;
+  const cl=_cache.clientes.find(x=>x.id===o.clienteId)||{};
+  let ph=(cl.telefono||'').replace(/[^\d+]/g,''); if(ph&&!ph.startsWith('+')){ph=ph.startsWith('34')?'+'+ph:'+34'+ph;}
+  const waUrl='https://wa.me/'+ph+'?text='+encodeURIComponent(t('share.waMsg',{p:o.proyecto,url}));
+  openModal(msh(t('share.title'),`
+    <div style="display:flex;flex-direction:column;gap:12px;padding:4px 0">
+      <div style="font-size:13px;color:var(--text4);line-height:1.5">${t('share.linkReady')}</div>
+      <input id="share-url" value="${esc(url)}" readonly onclick="this.select()" style="width:100%;font-size:12px;font-family:monospace;background:var(--bg4);border:1px solid var(--border);border-radius:10px;padding:11px 12px;color:var(--text2)">
+      <button onclick="navigator.clipboard&&navigator.clipboard.writeText('${url.replace(/'/g,"\\'")}');showToast(t('share.copied'),'ok');" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;background:var(--bg4);border:1.5px solid var(--border);border-radius:12px;color:var(--text2);font-size:14px;font-weight:700">${t('share.copy')}</button>
+      ${ph?`<button onclick="closeModal();window.open('${waUrl.replace(/'/g,"\\'")}','_blank')" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;background:rgba(37,211,102,.12);border:1.5px solid rgba(37,211,102,.3);border-radius:12px;color:#25d366;font-size:14px;font-weight:700">${t('share.openWa')}</button>`:''}
+      <button onclick="closeModal()" style="padding:10px;background:transparent;border:1px solid var(--border);border-radius:10px;color:var(--text4);font-size:13px">${t('common.close')}</button>
+    </div>`));
+}
+
 async function sendFacturaEmail(id){
   const o=await ensureFacturaNum(id); if(!o) return;
   const cfg=_cache.cfg; const cl=_cache.clientes.find(x=>x.id===o.clienteId)||{}; const c=calcOrderCosts(o,cfg); const mon=cfg.moneda||'€';
@@ -4364,12 +4398,13 @@ function pgPedidos(){
     const cobradoBadge=o.cobrado?'<div style="margin-top:3px"><span style="display:inline-block;background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800">💰 '+t('ped.paidBadge')+'</span></div>':'';
     const entregaBadge=(()=>{if(!o.fechaEntrega)return'';const hoy2=new Date();hoy2.setHours(0,0,0,0);const fe=new Date(o.fechaEntrega+'T00:00:00');const diff=Math.ceil((fe-hoy2)/(1000*60*60*24));if(o.cobrado)return'';if(diff<0)return'<div style="margin-top:2px"><span style="display:inline-block;background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800">⚠️ '+t('ped.overdue')+' '+o.fechaEntrega+'</span></div>';if(diff<=3)return'<div style="margin-top:2px"><span style="display:inline-block;background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800">⏰ '+t('ped.delivery')+' '+o.fechaEntrega+'</span></div>';return'<div style="margin-top:2px"><span style="display:inline-block;background:rgba(96,165,250,.1);color:#60a5fa;border:1px solid rgba(96,165,250,.2);border-radius:5px;padding:1px 7px;font-size:9px">📅 '+o.fechaEntrega+'</span></div>';})();
     const anticipoBadge=(o.anticipo>0&&!o.cobrado)?(()=>{const pend=Math.max(0,(c.fp||0)-o.anticipo);return '<div style="margin-top:3px"><span style="display:inline-block;background:rgba(96,165,250,.12);color:#60a5fa;border:1px solid rgba(96,165,250,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:700">💵 '+t('ped.deposit')+' '+o.anticipo.toFixed(2)+(cfg.moneda||'€')+' · '+t('ped.balance')+' '+pend.toFixed(2)+(cfg.moneda||'€')+'</span></div>';})():'';
+    const aceptadoBadge=(o.aceptado&&!o.cobrado)?'<div style="margin-top:3px"><span style="display:inline-block;background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800">✅ '+t('share.accepted')+'</span></div>':'';
     const cobrarBtn=!o.cobrado
       ?'<button class="btn-icon" title="'+t('ped.tCobrado')+'" onclick="marcarCobrado(\''+o.id+'\')" style="font-size:18px;color:#4ade80;opacity:.7">💰</button>'
       :'<button class="btn-icon" title="'+t('ped.tYaCobrado')+'" style="opacity:.2;cursor:default;font-size:18px">💰</button>';
     const chk=`<input type="checkbox" ${_pSelected.has(o.id)?'checked':''} onchange="if(this.checked)_pSelected.add('${o.id}');else _pSelected.delete('${o.id}');render()" style="width:16px;height:16px;accent-color:#3b82f6;cursor:pointer;flex-shrink:0">`;
     return'<tr style="'+(bg?'background:'+bg:'')+'"><td style="padding:8px 10px">'+chk+'</td><td><span class="num-badge">'+esc(o.presNum||'—')+'</span>'+factBadge+'</td>'
-      +'<td><span style="color:var(--text2);font-weight:700;font-size:13.5px">'+esc(o.proyecto)+'</span>'+multiPieza+cobradoBadge+anticipoBadge+entregaBadge+'</td>'
+      +'<td><span style="color:var(--text2);font-weight:700;font-size:13.5px">'+esc(o.proyecto)+'</span>'+multiPieza+cobradoBadge+aceptadoBadge+anticipoBadge+entregaBadge+'</td>'
       +'<td style="color:var(--text3)">'+esc(cl.nombre||'—')+'</td>'
       +'<td><span style="background:var(--bg4);color:var(--text3);padding:2px 8px;border-radius:6px;font-size:12px;font-weight:600">'+esc(o.material)+'</span></td>'
       +'<td style="color:var(--text3)">'+esc(o.peso)+'g</td>'
@@ -4379,6 +4414,7 @@ function pgPedidos(){
       +'<td style="text-align:right;white-space:nowrap">'
         +'<button class="btn-icon" title="'+t('ped.tPresupuesto')+'" onclick="genPDF(\''+o.id+'\')">📄</button>'
         +'<button class="btn-icon" title="'+t('ped.tWhatsApp')+'" onclick="sendWA(\''+o.id+'\')">💬</button>'
+        +(_hasShare?'<button class="btn-icon" title="'+t('share.tShare')+'" onclick="sharePresupuestoLink(\''+o.id+'\')">🔗</button>':'')
         +cobrarBtn
         +factBtn
         +'<button class="btn-icon" title="'+t('ped.tDuplicar')+'" onclick="cloneO(\''+o.id+'\')">📋</button>'
@@ -4412,10 +4448,12 @@ function pgPedidos(){
         ${o.material?`<span>🧵 ${esc(o.material)}</span>`:''}
       </div>
       ${hasFactura?`<div style="margin-bottom:10px"><span style="background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800;font-family:monospace">🧾 ${esc(o.facturaNum)}</span></div>`:''}
+      ${(o.aceptado&&!o.cobrado)?`<div style="margin-bottom:10px"><span style="background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800">✅ ${t('share.accepted')}</span></div>`:''}
       ${(o.anticipo>0&&!o.cobrado)?`<div style="margin-bottom:10px"><span style="background:rgba(96,165,250,.12);color:#60a5fa;border:1px solid rgba(96,165,250,.3);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:700">💵 ${t('ped.deposit')} ${o.anticipo.toFixed(2)}${cfg.moneda||'€'} · ${t('ped.balance')} ${Math.max(0,(c.fp||0)-o.anticipo).toFixed(2)}${cfg.moneda||'€'}</span></div>`:''}
       <div style="display:flex;gap:8px;padding-top:10px;border-top:1px solid var(--border);flex-wrap:wrap">
         <button onclick="genPDF('${o.id}')" style="flex:1;padding:10px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:13px">📄 PDF</button>
         <button onclick="sendWA('${o.id}')" style="flex:1;padding:10px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:13px">💬 WA</button>
+        ${_hasShare?`<button onclick="sharePresupuestoLink('${o.id}')" title="${t('share.tShare')}" style="padding:10px 14px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:16px">🔗</button>`:''}
         ${!o.cobrado
           ?`<button onclick="marcarCobrado('${o.id}')" style="flex:1;padding:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;color:#4ade80;font-size:12px;font-weight:700">💰 ${t('dash.collect')}</button>`
           :`<button onclick="genFactura('${o.id}')" style="flex:1;padding:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;color:#4ade80;font-size:13px">🧾</button><button onclick="sendFacturaWA('${o.id}')" title="Enviar factura" style="flex:1;padding:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;color:#4ade80;font-size:13px">📤</button>`
