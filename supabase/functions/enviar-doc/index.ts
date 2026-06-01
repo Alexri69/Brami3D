@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
     const key = Deno.env.get("RESEND_API_KEY");
     if (!key) return json({ error: "Falta el secreto RESEND_API_KEY" }, 500);
 
-    const from = `${(fromName || "Brami3D").replace(/[<>]/g, "")} <onboarding@resend.dev>`;
+    const from = `${(fromName || "Brami3D").replace(/[<>]/g, "")} <hola@brami3d.app>`;
     const payload = { from, to: [to], subject, text: text || "" };
     if (replyTo) payload.reply_to = replyTo;
     if (pdfBase64) payload.attachments = [{ filename: filename || "documento.pdf", content: pdfBase64 }];
