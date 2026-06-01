@@ -3159,11 +3159,13 @@ async function _sendViaEdge(built,{to,subject,text}){
   // Llamada directa con la clave pública en las cabeceras (como el ejemplo de
   // Supabase). functions.invoke enviaba el token de usuario y la puerta de entrada
   // lo rechazaba con el sistema de claves nuevo, por eso el POST no llegaba.
+  let userToken='';
+  try { const { data:{ session } } = await sb.auth.getSession(); userToken = session?.access_token || ''; } catch(_){}
   let r, j;
   try {
     r=await fetch(SUPA_URL+'/functions/v1/enviar-doc',{
       method:'POST',
-      headers:{ 'Content-Type':'application/json', 'apikey':SUPA_KEY, 'Authorization':'Bearer '+SUPA_KEY },
+      headers:{ 'Content-Type':'application/json', 'apikey':SUPA_KEY, 'Authorization':'Bearer '+SUPA_KEY, 'x-user-token':userToken },
       body:JSON.stringify({
         to, subject, text,
         fromName:(cfg.empresa||'').trim()||'Brami3D',
