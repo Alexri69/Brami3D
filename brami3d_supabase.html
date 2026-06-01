@@ -668,7 +668,17 @@ const I18N = {
     'cli.title':'Clientes','cli.clientsWord':'clientes','cli.empty':'Sin clientes','cli.purchaseHistory':'📋 Historial de compras','cli.tHistory':'Historial',
     'cli.editClient':'Editar cliente','cli.newClient':'Nuevo cliente','cli.nameRequired':'Nombre *','cli.address':'Dirección',
     'cli.saved':'Cliente guardado','cli.nameReq':'Nombre obligatorio','cli.deleteConfirm':'¿Eliminar este cliente?','cli.importCsv':'📥 Importar CSV',
-    'common.close':'Cerrar','hist.noOrders':'Sin pedidos registrados','hist.orders':'Pedidos','hist.paid':'Pagados','hist.totalCollected':'Total cobrado'
+    'common.close':'Cerrar','hist.noOrders':'Sin pedidos registrados','hist.orders':'Pedidos','hist.paid':'Pagados','hist.totalCollected':'Total cobrado',
+    'common.edit':'Editar','common.saved':'Guardado','common.deleted':'Eliminado','common.nameReq':'Nombre obligatorio',
+    'imp.title':'Impresoras','imp.new':'+ Nueva impresora','imp.empty':'Sin impresoras','imp.wear':'Desgaste','imp.needsReview':'requiere revisión','imp.elecCost':'Coste eléctrico','imp.regUse':'⏱ Registrar uso','imp.editTitle':'Editar impresora','imp.newTitle':'Nueva impresora','imp.fModel':'Modelo','imp.fHours':'Horas de uso','imp.fWear':'% Desgaste','imp.fConsumo':'Consumo eléctrico (W)','imp.consumoHint':'Introduce los vatios de tu impresora','imp.delete':'¿Eliminar esta impresora?','imp.logUsage':'⏱ Registrar uso','imp.accNow':'Acumulado actual:','imp.wearWord':'Desgaste:','imp.estElecCost':'Coste eléctrico estimado:','imp.sessHours':'Horas de esta sesión *','imp.extraWear':'Desgaste adicional (%)','imp.wearAuto':'Si dejas el desgaste en 0 se aplica +0.1% por hora automáticamente.',
+    'fil.title':'Filamentos','fil.empty':'Sin filamentos','fil.cRemaining':'Restante','fil.cStock':'Stock','fil.editTitle':'Editar filamento','fil.newTitle':'Nuevo filamento','fil.fType':'Tipo','fil.fBrand':'Marca *','fil.fColor':'Color','fil.fRemaining':'Peso restante (g)','fil.fPriceKg':'Precio por kg (€)','fil.brandReq':'Marca obligatoria','fil.delete':'¿Eliminar este filamento?','fil.cType':'Tipo','fil.cBrand':'Marca','fil.cColor':'Color',
+    'pz.title':'Piezas','pz.new':'+ Nueva pieza','pz.empty':'Sin piezas guardadas','pz.hint':'Guarda piezas frecuentes para auto-rellenar pedidos.','pz.material':'Material','pz.weight':'Peso','pz.time':'Tiempo','pz.suggested':'Sugerido','pz.editTitle':'Editar pieza','pz.newTitle':'Nueva pieza','pz.fName':'Nombre *','pz.fMaterial':'Material','pz.fWeight':'Peso (g)','pz.fTime':'Tiempo impresión (h)','pz.fSuggested':'Precio sugerido (€)','pz.delete':'¿Eliminar esta pieza?',
+    'gas.title':'Gastos','gas.subtitle':'Control de todos tus gastos','gas.new':'+ Nuevo gasto','gas.empty':'Sin gastos registrados','gas.total':'Total gastos','gas.registered':'gastos registrados','gas.thisMonth':'Este mes','gas.byCat':'Por categoría','gas.noData':'Sin datos','gas.editTitle':'Editar gasto','gas.newTitle':'Nuevo gasto','gas.fDesc':'Descripción *','gas.fCat':'Categoría','gas.fAmount':'Importe (€)','gas.fDate':'Fecha','gas.fSupplier':'Proveedor','gas.descReq':'Descripción obligatoria','gas.saved':'Gasto guardado','gas.delete':'¿Eliminar este gasto?',
+    'arch.title':'Archivos','arch.hint':'STL e imágenes — guardados en Supabase Storage (máx. 50MB).','arch.drop':'Arrastra archivos o haz clic','arch.dropHint':'STL · JPG · PNG · WebP · GIF · SVG · Máx. 50MB','arch.empty':'Sin archivos',
+    'cob.title':'Cobros pendientes','cob.toCollect':'por cobrar','calc.title':'🧮 Calculadora rápida','calc.subtitle':'Estima coste y precio sin crear un pedido',
+    'cob.allCollected':'Todo cobrado','cob.nonePending':'No tienes pedidos pendientes de cobro.','cob.urgent':'URGENTE','cob.collect':'✅ Cobrar','cob.ref':'Ref:',
+    'cob.toCollectLbl':'Por cobrar','cob.urgent7':'Urgentes (+7 días)','cob.inProgress':'En curso','cob.secUrgent':'🔴 Urgentes — más de 7 días sin cobrar','cob.secInProgress':'🔵 En curso — pendiente o imprimiendo','cob.secRecent':'🟡 Terminados recientes',
+    'cob.reminder':'Hola {n}, te recuerdo que el pedido "{p}" está listo para recoger/cobrar. Total: {tot}. ¡Gracias!'
   },
   en: {
     'nav.dashboard':'Dashboard','nav.clientes':'Customers','nav.pedidos':'Orders','nav.impresoras':'Printers',
@@ -718,7 +728,17 @@ const I18N = {
     'cli.title':'Customers','cli.clientsWord':'customers','cli.empty':'No customers','cli.purchaseHistory':'📋 Purchase history','cli.tHistory':'History',
     'cli.editClient':'Edit customer','cli.newClient':'New customer','cli.nameRequired':'Name *','cli.address':'Address',
     'cli.saved':'Customer saved','cli.nameReq':'Name is required','cli.deleteConfirm':'Delete this customer?','cli.importCsv':'📥 Import CSV',
-    'common.close':'Close','hist.noOrders':'No orders yet','hist.orders':'Orders','hist.paid':'Paid','hist.totalCollected':'Total collected'
+    'common.close':'Close','hist.noOrders':'No orders yet','hist.orders':'Orders','hist.paid':'Paid','hist.totalCollected':'Total collected',
+    'common.edit':'Edit','common.saved':'Saved','common.deleted':'Deleted','common.nameReq':'Name is required',
+    'imp.title':'Printers','imp.new':'+ New printer','imp.empty':'No printers','imp.wear':'Wear','imp.needsReview':'needs servicing','imp.elecCost':'Electricity cost','imp.regUse':'⏱ Log usage','imp.editTitle':'Edit printer','imp.newTitle':'New printer','imp.fModel':'Model','imp.fHours':'Hours of use','imp.fWear':'% Wear','imp.fConsumo':'Power draw (W)','imp.consumoHint':'Enter your printer wattage','imp.delete':'Delete this printer?','imp.logUsage':'⏱ Log usage','imp.accNow':'Current total:','imp.wearWord':'Wear:','imp.estElecCost':'Est. electricity cost:','imp.sessHours':'Hours this session *','imp.extraWear':'Extra wear (%)','imp.wearAuto':'If wear is left at 0, +0.1% per hour is applied automatically.',
+    'fil.title':'Filaments','fil.empty':'No filaments','fil.cRemaining':'Remaining','fil.cStock':'Stock','fil.editTitle':'Edit filament','fil.newTitle':'New filament','fil.fType':'Type','fil.fBrand':'Brand *','fil.fColor':'Color','fil.fRemaining':'Remaining weight (g)','fil.fPriceKg':'Price per kg (€)','fil.brandReq':'Brand is required','fil.delete':'Delete this filament?','fil.cType':'Type','fil.cBrand':'Brand','fil.cColor':'Color',
+    'pz.title':'Parts','pz.new':'+ New part','pz.empty':'No saved parts','pz.hint':'Save frequent parts to auto-fill orders.','pz.material':'Material','pz.weight':'Weight','pz.time':'Time','pz.suggested':'Suggested','pz.editTitle':'Edit part','pz.newTitle':'New part','pz.fName':'Name *','pz.fMaterial':'Material','pz.fWeight':'Weight (g)','pz.fTime':'Print time (h)','pz.fSuggested':'Suggested price (€)','pz.delete':'Delete this part?',
+    'gas.title':'Expenses','gas.subtitle':'Track all your expenses','gas.new':'+ New expense','gas.empty':'No expenses recorded','gas.total':'Total expenses','gas.registered':'expenses recorded','gas.thisMonth':'This month','gas.byCat':'By category','gas.noData':'No data','gas.editTitle':'Edit expense','gas.newTitle':'New expense','gas.fDesc':'Description *','gas.fCat':'Category','gas.fAmount':'Amount (€)','gas.fDate':'Date','gas.fSupplier':'Supplier','gas.descReq':'Description is required','gas.saved':'Expense saved','gas.delete':'Delete this expense?',
+    'arch.title':'Files','arch.hint':'STL and images — stored in Supabase Storage (max 50MB).','arch.drop':'Drag files or click','arch.dropHint':'STL · JPG · PNG · WebP · GIF · SVG · Max 50MB','arch.empty':'No files',
+    'cob.title':'Pending payments','cob.toCollect':'to collect','calc.title':'🧮 Quick calculator','calc.subtitle':'Estimate cost and price without creating an order',
+    'cob.allCollected':'All collected','cob.nonePending':'You have no pending payments.','cob.urgent':'URGENT','cob.collect':'✅ Collect','cob.ref':'Ref:',
+    'cob.toCollectLbl':'To collect','cob.urgent7':'Urgent (+7 days)','cob.inProgress':'In progress','cob.secUrgent':'🔴 Urgent — unpaid for over 7 days','cob.secInProgress':'🔵 In progress — pending or printing','cob.secRecent':'🟡 Recently finished',
+    'cob.reminder':'Hi {n}, a reminder that your order "{p}" is ready for pickup/payment. Total: {tot}. Thank you!'
   }
 };
 function t(key, vars){
@@ -3983,50 +4003,50 @@ function verHistorial(clienteId){
 // ═══════════════════════════════════════════════
 function pgImpresoras(){
   const items=_cache.impresoras;
-  const cards=items.length===0?'<p style="color:var(--text4)">Sin impresoras</p>':items.map(p=>{
+  const cards=items.length===0?`<p style="color:var(--text4)">${t('imp.empty')}</p>`:items.map(p=>{
     const deg=parseFloat(p.desgaste)||0;const bc=deg>80?'#ef4444':deg>50?'#f59e0b':'#22c55e';
     const cfg=_cache.cfg;
     const consumoW=parseFloat(p.consumoW)||0;
     const costH=consumoW>0?(consumoW/1000)*(parseFloat(cfg.costePorHora)||0.15):null;
-    return`<div class="card" style="min-width:240px;flex:1 1 240px">${deg>80?`<div class="warn-box">⚠️ Desgaste ${p.desgaste}% — requiere revisión</div>`:''}
+    return`<div class="card" style="min-width:240px;flex:1 1 240px">${deg>80?`<div class="warn-box">⚠️ ${t('imp.wear')} ${p.desgaste}% — ${t('imp.needsReview')}</div>`:''}
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-size:15px;font-weight:700;color:var(--text2)">🖨️ ${esc(p.nombre)}</div>${mkBadge(p.estado)}</div>
 <div style="font-size:13px;color:var(--text4);margin-bottom:10px">${esc(p.modelo)}</div>
 <div style="display:flex;gap:16px;font-size:13px;color:var(--text4);margin-bottom:6px"><span>⏱ ${p.horasUso}h</span><span>🔧 ${p.desgaste}%</span>${consumoW?`<span>⚡ ${consumoW}W</span>`:''}</div>
-${costH?`<div style="font-size:12px;color:#60a5fa;margin-bottom:10px;font-weight:600">Coste eléctrico: ${costH.toFixed(4)}€/h</div>`:''}
+${costH?`<div style="font-size:12px;color:#60a5fa;margin-bottom:10px;font-weight:600">${t('imp.elecCost')}: ${costH.toFixed(4)}€/h</div>`:''}
 <div class="progress-track"><div class="progress-fill" style="width:${Math.min(deg,100)}%;background:${bc}"></div></div>
-<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-primary" style="font-size:12px;padding:7px 12px" onclick="addPrintTime('${p.id}')">⏱ Registrar uso</button><button class="btn-secondary" onclick="editP('${p.id}')">Editar</button><button class="btn-icon" onclick="delP('${p.id}')">🗑️</button></div></div>`;}).join('');
-  return`<div class="page-header"><h2 class="page-title">Impresoras</h2><button class="btn-primary" onclick="editP(null)">+ Nueva impresora</button></div><div class="flexwrap">${cards}</div>`;
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-primary" style="font-size:12px;padding:7px 12px" onclick="addPrintTime('${p.id}')">${t('imp.regUse')}</button><button class="btn-secondary" onclick="editP('${p.id}')">${t('common.edit')}</button><button class="btn-icon" onclick="delP('${p.id}')">🗑️</button></div></div>`;}).join('');
+  return`<div class="page-header"><h2 class="page-title">${t('imp.title')}</h2><button class="btn-primary" onclick="editP(null)">${t('imp.new')}</button></div><div class="flexwrap">${cards}</div>`;
 }
 function impresoraFrm(x={}){
   const cfg=_cache.cfg;
   const consumoW=parseFloat(x.consumoW)||0;
   const costePorHora=parseFloat(cfg.costePorHora)||0.15;
   const costeWh=(consumoW/1000)*costePorHora; // €/h basado en W
-  return fld('Nombre *','nombre',x.nombre||'')
-    +fld('Modelo','modelo',x.modelo||'')
-    +fld('Estado','estado',x.estado||'activa','text',['activa','mantenimiento','averiada'])
-    +fld('Horas de uso','horasUso',x.horasUso||0,'number',{min:0})
-    +fld('% Desgaste','desgaste',x.desgaste||0,'number',{min:0,max:100})
+  return fld(t('cli.nameRequired'),'nombre',x.nombre||'')
+    +fld(t('imp.fModel'),'modelo',x.modelo||'')
+    +fld(t('col.status'),'estado',x.estado||'activa','text',['activa','mantenimiento','averiada'].map(e=>({value:e,label:t('st.'+e)})))
+    +fld(t('imp.fHours'),'horasUso',x.horasUso||0,'number',{min:0})
+    +fld(t('imp.fWear'),'desgaste',x.desgaste||0,'number',{min:0,max:100})
     +`<div class="field">
-        <label>Consumo eléctrico (W)</label>
+        <label>${t('imp.fConsumo')}</label>
         <input name="consumoW" type="text" inputmode="decimal" value="${esc(x.consumoW||'')}" placeholder="Ej: 200" oninput="updConsumoPreview(this.value)">
         <div id="consumo-preview" style="font-size:11px;color:var(--text4);margin-top:6px">
-          ${consumoW>0?`⚡ ${consumoW}W → <b style="color:#60a5fa">${costeWh.toFixed(4)}€/h</b> con electricidad a ${costePorHora}€/kWh`:'Introduce los vatios de tu impresora'}
+          ${consumoW>0?`⚡ ${consumoW}W → <b style="color:#60a5fa">${costeWh.toFixed(4)}€/h</b> con electricidad a ${costePorHora}€/kWh`:t('imp.consumoHint')}
         </div>
       </div>`;
 }
 function editP(id){
   const x=id?_cache.impresoras.find(p=>p.id===id)||{}:{};
-  openModal(msh(id?'Editar impresora':'Nueva impresora',`${impresoraFrm(x)}<div style="display:flex;gap:10px;margin-top:8px"><button class="btn-primary" id="save-p-btn" onclick="saveP('${id||''}')">Guardar</button><button class="btn-secondary" onclick="closeModal()">Cancelar</button></div>`));
+  openModal(msh(id?t('imp.editTitle'):t('imp.newTitle'),`${impresoraFrm(x)}<div style="display:flex;gap:10px;margin-top:8px"><button class="btn-primary" id="save-p-btn" onclick="saveP('${id||''}')">${t('common.save')}</button><button class="btn-secondary" onclick="closeModal()">${t('common.cancel')}</button></div>`));
 }
 async function saveP(id){
   const d=gfd(['nombre','modelo','estado','horasUso','desgaste','consumoW']);
-  if(!d.nombre.trim()){showToast('Nombre obligatorio','err');return;}
+  if(!d.nombre.trim()){showToast(t('common.nameReq'),'err');return;}
   // Validación numérica
   for(const [label,raw,opts] of [
-    ['Horas de uso',d.horasUso,{min:0}],
-    ['% Desgaste',d.desgaste,{min:0,max:100}],
-    ['Consumo (W)',d.consumoW,{min:0}]
+    [t('imp.fHours'),d.horasUso,{min:0}],
+    [t('imp.fWear'),d.desgaste,{min:0,max:100}],
+    [t('imp.fConsumo'),d.consumoW,{min:0}]
   ]){
     const v=validateNum(label,raw,opts); if(!v.ok){showToast(v.error,'err');return;}
   }
@@ -4038,7 +4058,7 @@ async function saveP(id){
   if(id)row.id=id;else row.id=uid();
   const ok=await dbSave('impresoras',row);
   const mapped={id:row.id,nombre:d.nombre,modelo:d.modelo,estado:d.estado,horasUso:horasUso,desgaste:desgaste,consumoW:consumoW};
-  if(ok){if(id)_cache.impresoras=_cache.impresoras.map(i=>i.id===id?mapped:i);else _cache.impresoras.push(mapped);closeModal();render();refreshAlerts();showToast('Guardado','ok');}
+  if(ok){if(id)_cache.impresoras=_cache.impresoras.map(i=>i.id===id?mapped:i);else _cache.impresoras.push(mapped);closeModal();render();refreshAlerts();showToast(t('common.saved'),'ok');}
 }
 
 function updConsumoPreview(val){
@@ -4054,8 +4074,8 @@ function updConsumoPreview(val){
     el.innerHTML='Introduce los vatios de tu impresora';
   }
 }
-function delP(id){ confirmDel('¿Eliminar esta impresora?',`doDelP('${id}')`); }
-async function doDelP(id){ if(await dbDel('impresoras',id)){_cache.impresoras=_cache.impresoras.filter(x=>x.id!==id);render();refreshAlerts();showToast('Eliminado','ok');} }
+function delP(id){ confirmDel(t('imp.delete'),`doDelP('${id}')`); }
+async function doDelP(id){ if(await dbDel('impresoras',id)){_cache.impresoras=_cache.impresoras.filter(x=>x.id!==id);render();refreshAlerts();showToast(t('common.deleted'),'ok');} }
 
 function addPrintTime(id){
   const p=_cache.impresoras.find(x=>x.id===id); if(!p) return;
@@ -4063,19 +4083,19 @@ function addPrintTime(id){
   const kwhPrice=parseFloat(cfg.costePorHora)||0.15;
   const consumoW=parseFloat(p.consumoW)||0;
   const costH=consumoW>0?((consumoW/1000)*kwhPrice).toFixed(4):null;
-  openModal(msh(`⏱ Registrar uso — ${esc(p.nombre)}`,`
+  openModal(msh(`${t('imp.logUsage')} — ${esc(p.nombre)}`,`
     <p style="font-size:13px;color:var(--text4);margin-bottom:16px;line-height:1.5">
-      Acumulado actual: <b style="color:var(--text2)">${p.horasUso}h</b> · Desgaste: <b style="color:var(--text2)">${p.desgaste}%</b>
-      ${costH?`<br>Coste eléctrico estimado: <b style="color:#60a5fa">${costH}€/h</b>`:''}
+      ${t('imp.accNow')} <b style="color:var(--text2)">${p.horasUso}h</b> · ${t('imp.wearWord')} <b style="color:var(--text2)">${p.desgaste}%</b>
+      ${costH?`<br>${t('imp.estElecCost')} <b style="color:#60a5fa">${costH}€/h</b>`:''}
     </p>
-    ${fld('Horas de esta sesión *','pt_horas','','number',{min:0,step:0.1,placeholder:'Ej: 3.5'})}
-    ${fld('Desgaste adicional (%)','pt_desgaste','','number',{min:0,max:100,step:0.1,placeholder:'Ej: 1  (0 = sin cambio)'})}
+    ${fld(t('imp.sessHours'),'pt_horas','','number',{min:0,step:0.1,placeholder:'Ej: 3.5'})}
+    ${fld(t('imp.extraWear'),'pt_desgaste','','number',{min:0,max:100,step:0.1,placeholder:'Ej: 1  (0 = sin cambio)'})}
     <p style="font-size:11px;color:var(--text4);margin-top:-8px;margin-bottom:12px;line-height:1.5">
-      Si dejas el desgaste en 0 se aplica +0.1% por hora automáticamente.
+      ${t('imp.wearAuto')}
     </p>
     <div style="display:flex;gap:10px">
-      <button class="btn-primary" id="save-pt-btn" onclick="doAddPrintTime('${id}')">Guardar</button>
-      <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+      <button class="btn-primary" id="save-pt-btn" onclick="doAddPrintTime('${id}')">${t('common.save')}</button>
+      <button class="btn-secondary" onclick="closeModal()">${t('common.cancel')}</button>
     </div>
   `));
 }
@@ -4109,7 +4129,7 @@ function pgFilamentos(){
   const items=_cache.filamentos;
   const isMob=window.innerWidth<=768;
 
-  const mobCards=items.length===0?'<p style="color:var(--text4);text-align:center;padding:32px">Sin filamentos</p>':items.map(f=>{
+  const mobCards=items.length===0?`<p style="color:var(--text4);text-align:center;padding:32px">${t('fil.empty')}</p>`:items.map(f=>{
     const pct=Math.min((parseFloat(f.pesoRestante)/1000)*100,100);
     const low=parseFloat(f.pesoRestante)<250;
     const col=parseFloat(f.pesoRestante)<100?'#ef4444':low?'#f59e0b':'#3b82f6';
@@ -4135,7 +4155,7 @@ function pgFilamentos(){
       </div>
     </div>`;}).join('');
 
-  const rows=items.length===0?'<tr><td colspan="8" style="text-align:center;color:var(--text5);padding:28px">Sin filamentos</td></tr>':items.map(f=>{
+  const rows=items.length===0?`<tr><td colspan="8" style="text-align:center;color:var(--text5);padding:28px">${t('fil.empty')}</td></tr>`:items.map(f=>{
     const pct=Math.min((parseFloat(f.pesoRestante)/1000)*100,100);const low=parseFloat(f.pesoRestante)<250;
     return`<tr><td><span style="font-weight:700;color:var(--text2)">${esc(f.tipo)}</span></td><td>${esc(f.marca)}</td>
 <td><span style="display:inline-flex;align-items:center;gap:6px"><span style="width:14px;height:14px;border-radius:50%;background:${esc(f.color)};border:1px solid #334155;display:inline-block"></span>${esc(f.color)}</span></td>
@@ -4144,23 +4164,23 @@ function pgFilamentos(){
 <td><div style="display:flex;align-items:center;gap:8px"><div style="width:70px;height:6px;background:var(--bg4);border-radius:99px;overflow:hidden"><div style="height:100%;width:${pct}%;background:${low?'#f59e0b':'#3b82f6'};border-radius:99px"></div></div><span style="font-size:11px;color:var(--text5)">${pct.toFixed(0)}%</span></div></td>
 <td style="text-align:right"><button class="btn-icon" onclick="editF('${f.id}')">✏️</button><button class="btn-icon" onclick="delF('${f.id}')">🗑️</button></td></tr>`;}).join('');
 
-  return`<div class="page-header"><h2 class="page-title">Filamentos</h2><button class="btn-primary" onclick="editF(null)">+ Nuevo</button></div>
+  return`<div class="page-header"><h2 class="page-title">${t('fil.title')}</h2><button class="btn-primary" onclick="editF(null)">${t('common.new')}</button></div>
 ${isMob
   ? `<div>${mobCards}</div>`
-  : `<div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table><thead><tr><th>Tipo</th><th>Marca</th><th>Color</th><th>Restante</th><th>€/kg</th><th>€/g</th><th>Stock</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`
+  : `<div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table><thead><tr><th>${t('fil.cType')}</th><th>${t('fil.cBrand')}</th><th>${t('fil.cColor')}</th><th>${t('fil.cRemaining')}</th><th>€/kg</th><th>€/g</th><th>${t('fil.cStock')}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>`
 }`;
 }
-function filamentoFrm(x={}){ return fld('Tipo','tipo',x.tipo||'PLA','text',MATS)+fld('Marca *','marca',x.marca||'')+fld('Color','color',x.color||'#1d4ed8','color')+fld('Peso restante (g)','pesoRestante',x.pesoRestante??1000,'number')+fld('Precio por kg (€)','precioPorKg',x.precioPorKg||20,'number'); }
+function filamentoFrm(x={}){ return fld(t('fil.fType'),'tipo',x.tipo||'PLA','text',MATS)+fld(t('fil.fBrand'),'marca',x.marca||'')+fld(t('fil.fColor'),'color',x.color||'#1d4ed8','color')+fld(t('fil.fRemaining'),'pesoRestante',x.pesoRestante??1000,'number')+fld(t('fil.fPriceKg'),'precioPorKg',x.precioPorKg||20,'number'); }
 function editF(id){
   const x=id?_cache.filamentos.find(f=>f.id===id)||{}:{};
-  openModal(msh(id?'Editar filamento':'Nuevo filamento',`${filamentoFrm(x)}<div style="display:flex;gap:10px;margin-top:8px"><button class="btn-primary" id="save-f-btn" onclick="saveF('${id||''}')">Guardar</button><button class="btn-secondary" onclick="closeModal()">Cancelar</button></div>`));
+  openModal(msh(id?t('fil.editTitle'):t('fil.newTitle'),`${filamentoFrm(x)}<div style="display:flex;gap:10px;margin-top:8px"><button class="btn-primary" id="save-f-btn" onclick="saveF('${id||''}')">${t('common.save')}</button><button class="btn-secondary" onclick="closeModal()">${t('common.cancel')}</button></div>`));
 }
 async function saveF(id){
   const d=gfd(['tipo','marca','color','pesoRestante','precioPorKg']);
-  if(!d.marca.trim()){showToast('Marca obligatoria','err');return;}
+  if(!d.marca.trim()){showToast(t('fil.brandReq'),'err');return;}
   for(const [label,raw,opts] of [
-    ['Peso restante (g)',d.pesoRestante,{min:0}],
-    ['Precio por kg (€)',d.precioPorKg,{min:0}]
+    [t('fil.fRemaining'),d.pesoRestante,{min:0}],
+    [t('fil.fPriceKg'),d.precioPorKg,{min:0}]
   ]){
     const v=validateNum(label,raw,opts); if(!v.ok){showToast(v.error,'err');return;}
   }
@@ -4171,39 +4191,39 @@ async function saveF(id){
   if(id)row.id=id;else row.id=uid();
   const ok=await dbSave('filamentos',row);
   const mapped={id:row.id,tipo:d.tipo,marca:d.marca,color:d.color,pesoRestante:pesoRestante,precioPorKg:precioPorKg};
-  if(ok){if(id)_cache.filamentos=_cache.filamentos.map(i=>i.id===id?mapped:i);else _cache.filamentos.push(mapped);closeModal();render();showToast('Guardado','ok');}
+  if(ok){if(id)_cache.filamentos=_cache.filamentos.map(i=>i.id===id?mapped:i);else _cache.filamentos.push(mapped);closeModal();render();showToast(t('common.saved'),'ok');}
 }
-function delF(id){ confirmDel('¿Eliminar este filamento?',`doDelF('${id}')`); }
-async function doDelF(id){ if(await dbDel('filamentos',id)){_cache.filamentos=_cache.filamentos.filter(x=>x.id!==id);render();showToast('Eliminado','ok');} }
+function delF(id){ confirmDel(t('fil.delete'),`doDelF('${id}')`); }
+async function doDelF(id){ if(await dbDel('filamentos',id)){_cache.filamentos=_cache.filamentos.filter(x=>x.id!==id);render();showToast(t('common.deleted'),'ok');} }
 
 // ═══════════════════════════════════════════════
 //  PIEZAS
 // ═══════════════════════════════════════════════
 function pgPiezas(){
   const items=_cache.piezas;
-  const cards=items.length===0?'<p style="color:var(--text4)">Sin piezas guardadas</p>':items.map(p=>`
+  const cards=items.length===0?`<p style="color:var(--text4)">${t('pz.empty')}</p>`:items.map(p=>`
 <div class="card" style="min-width:200px;flex:1 1 200px"><div style="font-size:32px;margin-bottom:10px">🧩</div>
 <div style="font-weight:700;color:var(--text2);margin-bottom:6px">${esc(p.nombre)}</div>
 <div style="font-size:13px;color:var(--text4);display:flex;flex-direction:column;gap:3px;margin-bottom:14px">
-<span>Material: <b style="color:var(--text3)">${esc(p.material)}</b></span><span>Peso: <b style="color:var(--text3)">${esc(p.peso)}g</b></span>
-<span>Tiempo: <b style="color:var(--text3)">${esc(p.tiempoImpresion)}h</b></span><span>Sugerido: <b style="color:#22c55e">${esc(p.precioSugerido)}€</b></span></div>
-<div style="display:flex;gap:8px"><button class="btn-secondary" onclick="editPz('${p.id}')">Editar</button><button class="btn-icon" onclick="delPz('${p.id}')">🗑️</button></div></div>`).join('');
-  return`<div class="page-header"><h2 class="page-title">Piezas</h2><button class="btn-primary" onclick="editPz(null)">+ Nueva pieza</button></div>
-<p style="color:var(--text4);font-size:13px;margin-bottom:16px">Guarda piezas frecuentes para auto-rellenar pedidos.</p>
+<span>${t('pz.material')}: <b style="color:var(--text3)">${esc(p.material)}</b></span><span>${t('pz.weight')}: <b style="color:var(--text3)">${esc(p.peso)}g</b></span>
+<span>${t('pz.time')}: <b style="color:var(--text3)">${esc(p.tiempoImpresion)}h</b></span><span>${t('pz.suggested')}: <b style="color:#22c55e">${esc(p.precioSugerido)}€</b></span></div>
+<div style="display:flex;gap:8px"><button class="btn-secondary" onclick="editPz('${p.id}')">${t('common.edit')}</button><button class="btn-icon" onclick="delPz('${p.id}')">🗑️</button></div></div>`).join('');
+  return`<div class="page-header"><h2 class="page-title">${t('pz.title')}</h2><button class="btn-primary" onclick="editPz(null)">${t('pz.new')}</button></div>
+<p style="color:var(--text4);font-size:13px;margin-bottom:16px">${t('pz.hint')}</p>
 <div class="flexwrap">${cards}</div>`;
 }
-function piezaFrm(x={}){ return fld('Nombre *','nombre',x.nombre||'')+fld('Material','material',x.material||'PLA','text',MATS)+fld('Peso (g)','peso',x.peso||'','number')+fld('Tiempo impresión (h)','tiempoImpresion',x.tiempoImpresion||'','number')+fld('Precio sugerido (€)','precioSugerido',x.precioSugerido||'','number'); }
+function piezaFrm(x={}){ return fld(t('pz.fName'),'nombre',x.nombre||'')+fld(t('pz.fMaterial'),'material',x.material||'PLA','text',MATS)+fld(t('pz.fWeight'),'peso',x.peso||'','number')+fld(t('pz.fTime'),'tiempoImpresion',x.tiempoImpresion||'','number')+fld(t('pz.fSuggested'),'precioSugerido',x.precioSugerido||'','number'); }
 function editPz(id){
   const x=id?_cache.piezas.find(p=>p.id===id)||{}:{};
-  openModal(msh(id?'Editar pieza':'Nueva pieza',`${piezaFrm(x)}<div style="display:flex;gap:10px;margin-top:8px"><button class="btn-primary" id="save-pz-btn" onclick="savePz('${id||''}')">Guardar</button><button class="btn-secondary" onclick="closeModal()">Cancelar</button></div>`));
+  openModal(msh(id?t('pz.editTitle'):t('pz.newTitle'),`${piezaFrm(x)}<div style="display:flex;gap:10px;margin-top:8px"><button class="btn-primary" id="save-pz-btn" onclick="savePz('${id||''}')">${t('common.save')}</button><button class="btn-secondary" onclick="closeModal()">${t('common.cancel')}</button></div>`));
 }
 async function savePz(id){
   const d=gfd(['nombre','material','peso','tiempoImpresion','precioSugerido']);
-  if(!d.nombre.trim()){showToast('Nombre obligatorio','err');return;}
+  if(!d.nombre.trim()){showToast(t('common.nameReq'),'err');return;}
   for(const [label,raw,opts] of [
-    ['Peso (g)',d.peso,{min:0}],
-    ['Tiempo impresión (h)',d.tiempoImpresion,{min:0}],
-    ['Precio sugerido (€)',d.precioSugerido,{min:0}]
+    [t('pz.fWeight'),d.peso,{min:0}],
+    [t('pz.fTime'),d.tiempoImpresion,{min:0}],
+    [t('pz.fSuggested'),d.precioSugerido,{min:0}]
   ]){
     const v=validateNum(label,raw,opts); if(!v.ok){showToast(v.error,'err');return;}
   }
@@ -4215,10 +4235,10 @@ async function savePz(id){
   if(id)row.id=id;else row.id=uid();
   const ok=await dbSave('piezas',row);
   const mapped={id:row.id,nombre:d.nombre,material:d.material,peso:peso,tiempoImpresion:tiempoImpresion,precioSugerido:precioSugerido};
-  if(ok){if(id)_cache.piezas=_cache.piezas.map(i=>i.id===id?mapped:i);else _cache.piezas.push(mapped);closeModal();render();showToast('Guardado','ok');}
+  if(ok){if(id)_cache.piezas=_cache.piezas.map(i=>i.id===id?mapped:i);else _cache.piezas.push(mapped);closeModal();render();showToast(t('common.saved'),'ok');}
 }
-function delPz(id){ confirmDel('¿Eliminar esta pieza?',`doDelPz('${id}')`); }
-async function doDelPz(id){ if(await dbDel('piezas',id)){_cache.piezas=_cache.piezas.filter(x=>x.id!==id);render();showToast('Eliminado','ok');} }
+function delPz(id){ confirmDel(t('pz.delete'),`doDelPz('${id}')`); }
+async function doDelPz(id){ if(await dbDel('piezas',id)){_cache.piezas=_cache.piezas.filter(x=>x.id!==id);render();showToast(t('common.deleted'),'ok');} }
 
 // ═══════════════════════════════════════════════
 //  PEDIDOS
@@ -4922,20 +4942,20 @@ async function marcarCobrado(id){
 // ═══════════════════════════════════════════════
 function pgArchivos(){
   const files=_cache.archivos;
-  const cards=files.length===0?'<p style="color:var(--text4)">Sin archivos</p>':files.map(f=>`
+  const cards=files.length===0?`<p style="color:var(--text4)">${t('arch.empty')}</p>`:files.map(f=>`
 <div class="card" style="width:170px;padding:14px">
 <div class="file-thumb" ${f.is_image?`onclick="prevFile('${f.id}')" style="cursor:pointer"`:''}>${f.is_image&&f._url?`<img src="${f._url}" alt="${esc(f.name)}">`:`<span style="font-size:40px">${f.is_stl?'🔷':'📄'}</span>`}</div>
 <div style="font-size:11px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;margin-bottom:3px;font-weight:500">${esc(f.name)}</div>
 <div style="font-size:10px;color:var(--text4);margin-bottom:10px">${((f.size||0)/1024).toFixed(1)} KB · ${esc(f.fecha)}</div>
 <div style="display:flex;gap:6px"><button class="btn-secondary" style="padding:5px 10px;font-size:12px" onclick="dlFile('${f.id}')">⬇️</button><button class="btn-icon" onclick="delFile('${f.id}')">🗑️</button></div>
 </div>`).join('');
-  return`<h2 class="page-title" style="margin-bottom:4px">Archivos</h2>
-<p style="color:var(--text4);font-size:13px;margin-bottom:16px">STL e imágenes — guardados en Supabase Storage (máx. 50MB).</p>
+  return`<h2 class="page-title" style="margin-bottom:4px">${t('arch.title')}</h2>
+<p style="color:var(--text4);font-size:13px;margin-bottom:16px">${t('arch.hint')}</p>
 <div class="dropzone" id="dz" onclick="$('fi').click()">
 <input type="file" id="fi" multiple accept=".stl,.jpg,.jpeg,.png,.webp,.gif,.svg" style="display:none" onchange="procFiles(this.files)">
 <div style="font-size:44px;margin-bottom:10px">📁</div>
-<div style="color:var(--text3);font-size:14px;font-weight:500">Arrastra archivos o haz clic</div>
-<div style="color:var(--text4);font-size:12px;margin-top:6px">STL · JPG · PNG · WebP · GIF · SVG · Máx. 50MB</div>
+<div style="color:var(--text3);font-size:14px;font-weight:500">${t('arch.drop')}</div>
+<div style="color:var(--text4);font-size:12px;margin-top:6px">${t('arch.dropHint')}</div>
 </div>
 <div class="flexwrap">${cards}</div>`;
 }
@@ -5040,7 +5060,7 @@ function pgGastos(){
   const catColors={Filamento:'#3b82f6',Repuestos:'#f59e0b',Herramientas:'#a78bfa',Electricidad:'#34d399',Envíos:'#60a5fa','Publicidad':'#f472b6',Software:'#fb923c',Otros:'#94a3b8'};
 
   const cards=gastos.length===0
-    ?'<p style="color:var(--text4);text-align:center;padding:32px">Sin gastos registrados</p>'
+    ?`<p style="color:var(--text4);text-align:center;padding:32px">${t('gas.empty')}</p>`
     :gastos.map(g=>`
       <div class="mob-card">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
@@ -5073,26 +5093,26 @@ function pgGastos(){
     </div>`).join('');
 
   return`<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:10px">
-  <div><h2 class="page-title">Gastos</h2><div class="page-subtitle">Control de todos tus gastos</div></div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-secondary" onclick="exportGastosCSV()" style="display:flex;align-items:center;gap:6px">📊 Exportar Excel</button><button class="btn-primary" onclick="editGasto(null)">+ Nuevo gasto</button></div>
+  <div><h2 class="page-title">${t('gas.title')}</h2><div class="page-subtitle">${t('gas.subtitle')}</div></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-secondary" onclick="exportGastosCSV()" style="display:flex;align-items:center;gap:6px">📊 ${t('common.exportExcel')}</button><button class="btn-primary" onclick="editGasto(null)">${t('gas.new')}</button></div>
 </div>
 
 <div class="flexwrap" style="margin-bottom:18px">
   <div class="card stat-card" style="position:relative;overflow:hidden;padding:20px 22px;flex:1;min-width:150px">
     <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#f87171;opacity:.6;border-radius:16px 16px 0 0"></div>
-    <div style="font-size:10px;font-weight:800;color:var(--text5);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px">Total gastos</div>
+    <div style="font-size:10px;font-weight:800;color:var(--text5);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px">${t('gas.total')}</div>
     <div style="color:#f87171;font-size:26px;font-weight:900;font-family:'Courier New',monospace">-${totalGasto.toFixed(2)}${mon}</div>
-    <div style="font-size:11px;color:var(--text4);margin-top:6px">${gastos.length} gastos registrados</div>
+    <div style="font-size:11px;color:var(--text4);margin-top:6px">${gastos.length} ${t('gas.registered')}</div>
   </div>
   <div class="card stat-card" style="position:relative;overflow:hidden;padding:20px 22px;flex:1;min-width:150px">
     <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#f59e0b;opacity:.6;border-radius:16px 16px 0 0"></div>
-    <div style="font-size:10px;font-weight:800;color:var(--text5);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px">Este mes</div>
+    <div style="font-size:10px;font-weight:800;color:var(--text5);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px">${t('gas.thisMonth')}</div>
     <div style="color:#f59e0b;font-size:26px;font-weight:900;font-family:'Courier New',monospace">-${gastoMes.toFixed(2)}${mon}</div>
-    <div style="font-size:11px;color:var(--text4);margin-top:6px">${new Date().toLocaleString('es-ES',{month:'long',year:'numeric'})}</div>
+    <div style="font-size:11px;color:var(--text4);margin-top:6px">${new Date().toLocaleString(LANG==='en'?'en-GB':'es-ES',{month:'long',year:'numeric'})}</div>
   </div>
   <div class="card" style="flex:1;min-width:200px;padding:20px 22px">
-    <div style="font-size:10px;font-weight:800;color:var(--text5);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:12px">Por categoría</div>
-    ${catRows||'<p style="color:var(--text4);font-size:13px">Sin datos</p>'}
+    <div style="font-size:10px;font-weight:800;color:var(--text5);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:12px">${t('gas.byCat')}</div>
+    ${catRows||`<p style="color:var(--text4);font-size:13px">${t('gas.noData')}</p>`}
   </div>
 </div>
 
@@ -5101,25 +5121,25 @@ function pgGastos(){
 
 function gastoFrm(x={}){
   const catOpts=CATS_GASTO.map(c=>({value:c,label:c}));
-  return fld('Descripción *','gasto_desc',x.descripcion||'')
-    +fld('Categoría','gasto_cat',x.categoria||'Filamento','text',catOpts)
+  return fld(t('gas.fDesc'),'gasto_desc',x.descripcion||'')
+    +fld(t('gas.fCat'),'gasto_cat',x.categoria||'Filamento','text',catOpts)
     +`<div class="grid2">`
-    +fld('Importe (€)','gasto_importe',x.importe||'','number')
-    +fld('Fecha','gasto_fecha',x.fecha||today(),'date')
+    +fld(t('gas.fAmount'),'gasto_importe',x.importe||'','number')
+    +fld(t('gas.fDate'),'gasto_fecha',x.fecha||today(),'date')
     +'</div>'
-    +fld('Proveedor','gasto_proveedor',x.proveedor||'')
-    +fld('Notas','gasto_notas',x.notas||'','textarea');
+    +fld(t('gas.fSupplier'),'gasto_proveedor',x.proveedor||'')
+    +fld(t('col.notes'),'gasto_notas',x.notas||'','textarea');
 }
 
 function editGasto(id){
   const x=id?(_cache.gastos||[]).find(g=>g.id===id)||{}:{};
-  openModal(msh(id?'Editar gasto':'Nuevo gasto',`${gastoFrm(x)}<div style="display:flex;gap:10px;margin-top:8px"><button class="btn-primary" id="save-g-btn" onclick="saveGasto('${id||''}')">Guardar</button><button class="btn-secondary" onclick="closeModal()">Cancelar</button></div>`));
+  openModal(msh(id?t('gas.editTitle'):t('gas.newTitle'),`${gastoFrm(x)}<div style="display:flex;gap:10px;margin-top:8px"><button class="btn-primary" id="save-g-btn" onclick="saveGasto('${id||''}')">${t('common.save')}</button><button class="btn-secondary" onclick="closeModal()">${t('common.cancel')}</button></div>`));
 }
 
 async function saveGasto(id){
   const d=gfd(['gasto_desc','gasto_cat','gasto_importe','gasto_fecha','gasto_proveedor','gasto_notas']);
-  if(!d.gasto_desc.trim()){showToast('Descripción obligatoria','err');return;}
-  const vImp=validateNum('Importe (€)',d.gasto_importe,{min:0.01,allowEmpty:false});
+  if(!d.gasto_desc.trim()){showToast(t('gas.descReq'),'err');return;}
+  const vImp=validateNum(t('gas.fAmount'),d.gasto_importe,{min:0.01,allowEmpty:false});
   if(!vImp.ok){showToast(vImp.error,'err');return;}
   setLoading('save-g-btn',true);
   const rowId=id||uid();
@@ -5129,15 +5149,15 @@ async function saveGasto(id){
     if(!_cache.gastos)_cache.gastos=[];
     if(id)_cache.gastos=_cache.gastos.map(g=>g.id===id?{...g,...row}:g);
     else _cache.gastos.unshift(row);
-    closeModal();render();showToast('Gasto guardado','ok');
+    closeModal();render();showToast(t('gas.saved'),'ok');
   }
 }
 
-function delGasto(id){ confirmDel('¿Eliminar este gasto?',`doDelGasto('${id}')`); }
+function delGasto(id){ confirmDel(t('gas.delete'),`doDelGasto('${id}')`); }
 async function doDelGasto(id){
   if(await dbDel('gastos',id)){
     _cache.gastos=(_cache.gastos||[]).filter(x=>x.id!==id);
-    render();showToast('Eliminado','ok');
+    render();showToast(t('common.deleted'),'ok');
   }
 }
 
@@ -5162,11 +5182,11 @@ function pgCobros(){
   const enCurso=pendientes.filter(o=>o.estado==='imprimiendo'||o.estado==='pendiente');
 
   if(pendientes.length===0) return`
-    <div class="page-header"><h2 class="page-title">Cobros pendientes</h2></div>
+    <div class="page-header"><h2 class="page-title">${t('cob.title')}</h2></div>
     <div class="card" style="text-align:center;padding:48px 24px">
       <div style="font-size:48px;margin-bottom:12px">🎉</div>
-      <div style="font-size:18px;font-weight:700;color:var(--text2);margin-bottom:8px">Todo cobrado</div>
-      <div style="font-size:14px;color:var(--text4)">No tienes pedidos pendientes de cobro.</div>
+      <div style="font-size:18px;font-weight:700;color:var(--text2);margin-bottom:8px">${t('cob.allCollected')}</div>
+      <div style="font-size:14px;color:var(--text4)">${t('cob.nonePending')}</div>
     </div>`;
 
   const fila=(o)=>{
@@ -5176,7 +5196,7 @@ function pgCobros(){
     const border=urgente?'rgba(239,68,68,.35)':aviso?'rgba(245,158,11,.3)':'rgba(255,255,255,.06)';
     const bg=urgente?'linear-gradient(145deg,#1a0808,#0f0505)':aviso?'linear-gradient(145deg,#1a1200,#0f0d00)':'var(--bg2)';
     const diasColor=urgente?'#f87171':aviso?'#fbbf24':'var(--text4)';
-    const waMsg=encodeURIComponent(`Hola ${cl.nombre||''}, te recuerdo que el pedido "${o.proyecto}" está listo para recoger/cobrar. Total: ${o._coste.toFixed(2)}${mon}. ¡Gracias!`);
+    const waMsg=encodeURIComponent(t('cob.reminder',{n:cl.nombre||'',p:o.proyecto,tot:o._coste.toFixed(2)+mon}));
     const waTel=cl.telefono?cl.telefono.replace(/\s/g,''):'';
     return`<div style="background:${bg};border:1px solid ${border};border-radius:14px;padding:16px 18px;margin-bottom:10px">
       <div style="display:flex;align-items:flex-start;gap:14px;flex-wrap:wrap">
@@ -5184,19 +5204,19 @@ function pgCobros(){
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap">
             <span style="font-size:14px;font-weight:700;color:var(--text2)">${esc(o.proyecto)}</span>
             ${mkBadge(o.estado)}
-            ${urgente?'<span style="background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3);border-radius:99px;padding:1px 8px;font-size:10px;font-weight:800">URGENTE</span>':''}
+            ${urgente?`<span style="background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3);border-radius:99px;padding:1px 8px;font-size:10px;font-weight:800">${t('cob.urgent')}</span>`:''}
           </div>
           <div style="display:flex;gap:16px;font-size:12px;color:var(--text4);flex-wrap:wrap">
             ${cl.nombre?`<span>👤 ${esc(cl.nombre)}</span>`:''}
             ${o.fecha?`<span>📅 ${esc(o.fecha)}</span>`:''}
-            <span style="color:${diasColor};font-weight:700">⏱ ${o._dias} día${o._dias!==1?'s':''}</span>
-            ${o.presNum?`<span style="color:var(--text5)">Ref: ${esc(o.presNum)}</span>`:''}
+            <span style="color:${diasColor};font-weight:700">⏱ ${o._dias} ${o._dias!==1?t('common.days'):t('common.day')}</span>
+            ${o.presNum?`<span style="color:var(--text5)">${t('cob.ref')} ${esc(o.presNum)}</span>`:''}
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap">
           <span style="font-size:20px;font-weight:900;color:#34d399;font-family:monospace;letter-spacing:-1px">${o._coste.toFixed(2)}${mon}</span>
           ${waTel?`<a href="https://wa.me/${waTel}?text=${waMsg}" target="_blank" style="background:rgba(37,211,102,.12);border:1px solid rgba(37,211,102,.3);color:#25d366;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap">💬 WhatsApp</a>`:''}
-          <button onclick="editO('${o.id}')" style="background:rgba(52,211,153,.15);border:1px solid rgba(52,211,153,.3);color:#34d399;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;white-space:nowrap">✅ Cobrar</button>
+          <button onclick="editO('${o.id}')" style="background:rgba(52,211,153,.15);border:1px solid rgba(52,211,153,.3);color:#34d399;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:700;white-space:nowrap">${t('cob.collect')}</button>
         </div>
       </div>
     </div>`;
@@ -5204,25 +5224,25 @@ function pgCobros(){
 
   return`
   <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px;flex-wrap:wrap;gap:10px">
-    <div><h2 class="page-title">Cobros pendientes</h2><div class="page-subtitle">${pendientes.length} pedido${pendientes.length!==1?'s':''} · ${totalPendiente.toFixed(2)}${mon} por cobrar</div></div>
+    <div><h2 class="page-title">${t('cob.title')}</h2><div class="page-subtitle">${pendientes.length} ${t('ped.ordersWord')} · ${totalPendiente.toFixed(2)}${mon} ${t('cob.toCollect')}</div></div>
   </div>
   <div class="flexwrap" style="margin-bottom:20px">
     <div class="card stat-card" style="flex:1;min-width:160px;padding:18px 20px">
-      <div style="font-size:10px;font-weight:800;color:var(--text5);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:8px">Por cobrar</div>
+      <div style="font-size:10px;font-weight:800;color:var(--text5);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:8px">${t('cob.toCollectLbl')}</div>
       <div style="font-size:26px;font-weight:900;color:#34d399;font-family:monospace;letter-spacing:-1px">${totalPendiente.toFixed(2)}${mon}</div>
     </div>
     <div class="card stat-card" style="flex:1;min-width:140px;padding:18px 20px">
-      <div style="font-size:10px;font-weight:800;color:var(--text5);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:8px">Urgentes (+7 días)</div>
+      <div style="font-size:10px;font-weight:800;color:var(--text5);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:8px">${t('cob.urgent7')}</div>
       <div style="font-size:26px;font-weight:900;color:${urgentes.length>0?'#f87171':'#34d399'};font-family:monospace">${urgentes.length}</div>
     </div>
     <div class="card stat-card" style="flex:1;min-width:140px;padding:18px 20px">
-      <div style="font-size:10px;font-weight:800;color:var(--text5);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:8px">En curso</div>
+      <div style="font-size:10px;font-weight:800;color:var(--text5);text-transform:uppercase;letter-spacing:1.4px;margin-bottom:8px">${t('cob.inProgress')}</div>
       <div style="font-size:26px;font-weight:900;color:#60a5fa;font-family:monospace">${enCurso.length}</div>
     </div>
   </div>
-  ${urgentes.length>0?`<div style="font-size:10px;font-weight:800;color:#f87171;text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px">🔴 Urgentes — más de 7 días sin cobrar</div>${urgentes.map(fila).join('')}<div style="margin-bottom:18px"></div>`:''}
-  ${enCurso.length>0?`<div style="font-size:10px;font-weight:800;color:#60a5fa;text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px">🔵 En curso — pendiente o imprimiendo</div>${enCurso.map(fila).join('')}`:''}
-  ${pendientes.filter(o=>!urgentes.includes(o)&&!enCurso.includes(o)).length>0?`<div style="font-size:10px;font-weight:800;color:var(--text4);text-transform:uppercase;letter-spacing:1.4px;margin:18px 0 10px">🟡 Terminados recientes</div>${pendientes.filter(o=>!urgentes.includes(o)&&!enCurso.includes(o)).map(fila).join('')}`:''}
+  ${urgentes.length>0?`<div style="font-size:10px;font-weight:800;color:#f87171;text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px">${t('cob.secUrgent')}</div>${urgentes.map(fila).join('')}<div style="margin-bottom:18px"></div>`:''}
+  ${enCurso.length>0?`<div style="font-size:10px;font-weight:800;color:#60a5fa;text-transform:uppercase;letter-spacing:1.4px;margin-bottom:10px">${t('cob.secInProgress')}</div>${enCurso.map(fila).join('')}`:''}
+  ${pendientes.filter(o=>!urgentes.includes(o)&&!enCurso.includes(o)).length>0?`<div style="font-size:10px;font-weight:800;color:var(--text4);text-transform:uppercase;letter-spacing:1.4px;margin:18px 0 10px">${t('cob.secRecent')}</div>${pendientes.filter(o=>!urgentes.includes(o)&&!enCurso.includes(o)).map(fila).join('')}`:''}
   `;
 }
 
@@ -5616,7 +5636,7 @@ function pgCalculadora(){
   const filOpts=[{v:'',l:'── Coste manual (€/kg) ──'},...filamentos.map(f=>({v:f.id,l:`${f.tipo||''} ${f.marca||''} ${f.color?'· '+f.color:''}`.trim()+` (${((parseFloat(f.precioPorKg)||0)/1000*1000).toFixed(0)}€/kg)`}))].map(o=>`<option value="${esc(o.v)}">${esc(o.l)}</option>`).join('');
   const impOpts=[{v:'',l:'── Sin impresora (200W) ──'},...impresoras.map(i=>({v:i.id,l:`${i.nombre||'Impresora'} (${i.consumoW||200}W)`}))].map(o=>`<option value="${esc(o.v)}">${esc(o.l)}</option>`).join('');
 
-  return`<div class="page-header"><div><h2 class="page-title">🧮 Calculadora rápida</h2><div class="page-subtitle">Estima coste y precio sin crear un pedido</div></div></div>
+  return`<div class="page-header"><div><h2 class="page-title">${t('calc.title')}</h2><div class="page-subtitle">${t('calc.subtitle')}</div></div></div>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:900px" id="calc-wrap">
   <!-- INPUTS -->
   <div class="card" style="padding:24px;display:flex;flex-direction:column;gap:16px">
