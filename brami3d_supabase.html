@@ -640,6 +640,7 @@ const I18N = {
     'dash.lowFilament':'Stock bajo de filamento','dash.gLeft':'g restantes','dash.restock':'Reponer',
     'dash.pendingCollect':'Pendiente de cobrar','dash.finishedUnpaid':'pedidos sin cobrar','dash.collect':'Cobrar',
     'dash.staleOrders':'Pedidos sin actualizar','dash.staleSub':'Llevan más de 3 días en el mismo estado','dash.update':'Actualizar',
+    'an.title':'Análisis','an.avgTicket':'Ticket medio','an.avgTicketSub':'por pedido cobrado','an.conversion':'Tasa de conversión','an.conversionSub':'presupuestos cobrados','an.grossProfit':'Beneficio bruto','an.grossMargin':'margen','an.profitByClient':'Rentabilidad por cliente','an.profitByMaterial':'Rentabilidad por material','an.colProfit':'Beneficio','an.colIncome':'Ingresos','an.colOrders':'Pedidos','an.colMargin':'Margen','an.noData':'Aún no hay pedidos cobrados','an.client':'Cliente','an.material':'Material',
     'st.todos':'todos','st.pendiente':'pendiente','st.imprimiendo':'imprimiendo','st.terminado':'terminado','st.entregado':'entregado','st.cobrado':'cobrado','st.pagado':'pagado','st.activa':'activa','st.mantenimiento':'mantenimiento','st.averiada':'averiada',
     'common.exportExcel':'Exportar Excel','common.page':'Página','common.of':'de','common.search':'Buscar…',
     'ped.title':'Pedidos','ped.ordersWord':'pedidos','ped.inTotal':'en total','ped.searchProject':'Buscar proyecto…',
@@ -714,6 +715,7 @@ const I18N = {
     'dash.lowFilament':'Low filament stock','dash.gLeft':'g left','dash.restock':'Restock',
     'dash.pendingCollect':'Pending payment','dash.finishedUnpaid':'unpaid orders','dash.collect':'Collect',
     'dash.staleOrders':'Stale orders','dash.staleSub':'Same status for 3+ days','dash.update':'Update',
+    'an.title':'Analytics','an.avgTicket':'Average ticket','an.avgTicketSub':'per paid order','an.conversion':'Conversion rate','an.conversionSub':'quotes paid','an.grossProfit':'Gross profit','an.grossMargin':'margin','an.profitByClient':'Profit by customer','an.profitByMaterial':'Profit by material','an.colProfit':'Profit','an.colIncome':'Income','an.colOrders':'Orders','an.colMargin':'Margin','an.noData':'No paid orders yet','an.client':'Customer','an.material':'Material',
     'st.todos':'all','st.pendiente':'pending','st.imprimiendo':'printing','st.terminado':'finished','st.entregado':'delivered','st.cobrado':'paid','st.pagado':'paid','st.activa':'active','st.mantenimiento':'maintenance','st.averiada':'broken',
     'common.exportExcel':'Export Excel','common.page':'Page','common.of':'of','common.search':'Search…',
     'ped.title':'Orders','ped.ordersWord':'orders','ped.inTotal':'total','ped.searchProject':'Search project…',
@@ -3635,6 +3637,48 @@ function pgDashboard(){
 
   const eList=Object.entries(byE).length===0?`<p style="color:var(--text5);font-size:13px">${t('dash.noOrders')}</p>`:Object.entries(byE).map(([k,v])=>`<button onclick="goToEstado('${k}')" style="display:flex;justify-content:space-between;align-items:center;width:100%;padding:10px 12px;margin-bottom:6px;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:all .18s;text-align:left" onmouseover="this.style.background='rgba(59,130,246,.08)';this.style.borderColor='#2563eb40'" onmouseout="this.style.background='rgba(255,255,255,.02)';this.style.borderColor='#132540'">${mkBadge(k)}<span style="color:#93c5fd;font-weight:800;font-size:18px;font-family:monospace">${v}</span></button>`).join('');
 
+  // ── MÉTRICAS DE NEGOCIO ──
+  const mon=cfg.moneda||'€';
+  const conPres = orders.filter(o=>o.presNum);
+  const presCobrados = conPres.filter(o=>o.cobrado===true).length;
+  const convRate = conPres.length ? (presCobrados/conPres.length*100) : 0;
+  const ticketMedio = paid.length ? totI/paid.length : 0;
+  const benBruto = totI-totC;
+  const margenGlobal = totI>0 ? (benBruto/totI*100) : 0;
+  const byCli={}, byMat={};
+  paid.forEach(o=>{
+    const c=calcOrderCosts(o,cfg);
+    const cl=_cache.clientes.find(x=>x.id===o.clienteId);
+    const nombre=cl?.nombre||'—';
+    if(!byCli[nombre]) byCli[nombre]={ing:0,ben:0,n:0};
+    byCli[nombre].ing+=c.fp; byCli[nombre].ben+=c.profit; byCli[nombre].n++;
+    const mat=o.material||'—';
+    if(!byMat[mat]) byMat[mat]={ing:0,ben:0,n:0};
+    byMat[mat].ing+=c.fp; byMat[mat].ben+=c.profit; byMat[mat].n++;
+  });
+  const topCli=Object.entries(byCli).sort((a,b)=>b[1].ben-a[1].ben).slice(0,5);
+  const topMat=Object.entries(byMat).sort((a,b)=>b[1].ben-a[1].ben).slice(0,6);
+  const moneyCol=v=>v>=0?'#34d399':'#f87171';
+  const cliRows=topCli.length?topCli.map(([n,d])=>`<tr><td style="color:var(--text2);font-weight:600">${esc(n)}</td><td style="text-align:right;color:${moneyCol(d.ben)};font-weight:700">${d.ben.toFixed(2)}${mon}</td><td style="text-align:right;color:var(--text4)">${d.ing.toFixed(2)}${mon}</td><td style="text-align:center;color:var(--text5)">${d.n}</td></tr>`).join(''):`<tr><td colspan="4" style="text-align:center;color:var(--text5);padding:16px">${t('an.noData')}</td></tr>`;
+  const matRows=topMat.length?topMat.map(([m,d])=>{const mg=d.ing>0?(d.ben/d.ing*100):0;return`<tr><td style="color:var(--text2);font-weight:600">${esc(m)}</td><td style="text-align:right;color:${moneyCol(d.ben)};font-weight:700">${d.ben.toFixed(2)}${mon}</td><td style="text-align:right;color:var(--text4)">${d.ing.toFixed(2)}${mon}</td><td style="text-align:right;color:${moneyCol(mg)}">${mg.toFixed(0)}%</td></tr>`;}).join(''):`<tr><td colspan="4" style="text-align:center;color:var(--text5);padding:16px">${t('an.noData')}</td></tr>`;
+  const analyticsHTML=`
+<div style="margin-top:18px;font-size:10px;font-weight:800;color:var(--text5);text-transform:uppercase;letter-spacing:1.4px">📈 ${t('an.title')}</div>
+<div class="flexwrap" style="margin-top:10px">
+  ${stC(t('an.avgTicket'),ticketMedio.toFixed(2)+mon,'🎟️','#60a5fa',t('an.avgTicketSub'))}
+  ${stC(t('an.conversion'),convRate.toFixed(0)+'%','🎯','#a78bfa',presCobrados+'/'+conPres.length+' '+t('an.conversionSub'))}
+  ${stC(t('an.grossProfit'),benBruto.toFixed(2)+mon,'📊',moneyCol(benBruto),t('an.grossMargin')+' '+margenGlobal.toFixed(0)+'%')}
+</div>
+<div class="flexwrap" style="margin-top:14px">
+  <div class="card" style="flex:1;min-width:300px;padding:0;overflow:hidden">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border)"><span class="card-title" style="margin:0">${t('an.profitByClient')}</span></div>
+    <div style="overflow-x:auto"><table style="font-size:12px"><thead><tr><th>${t('an.client')}</th><th style="text-align:right">${t('an.colProfit')}</th><th style="text-align:right">${t('an.colIncome')}</th><th style="text-align:center">${t('an.colOrders')}</th></tr></thead><tbody>${cliRows}</tbody></table></div>
+  </div>
+  <div class="card" style="flex:1;min-width:300px;padding:0;overflow:hidden">
+    <div style="padding:14px 18px;border-bottom:1px solid var(--border)"><span class="card-title" style="margin:0">${t('an.profitByMaterial')}</span></div>
+    <div style="overflow-x:auto"><table style="font-size:12px"><thead><tr><th>${t('an.material')}</th><th style="text-align:right">${t('an.colProfit')}</th><th style="text-align:right">${t('an.colIncome')}</th><th style="text-align:right">${t('an.colMargin')}</th></tr></thead><tbody>${matRows}</tbody></table></div>
+  </div>
+</div>`;
+
   const recent6=recent.map(o=>{const c=calcOrderCosts(o,cfg);return`<tr><td><span class="num-badge">${esc(o.presNum||'—')}</span></td><td><span style="color:var(--text2);font-weight:700">${esc(o.proyecto)}</span></td><td style="color:var(--text3)">${esc(o.material)}</td><td style="color:#34d399;font-weight:800">${c.fp.toFixed(2)}${cfg.moneda||'€'}</td><td>${mkBadge(o.estado)}</td><td style="color:var(--text5)">${esc(o.fecha)}</td></tr>`;}).join('');
 
   // Filament alerts — less than 200g remaining
@@ -3782,6 +3826,7 @@ ${filAlert}
     <div style="position:relative;height:140px"><canvas id="ch-materiales"></canvas></div>
   </div>
 </div>
+${analyticsHTML}
 <div class="card" style="margin-top:18px;padding:0;overflow:hidden">
   <div style="padding:18px 22px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px"><span>🕐</span><span class="card-title" style="margin:0">${t('dash.recentOrders')}</span></div>
   <div style="overflow-x:auto"><table><thead><tr><th>${t('col.num')}</th><th>${t('col.project')}</th><th>${t('col.material')}</th><th>${t('col.price')}</th><th>${t('col.status')}</th><th>${t('col.date')}</th></tr></thead><tbody>${recent6.length?recent6:`<tr><td colspan="6" style="text-align:center;color:var(--text5);padding:32px">${t('dash.noOrdersYet')}</td></tr>`}</tbody></table></div>
