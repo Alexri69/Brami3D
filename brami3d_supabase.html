@@ -638,7 +638,16 @@ const I18N = {
     'dash.lowFilament':'Stock bajo de filamento','dash.gLeft':'g restantes','dash.restock':'Reponer',
     'dash.pendingCollect':'Pendiente de cobrar','dash.finishedUnpaid':'pedidos sin cobrar','dash.collect':'Cobrar',
     'dash.staleOrders':'Pedidos sin actualizar','dash.staleSub':'Llevan más de 3 días en el mismo estado','dash.update':'Actualizar',
-    'st.todos':'todos','st.pendiente':'pendiente','st.imprimiendo':'imprimiendo','st.terminado':'terminado','st.entregado':'entregado','st.cobrado':'cobrado','st.pagado':'pagado','st.activa':'activa','st.mantenimiento':'mantenimiento','st.averiada':'averiada'
+    'st.todos':'todos','st.pendiente':'pendiente','st.imprimiendo':'imprimiendo','st.terminado':'terminado','st.entregado':'entregado','st.cobrado':'cobrado','st.pagado':'pagado','st.activa':'activa','st.mantenimiento':'mantenimiento','st.averiada':'averiada',
+    'common.exportExcel':'Exportar Excel','common.page':'Página','common.of':'de','common.search':'Buscar…',
+    'ped.title':'Pedidos','ped.ordersWord':'pedidos','ped.inTotal':'en total','ped.searchProject':'Buscar proyecto…',
+    'ped.selectedWord':'seleccionados','ped.changeStatusTo':'→ Cambiar estado a:','ped.deselect':'✕ Deseleccionar',
+    'ped.empty':'Sin pedidos — crea tu primer pedido 👆','ped.selectAll':'Seleccionar página','ped.deselectAll':'Deseleccionar todo',
+    'col.client':'Cliente','col.weight':'Peso','col.numInvoice':'Nº / Factura',
+    'ped.tPresupuesto':'Presupuesto PDF','ped.tWhatsApp':'WhatsApp','ped.tCobrado':'Marcar como cobrado','ped.tYaCobrado':'Ya cobrado',
+    'ped.tVerFactura':'Ver factura PDF','ped.tGenFactura':'Generar factura','ped.tEnviarFactura':'Enviar factura por WhatsApp',
+    'ped.tDuplicar':'Duplicar pedido','ped.tSoloPagados':'Solo para pedidos pagados','ped.types':'tipos','ped.units':'uds',
+    'ped.overdue':'vencido','ped.delivery':'entrega','ped.paidBadge':'cobrado','ped.deposit':'Anticipo','ped.balance':'pendiente'
   },
   en: {
     'nav.dashboard':'Dashboard','nav.clientes':'Customers','nav.pedidos':'Orders','nav.impresoras':'Printers',
@@ -658,7 +667,16 @@ const I18N = {
     'dash.lowFilament':'Low filament stock','dash.gLeft':'g left','dash.restock':'Restock',
     'dash.pendingCollect':'Pending payment','dash.finishedUnpaid':'unpaid orders','dash.collect':'Collect',
     'dash.staleOrders':'Stale orders','dash.staleSub':'Same status for 3+ days','dash.update':'Update',
-    'st.todos':'all','st.pendiente':'pending','st.imprimiendo':'printing','st.terminado':'finished','st.entregado':'delivered','st.cobrado':'paid','st.pagado':'paid','st.activa':'active','st.mantenimiento':'maintenance','st.averiada':'broken'
+    'st.todos':'all','st.pendiente':'pending','st.imprimiendo':'printing','st.terminado':'finished','st.entregado':'delivered','st.cobrado':'paid','st.pagado':'paid','st.activa':'active','st.mantenimiento':'maintenance','st.averiada':'broken',
+    'common.exportExcel':'Export Excel','common.page':'Page','common.of':'of','common.search':'Search…',
+    'ped.title':'Orders','ped.ordersWord':'orders','ped.inTotal':'total','ped.searchProject':'Search project…',
+    'ped.selectedWord':'selected','ped.changeStatusTo':'→ Change status to:','ped.deselect':'✕ Deselect',
+    'ped.empty':'No orders — create your first one 👆','ped.selectAll':'Select page','ped.deselectAll':'Deselect all',
+    'col.client':'Customer','col.weight':'Weight','col.numInvoice':'No. / Invoice',
+    'ped.tPresupuesto':'Quote PDF','ped.tWhatsApp':'WhatsApp','ped.tCobrado':'Mark as paid','ped.tYaCobrado':'Already paid',
+    'ped.tVerFactura':'View invoice PDF','ped.tGenFactura':'Create invoice','ped.tEnviarFactura':'Send invoice via WhatsApp',
+    'ped.tDuplicar':'Duplicate order','ped.tSoloPagados':'Paid orders only','ped.types':'types','ped.units':'units',
+    'ped.overdue':'overdue','ped.delivery':'delivery','ped.paidBadge':'paid','ped.deposit':'Deposit','ped.balance':'balance'
   }
 };
 function t(key, vars){
@@ -4169,7 +4187,7 @@ function pgPedidos(){
   const orders=_cache.pedidos; const clients=_cache.clientes; const cfg=_cache.cfg;
   const ESTADOS=['todos','pendiente','imprimiendo','terminado','entregado','cobrado'];
   const rowHl={pendiente:'rgba(245,158,11,.06)',imprimiendo:'rgba(59,130,246,.06)',terminado:'rgba(16,185,129,.04)',entregado:'rgba(139,92,246,.05)',cobrado:'rgba(34,197,94,.06)'};
-  const chips=ESTADOS.map(e=>`<button class="chip${_pFilt===e?' active':''}" onclick="_pFilt='${e}';_pPage=0;_pSelected.clear();render()">${e}</button>`).join('');
+  const chips=ESTADOS.map(e=>`<button class="chip${_pFilt===e?' active':''}" onclick="_pFilt='${e}';_pPage=0;_pSelected.clear();render()">${t('st.'+e)}</button>`).join('');
   const fl=orders.filter(o=>{
     if(_pFilt==='cobrado') return o.cobrado===true;
     if(_pFilt!=='todos'&&o.estado!==_pFilt)return false;
@@ -4180,20 +4198,20 @@ function pgPedidos(){
   _pPage=Math.min(_pPage,totalPPages-1);
   const flPaged=fl.slice(_pPage*_P_PAGE_SIZE,(_pPage+1)*_P_PAGE_SIZE);
   const pPager=fl.length>_P_PAGE_SIZE?`<div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:16px;font-size:13px;color:var(--text4)">
-    <button class="btn-secondary" style="padding:6px 14px" ${_pPage===0?'disabled':''} onclick="_pPage--;render()">← Anterior</button>
-    <span>Página <b style="color:var(--text2)">${_pPage+1}</b> de ${totalPPages} · ${fl.length} pedidos</span>
-    <button class="btn-secondary" style="padding:6px 14px" ${_pPage>=totalPPages-1?'disabled':''} onclick="_pPage++;render()">Siguiente →</button>
+    <button class="btn-secondary" style="padding:6px 14px" ${_pPage===0?'disabled':''} onclick="_pPage--;render()">${t('common.prev')}</button>
+    <span>${t('common.page')} <b style="color:var(--text2)">${_pPage+1}</b> ${t('common.of')} ${totalPPages} · ${fl.length} ${t('ped.ordersWord')}</span>
+    <button class="btn-secondary" style="padding:6px 14px" ${_pPage>=totalPPages-1?'disabled':''} onclick="_pPage++;render()">${t('common.next')}</button>
   </div>`:'' ;
   const allPageIds=flPaged.map(o=>o.id);
   window._pPageIds=allPageIds;
   const allChecked=allPageIds.length>0&&allPageIds.every(id=>_pSelected.has(id));
   const bulkBar=_pSelected.size>0?`<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:rgba(59,130,246,.1);border:1.5px solid rgba(59,130,246,.35);border-radius:12px;padding:10px 16px;margin-bottom:12px;font-size:13px">
-    <span style="font-weight:700;color:#60a5fa">${_pSelected.size} pedido${_pSelected.size!==1?'s':''} seleccionado${_pSelected.size!==1?'s':''}</span>
-    <span style="color:var(--text5)">→ Cambiar estado a:</span>
+    <span style="font-weight:700;color:#60a5fa">${_pSelected.size} ${t('ped.ordersWord')} ${t('ped.selectedWord')}</span>
+    <span style="color:var(--text5)">${t('ped.changeStatusTo')}</span>
     ${['pendiente','imprimiendo','terminado','entregado','cobrado'].map(e=>`<button onclick="bulkChangeEstado('${e}')" style="padding:5px 12px;border-radius:8px;font-size:12px;font-weight:700;border:1.5px solid;cursor:pointer;background:transparent" class="bulk-btn-${e}">${mkBadge(e)}</button>`).join('')}
-    <button onclick="_pSelected.clear();render()" style="margin-left:auto;padding:5px 12px;border-radius:8px;font-size:12px;background:var(--bg4);border:1px solid var(--border);color:var(--text4);cursor:pointer">✕ Deseleccionar</button>
+    <button onclick="_pSelected.clear();render()" style="margin-left:auto;padding:5px 12px;border-radius:8px;font-size:12px;background:var(--bg4);border:1px solid var(--border);color:var(--text4);cursor:pointer">${t('ped.deselect')}</button>
   </div>`:'';
-  const rows=flPaged.length===0?'<tr><td colspan="10" style="text-align:center;color:var(--text5);padding:32px">Sin pedidos — crea tu primer pedido 👆</td></tr>':flPaged.map(o=>{
+  const rows=flPaged.length===0?`<tr><td colspan="10" style="text-align:center;color:var(--text5);padding:32px">${t('ped.empty')}</td></tr>`:flPaged.map(o=>{
     const cl=clients.find(x=>x.id===o.clienteId)||{};
     const c=calcOrderCosts(o,cfg);
     const bg=rowHl[o.estado]||'';
@@ -4201,17 +4219,17 @@ function pgPedidos(){
     const hasFactura=!!o.facturaNum;
     const piezasCount=(o.lineas||[]).reduce((s,l)=>s+(parseInt(l.qty)||1),0)||'—';
     let factBtn;
-    if(isPagado){factBtn='<button class="btn-icon fact-btn" title="'+(hasFactura?'Ver factura PDF':'Generar factura')+'" onclick="genFactura(\''+o.id+'\')" style="font-size:18px">🧾</button>'
-      +'<button class="btn-icon" title="Enviar factura por WhatsApp" onclick="sendFacturaWA(\''+o.id+'\')" style="font-size:16px">📤</button>';}
-    else{factBtn='<button class="btn-icon" title="Solo para pedidos pagados" style="opacity:.18;cursor:not-allowed;font-size:18px">🧾</button>';}
+    if(isPagado){factBtn='<button class="btn-icon fact-btn" title="'+(hasFactura?t('ped.tVerFactura'):t('ped.tGenFactura'))+'" onclick="genFactura(\''+o.id+'\')" style="font-size:18px">🧾</button>'
+      +'<button class="btn-icon" title="'+t('ped.tEnviarFactura')+'" onclick="sendFacturaWA(\''+o.id+'\')" style="font-size:16px">📤</button>';}
+    else{factBtn='<button class="btn-icon" title="'+t('ped.tSoloPagados')+'" style="opacity:.18;cursor:not-allowed;font-size:18px">🧾</button>';}
     const factBadge=hasFactura?'<div style="margin-top:3px"><span style="display:inline-block;background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800;font-family:monospace">🧾 '+esc(o.facturaNum)+'</span></div>':'';
-    const multiPieza=(o.lineas&&o.lineas.length>1)?'<div style="font-size:10px;color:var(--text4);margin-top:2px">'+o.lineas.length+' tipos · '+piezasCount+' uds</div>':'';
-    const cobradoBadge=o.cobrado?'<div style="margin-top:3px"><span style="display:inline-block;background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800">💰 cobrado</span></div>':'';
-    const entregaBadge=(()=>{if(!o.fechaEntrega)return'';const hoy2=new Date();hoy2.setHours(0,0,0,0);const fe=new Date(o.fechaEntrega+'T00:00:00');const diff=Math.ceil((fe-hoy2)/(1000*60*60*24));if(o.cobrado)return'';if(diff<0)return'<div style="margin-top:2px"><span style="display:inline-block;background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800">⚠️ vencido '+o.fechaEntrega+'</span></div>';if(diff<=3)return'<div style="margin-top:2px"><span style="display:inline-block;background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800">⏰ entrega '+o.fechaEntrega+'</span></div>';return'<div style="margin-top:2px"><span style="display:inline-block;background:rgba(96,165,250,.1);color:#60a5fa;border:1px solid rgba(96,165,250,.2);border-radius:5px;padding:1px 7px;font-size:9px">📅 '+o.fechaEntrega+'</span></div>';})();
-    const anticipoBadge=(o.anticipo>0&&!o.cobrado)?(()=>{const pend=Math.max(0,(c.fp||0)-o.anticipo);return '<div style="margin-top:3px"><span style="display:inline-block;background:rgba(96,165,250,.12);color:#60a5fa;border:1px solid rgba(96,165,250,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:700">💵 Anticipo '+o.anticipo.toFixed(2)+(cfg.moneda||'€')+' · pend. '+pend.toFixed(2)+(cfg.moneda||'€')+'</span></div>';})():'';
+    const multiPieza=(o.lineas&&o.lineas.length>1)?'<div style="font-size:10px;color:var(--text4);margin-top:2px">'+o.lineas.length+' '+t('ped.types')+' · '+piezasCount+' '+t('ped.units')+'</div>':'';
+    const cobradoBadge=o.cobrado?'<div style="margin-top:3px"><span style="display:inline-block;background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800">💰 '+t('ped.paidBadge')+'</span></div>':'';
+    const entregaBadge=(()=>{if(!o.fechaEntrega)return'';const hoy2=new Date();hoy2.setHours(0,0,0,0);const fe=new Date(o.fechaEntrega+'T00:00:00');const diff=Math.ceil((fe-hoy2)/(1000*60*60*24));if(o.cobrado)return'';if(diff<0)return'<div style="margin-top:2px"><span style="display:inline-block;background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800">⚠️ '+t('ped.overdue')+' '+o.fechaEntrega+'</span></div>';if(diff<=3)return'<div style="margin-top:2px"><span style="display:inline-block;background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800">⏰ '+t('ped.delivery')+' '+o.fechaEntrega+'</span></div>';return'<div style="margin-top:2px"><span style="display:inline-block;background:rgba(96,165,250,.1);color:#60a5fa;border:1px solid rgba(96,165,250,.2);border-radius:5px;padding:1px 7px;font-size:9px">📅 '+o.fechaEntrega+'</span></div>';})();
+    const anticipoBadge=(o.anticipo>0&&!o.cobrado)?(()=>{const pend=Math.max(0,(c.fp||0)-o.anticipo);return '<div style="margin-top:3px"><span style="display:inline-block;background:rgba(96,165,250,.12);color:#60a5fa;border:1px solid rgba(96,165,250,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:700">💵 '+t('ped.deposit')+' '+o.anticipo.toFixed(2)+(cfg.moneda||'€')+' · '+t('ped.balance')+' '+pend.toFixed(2)+(cfg.moneda||'€')+'</span></div>';})():'';
     const cobrarBtn=!o.cobrado
-      ?'<button class="btn-icon" title="Marcar como cobrado" onclick="marcarCobrado(\''+o.id+'\')" style="font-size:18px;color:#4ade80;opacity:.7">💰</button>'
-      :'<button class="btn-icon" title="Ya cobrado" style="opacity:.2;cursor:default;font-size:18px">💰</button>';
+      ?'<button class="btn-icon" title="'+t('ped.tCobrado')+'" onclick="marcarCobrado(\''+o.id+'\')" style="font-size:18px;color:#4ade80;opacity:.7">💰</button>'
+      :'<button class="btn-icon" title="'+t('ped.tYaCobrado')+'" style="opacity:.2;cursor:default;font-size:18px">💰</button>';
     const chk=`<input type="checkbox" ${_pSelected.has(o.id)?'checked':''} onchange="if(this.checked)_pSelected.add('${o.id}');else _pSelected.delete('${o.id}');render()" style="width:16px;height:16px;accent-color:#3b82f6;cursor:pointer;flex-shrink:0">`;
     return'<tr style="'+(bg?'background:'+bg:'')+'"><td style="padding:8px 10px">'+chk+'</td><td><span class="num-badge">'+esc(o.presNum||'—')+'</span>'+factBadge+'</td>'
       +'<td><span style="color:var(--text2);font-weight:700;font-size:13.5px">'+esc(o.proyecto)+'</span>'+multiPieza+cobradoBadge+anticipoBadge+entregaBadge+'</td>'
@@ -4222,11 +4240,11 @@ function pgPedidos(){
       +'<td>'+mkBadge(o.estado)+'</td>'
       +'<td style="color:var(--text5)">'+esc(o.fecha)+'</td>'
       +'<td style="text-align:right;white-space:nowrap">'
-        +'<button class="btn-icon" title="Presupuesto PDF" onclick="genPDF(\''+o.id+'\')">📄</button>'
-        +'<button class="btn-icon" title="WhatsApp" onclick="sendWA(\''+o.id+'\')">💬</button>'
+        +'<button class="btn-icon" title="'+t('ped.tPresupuesto')+'" onclick="genPDF(\''+o.id+'\')">📄</button>'
+        +'<button class="btn-icon" title="'+t('ped.tWhatsApp')+'" onclick="sendWA(\''+o.id+'\')">💬</button>'
         +cobrarBtn
         +factBtn
-        +'<button class="btn-icon" title="Duplicar pedido" onclick="cloneO(\''+o.id+'\')">📋</button>'
+        +'<button class="btn-icon" title="'+t('ped.tDuplicar')+'" onclick="cloneO(\''+o.id+'\')">📋</button>'
         +'<button class="btn-icon" onclick="editO(\''+o.id+'\')">✏️</button>'
         +'<button class="btn-icon" onclick="delO(\''+o.id+'\')">🗑️</button>'
       +'</td></tr>';
@@ -4234,7 +4252,7 @@ function pgPedidos(){
 
   const isMob=window.innerWidth<=768;
 
-  const mobCards=flPaged.length===0?'<p style="color:var(--text5);text-align:center;padding:32px">Sin pedidos — crea tu primer pedido 👆</p>':flPaged.map(o=>{
+  const mobCards=flPaged.length===0?`<p style="color:var(--text5);text-align:center;padding:32px">${t('ped.empty')}</p>`:flPaged.map(o=>{
     const cl=clients.find(x=>x.id===o.clienteId)||{};
     const c=calcOrderCosts(o,cfg);
     const hasFactura=!!o.facturaNum;
@@ -4257,28 +4275,28 @@ function pgPedidos(){
         ${o.material?`<span>🧵 ${esc(o.material)}</span>`:''}
       </div>
       ${hasFactura?`<div style="margin-bottom:10px"><span style="background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800;font-family:monospace">🧾 ${esc(o.facturaNum)}</span></div>`:''}
-      ${(o.anticipo>0&&!o.cobrado)?`<div style="margin-bottom:10px"><span style="background:rgba(96,165,250,.12);color:#60a5fa;border:1px solid rgba(96,165,250,.3);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:700">💵 Anticipo ${o.anticipo.toFixed(2)}${cfg.moneda||'€'} · pendiente ${Math.max(0,(c.fp||0)-o.anticipo).toFixed(2)}${cfg.moneda||'€'}</span></div>`:''}
+      ${(o.anticipo>0&&!o.cobrado)?`<div style="margin-bottom:10px"><span style="background:rgba(96,165,250,.12);color:#60a5fa;border:1px solid rgba(96,165,250,.3);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:700">💵 ${t('ped.deposit')} ${o.anticipo.toFixed(2)}${cfg.moneda||'€'} · ${t('ped.balance')} ${Math.max(0,(c.fp||0)-o.anticipo).toFixed(2)}${cfg.moneda||'€'}</span></div>`:''}
       <div style="display:flex;gap:8px;padding-top:10px;border-top:1px solid var(--border);flex-wrap:wrap">
         <button onclick="genPDF('${o.id}')" style="flex:1;padding:10px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:13px">📄 PDF</button>
         <button onclick="sendWA('${o.id}')" style="flex:1;padding:10px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:13px">💬 WA</button>
         ${!o.cobrado
-          ?`<button onclick="marcarCobrado('${o.id}')" style="flex:1;padding:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;color:#4ade80;font-size:12px;font-weight:700">💰 Cobrar</button>`
+          ?`<button onclick="marcarCobrado('${o.id}')" style="flex:1;padding:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;color:#4ade80;font-size:12px;font-weight:700">💰 ${t('dash.collect')}</button>`
           :`<button onclick="genFactura('${o.id}')" style="flex:1;padding:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;color:#4ade80;font-size:13px">🧾</button><button onclick="sendFacturaWA('${o.id}')" title="Enviar factura" style="flex:1;padding:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;color:#4ade80;font-size:13px">📤</button>`
         }
-        <button onclick="cloneO('${o.id}')" title="Duplicar" style="padding:10px 14px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:16px">📋</button>
+        <button onclick="cloneO('${o.id}')" title="${t('ped.tDuplicar')}" style="padding:10px 14px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:16px">📋</button>
         <button onclick="editO('${o.id}')" style="padding:10px 14px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:16px">✏️</button>
         <button onclick="delO('${o.id}')" style="padding:10px 14px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:#f87171;font-size:16px">🗑️</button>
       </div>
     </div>`;
   }).join('');
 
-  return`<div class="page-header"><div><h2 class="page-title">Pedidos</h2><div class="page-subtitle">${orders.length} pedido${orders.length!==1?'s':''} en total</div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-secondary" onclick="exportPedidosCSV()" style="display:flex;align-items:center;gap:6px">📊 Exportar Excel</button><button class="btn-primary" onclick="editO(null)">+ Nuevo</button></div></div>
-<div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center">${chips}${!isMob?`<input style="flex:1;min-width:160px" placeholder="🔍 Buscar…" value="${esc(_pSearch)}" oninput="_pSearch=this.value;_pPage=0;render()">`:''}</div>
-${isMob?`<input style="margin-bottom:12px" placeholder="🔍 Buscar proyecto…" value="${esc(_pSearch)}" oninput="_pSearch=this.value;_pPage=0;render()">`:``}
+  return`<div class="page-header"><div><h2 class="page-title">${t('ped.title')}</h2><div class="page-subtitle">${orders.length} ${t('ped.ordersWord')} ${t('ped.inTotal')}</div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-secondary" onclick="exportPedidosCSV()" style="display:flex;align-items:center;gap:6px">📊 ${t('common.exportExcel')}</button><button class="btn-primary" onclick="editO(null)">${t('common.new')}</button></div></div>
+<div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center">${chips}${!isMob?`<input style="flex:1;min-width:160px" placeholder="🔍 ${t('common.search')}" value="${esc(_pSearch)}" oninput="_pSearch=this.value;_pPage=0;render()">`:''}</div>
+${isMob?`<input style="margin-bottom:12px" placeholder="🔍 ${t('ped.searchProject')}" value="${esc(_pSearch)}" oninput="_pSearch=this.value;_pPage=0;render()">`:``}
 ${bulkBar}
 ${isMob
   ? `<div>${mobCards}</div>${pPager}`
-  : `<div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table><thead><tr><th style="width:32px"><input type="checkbox" ${allChecked?'checked':''} onchange="toggleSelectAllPedidos(this.checked)" style="width:16px;height:16px;accent-color:#3b82f6;cursor:pointer" title="${allChecked?'Deseleccionar todo':'Seleccionar página'}"></th><th>Nº / Factura</th><th>Proyecto</th><th>Cliente</th><th>Material</th><th>Peso</th><th>Precio</th><th>Estado</th><th>Fecha</th><th style="min-width:140px"></th></tr></thead><tbody>${rows}</tbody></table></div></div>${pPager}`
+  : `<div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table><thead><tr><th style="width:32px"><input type="checkbox" ${allChecked?'checked':''} onchange="toggleSelectAllPedidos(this.checked)" style="width:16px;height:16px;accent-color:#3b82f6;cursor:pointer" title="${allChecked?t('ped.deselectAll'):t('ped.selectAll')}"></th><th>${t('col.numInvoice')}</th><th>${t('col.project')}</th><th>${t('col.client')}</th><th>${t('col.material')}</th><th>${t('col.weight')}</th><th>${t('col.price')}</th><th>${t('col.status')}</th><th>${t('col.date')}</th><th style="min-width:140px"></th></tr></thead><tbody>${rows}</tbody></table></div></div>${pPager}`
 }`;
 }
 
