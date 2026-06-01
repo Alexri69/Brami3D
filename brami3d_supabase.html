@@ -489,6 +489,7 @@ let PAGE  = 'dashboard';
 let SB_OPEN = true;
 let _bootedFor = null;   // id del usuario para el que ya se ejecutó bootApp (evita doble arranque)
 let _lastSyncAt = 0;     // timestamp del último loadAll OK (throttle de resumeSync)
+let _hasAnticipo = false; // ¿existe la columna pedidos.anticipo? (migración sql/009)
 
 // In-memory cache (reloaded on every page navigation)
 let _cache = { clientes:[], pedidos:[], impresoras:[], filamentos:[], piezas:[], archivos:[], gastos:[], cfg:{} };
@@ -1386,6 +1387,11 @@ async function loadAll(silent=false){
   if(p.error) throw new Error('pedidos: '+p.error.message);
   _cache.pedidos = mapPedidos(p.data||[]);
 
+  // Detectar si la columna `anticipo` existe (migración sql/009 aplicada).
+  // Con filas la deducimos sin coste; sin filas hacemos una sonda mínima.
+  if(p.data && p.data.length){ _hasAnticipo = ('anticipo' in p.data[0]); }
+  else { try { const {error}=await sb.from('pedidos').select('anticipo').limit(1); _hasAnticipo=!error; } catch(_){ _hasAnticipo=false; } }
+
   _cache.impresoras = mapImpresoras(im.data||[]);
   _cache.filamentos = mapFilamentos(fi.data||[]);
   _cache.piezas     = mapPiezas(pz.data||[]);
@@ -1442,7 +1448,8 @@ function mapPedidos(rows){ return rows.map(r=>({
   lineas:r.lineas||[], fotoUrl:r.foto_url||null, fotoPath:r.foto_path||null,
   impresoraId:r.impresora_id||null,
   cobrado:r.cobrado||false, fechaCobrado:r.fecha_cobrado||null,
-  fechaEntrega:r.fecha_entrega||null
+  fechaEntrega:r.fecha_entrega||null,
+  anticipo:r.anticipo!=null?parseFloat(r.anticipo):0
 }));}
 
 function mapImpresoras(rows){ return rows.map(r=>({
@@ -1606,7 +1613,7 @@ function brandFooterName(cfg){
 // (typo, paste, dev tools) is normalized before it hits the DB.
 // ganancia_manual intentionally omitted: user may legitimately sell at a loss.
 const NON_NEG_FIELDS = {
-  pedidos:    ['peso','tiempo_impresion','precio_final','coste_postprocesado','coste_diseno'],
+  pedidos:    ['peso','tiempo_impresion','precio_final','coste_postprocesado','coste_diseno','anticipo'],
   impresoras: ['horas_uso','desgaste','consumo_w'],
   filamentos: ['peso_restante','precio_por_kg'],
   piezas:     ['peso','tiempo_impresion','precio_por_kg'],
@@ -3630,6 +3637,7 @@ function pgClientes(){
   return`<div class="page-header"><h2 class="page-title">Clientes</h2>
 <div style="display:flex;gap:8px;flex-wrap:wrap">
   <button class="btn-secondary" onclick="exportClientesExcel()" style="display:flex;align-items:center;gap:6px">📊 Exportar Excel</button>
+  <button class="btn-secondary" onclick="pickClientesCSV()" style="display:flex;align-items:center;gap:6px">📥 Importar CSV</button>
   <button class="btn-primary" onclick="editC(null)">+ Nuevo</button>
 </div>
 </div>
@@ -3684,6 +3692,74 @@ function exportClientesExcel(){
   document.body.appendChild(a);a.click();document.body.removeChild(a);
   setTimeout(()=>URL.revokeObjectURL(url),2000);
   showToast('Excel exportado ✓','ok');
+}
+
+// ── IMPORTAR CLIENTES DESDE CSV ─────────────────────────────────────────────
+// Parser CSV tolerante (comillas, separador ; o , autodetectado, saltos de línea).
+function _parseCSV(text){
+  text=String(text).replace(/^﻿/,'');
+  const nl=text.indexOf('\n'); const firstLine=nl<0?text:text.slice(0,nl);
+  const sep=(firstLine.split(';').length > firstLine.split(',').length)?';':',';
+  const rows=[]; let row=[], field='', inQ=false;
+  for(let i=0;i<text.length;i++){
+    const ch=text[i];
+    if(inQ){
+      if(ch==='"'){ if(text[i+1]==='"'){ field+='"'; i++; } else inQ=false; }
+      else field+=ch;
+    } else if(ch==='"') inQ=true;
+    else if(ch===sep){ row.push(field); field=''; }
+    else if(ch==='\n'){ row.push(field); rows.push(row); row=[]; field=''; }
+    else if(ch!=='\r') field+=ch;
+  }
+  if(field.length||row.length){ row.push(field); rows.push(row); }
+  return rows.filter(r=>r.some(c=>(c||'').trim()!==''));
+}
+
+function pickClientesCSV(){
+  const inp=document.createElement('input'); inp.type='file'; inp.accept='.csv,text/csv';
+  inp.onchange=()=>{ const f=inp.files&&inp.files[0]; if(f){ const r=new FileReader(); r.onload=()=>previewClientesCSV(r.result); r.readAsText(f); } };
+  inp.click();
+}
+
+let _pendingClientes=null;
+function previewClientesCSV(text){
+  let rows; try{ rows=_parseCSV(text); }catch(_){ showToast('CSV no válido','err'); return; }
+  if(!rows.length){ showToast('El CSV está vacío','err'); return; }
+  const head=rows[0].map(h=>(h||'').trim().toLowerCase());
+  const hasHeader=head.some(h=>/nombre|nif|cif|empresa|tel|email|correo|cliente/.test(h));
+  const idx = hasHeader ? {
+    nombre: head.findIndex(h=>/nombre|cliente/.test(h)),
+    nif: head.findIndex(h=>/nif|cif|dni/.test(h)),
+    empresa: head.findIndex(h=>/empresa/.test(h)),
+    telefono: head.findIndex(h=>/tel|movil|móvil|teléfono|telefono/.test(h)),
+    email: head.findIndex(h=>/email|correo|mail/.test(h)),
+    notas: head.findIndex(h=>/nota/.test(h))
+  } : {nombre:0,nif:1,empresa:2,telefono:3,email:4,notas:5};
+  const data = hasHeader ? rows.slice(1) : rows;
+  const g=(r,i)=> (i>=0 && i<r.length) ? (r[i]||'').trim() : '';
+  _pendingClientes = data.map(r=>({
+    id:uid(), user_id:CU.id,
+    nombre:g(r,idx.nombre), nif:g(r,idx.nif), empresa:g(r,idx.empresa),
+    telefono:g(r,idx.telefono), email:g(r,idx.email), notas:g(r,idx.notas)
+  })).filter(c=>c.nombre);
+  if(!_pendingClientes.length){ showToast('No se encontró ninguna fila con nombre','err'); return; }
+  openModal(msh('Importar clientes',`
+    <p style="color:var(--text3);font-size:13px;line-height:1.6;margin-bottom:8px">Se importarán <b>${_pendingClientes.length}</b> cliente(s) como nuevos registros. Columnas detectadas: nombre, NIF, empresa, teléfono, email, notas.</p>
+    <div style="max-height:160px;overflow:auto;background:var(--bg);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--text4);margin-bottom:16px">${_pendingClientes.slice(0,10).map(c=>esc(c.nombre)+(c.email?' · '+esc(c.email):'')).join('<br>')}${_pendingClientes.length>10?'<br>…':''}</div>
+    <div style="display:flex;gap:10px"><button class="btn-primary" onclick="closeModal();doImportClientes()">📥 Importar</button><button class="btn-secondary" onclick="closeModal();_pendingClientes=null">Cancelar</button></div>`));
+}
+
+async function doImportClientes(){
+  const rows=_pendingClientes; _pendingClientes=null;
+  if(!rows||!rows.length) return;
+  showToast('Importando…','ok',2000);
+  let ok=0;
+  for(let i=0;i<rows.length;i+=400){
+    const chunk=rows.slice(i,i+400);
+    try{ const {error}=await sb.from('clientes').upsert(chunk,{onConflict:'id'}); if(!error) ok+=chunk.length; else console.warn('import clientes',error.message); }catch(e){ console.warn(e); }
+  }
+  try{ await loadAll(true); saveLocalCache(); render(); }catch(_){}
+  showToast(`${ok} cliente(s) importado(s) ✓`,'ok',4000);
 }
 
 function exportPedidosCSV(){
@@ -4051,12 +4127,13 @@ function pgPedidos(){
     const multiPieza=(o.lineas&&o.lineas.length>1)?'<div style="font-size:10px;color:var(--text4);margin-top:2px">'+o.lineas.length+' tipos · '+piezasCount+' uds</div>':'';
     const cobradoBadge=o.cobrado?'<div style="margin-top:3px"><span style="display:inline-block;background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800">💰 cobrado</span></div>':'';
     const entregaBadge=(()=>{if(!o.fechaEntrega)return'';const hoy2=new Date();hoy2.setHours(0,0,0,0);const fe=new Date(o.fechaEntrega+'T00:00:00');const diff=Math.ceil((fe-hoy2)/(1000*60*60*24));if(o.cobrado)return'';if(diff<0)return'<div style="margin-top:2px"><span style="display:inline-block;background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800">⚠️ vencido '+o.fechaEntrega+'</span></div>';if(diff<=3)return'<div style="margin-top:2px"><span style="display:inline-block;background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800">⏰ entrega '+o.fechaEntrega+'</span></div>';return'<div style="margin-top:2px"><span style="display:inline-block;background:rgba(96,165,250,.1);color:#60a5fa;border:1px solid rgba(96,165,250,.2);border-radius:5px;padding:1px 7px;font-size:9px">📅 '+o.fechaEntrega+'</span></div>';})();
+    const anticipoBadge=(o.anticipo>0&&!o.cobrado)?(()=>{const pend=Math.max(0,(c.fp||0)-o.anticipo);return '<div style="margin-top:3px"><span style="display:inline-block;background:rgba(96,165,250,.12);color:#60a5fa;border:1px solid rgba(96,165,250,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:700">💵 Anticipo '+o.anticipo.toFixed(2)+(cfg.moneda||'€')+' · pend. '+pend.toFixed(2)+(cfg.moneda||'€')+'</span></div>';})():'';
     const cobrarBtn=!o.cobrado
       ?'<button class="btn-icon" title="Marcar como cobrado" onclick="marcarCobrado(\''+o.id+'\')" style="font-size:18px;color:#4ade80;opacity:.7">💰</button>'
       :'<button class="btn-icon" title="Ya cobrado" style="opacity:.2;cursor:default;font-size:18px">💰</button>';
     const chk=`<input type="checkbox" ${_pSelected.has(o.id)?'checked':''} onchange="if(this.checked)_pSelected.add('${o.id}');else _pSelected.delete('${o.id}');render()" style="width:16px;height:16px;accent-color:#3b82f6;cursor:pointer;flex-shrink:0">`;
     return'<tr style="'+(bg?'background:'+bg:'')+'"><td style="padding:8px 10px">'+chk+'</td><td><span class="num-badge">'+esc(o.presNum||'—')+'</span>'+factBadge+'</td>'
-      +'<td><span style="color:var(--text2);font-weight:700;font-size:13.5px">'+esc(o.proyecto)+'</span>'+multiPieza+cobradoBadge+entregaBadge+'</td>'
+      +'<td><span style="color:var(--text2);font-weight:700;font-size:13.5px">'+esc(o.proyecto)+'</span>'+multiPieza+cobradoBadge+anticipoBadge+entregaBadge+'</td>'
       +'<td style="color:var(--text3)">'+esc(cl.nombre||'—')+'</td>'
       +'<td><span style="background:var(--bg4);color:var(--text3);padding:2px 8px;border-radius:6px;font-size:12px;font-weight:600">'+esc(o.material)+'</span></td>'
       +'<td style="color:var(--text3)">'+esc(o.peso)+'g</td>'
@@ -4099,6 +4176,7 @@ function pgPedidos(){
         ${o.material?`<span>🧵 ${esc(o.material)}</span>`:''}
       </div>
       ${hasFactura?`<div style="margin-bottom:10px"><span style="background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800;font-family:monospace">🧾 ${esc(o.facturaNum)}</span></div>`:''}
+      ${(o.anticipo>0&&!o.cobrado)?`<div style="margin-bottom:10px"><span style="background:rgba(96,165,250,.12);color:#60a5fa;border:1px solid rgba(96,165,250,.3);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:700">💵 Anticipo ${o.anticipo.toFixed(2)}${cfg.moneda||'€'} · pendiente ${Math.max(0,(c.fp||0)-o.anticipo).toFixed(2)}${cfg.moneda||'€'}</span></div>`:''}
       <div style="display:flex;gap:8px;padding-top:10px;border-top:1px solid var(--border);flex-wrap:wrap">
         <button onclick="genPDF('${o.id}')" style="flex:1;padding:10px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:13px">📄 PDF</button>
         <button onclick="sendWA('${o.id}')" style="flex:1;padding:10px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:13px">💬 WA</button>
@@ -4346,6 +4424,7 @@ ${fld('Coste diseño (€)','costeDiseno',x.costeDiseno||'0','number')}${fld('Co
 </div>
 ${fld('Ganancia manual (€) — vacío = margen automático','gananciaManual',x.gananciaManual!=null&&x.gananciaManual!==''?x.gananciaManual:'','number')}
 ${fld('Precio de venta (€) — sobreescribe todo (0 = gratis / pérdida)','precioFinal',x.precioFinal!=null?x.precioFinal:'','number')}
+${_hasAnticipo?fld('Anticipo / señal cobrada (€)','anticipo',x.anticipo&&x.anticipo>0?x.anticipo:'','number'):''}
 <div style="background:var(--bg4);border:1.5px solid ${x.cobrado?'rgba(34,197,94,.4)':'var(--border2)'};border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between">
   <div>
     <div style="font-size:14px;font-weight:700;color:${x.cobrado?'#4ade80':'var(--text2)'}">${x.cobrado?'💰 Pedido cobrado':'💰 Marcar como cobrado'}</div>
@@ -4466,7 +4545,7 @@ function editO(id){
 
 async function saveO(id){
   if(!checkPlanLimit('nuevoPedido', id)) return;
-  const d=gfd(['clienteId','proyecto','estado','notas','fecha','gananciaManual','precioFinal','costePostprocesado','costeDiseno','impresoraId']);
+  const d=gfd(['clienteId','proyecto','estado','notas','fecha','gananciaManual','precioFinal','costePostprocesado','costeDiseno','impresoraId','anticipo','fechaEntrega']);
   const prevOrder=_cache.pedidos.find(o=>o.id===id);
   const cobradoCheck=document.querySelector('[name="cobradoCheck"]')?.checked||false;
   const eraYaCobrado=prevOrder?.cobrado||false;
@@ -4586,10 +4665,12 @@ async function saveO(id){
     foto_path:_fotoPath||null,
     fecha_entrega:d.fechaEntrega||null,
   };
+  // anticipo solo si la columna existe (migración sql/009 aplicada).
+  if(_hasAnticipo) row.anticipo = (d.anticipo!==''&&d.anticipo!=null)?parseFloat(d.anticipo)||0:0;
   row.id = rowId;
   const ok=await dbSave('pedidos',row);
   if(ok){
-    const mapped={id:row.id,clienteId:d.clienteId,proyecto:d.proyecto,material:mainMat,peso:pesoTotal,tiempoImpresion:tiempoTotal,estado:d.estado,notas:d.notas,fecha:d.fecha,gananciaManual:d.gananciaManual,precioFinal:d.precioFinal!==''?parseFloat(d.precioFinal):null,costePostprocesado:d.costePostprocesado,costeDiseno:d.costeDiseno||0,presNum:presNum,facturaNum:prevOrder?.facturaNum||null,facturaFecha:prevOrder?.facturaFecha||null,lineas:_lineas,fotoUrl:fotoUrl||null,fotoPath:_fotoPath||null,impresoraId:d.impresoraId||null,cobrado:nuevoCobrado,fechaCobrado:fechaCobradoFinal,fechaEntrega:d.fechaEntrega||null};
+    const mapped={id:row.id,clienteId:d.clienteId,proyecto:d.proyecto,material:mainMat,peso:pesoTotal,tiempoImpresion:tiempoTotal,estado:d.estado,notas:d.notas,fecha:d.fecha,gananciaManual:d.gananciaManual,precioFinal:d.precioFinal!==''?parseFloat(d.precioFinal):null,costePostprocesado:d.costePostprocesado,costeDiseno:d.costeDiseno||0,presNum:presNum,facturaNum:prevOrder?.facturaNum||null,facturaFecha:prevOrder?.facturaFecha||null,lineas:_lineas,fotoUrl:fotoUrl||null,fotoPath:_fotoPath||null,impresoraId:d.impresoraId||null,cobrado:nuevoCobrado,fechaCobrado:fechaCobradoFinal,fechaEntrega:d.fechaEntrega||null,anticipo:(_hasAnticipo&&d.anticipo!==''&&d.anticipo!=null)?(parseFloat(d.anticipo)||0):(prevOrder?.anticipo||0)};
     if(id)_cache.pedidos=_cache.pedidos.map(o=>o.id===id?mapped:o);else _cache.pedidos.unshift(mapped);
     render();refreshAlerts();
     // Si se acaba de marcar como cobrado: descontar filamento y generar factura.
