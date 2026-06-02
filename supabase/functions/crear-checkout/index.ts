@@ -14,8 +14,8 @@ const cors = {
 const PUBLISHABLE = "sb_publishable_4gEjOV3kyfh8_I0f861iow__6b1ueIi";
 const APP_URL = "https://brami3d.app/brami3d_supabase.html";
 const PRICES: Record<string, string> = {
-  mensual: "price_1TduMXLkCkvJRbCAAKDI3Jy4",
-  anual:   "price_1TduNCLkCkvJRbCAjxwLT5zk",
+  mensual: "price_1TdvFePrM5C0gGgh2I0Gr6LC",
+  anual:   "price_1TdvFePrM5C0gGgh4liis6Os",
 };
 
 Deno.serve(async (req) => {
