@@ -548,8 +548,11 @@ footer a:hover{text-decoration:underline}
       <div id="pay-label" style="font-size:22px;font-weight:700;color:var(--text)"></div>
       <div id="pay-precio" style="font-size:15px;color:var(--text2);margin-top:2px"></div>
     </div>
+    <a id="pay-card-btn" href="#" style="display:flex;align-items:center;justify-content:center;gap:10px;background:#635bff;color:#fff;border-radius:9px;padding:15px;font-size:15px;font-weight:700;text-decoration:none;text-align:center">💳 Pagar con tarjeta — activación al instante</a>
+    <p style="font-size:11px;color:var(--text4);text-align:center;margin:8px 0 18px">Te llevamos a la app para crear tu cuenta y pagar con Stripe (seguro). Tu plan Pro se activa solo.</p>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;color:var(--text4);font-size:12px"><div style="flex:1;height:1px;background:var(--border2)"></div>o con PayPal<div style="flex:1;height:1px;background:var(--border2)"></div></div>
     <div style="background:var(--or-d);border:1px solid var(--or-b);border-radius:12px;padding:16px 18px;margin-bottom:20px">
-      <div style="font-size:11px;font-weight:700;color:var(--or);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">¿Cómo funciona?</div>
+      <div style="font-size:11px;font-weight:700;color:var(--or);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">PayPal (activación manual en 24 h)</div>
       <div style="display:flex;flex-direction:column;gap:10px">
         <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text)"><span style="background:var(--or);color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px">1</span><span>Haz el pago por PayPal con el botón de abajo</span></div>
         <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text)"><span style="background:var(--or);color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px">2</span><span>Vuelve aquí y haz clic en <b>"Ya pagué"</b> para darnos tu email</span></div>
@@ -630,6 +633,7 @@ function openPayModal(plan){
   document.getElementById('pay-label').textContent = label;
   document.getElementById('pay-precio').textContent = precio;
   document.getElementById('pay-paypal-btn').href = paypalUrl;
+  document.getElementById('pay-card-btn').href = 'https://brami3d.app/brami3d_supabase.html?suscribir=' + plan;
   modal.style.display = 'flex';
   document.body.style.overflow = 'hidden';
 }

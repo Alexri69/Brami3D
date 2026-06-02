@@ -614,6 +614,17 @@ async function irACheckout(plan){
   } catch(e){ showToast(t('plan.checkoutErr')+': '+(e.message||e),'err',7000); }
 }
 
+// Si se llega desde el landing con ?suscribir=mensual|anual (tras crear cuenta /
+// iniciar sesión), abre directamente el checkout de Stripe de ese plan.
+function _checkSuscribirIntent(){
+  try {
+    const s=new URLSearchParams(location.search).get('suscribir');
+    if(!s) return;
+    history.replaceState(null,'',location.pathname);
+    if(s==='mensual'||s==='anual'){ setTimeout(()=>irACheckout(s), 700); }
+  } catch(_){}
+}
+
 // Al volver de Stripe (?pago=ok), avisa y refresca el plan (el webhook ya lo activó).
 function _checkPagoReturn(){
   try {
@@ -1501,7 +1512,7 @@ async function bootApp(){
     refreshBizHeader();
     goTo('dashboard');
     // Refresh in background silently
-    handleShortcut(); _checkPagoReturn();
+    handleShortcut(); _checkPagoReturn(); _checkSuscribirIntent();
     loadAll(true).then(()=>{
       saveLocalCache();
       buildNav();                 // ← _plan ya resuelto: añade "Admin" si corresponde
@@ -1520,7 +1531,7 @@ async function bootApp(){
       buildNav();                 // ← _plan ya resuelto: añade "Admin" si corresponde
       goTo('dashboard');
       checkAndNotify();
-      handleShortcut(); _checkPagoReturn();
+      handleShortcut(); _checkPagoReturn(); _checkSuscribirIntent();
       registrarInicioSIF();
       subscribeRealtime();
       _updatePendingBadge(); flushOutbox();
