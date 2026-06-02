@@ -1,18 +1,81 @@
 # CLAUDE.md
 
-Brami3D — app de gestión para negocio de impresión 3D, en español. Static site sin build, desplegado en `brami3d.app` via GitHub Pages (push a `main` = producción).
+Brami3D — app de gestión para negocio de impresión 3D. Static site **sin build**, desplegado en `brami3d.app` vía GitHub Pages (**push a `main` = producción**). Pensada para venderse como **SaaS multi-taller** (varios clientes).
 
 ## Archivos
-- `landing.html` — página de marketing
-- `brami3d_supabase.html` — SPA completa (~2500 líneas)
+- `landing.html` — página de marketing (precios, modal de pago)
+- `brami3d_supabase.html` — SPA completa (~2700 líneas), la app de verdad
 - `index.html` — redirección a landing
+- `p.html` — página pública de aceptación de presupuestos (sin login)
+- `gracias.html` — destino tras pago PayPal manual
+- `cookies.html` · `privacidad.html` · `promo_instagram.html`
+- `supabase/functions/*` — Edge Functions (Deno)
+- `sql/*.sql` — migraciones (ejecutar a mano en SQL Editor)
+
+## Backend (Supabase)
+- Proyecto ref: **`uzgzfxizpoigzcnlunpr`**
+- Claves **nuevo formato** `sb_publishable_…` (la antigua anon/JWT ya no se usa en el gateway)
+- Tablas: `clientes`, `pedidos`, `impresoras`, `filamentos`, `piezas`, `archivos`, `gastos`, `config`, `user_plans`
+- RLS por `user_id`; RPCs `SECURITY DEFINER` para la parte pública
+
+### Edge Functions
+Se crean/despliegan desde el **panel web** (Edge Functions → *Via Editor*). Secretos en *Settings → Edge Functions*. **"Verify JWT" = OFF** en las tres (el gateway de la clave nueva rechaza el JWT de usuario; se valida a mano).
+- `enviar-doc` — email vía **Resend**, auth por header `x-user-token` (validado contra `/auth/v1/user`), `from: hola@brami3d.app` (dominio `brami3d.app` verificado: DKIM/SPF `v=spf1 include:amazonses.com ~all`/MX/DMARC en Namecheap).
+- `crear-checkout` — crea sesión de **Stripe Checkout** (suscripción). Auth `x-user-token`. Secreto `STRIPE_SECRET_KEY`. PRICES **live**: mensual `price_1TdvFePrM5C0gGgh2I0Gr6LC`, anual `price_1TdvFePrM5C0gGgh4liis6Os`. `success_url=?pago=ok`.
+- `stripe-webhook` — verifica firma (`constructEventAsync` + `createSubtleCryptoProvider`), y en `checkout.session.completed` / `customer.subscription.*` hace upsert en `user_plans` con la **service role**. Secretos `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`.
+
+> ⚠️ Nunca pegar en chat secretos `sk_live_` / `whsec_` → van directos a Supabase secrets. La publishable sí puede ir embebida.
 
 ## App (`brami3d_supabase.html`)
-- Supabase: `sb = createClient(SUPA_URL, SUPA_KEY)` (claves públicas/anon)
+- `sb = createClient(SUPA_URL, SUPA_KEY)` (publishable)
 - Estado global: `CU` (usuario), `PAGE`, `_cache`, `_lineas`
-- Boot: `bootApp()` → `loadAll()` → `goTo('dashboard')`
+- Boot: `bootApp()` → `loadAll()` → `goTo('dashboard')`. En bootApp se llaman además `handleShortcut(); _checkPagoReturn(); _checkSuscribirIntent();`
 - Navegación: `goTo(page)` → `render()` reconstruye `#content`
-- CRUD: `dbSave(table, data)` upsert, `dbDel(table, id)` — actualizan `_cache` y re-renderizan
-- Caché local en `localStorage` por `user_id` (funciona offline)
-- Tablas: `clientes`, `pedidos`, `impresoras`, `filamentos`, `piezas`, `archivos`, `gastos`, `config`
-- Tema: dark por defecto, clase `body.light` para claro, guardado en `b3d_theme`
+- CRUD: `dbSave(table,data)` upsert, `dbDel(table,id)` — actualizan `_cache` y re-renderizan
+- **Caché local** en `localStorage` por `user_id` (funciona offline) + **cola de escritura offline** (outbox en localStorage que se vacía al recuperar conexión)
+- Detección de columnas opcionales en runtime: `_hasAnticipo`, `_hasShare`
+- Tema: dark por defecto, `body.light` para claro, guardado en `b3d_theme`. Botón `#theme-btn` (🌙)
+- **Dashboard con métricas** de negocio (ingresos, costes, beneficio, consumo)
+
+### i18n (ES / EN)
+- `LANG` global (localStorage `b3d_lang`, **default `es`**; inglés es opt-in)
+- `I18N = { es:{…}, en:{…} }`, helper `t(key, vars)`
+- `applyStaticI18n()` traduce el DOM estático; `setLang(l)` / `toggleLang()`
+- **Botón de idioma = bandera** (`#lang-btn`): muestra 🇬🇧 en español (clic→inglés) y 🇪🇸 en inglés (clic→español); su `title` también se adapta
+- En **inglés se oculta el módulo fiscal** (solo aplica a España)
+- PDFs también traducidos
+- ⚠️ Cuidado con apóstrofes en strings (rompen comillas simples JS) y con `€` (€) al editar
+
+### Planes y límites (el "candado" del SaaS)
+- Tabla `user_plans` (free/pro/admin) + columnas Stripe (`stripe_customer_id`, `stripe_subscription_id`, `expires_at`, `trial_until`), índice único por `user_id`
+- `resolvePlan()` resuelve el plan efectivo; `FREE_LIMITS` = **10 pedidos/mes, 5 clientes**; `checkPlanLimit()` los aplica
+- `ADMIN_EMAILS` = `alexri69@gmail.com`, `brami3d@gmail.com` (acceso admin total)
+- Trial 30 días (`trial_until`); panel **Admin** (`pgAdmin`) para marcar plan/expiry/blocked a mano
+- `showUpgradeModal()` enlaza a `landing.html#precios`
+
+### Pago / suscripción (Stripe + PayPal)
+- Precios: Básico **Gratis** · **Pro Mensual 9 €/mes** · **Pro Anual 79 €/año**
+- `irACheckout(plan)` → fetch a `crear-checkout` (headers `apikey`+`Authorization` = publishable, `x-user-token`) → redirige a Stripe
+- `_checkPagoReturn()` — al volver con `?pago=ok` avisa y refresca el plan (el webhook ya lo activó)
+- `_checkSuscribirIntent()` — si se entra con `?suscribir=mensual|anual` (desde el landing), abre el checkout automáticamente tras login
+- **Landing**: `openPayModal(plan)` muestra botón **"Pagar con tarjeta"** (`#pay-card-btn` → `brami3d_supabase.html?suscribir=<plan>`, activación instantánea) **+** caja PayPal como alternativa **manual** (24 h, el owner marca Pro a mano)
+
+### Presupuestos públicos
+- `p.html` consume RPCs `get_presupuesto_publico` y `aceptar_presupuesto` (deben existir como FUNCTION, no solo el ALTER TABLE)
+- La app genera el enlace público para que el cliente acepte sin cuenta
+
+## Migraciones SQL (a mano en SQL Editor)
+- `009_pedidos_anticipo.sql` — anticipos en pedidos
+- `010_presupuesto_publico.sql` — RPCs de aceptación pública
+- `011_stripe.sql` — columnas Stripe + índice único en `user_plans`
+
+## Validar JS antes de commitear
+```bash
+cd /c/Users/alexr/Brami3D
+node -e 'const fs=require("fs"),vm=require("vm");const h=fs.readFileSync("brami3d_supabase.html","utf8");const re=/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi;let m,i=0,e=0;while((m=re.exec(h))){i++;try{new vm.Script(m[1])}catch(x){e++;console.log("ERR",x.message)}}console.log("bloques:",i,"errores:",e)'
+```
+Tras cada cambio: **commit + push** (despliega solo).
+
+## Pendiente / ideas futuras
+- **Landing en inglés** (selector ES/EN + traducir todo el marketing) — no hecho; la app sí está bilingüe
+- Cancelar/reembolsar la suscripción de **prueba** de Stripe (pago test de 9 € real) — el switch ya está en modo live
