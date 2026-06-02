@@ -587,13 +587,44 @@ function showUpgradeModal(reason){
           ✓ Soporte prioritario
         </div>
       </div>
-      <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-        <a href="https://www.paypal.me/Brami3D/9EUR" target="_blank" rel="noopener" class="btn-primary" style="text-decoration:none;display:inline-block">💳 Pagar con PayPal (9€/mes)</a>
-        <a href="landing.html#precios" target="_blank" class="btn-secondary" style="text-decoration:none;display:inline-block">Ver planes</a>
-        <button class="btn-secondary" onclick="closeModal()">Ahora no</button>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <button class="btn-primary" style="justify-content:center" onclick="irACheckout('mensual')">${t('plan.proMonthly')}</button>
+        <button class="btn-primary" style="justify-content:center;background:var(--bg4);color:var(--text2)" onclick="irACheckout('anual')">${t('plan.proAnnual')}</button>
+        <a href="https://www.paypal.me/Brami3D/9EUR" target="_blank" rel="noopener" class="btn-secondary" style="text-decoration:none;display:flex;align-items:center;justify-content:center">${t('plan.payPaypal')}</a>
+        <button class="btn-secondary" onclick="closeModal()">${t('plan.notNow')}</button>
       </div>
     </div>`;
-  openModal(msh('Límite del plan alcanzado', html));
+  openModal(msh(t('plan.limitTitle'), html));
+}
+
+// Inicia el pago: pide a la Edge Function la URL de Stripe Checkout y redirige.
+async function irACheckout(plan){
+  showToast(t('plan.redirecting'),'ok',5000);
+  let userToken='';
+  try { const { data:{ session } } = await sb.auth.getSession(); userToken = session?.access_token||''; } catch(_){}
+  try {
+    const r=await fetch(SUPA_URL+'/functions/v1/crear-checkout',{
+      method:'POST',
+      headers:{ 'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'x-user-token':userToken },
+      body: JSON.stringify({ plan })
+    });
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok || !j.url){ showToast(t('plan.checkoutErr')+': '+(j.error||('HTTP '+r.status)),'err',7000); return; }
+    location.href=j.url;
+  } catch(e){ showToast(t('plan.checkoutErr')+': '+(e.message||e),'err',7000); }
+}
+
+// Al volver de Stripe (?pago=ok), avisa y refresca el plan (el webhook ya lo activó).
+function _checkPagoReturn(){
+  try {
+    const p=new URLSearchParams(location.search).get('pago');
+    if(!p) return;
+    history.replaceState(null,'',location.pathname);
+    if(p==='ok'){
+      showToast(t('plan.thanks'),'success',6000);
+      setTimeout(()=>{ loadAll(true).then(()=>{ buildNav(); render(); }).catch(()=>{}); }, 3500);
+    }
+  } catch(_){}
 }
 
 // Devuelve true si la acción está permitida. Si no, muestra modal y devuelve false.
@@ -653,6 +684,7 @@ const I18N = {
     'ped.tDuplicar':'Duplicar pedido','ped.tSoloPagados':'Solo para pedidos pagados','ped.types':'tipos','ped.units':'uds',
     'ped.overdue':'vencido','ped.delivery':'entrega','ped.paidBadge':'cobrado','ped.deposit':'Anticipo','ped.balance':'pendiente',
     'share.title':'Compartir presupuesto','share.linkReady':'Enlace de aceptación listo. Cópialo o envíalo al cliente — podrá verlo y aceptarlo online:','share.copy':'📋 Copiar enlace','share.copied':'Enlace copiado','share.openWa':'💬 Enviar por WhatsApp','share.waMsg':'¡Hola! Aquí tienes tu presupuesto para "{p}". Puedes verlo y aceptarlo aquí: {url}','share.needSql':'Función no disponible todavía: ejecuta la migración sql/010 en Supabase.','share.accepted':'Aceptado','share.tShare':'Compartir enlace de aceptación',
+    'plan.limitTitle':'Límite del plan alcanzado','plan.proMonthly':'💳 Pro Mensual — 9€/mes','plan.proAnnual':'💳 Pro Anual — 79€/año','plan.payPaypal':'Pagar con PayPal','plan.notNow':'Ahora no','plan.redirecting':'Abriendo pago seguro…','plan.checkoutErr':'No se pudo iniciar el pago','plan.thanks':'✅ ¡Pago recibido! Activando tu plan Pro…',
     'email.title':'Enviar por email','email.recipient':'Email del destinatario:','email.testNote':'El correo se enviará desde tu dominio (brami3d.app) con el nombre de tu empresa; las respuestas llegarán a tu email de contacto.','email.send':'Enviar','email.invalidTo':'Introduce un email válido','email.sent':'✅ Email enviado','email.errPrefix':'No se pudo enviar','email.hi':'Hola','email.regards':'Un saludo,','email.subjQuote':'Presupuesto {n}','email.subjInvoice':'Factura {n}','email.quoteIntro':'Te envío el presupuesto para "{p}".','email.invoiceIntro':'Adjunto la factura {n} correspondiente a "{p}".','email.priceLine':'Precio total: {v}.','email.totalLine':'Total: {v}.',
     'frm.editOrder':'Editar pedido','frm.newOrder':'Nuevo pedido','frm.saveOrder':'💾 Guardar pedido','frm.noClient':'Sin cliente',
     'frm.projectName':'Nombre del proyecto *','frm.orderDate':'Fecha pedido','frm.deliveryDate':'Fecha de entrega (opcional)',
@@ -730,6 +762,7 @@ const I18N = {
     'ped.tDuplicar':'Duplicate order','ped.tSoloPagados':'Paid orders only','ped.types':'types','ped.units':'units',
     'ped.overdue':'overdue','ped.delivery':'delivery','ped.paidBadge':'paid','ped.deposit':'Deposit','ped.balance':'balance',
     'share.title':'Share quote','share.linkReady':'Acceptance link ready. Copy it or send it to the client — they can view and accept it online:','share.copy':'📋 Copy link','share.copied':'Link copied','share.openWa':'💬 Send via WhatsApp','share.waMsg':'Hi! Here is your quote for "{p}". You can view and accept it here: {url}','share.needSql':'Feature not available yet: run migration sql/010 in Supabase.','share.accepted':'Accepted','share.tShare':'Share acceptance link',
+    'plan.limitTitle':'Plan limit reached','plan.proMonthly':'💳 Pro Monthly — €9/mo','plan.proAnnual':'💳 Pro Annual — €79/yr','plan.payPaypal':'Pay with PayPal','plan.notNow':'Not now','plan.redirecting':'Opening secure checkout…','plan.checkoutErr':'Could not start checkout','plan.thanks':'✅ Payment received! Activating your Pro plan…',
     'email.title':'Send by email','email.recipient':'Recipient email:','email.testNote':'The email will be sent from your domain (brami3d.app) with your business name; replies go to your contact email.','email.send':'Send','email.invalidTo':'Enter a valid email','email.sent':'✅ Email sent','email.errPrefix':'Could not send','email.hi':'Hi','email.regards':'Best regards,','email.subjQuote':'Quote {n}','email.subjInvoice':'Invoice {n}','email.quoteIntro':'Here is the quote for "{p}".','email.invoiceIntro':'Attached is invoice {n} for "{p}".','email.priceLine':'Total price: {v}.','email.totalLine':'Total: {v}.',
     'frm.editOrder':'Edit order','frm.newOrder':'New order','frm.saveOrder':'💾 Save order','frm.noClient':'No customer',
     'frm.projectName':'Project name *','frm.orderDate':'Order date','frm.deliveryDate':'Delivery date (optional)',
@@ -1468,7 +1501,7 @@ async function bootApp(){
     refreshBizHeader();
     goTo('dashboard');
     // Refresh in background silently
-    handleShortcut();
+    handleShortcut(); _checkPagoReturn();
     loadAll(true).then(()=>{
       saveLocalCache();
       buildNav();                 // ← _plan ya resuelto: añade "Admin" si corresponde
@@ -1487,7 +1520,7 @@ async function bootApp(){
       buildNav();                 // ← _plan ya resuelto: añade "Admin" si corresponde
       goTo('dashboard');
       checkAndNotify();
-      handleShortcut();
+      handleShortcut(); _checkPagoReturn();
       registrarInicioSIF();
       subscribeRealtime();
       _updatePendingBadge(); flushOutbox();
@@ -2415,7 +2448,10 @@ function showPlanInfo(){
     detalle = `
       <p style="color:var(--text4);margin:0 0 12px">Este mes: <b>${pedidos} / ${FREE_LIMITS.pedidosPorMes}</b> pedidos · <b>${clientes} / ${FREE_LIMITS.clientes}</b> clientes.</p>
       <p style="color:var(--text4);margin:0 0 12px">Actualiza a Pro para pedidos y clientes ilimitados.</p>
-      <div style="text-align:center;margin-top:14px"><a href="landing.html#precios" target="_blank" class="btn-primary" style="text-decoration:none;display:inline-block">Ver planes</a></div>`;
+      <div style="display:flex;flex-direction:column;gap:8px;margin-top:14px">
+        <button class="btn-primary" style="justify-content:center" onclick="closeModal();irACheckout('mensual')">💳 Pro Mensual — 9€/mes</button>
+        <button class="btn-primary" style="justify-content:center;background:var(--bg4);color:var(--text2)" onclick="closeModal();irACheckout('anual')">💳 Pro Anual — 79€/año</button>
+      </div>`;
   }
   openModal(msh('Tu plan: '+t, detalle + '<div style="text-align:center;margin-top:12px"><button class="btn-secondary" onclick="closeModal()">Cerrar</button></div>'));
 }
