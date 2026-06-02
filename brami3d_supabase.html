@@ -448,7 +448,7 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
           <span id="net-label" style="display:none">Sin conexión</span>
         </div>
         <button onclick="toggleLang()" id="lang-btn" title="Cambiar idioma (ES/EN)"
-          style="background:var(--bg4);border:1.5px solid var(--border2);border-radius:10px;padding:8px 11px;font-size:12px;font-weight:800;color:var(--text3);flex-shrink:0;line-height:1;letter-spacing:.04em">EN</button>
+          style="background:var(--bg4);border:1.5px solid var(--border2);border-radius:10px;padding:8px 12px;font-size:18px;color:var(--text3);flex-shrink:0;line-height:1">🇬🇧</button>
         <button onclick="toggleTheme()" id="theme-btn" title="Cambiar tema"
           style="background:var(--bg4);border:1.5px solid var(--border2);border-radius:10px;padding:8px 12px;font-size:18px;color:var(--text3);flex-shrink:0;line-height:1">
           🌙
@@ -834,7 +834,7 @@ function applyStaticI18n(){
   set('logout-lbl', t('common.logout'));
   const gs=$('global-search'); if(gs) gs.placeholder=t('topbar.searchDesk');
   const nl=$('net-label'); if(nl && !_outboxCount()) nl.textContent=t('net.offline');
-  const lb=$('lang-btn'); if(lb) lb.textContent = LANG==='es'?'EN':'ES';
+  const lb=$('lang-btn'); if(lb){ lb.textContent = LANG==='es'?'🇬🇧':'🇪🇸'; lb.title = LANG==='es'?'Switch to English':'Cambiar a español'; }
   const tb=$('theme-btn'); if(tb) tb.title=t('theme.toggle');
 }
 function setLang(l){
