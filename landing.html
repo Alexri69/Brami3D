@@ -18,6 +18,7 @@
 <script>
 (function(){
   const KEY='b3d_rgpd';
+  const EN = localStorage.getItem('b3d_lang')==='en';
   window.B3D_CONSENT={
     get state(){ return localStorage.getItem(KEY); },
     accept(){ localStorage.setItem(KEY,'accepted'); loadGoogleTags(); hide(); },
@@ -40,7 +41,12 @@
     const b=document.createElement('div');
     b.id='rgpd-banner';
     b.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:9999;padding:14px 20px;background:rgba(9,9,11,.97);backdrop-filter:blur(12px);border-top:1px solid #27272A;color:#F4F4F5;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;display:none;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:0 -4px 24px rgba(0,0,0,.5);font-size:13px';
-    b.innerHTML='<div style="flex:1;min-width:240px;line-height:1.5">Usamos cookies analíticas (Google Analytics) para entender el uso del sitio. Puedes aceptarlas o rechazarlas; las cookies técnicas imprescindibles se aplican siempre. Más info en <a href="https://brami3d.app/cookies.html" style="color:#F97316">Política de cookies</a> y <a href="https://brami3d.app/privacidad.html" style="color:#F97316">Privacidad</a>.</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" id="rgpd-reject" style="background:transparent;border:1px solid #3F3F46;color:#F4F4F5;padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit">Rechazar</button><button type="button" id="rgpd-accept" style="background:#F97316;border:none;color:#000;padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer;font-weight:700;font-family:inherit">Aceptar</button></div>';
+    const txt = EN
+      ? 'We use analytics cookies (Google Analytics) to understand site usage. You can accept or reject them; essential technical cookies always apply. More info in our <a href="https://brami3d.app/cookies.html" style="color:#F97316">Cookie policy</a> and <a href="https://brami3d.app/privacidad.html" style="color:#F97316">Privacy</a>.'
+      : 'Usamos cookies analíticas (Google Analytics) para entender el uso del sitio. Puedes aceptarlas o rechazarlas; las cookies técnicas imprescindibles se aplican siempre. Más info en <a href="https://brami3d.app/cookies.html" style="color:#F97316">Política de cookies</a> y <a href="https://brami3d.app/privacidad.html" style="color:#F97316">Privacidad</a>.';
+    const rej = EN ? 'Reject' : 'Rechazar';
+    const acc = EN ? 'Accept' : 'Aceptar';
+    b.innerHTML='<div style="flex:1;min-width:240px;line-height:1.5">'+txt+'</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" id="rgpd-reject" style="background:transparent;border:1px solid #3F3F46;color:#F4F4F5;padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit">'+rej+'</button><button type="button" id="rgpd-accept" style="background:#F97316;border:none;color:#000;padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer;font-weight:700;font-family:inherit">'+acc+'</button></div>';
     document.body.appendChild(b);
     document.getElementById('rgpd-accept').addEventListener('click',function(){B3D_CONSENT.accept();});
     document.getElementById('rgpd-reject').addEventListener('click',function(){B3D_CONSENT.reject();});
@@ -88,6 +94,9 @@ nav{
 .nav-links{display:flex;gap:28px}
 .nav-links a{font-size:14px;color:var(--text2);text-decoration:none;transition:color .15s}
 .nav-links a:hover{color:var(--text)}
+.nav-right{display:flex;align-items:center;gap:14px}
+.lang-flag{background:transparent;border:1.5px solid var(--border2);border-radius:8px;padding:7px 9px;cursor:pointer;display:flex;align-items:center;line-height:0;transition:border-color .15s}
+.lang-flag:hover{border-color:var(--or)}
 .nav-cta{
   background:transparent;border:1.5px solid var(--border2);color:var(--text);
   border-radius:8px;padding:9px 20px;font-size:14px;font-weight:600;
@@ -277,22 +286,25 @@ footer a:hover{text-decoration:underline}
     <span class="nav-brand">Brami3D</span>
   </a>
   <div class="nav-links">
-    <a href="#funciones">Funciones</a>
-    <a href="#precios">Precios</a>
-    <a href="#calculadora">Calculadora</a>
+    <a href="#funciones" data-i18n="nav.features">Funciones</a>
+    <a href="#precios" data-i18n="nav.pricing">Precios</a>
+    <a href="#calculadora" data-i18n="nav.calc">Calculadora</a>
   </div>
-  <a href="https://brami3d.app/brami3d_supabase.html" class="nav-cta">Entrar a la app →</a>
+  <div class="nav-right">
+    <button class="lang-flag" id="lang-flag" onclick="toggleLang()" title="Cambiar idioma / Switch language" aria-label="Cambiar idioma"></button>
+    <a href="https://brami3d.app/brami3d_supabase.html" class="nav-cta" data-i18n="nav.cta">Entrar a la app →</a>
+  </div>
 </nav>
 
 <!-- ── HERO ── -->
 <section class="hero">
   <div class="hero-left">
-    <p class="hero-tag">Gestión para impresión 3D</p>
-    <h1>Tu taller merece<br>algo mejor que<br><em>un Excel.</em></h1>
-    <p class="hero-sub">Pedidos, facturas legales, stock de filamento y clientes. Todo en una app que cabe en tu bolsillo y funciona desde el móvil.</p>
+    <p class="hero-tag" data-i18n="hero.tag">Gestión para impresión 3D</p>
+    <h1 data-i18n-html="hero.h1">Tu taller merece<br>algo mejor que<br><em>un Excel.</em></h1>
+    <p class="hero-sub" data-i18n="hero.sub">Pedidos, facturas legales, stock de filamento y clientes. Todo en una app que cabe en tu bolsillo y funciona desde el móvil.</p>
     <div class="hero-btns">
-      <a href="https://brami3d.app/brami3d_supabase.html" class="btn-primary">Empezar gratis →</a>
-      <a href="#funciones" class="btn-ghost">Ver funciones</a>
+      <a href="https://brami3d.app/brami3d_supabase.html" class="btn-primary" data-i18n="hero.start">Empezar gratis →</a>
+      <a href="#funciones" class="btn-ghost" data-i18n="hero.see">Ver funciones</a>
     </div>
   </div>
   <div class="hero-right">
@@ -303,14 +315,14 @@ footer a:hover{text-decoration:underline}
           <span style="font-size:12px;color:var(--text3)">🌙</span>
         </div>
         <div class="p-stat">
-          <div><div class="p-stat-l">Ingresos</div><div class="p-stat-v">1.240€</div></div>
-          <div style="text-align:right"><div class="p-stat-l">Beneficio</div><div class="p-stat-v" style="color:var(--or)">892€</div></div>
+          <div><div class="p-stat-l" data-i18n="ph.revenue">Ingresos</div><div class="p-stat-v">1.240€</div></div>
+          <div style="text-align:right"><div class="p-stat-l" data-i18n="ph.profit">Beneficio</div><div class="p-stat-v" style="color:var(--or)">892€</div></div>
         </div>
-        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin:10px 0 6px;font-weight:700">Pedidos recientes</div>
-        <div class="p-order"><div><div class="p-ord-n">Cerrojos x3</div><span class="pbadge bc">cobrado</span></div><div class="p-ord-p">25.00€</div></div>
-        <div class="p-order"><div><div class="p-ord-n">Soporte GoPro</div><span class="pbadge bi">imprimiendo</span></div><div class="p-ord-p">18.50€</div></div>
-        <div class="p-order"><div><div class="p-ord-n">Pieza motor</div><span class="pbadge bp">pendiente</span></div><div class="p-ord-p">42.00€</div></div>
-        <div style="font-size:9px;color:var(--am);background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.18);border-radius:8px;padding:7px 10px;margin-top:8px">⚠ PLA Smartfil — 180g restantes</div>
+        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin:10px 0 6px;font-weight:700" data-i18n="ph.recent">Pedidos recientes</div>
+        <div class="p-order"><div><div class="p-ord-n" data-i18n="ph.o1">Cerrojos x3</div><span class="pbadge bc" data-i18n="ph.paid">cobrado</span></div><div class="p-ord-p">25.00€</div></div>
+        <div class="p-order"><div><div class="p-ord-n" data-i18n="ph.o2">Soporte GoPro</div><span class="pbadge bi" data-i18n="ph.printing">imprimiendo</span></div><div class="p-ord-p">18.50€</div></div>
+        <div class="p-order"><div><div class="p-ord-n" data-i18n="ph.o3">Pieza motor</div><span class="pbadge bp" data-i18n="ph.pending">pendiente</span></div><div class="p-ord-p">42.00€</div></div>
+        <div style="font-size:9px;color:var(--am);background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.18);border-radius:8px;padding:7px 10px;margin-top:8px" data-i18n="ph.warn">⚠ PLA Smartfil — 180g restantes</div>
       </div>
     </div>
   </div>
@@ -318,24 +330,24 @@ footer a:hover{text-decoration:underline}
 
 <!-- ── STATS ── -->
 <div class="stats reveal">
-  <div class="stat"><div class="stat-n">30s</div><div class="stat-l">Para crear una factura</div></div>
-  <div class="stat"><div class="stat-n">6</div><div class="stat-l">Módulos integrados</div></div>
-  <div class="stat"><div class="stat-n">100%</div><div class="stat-l">Desde el móvil</div></div>
-  <div class="stat"><div class="stat-n">0€</div><div class="stat-l">Para empezar</div></div>
+  <div class="stat"><div class="stat-n">30s</div><div class="stat-l" data-i18n="st.1l">Para crear una factura</div></div>
+  <div class="stat"><div class="stat-n">6</div><div class="stat-l" data-i18n="st.2l">Módulos integrados</div></div>
+  <div class="stat"><div class="stat-n">100%</div><div class="stat-l" data-i18n="st.3l">Desde el móvil</div></div>
+  <div class="stat"><div class="stat-n">0€</div><div class="stat-l" data-i18n="st.4l">Para empezar</div></div>
 </div>
 
 <!-- ── FEATURES ── -->
 <div id="funciones" class="sec reveal">
-  <span class="sec-lbl">Funcionalidades</span>
-  <h2 class="sec-title">Todo lo que necesitas<br>para tu taller</h2>
-  <p class="sec-sub">Diseñada específicamente para negocios de impresión 3D.</p>
+  <span class="sec-lbl" data-i18n="feat.lbl">Funcionalidades</span>
+  <h2 class="sec-title" data-i18n-html="feat.title">Todo lo que necesitas<br>para tu taller</h2>
+  <p class="sec-sub" data-i18n="feat.sub">Diseñada específicamente para negocios de impresión 3D.</p>
   <div class="feat-grid">
-    <div class="feat"><span class="feat-num">01</span><h3>Gestión de pedidos</h3><p>Crea presupuestos profesionales y genera facturas legales con un toque.</p></div>
-    <div class="feat"><span class="feat-num">02</span><h3>Control de filamento</h3><p>Registra cada bobina con su precio y stock. Alerta cuando queda menos de 250g.</p></div>
-    <div class="feat"><span class="feat-num">03</span><h3>Cálculo de costes real</h3><p>Filamento, electricidad, diseño y postprocesado calculados automáticamente.</p></div>
-    <div class="feat"><span class="feat-num">04</span><h3>Clientes y historial</h3><p>Base de datos con NIF/CIF, historial de compras y exportación a Excel.</p></div>
-    <div class="feat"><span class="feat-num">05</span><h3>Control de impresoras</h3><p>Consumo eléctrico, horas de uso y nivel de desgaste de cada máquina.</p></div>
-    <div class="feat"><span class="feat-num">06</span><h3>Informes mensuales</h3><p>PDF mensual con ingresos, costes, beneficio y consumo de filamento.</p></div>
+    <div class="feat"><span class="feat-num">01</span><h3 data-i18n="f1.t">Gestión de pedidos</h3><p data-i18n="f1.p">Crea presupuestos profesionales y genera facturas legales con un toque.</p></div>
+    <div class="feat"><span class="feat-num">02</span><h3 data-i18n="f2.t">Control de filamento</h3><p data-i18n="f2.p">Registra cada bobina con su precio y stock. Alerta cuando queda menos de 250g.</p></div>
+    <div class="feat"><span class="feat-num">03</span><h3 data-i18n="f3.t">Cálculo de costes real</h3><p data-i18n="f3.p">Filamento, electricidad, diseño y postprocesado calculados automáticamente.</p></div>
+    <div class="feat"><span class="feat-num">04</span><h3 data-i18n="f4.t">Clientes y historial</h3><p data-i18n="f4.p">Base de datos con NIF/CIF, historial de compras y exportación a Excel.</p></div>
+    <div class="feat"><span class="feat-num">05</span><h3 data-i18n="f5.t">Control de impresoras</h3><p data-i18n="f5.p">Consumo eléctrico, horas de uso y nivel de desgaste de cada máquina.</p></div>
+    <div class="feat"><span class="feat-num">06</span><h3 data-i18n="f6.t">Informes mensuales</h3><p data-i18n="f6.p">PDF mensual con ingresos, costes, beneficio y consumo de filamento.</p></div>
   </div>
 </div>
 
@@ -343,15 +355,15 @@ footer a:hover{text-decoration:underline}
 <div class="intl-sec reveal">
   <div class="intl-inner">
     <div class="intl-txt">
-      <span class="sec-lbl">Internacional</span>
-      <h2 class="sec-title">Funciona en cualquier país</h2>
-      <p class="sec-sub">Configura tu moneda, el nombre y el porcentaje de tus impuestos. Brami3D no asume que estás en España.</p>
+      <span class="sec-lbl" data-i18n="intl.lbl">Internacional</span>
+      <h2 class="sec-title" data-i18n="intl.title">Funciona en cualquier país</h2>
+      <p class="sec-sub" data-i18n="intl.sub">Configura tu moneda, el nombre y el porcentaje de tus impuestos. Brami3D no asume que estás en España.</p>
       <ul class="chk" style="margin-top:24px">
-        <li>Moneda personalizable — €, $, £, R$, MXN y cualquier otra</li>
-        <li>Nombre del impuesto libre — IVA, VAT, GST, IGIC...</li>
-        <li>Dos tipos impositivos simultáneos</li>
-        <li>Disponible en español e inglés — cambia el idioma con un toque</li>
-        <li>Facturas adaptadas a tu país desde el primer pedido</li>
+        <li data-i18n="intl.c1">Moneda personalizable — €, $, £, R$, MXN y cualquier otra</li>
+        <li data-i18n="intl.c2">Nombre del impuesto libre — IVA, VAT, GST, IGIC...</li>
+        <li data-i18n="intl.c3">Dos tipos impositivos simultáneos</li>
+        <li data-i18n="intl.c4">Disponible en español e inglés — cambia el idioma con un toque</li>
+        <li data-i18n="intl.c5">Facturas adaptadas a tu país desde el primer pedido</li>
       </ul>
     </div>
     <div class="intl-pills">
@@ -364,7 +376,7 @@ footer a:hover{text-decoration:underline}
         <div class="cpill"><span class="cflag">🇦🇷</span><span class="ccode">ARS IVA</span></div>
         <div class="cpill"><span class="cflag">🇨🇦</span><span class="ccode">CAD GST</span></div>
         <div class="cpill"><span class="cflag">🇦🇺</span><span class="ccode">AUD GST</span></div>
-        <div class="cpill cpill-more"><span class="ccode">+ cualquier otra</span></div>
+        <div class="cpill cpill-more"><span class="ccode" data-i18n="intl.more">+ cualquier otra</span></div>
       </div>
     </div>
   </div>
@@ -373,14 +385,14 @@ footer a:hover{text-decoration:underline}
 <!-- ── MOCKUP ── -->
 <div class="mockup-wrap reveal">
   <div class="mockup-txt">
-    <span class="sec-lbl">Diseñada para móvil</span>
-    <h2>Gestiona desde donde estés</h2>
-    <p>Funciona en móvil, tablet y ordenador. Instálala en tu pantalla de inicio y úsala como una app nativa.</p>
+    <span class="sec-lbl" data-i18n="mk.lbl">Diseñada para móvil</span>
+    <h2 data-i18n="mk.title">Gestiona desde donde estés</h2>
+    <p data-i18n="mk.p">Funciona en móvil, tablet y ordenador. Instálala en tu pantalla de inicio y úsala como una app nativa.</p>
     <ul class="chk">
-      <li>Navegación inferior táctil</li>
-      <li>Modo claro y oscuro</li>
-      <li>Datos sincronizados en todos tus dispositivos</li>
-      <li>Funciona desde cualquier navegador</li>
+      <li data-i18n="mk.c1">Navegación inferior táctil</li>
+      <li data-i18n="mk.c2">Modo claro y oscuro</li>
+      <li data-i18n="mk.c3">Datos sincronizados en todos tus dispositivos</li>
+      <li data-i18n="mk.c4">Funciona desde cualquier navegador</li>
     </ul>
   </div>
   <div class="phone">
@@ -390,136 +402,136 @@ footer a:hover{text-decoration:underline}
         <span style="font-size:12px;color:var(--text3)">☀</span>
       </div>
       <div class="p-stat">
-        <div><div class="p-stat-l">Ingresos</div><div class="p-stat-v">1.240€</div></div>
-        <div style="text-align:right"><div class="p-stat-l">Beneficio</div><div class="p-stat-v" style="color:var(--or)">892€</div></div>
+        <div><div class="p-stat-l" data-i18n="ph.revenue">Ingresos</div><div class="p-stat-v">1.240€</div></div>
+        <div style="text-align:right"><div class="p-stat-l" data-i18n="ph.profit">Beneficio</div><div class="p-stat-v" style="color:var(--or)">892€</div></div>
       </div>
-      <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin:10px 0 6px;font-weight:700">Pedidos recientes</div>
-      <div class="p-order"><div><div class="p-ord-n">Cerrojos x3</div><span class="pbadge bc">cobrado</span></div><div class="p-ord-p">25.00€</div></div>
-      <div class="p-order"><div><div class="p-ord-n">Soporte GoPro</div><span class="pbadge bi">imprimiendo</span></div><div class="p-ord-p">18.50€</div></div>
-      <div class="p-order"><div><div class="p-ord-n">Pieza motor</div><span class="pbadge bp">pendiente</span></div><div class="p-ord-p">42.00€</div></div>
-      <div style="font-size:9px;color:var(--am);background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.18);border-radius:8px;padding:7px 10px;margin-top:8px">⚠ PLA Smartfil — 180g restantes</div>
+      <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin:10px 0 6px;font-weight:700" data-i18n="ph.recent">Pedidos recientes</div>
+      <div class="p-order"><div><div class="p-ord-n" data-i18n="ph.o1">Cerrojos x3</div><span class="pbadge bc" data-i18n="ph.paid">cobrado</span></div><div class="p-ord-p">25.00€</div></div>
+      <div class="p-order"><div><div class="p-ord-n" data-i18n="ph.o2">Soporte GoPro</div><span class="pbadge bi" data-i18n="ph.printing">imprimiendo</span></div><div class="p-ord-p">18.50€</div></div>
+      <div class="p-order"><div><div class="p-ord-n" data-i18n="ph.o3">Pieza motor</div><span class="pbadge bp" data-i18n="ph.pending">pendiente</span></div><div class="p-ord-p">42.00€</div></div>
+      <div style="font-size:9px;color:var(--am);background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.18);border-radius:8px;padding:7px 10px;margin-top:8px" data-i18n="ph.warn">⚠ PLA Smartfil — 180g restantes</div>
     </div>
   </div>
 </div>
 
 <!-- ── TESTIMONIOS ── -->
 <div class="sec reveal" style="padding-top:60px;padding-bottom:60px">
-  <span class="sec-lbl">Testimonios</span>
-  <h2 class="sec-title">Lo que dicen los usuarios</h2>
+  <span class="sec-lbl" data-i18n="ts.lbl">Testimonios</span>
+  <h2 class="sec-title" data-i18n="ts.title">Lo que dicen los usuarios</h2>
   <div class="testi-grid">
     <div class="testi">
       <div class="testi-quote">"</div>
-      <p>Antes usaba Excel y perdía tiempo calculando cada pedido. Con Brami3D el precio me sale solo y la factura en 10 segundos.</p>
-      <div class="testi-author"><div class="testi-init">C</div><div><div class="testi-name">Carlos M.</div><div class="testi-loc">Taller 3D en Madrid</div></div></div>
+      <p data-i18n="ts.1">Antes usaba Excel y perdía tiempo calculando cada pedido. Con Brami3D el precio me sale solo y la factura en 10 segundos.</p>
+      <div class="testi-author"><div class="testi-init">C</div><div><div class="testi-name">Carlos M.</div><div class="testi-loc" data-i18n="ts.1loc">Taller 3D en Madrid</div></div></div>
     </div>
     <div class="testi">
       <div class="testi-quote">"</div>
-      <p>El control de filamento es lo que más uso. Me avisa cuando queda poco y nunca más me he quedado sin material en medio de un pedido.</p>
-      <div class="testi-author"><div class="testi-init">L</div><div><div class="testi-name">Laura G.</div><div class="testi-loc">Impresión 3D en Valencia</div></div></div>
+      <p data-i18n="ts.2">El control de filamento es lo que más uso. Me avisa cuando queda poco y nunca más me he quedado sin material en medio de un pedido.</p>
+      <div class="testi-author"><div class="testi-init">L</div><div><div class="testi-name">Laura G.</div><div class="testi-loc" data-i18n="ts.2loc">Impresión 3D en Valencia</div></div></div>
     </div>
     <div class="testi">
       <div class="testi-quote">"</div>
-      <p>Mis clientes me piden facturas y antes era un lío. Ahora genero un PDF legal en segundos directamente desde el móvil.</p>
-      <div class="testi-author"><div class="testi-init">R</div><div><div class="testi-name">Roberto F.</div><div class="testi-loc">Maker & freelance en Sevilla</div></div></div>
+      <p data-i18n="ts.3">Mis clientes me piden facturas y antes era un lío. Ahora genero un PDF legal en segundos directamente desde el móvil.</p>
+      <div class="testi-author"><div class="testi-init">R</div><div><div class="testi-name">Roberto F.</div><div class="testi-loc" data-i18n="ts.3loc">Maker & freelance en Sevilla</div></div></div>
     </div>
   </div>
 </div>
 
 <!-- ── PRICING ── -->
 <div id="precios" class="pricing reveal">
-  <span class="sec-lbl">Precios</span>
-  <h2>Simple y sin sorpresas</h2>
-  <p>Prueba gratis 30 días. Sin tarjeta de crédito.</p>
+  <span class="sec-lbl" data-i18n="pr.lbl">Precios</span>
+  <h2 data-i18n="pr.title">Simple y sin sorpresas</h2>
+  <p data-i18n="pr.sub">Prueba gratis 30 días. Sin tarjeta de crédito.</p>
   <div class="price-cards">
     <div class="pc">
-      <div class="pc-lbl">Básico</div>
-      <div><span class="pc-amt">Gratis</span></div>
-      <p class="pc-desc">Para empezar y probar sin compromiso.</p>
+      <div class="pc-lbl" data-i18n="pr.basic">Básico</div>
+      <div><span class="pc-amt" data-i18n="pr.free">Gratis</span></div>
+      <p class="pc-desc" data-i18n="pr.basicDesc">Para empezar y probar sin compromiso.</p>
       <ul class="pc-feats">
-        <li>Hasta 10 pedidos al mes</li>
-        <li>5 clientes</li>
-        <li>Presupuestos PDF</li>
-        <li>Control de filamento</li>
+        <li data-i18n="pr.b1">Hasta 10 pedidos al mes</li>
+        <li data-i18n="pr.b2">5 clientes</li>
+        <li data-i18n="pr.b3">Presupuestos PDF</li>
+        <li data-i18n="pr.b4">Control de filamento</li>
       </ul>
-      <a href="https://brami3d.app/brami3d_supabase.html" class="pc-btn pc-btn-free">Empezar gratis</a>
+      <a href="https://brami3d.app/brami3d_supabase.html" class="pc-btn pc-btn-free" data-i18n="pr.startFree">Empezar gratis</a>
     </div>
     <div class="pc feat">
-      <span class="tag-or">Más popular</span>
-      <div class="pc-lbl or">Pro Mensual</div>
-      <div><span class="pc-amt">9</span><span class="pc-per">€/mes</span></div>
-      <p class="pc-desc" style="color:var(--or);font-weight:600">Menos de lo que cobras por una pieza</p>
+      <span class="tag-or" data-i18n="pr.popular">Más popular</span>
+      <div class="pc-lbl or" data-i18n="pr.monthly">Pro Mensual</div>
+      <div><span class="pc-amt">9</span><span class="pc-per" data-i18n="pr.permo">€/mes</span></div>
+      <p class="pc-desc" style="color:var(--or);font-weight:600" data-i18n="pr.monthlyDesc">Menos de lo que cobras por una pieza</p>
       <ul class="pc-feats">
-        <li>Pedidos y clientes ilimitados</li>
-        <li>Facturas legales con NIF</li>
-        <li>Informes mensuales PDF</li>
-        <li>Exportar a Excel</li>
-        <li>Soporte prioritario</li>
+        <li data-i18n="pr.m1">Pedidos y clientes ilimitados</li>
+        <li data-i18n="pr.m2">Facturas legales con NIF</li>
+        <li data-i18n="pr.m3">Informes mensuales PDF</li>
+        <li data-i18n="pr.m4">Exportar a Excel</li>
+        <li data-i18n="pr.m5">Soporte prioritario</li>
       </ul>
-      <button onclick="openPayModal('mensual')" class="pc-btn pc-btn-or">Contratar Pro Mensual →</button>
+      <button onclick="openPayModal('mensual')" class="pc-btn pc-btn-or" data-i18n="pr.getMonthly">Contratar Pro Mensual →</button>
     </div>
     <div class="pc anual">
-      <span class="tag-am">Ahorra 29€</span>
-      <div class="pc-lbl am">Pro Anual</div>
-      <div><span class="pc-amt" style="color:var(--am)">79</span><span class="pc-per">€/año</span></div>
-      <p class="pc-desc">Equivale a <b style="color:var(--am)">6.50€/mes</b> — recuperas el coste con el primer pedido del año.</p>
+      <span class="tag-am" data-i18n="pr.save">Ahorra 29€</span>
+      <div class="pc-lbl am" data-i18n="pr.annual">Pro Anual</div>
+      <div><span class="pc-amt" style="color:var(--am)">79</span><span class="pc-per" data-i18n="pr.peryr">€/año</span></div>
+      <p class="pc-desc" data-i18n-html="pr.annualDesc">Equivale a <b style="color:var(--am)">6.50€/mes</b> — recuperas el coste con el primer pedido del año.</p>
       <ul class="pc-feats">
-        <li>Todo lo del plan mensual</li>
-        <li>2 meses gratis incluidos</li>
-        <li>Acceso anticipado a novedades</li>
-        <li>Soporte prioritario</li>
+        <li data-i18n="pr.a1">Todo lo del plan mensual</li>
+        <li data-i18n="pr.a2">2 meses gratis incluidos</li>
+        <li data-i18n="pr.a3">Acceso anticipado a novedades</li>
+        <li data-i18n="pr.a4">Soporte prioritario</li>
       </ul>
-      <button onclick="openPayModal('anual')" class="pc-btn pc-btn-am">Contratar Pro Anual →</button>
+      <button onclick="openPayModal('anual')" class="pc-btn pc-btn-am" data-i18n="pr.getAnnual">Contratar Pro Anual →</button>
     </div>
   </div>
-  <p style="font-size:13px;color:var(--text4);margin-top:28px">Sin permanencia &nbsp;·&nbsp; Cancela cuando quieras &nbsp;·&nbsp; Datos siempre tuyos</p>
+  <p style="font-size:13px;color:var(--text4);margin-top:28px" data-i18n="pr.note">Sin permanencia &nbsp;·&nbsp; Cancela cuando quieras &nbsp;·&nbsp; Datos siempre tuyos</p>
 </div>
 
 <!-- ── FAQ ── -->
 <div class="faq reveal">
-  <span class="sec-lbl">Preguntas frecuentes</span>
-  <h2 class="sec-title" style="margin-bottom:40px">¿Tienes dudas?</h2>
-  <div class="faq-i"><div class="faq-q">¿Necesito instalar algo? <span>+</span></div><div class="faq-a">No. Brami3D funciona desde el navegador. Puedes añadirla a la pantalla de inicio de tu móvil para usarla como app nativa, sin pasar por ninguna tienda de apps.</div></div>
-  <div class="faq-i"><div class="faq-q">¿Mis datos están seguros? <span>+</span></div><div class="faq-a">Sí. Los datos se guardan en Supabase con cifrado en tránsito y en reposo. Solo tú puedes acceder a tus datos — ni siquiera nosotros los vemos.</div></div>
-  <div class="faq-i"><div class="faq-q">¿Las facturas son legalmente válidas en España? <span>+</span></div><div class="faq-a">Sí. Incluyen NIF/CIF de empresa y cliente, numeración correlativa, base imponible e IVA — todos los requisitos exigidos por la Agencia Tributaria española.</div></div>
-  <div class="faq-i"><div class="faq-q">¿Funciona en ordenador también? <span>+</span></div><div class="faq-a">Perfectamente. Se adapta a cualquier pantalla y los datos se sincronizan entre todos tus dispositivos en tiempo real.</div></div>
-  <div class="faq-i"><div class="faq-q">¿Qué pasa cuando termina el plan gratuito? <span>+</span></div><div class="faq-a">Puedes seguir usando la app con hasta 10 pedidos al mes. Tus datos nunca se borran. Si quieres ilimitado, puedes pasarte a Pro en cualquier momento.</div></div>
-  <div class="faq-i"><div class="faq-q">¿Cómo se activa el plan Pro tras el pago? <span>+</span></div><div class="faq-a">Tras pagar por PayPal, haz clic en "Ya pagué" y rellena el formulario con tu email. Activamos tu cuenta en menos de 24 horas y te avisamos por email.</div></div>
-  <div class="faq-i"><div class="faq-q">¿Puedo cancelar cuando quiera? <span>+</span></div><div class="faq-a">Sí. No hay permanencia ni suscripción automática. El plan Pro es un pago único (mensual o anual) que se renueva solo si tú decides volver a pagar.</div></div>
+  <span class="sec-lbl" data-i18n="fq.lbl">Preguntas frecuentes</span>
+  <h2 class="sec-title" style="margin-bottom:40px" data-i18n="fq.title">¿Tienes dudas?</h2>
+  <div class="faq-i"><div class="faq-q"><span data-i18n="fq.q1">¿Necesito instalar algo?</span> <span>+</span></div><div class="faq-a" data-i18n="fq.a1">No. Brami3D funciona desde el navegador. Puedes añadirla a la pantalla de inicio de tu móvil para usarla como app nativa, sin pasar por ninguna tienda de apps.</div></div>
+  <div class="faq-i"><div class="faq-q"><span data-i18n="fq.q2">¿Mis datos están seguros?</span> <span>+</span></div><div class="faq-a" data-i18n="fq.a2">Sí. Los datos se guardan en Supabase con cifrado en tránsito y en reposo. Solo tú puedes acceder a tus datos — ni siquiera nosotros los vemos.</div></div>
+  <div class="faq-i"><div class="faq-q"><span data-i18n="fq.q3">¿Las facturas son legalmente válidas en España?</span> <span>+</span></div><div class="faq-a" data-i18n="fq.a3">Sí. Incluyen NIF/CIF de empresa y cliente, numeración correlativa, base imponible e IVA — todos los requisitos exigidos por la Agencia Tributaria española.</div></div>
+  <div class="faq-i"><div class="faq-q"><span data-i18n="fq.q4">¿Funciona en ordenador también?</span> <span>+</span></div><div class="faq-a" data-i18n="fq.a4">Perfectamente. Se adapta a cualquier pantalla y los datos se sincronizan entre todos tus dispositivos en tiempo real.</div></div>
+  <div class="faq-i"><div class="faq-q"><span data-i18n="fq.q5">¿Qué pasa cuando termina el plan gratuito?</span> <span>+</span></div><div class="faq-a" data-i18n="fq.a5">Puedes seguir usando la app con hasta 10 pedidos al mes. Tus datos nunca se borran. Si quieres ilimitado, puedes pasarte a Pro en cualquier momento.</div></div>
+  <div class="faq-i"><div class="faq-q"><span data-i18n="fq.q6">¿Cómo se activa el plan Pro tras el pago?</span> <span>+</span></div><div class="faq-a" data-i18n="fq.a6">Si pagas con tarjeta (Stripe), tu plan Pro se activa al instante. Si pagas por PayPal, haz clic en "Ya pagué" y activamos tu cuenta en menos de 24 horas.</div></div>
+  <div class="faq-i"><div class="faq-q"><span data-i18n="fq.q7">¿Puedo cancelar cuando quiera?</span> <span>+</span></div><div class="faq-a" data-i18n="fq.a7">Sí. No hay permanencia. Puedes gestionar o cancelar tu suscripción tú mismo en cualquier momento desde la propia app.</div></div>
 </div>
 
 <!-- ── CALCULADORA ── -->
 <div id="calculadora" class="pricing reveal" style="padding-bottom:40px">
-  <span class="sec-lbl">Calculadora gratuita</span>
-  <h2>Calcula el precio<br>de tu pieza ahora</h2>
-  <p style="font-size:17px">Sin registrarte — y si te gusta, regístrate gratis para guardar los cálculos como pedidos.</p>
+  <span class="sec-lbl" data-i18n="cal.lbl">Calculadora gratuita</span>
+  <h2 data-i18n-html="cal.title">Calcula el precio<br>de tu pieza ahora</h2>
+  <p style="font-size:17px" data-i18n="cal.sub">Sin registrarte — y si te gusta, regístrate gratis para guardar los cálculos como pedidos.</p>
   <div style="margin:32px auto 0;max-width:460px;background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;text-align:left">
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-      <div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Peso (g)</div><input type="number" id="lc-peso" placeholder="85" oninput="lcalc()" style="width:100%;padding:10px 12px;background:var(--bg);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);font-size:16px;font-family:inherit;outline:none"></div>
-      <div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Tiempo (h)</div><input type="number" id="lc-tiempo" placeholder="4.5" step="0.1" oninput="lcalc()" style="width:100%;padding:10px 12px;background:var(--bg);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);font-size:16px;font-family:inherit;outline:none"></div>
-      <div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Filamento (€/kg)</div><input type="number" id="lc-fil" placeholder="20" oninput="lcalc()" style="width:100%;padding:10px 12px;background:var(--bg);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);font-size:16px;font-family:inherit;outline:none"></div>
-      <div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Consumo (W)</div><input type="number" id="lc-w" placeholder="200" oninput="lcalc()" style="width:100%;padding:10px 12px;background:var(--bg);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);font-size:16px;font-family:inherit;outline:none"></div>
-      <div style="grid-column:1/-1"><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Electricidad (€/kWh)</div><input type="number" id="lc-kwh" placeholder="0.15" step="0.01" value="0.15" oninput="lcalc()" style="width:100%;padding:10px 12px;background:var(--bg);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);font-size:16px;font-family:inherit;outline:none"></div>
+      <div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px" data-i18n="cal.weight">Peso (g)</div><input type="number" id="lc-peso" placeholder="85" oninput="lcalc()" style="width:100%;padding:10px 12px;background:var(--bg);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);font-size:16px;font-family:inherit;outline:none"></div>
+      <div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px" data-i18n="cal.time">Tiempo (h)</div><input type="number" id="lc-tiempo" placeholder="4.5" step="0.1" oninput="lcalc()" style="width:100%;padding:10px 12px;background:var(--bg);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);font-size:16px;font-family:inherit;outline:none"></div>
+      <div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px" data-i18n="cal.fil">Filamento (€/kg)</div><input type="number" id="lc-fil" placeholder="20" oninput="lcalc()" style="width:100%;padding:10px 12px;background:var(--bg);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);font-size:16px;font-family:inherit;outline:none"></div>
+      <div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px" data-i18n="cal.power">Consumo (W)</div><input type="number" id="lc-w" placeholder="200" oninput="lcalc()" style="width:100%;padding:10px 12px;background:var(--bg);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);font-size:16px;font-family:inherit;outline:none"></div>
+      <div style="grid-column:1/-1"><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px" data-i18n="cal.elec">Electricidad (€/kWh)</div><input type="number" id="lc-kwh" placeholder="0.15" step="0.01" value="0.15" oninput="lcalc()" style="width:100%;padding:10px 12px;background:var(--bg);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);font-size:16px;font-family:inherit;outline:none"></div>
     </div>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-      <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;white-space:nowrap">Margen</div>
+      <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;white-space:nowrap" data-i18n="cal.margin">Margen</div>
       <input type="range" id="lc-margen" min="10" max="200" value="30" oninput="lcalc();document.getElementById('lc-mv').textContent=this.value+'%'" style="flex:1;accent-color:var(--or)">
       <span id="lc-mv" style="font-size:13px;font-weight:700;color:var(--or);min-width:38px">30%</span>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
-      <div style="background:var(--bg);border-radius:9px;padding:12px;text-align:center"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Material</div><div id="lc-mat" style="font-size:18px;font-weight:900;color:var(--text2);font-family:'DM Mono',monospace">0.00€</div></div>
-      <div style="background:var(--bg);border-radius:9px;padding:12px;text-align:center"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Electricidad</div><div id="lc-elec" style="font-size:18px;font-weight:900;color:var(--text2);font-family:'DM Mono',monospace">0.00€</div></div>
-      <div style="background:var(--or-d);border:1.5px solid var(--or-b);border-radius:9px;padding:12px;text-align:center"><div style="font-size:9px;color:var(--or);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Precio venta</div><div id="lc-total" style="font-size:20px;font-weight:900;color:var(--or);font-family:'DM Mono',monospace">0.00€</div></div>
+      <div style="background:var(--bg);border-radius:9px;padding:12px;text-align:center"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px" data-i18n="cal.material">Material</div><div id="lc-mat" style="font-size:18px;font-weight:900;color:var(--text2);font-family:'DM Mono',monospace">0.00€</div></div>
+      <div style="background:var(--bg);border-radius:9px;padding:12px;text-align:center"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px" data-i18n="cal.elecR">Electricidad</div><div id="lc-elec" style="font-size:18px;font-weight:900;color:var(--text2);font-family:'DM Mono',monospace">0.00€</div></div>
+      <div style="background:var(--or-d);border:1.5px solid var(--or-b);border-radius:9px;padding:12px;text-align:center"><div style="font-size:9px;color:var(--or);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px" data-i18n="cal.sale">Precio venta</div><div id="lc-total" style="font-size:20px;font-weight:900;color:var(--or);font-family:'DM Mono',monospace">0.00€</div></div>
     </div>
-    <a href="https://brami3d.app/brami3d_supabase.html" style="display:block;background:var(--or);color:#000;border-radius:9px;padding:13px;font-size:15px;font-weight:700;text-align:center;text-decoration:none">Guardar pedidos — Registrarse gratis →</a>
+    <a href="https://brami3d.app/brami3d_supabase.html" style="display:block;background:var(--or);color:#000;border-radius:9px;padding:13px;font-size:15px;font-weight:700;text-align:center;text-decoration:none" data-i18n="cal.save">Guardar pedidos — Registrarse gratis →</a>
   </div>
 </div>
 
 <!-- ── CTA ── -->
 <div class="cta reveal">
-  <h2>Empieza hoy, gratis.</h2>
-  <p>Sin tarjeta de crédito. Sin instalación. En 30 segundos.</p>
+  <h2 data-i18n="cta.title">Empieza hoy, gratis.</h2>
+  <p data-i18n="cta.sub">Sin tarjeta de crédito. Sin instalación. En 30 segundos.</p>
   <div style="margin-bottom:20px">
-    <a href="https://brami3d.app/brami3d_supabase.html" class="btn-primary" style="font-size:17px;padding:16px 36px;display:inline-flex">Crear cuenta gratis →</a>
+    <a href="https://brami3d.app/brami3d_supabase.html" class="btn-primary" style="font-size:17px;padding:16px 36px;display:inline-flex" data-i18n="cta.create">Crear cuenta gratis →</a>
   </div>
   <div class="cta-btns">
     <a href="https://wa.me/34648931530?text=Hola%2C%20me%20interesa%20Brami3D" target="_blank" class="wa-btn">
@@ -528,7 +540,7 @@ footer a:hover{text-decoration:underline}
     </a>
     <a href="mailto:brami3d@gmail.com" class="em-btn">✉ Email</a>
   </div>
-  <p style="font-size:13px;color:var(--text4);margin-top:20px">Respondo en menos de 24 horas</p>
+  <p style="font-size:13px;color:var(--text4);margin-top:20px" data-i18n="cta.reply">Respondo en menos de 24 horas</p>
 </div>
 
 <!-- ── FOOTER ── -->
@@ -537,7 +549,7 @@ footer a:hover{text-decoration:underline}
     <div style="width:26px;height:26px;border-radius:6px;background:var(--or);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:9px;color:#000;font-weight:500">B3D</div>
     <span>Brami3D Print Studio</span>
   </div>
-  <span>© 2026 Brami3D · <a href="https://brami3d.app/brami3d_supabase.html">Entrar a la app</a> · <a href="https://brami3d.app/privacidad.html" style="color:var(--text3)">Privacidad</a> · <a href="https://brami3d.app/cookies.html" style="color:var(--text3)">Cookies</a></span>
+  <span data-i18n-html="ft.copy">© 2026 Brami3D · <a href="https://brami3d.app/brami3d_supabase.html">Entrar a la app</a> · <a href="https://brami3d.app/privacidad.html" style="color:var(--text3)">Privacidad</a> · <a href="https://brami3d.app/cookies.html" style="color:var(--text3)">Cookies</a></span>
 </footer>
 
 <!-- ── MODAL DE PAGO ── -->
@@ -545,35 +557,117 @@ footer a:hover{text-decoration:underline}
   <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:32px 28px;max-width:420px;width:100%;position:relative;box-shadow:0 24px 60px rgba(0,0,0,.7)">
     <button onclick="closePayModal()" style="position:absolute;top:14px;right:16px;background:none;border:none;color:var(--text3);font-size:22px;cursor:pointer;line-height:1">×</button>
     <div style="text-align:center;margin-bottom:24px">
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--or);margin-bottom:6px">Activar plan</div>
+      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--or);margin-bottom:6px" data-i18n="pm.activate">Activar plan</div>
       <div id="pay-label" style="font-size:22px;font-weight:700;color:var(--text)"></div>
       <div id="pay-precio" style="font-size:15px;color:var(--text2);margin-top:2px"></div>
     </div>
-    <a id="pay-card-btn" href="#" style="display:flex;align-items:center;justify-content:center;gap:10px;background:#635bff;color:#fff;border-radius:9px;padding:15px;font-size:15px;font-weight:700;text-decoration:none;text-align:center">💳 Pagar con tarjeta — activación al instante</a>
-    <p style="font-size:11px;color:var(--text4);text-align:center;margin:8px 0 18px">Te llevamos a la app para crear tu cuenta y pagar con Stripe (seguro). Tu plan Pro se activa solo.</p>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;color:var(--text4);font-size:12px"><div style="flex:1;height:1px;background:var(--border2)"></div>o con PayPal<div style="flex:1;height:1px;background:var(--border2)"></div></div>
+    <a id="pay-card-btn" href="#" style="display:flex;align-items:center;justify-content:center;gap:10px;background:#635bff;color:#fff;border-radius:9px;padding:15px;font-size:15px;font-weight:700;text-decoration:none;text-align:center" data-i18n="pm.card">💳 Pagar con tarjeta — activación al instante</a>
+    <p style="font-size:11px;color:var(--text4);text-align:center;margin:8px 0 18px" data-i18n="pm.cardNote">Te llevamos a la app para crear tu cuenta y pagar con Stripe (seguro). Tu plan Pro se activa solo.</p>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;color:var(--text4);font-size:12px"><div style="flex:1;height:1px;background:var(--border2)"></div><span data-i18n="pm.or">o con PayPal</span><div style="flex:1;height:1px;background:var(--border2)"></div></div>
     <div style="background:var(--or-d);border:1px solid var(--or-b);border-radius:12px;padding:16px 18px;margin-bottom:20px">
-      <div style="font-size:11px;font-weight:700;color:var(--or);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">PayPal (activación manual en 24 h)</div>
+      <div style="font-size:11px;font-weight:700;color:var(--or);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px" data-i18n="pm.paypalTitle">PayPal (activación manual en 24 h)</div>
       <div style="display:flex;flex-direction:column;gap:10px">
-        <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text)"><span style="background:var(--or);color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px">1</span><span>Haz el pago por PayPal con el botón de abajo</span></div>
-        <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text)"><span style="background:var(--or);color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px">2</span><span>Vuelve aquí y haz clic en <b>"Ya pagué"</b> para darnos tu email</span></div>
-        <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text)"><span style="background:var(--or);color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px">3</span><span>Activamos tu plan Pro en menos de 24 horas</span></div>
+        <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text)"><span style="background:var(--or);color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px">1</span><span data-i18n="pm.s1">Haz el pago por PayPal con el botón de abajo</span></div>
+        <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text)"><span style="background:var(--or);color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px">2</span><span data-i18n-html="pm.s2">Vuelve aquí y haz clic en <b>"Ya pagué"</b> para darnos tu email</span></div>
+        <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text)"><span style="background:var(--or);color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px">3</span><span data-i18n="pm.s3">Activamos tu plan Pro en menos de 24 horas</span></div>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:10px">
       <a id="pay-paypal-btn" href="#" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:10px;background:#0070ba;color:#fff;border-radius:9px;padding:14px;font-size:15px;font-weight:700;text-decoration:none;text-align:center">
         <img src="https://www.paypalobjects.com/webstatic/icon/pp258.png" alt="PayPal" style="width:22px;height:22px;border-radius:4px">
-        Paso 1 — Pagar con PayPal
+        <span data-i18n="pm.pp1">Paso 1 — Pagar con PayPal</span>
       </a>
-      <a href="https://brami3d.app/gracias.html" style="display:flex;align-items:center;justify-content:center;gap:8px;background:var(--gr-d);border:1.5px solid rgba(34,197,94,.25);color:#4ade80;border-radius:9px;padding:13px;font-size:14px;font-weight:700;text-decoration:none;text-align:center">
+      <a href="https://brami3d.app/gracias.html" style="display:flex;align-items:center;justify-content:center;gap:8px;background:var(--gr-d);border:1.5px solid rgba(34,197,94,.25);color:#4ade80;border-radius:9px;padding:13px;font-size:14px;font-weight:700;text-decoration:none;text-align:center" data-i18n="pm.pp2">
         ✅ Paso 2 — Ya pagué, activar mi plan
       </a>
     </div>
-    <p style="font-size:11px;color:var(--text4);text-align:center;margin-top:16px">Sin suscripción automática · Cancela cuando quieras</p>
+    <p style="font-size:11px;color:var(--text4);text-align:center;margin-top:16px" data-i18n="pm.noSub">Sin suscripción automática · Cancela cuando quieras</p>
   </div>
 </div>
 
 <script>
+/* ── i18n ES/EN ──────────────────────────────────────────────────────────── */
+const FLAG_GB = '<svg viewBox="0 0 60 30" width="22" height="14" style="display:block;border-radius:3px"><clipPath id="lfgb1"><path d="M0,0 v30 h60 v-30 z"/></clipPath><clipPath id="lfgb2"><path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z"/></clipPath><g clip-path="url(#lfgb1)"><path d="M0,0 v30 h60 v-30 z" fill="#012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0 L60,30 M60,0 L0,30" clip-path="url(#lfgb2)" stroke="#C8102E" stroke-width="4"/><path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/><path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/></g></svg>';
+const FLAG_ES = '<svg viewBox="0 0 3 2" width="22" height="14" style="display:block;border-radius:3px"><rect width="3" height="2" fill="#c60b1e"/><rect width="3" height="1" y="0.5" fill="#ffc400"/></svg>';
+
+const I18N = { es:{}, en:{
+  'nav.features':'Features','nav.pricing':'Pricing','nav.calc':'Calculator','nav.cta':'Open the app →',
+  'hero.tag':'3D printing management',
+  'hero.h1':'Your workshop deserves<br>better than<br><em>a spreadsheet.</em>',
+  'hero.sub':'Orders, legal invoices, filament stock and customers. All in one app that fits in your pocket and runs from your phone.',
+  'hero.start':'Start free →','hero.see':'See features',
+  'ph.revenue':'Revenue','ph.profit':'Profit','ph.recent':'Recent orders',
+  'ph.o1':'Bolts x3','ph.o2':'GoPro mount','ph.o3':'Motor part',
+  'ph.paid':'paid','ph.printing':'printing','ph.pending':'pending','ph.warn':'⚠ PLA Smartfil — 180g left',
+  'st.1l':'To create an invoice','st.2l':'Built-in modules','st.3l':'From your phone','st.4l':'To get started',
+  'feat.lbl':'Features','feat.title':'Everything you need<br>for your workshop','feat.sub':'Built specifically for 3D printing businesses.',
+  'f1.t':'Order management','f1.p':'Create professional quotes and generate legal invoices in one tap.',
+  'f2.t':'Filament tracking','f2.p':'Log every spool with its price and stock. Alerts when less than 250g remain.',
+  'f3.t':'Real cost calculation','f3.p':'Filament, electricity, design and post-processing calculated automatically.',
+  'f4.t':'Customers & history','f4.p':'Database with tax ID, purchase history and Excel export.',
+  'f5.t':'Printer tracking','f5.p':'Power consumption, hours of use and wear level of each machine.',
+  'f6.t':'Monthly reports','f6.p':'Monthly PDF with revenue, costs, profit and filament usage.',
+  'intl.lbl':'International','intl.title':'Works in any country','intl.sub':"Set your currency, the name and rate of your taxes. Brami3D doesn't assume you're in Spain.",
+  'intl.c1':'Custom currency — €, $, £, R$, MXN and any other',
+  'intl.c2':'Free tax name — VAT, GST, Sales Tax, IGIC...',
+  'intl.c3':'Two simultaneous tax rates',
+  'intl.c4':'Available in Spanish and English — switch language in one tap',
+  'intl.c5':'Invoices adapted to your country from the first order',
+  'intl.more':'+ any other',
+  'mk.lbl':'Built for mobile','mk.title':'Manage from anywhere','mk.p':'Works on phone, tablet and computer. Install it on your home screen and use it like a native app.',
+  'mk.c1':'Touch bottom navigation','mk.c2':'Light and dark mode','mk.c3':'Data synced across all your devices','mk.c4':'Works from any browser',
+  'ts.lbl':'Testimonials','ts.title':'What users say',
+  'ts.1':'I used to use Excel and wasted time pricing every order. With Brami3D the price comes out by itself and the invoice in 10 seconds.','ts.1loc':'3D workshop in Madrid',
+  'ts.2':"Filament tracking is what I use most. It warns me when stock is low and I've never run out of material mid-order again.",'ts.2loc':'3D printing in Valencia',
+  'ts.3':'My clients ask for invoices and it used to be a mess. Now I generate a legal PDF in seconds right from my phone.','ts.3loc':'Maker & freelancer in Seville',
+  'pr.lbl':'Pricing','pr.title':'Simple, no surprises','pr.sub':'Free 30-day trial. No credit card.',
+  'pr.basic':'Basic','pr.free':'Free','pr.basicDesc':'To get started and try with no commitment.',
+  'pr.b1':'Up to 10 orders per month','pr.b2':'5 customers','pr.b3':'PDF quotes','pr.b4':'Filament tracking','pr.startFree':'Start free',
+  'pr.popular':'Most popular','pr.monthly':'Pro Monthly','pr.permo':'€/mo','pr.monthlyDesc':'Less than you charge for one part',
+  'pr.m1':'Unlimited orders and customers','pr.m2':'Legal invoices with tax ID','pr.m3':'Monthly PDF reports','pr.m4':'Export to Excel','pr.m5':'Priority support','pr.getMonthly':'Get Pro Monthly →',
+  'pr.save':'Save €29','pr.annual':'Pro Annual','pr.peryr':'€/yr','pr.annualDesc':'Equals <b style="color:var(--am)">€6.50/mo</b> — you recover the cost with the first order of the year.',
+  'pr.a1':'Everything in the monthly plan','pr.a2':'2 months free included','pr.a3':'Early access to new features','pr.a4':'Priority support','pr.getAnnual':'Get Pro Annual →',
+  'pr.note':'No lock-in &nbsp;·&nbsp; Cancel anytime &nbsp;·&nbsp; Your data is always yours',
+  'fq.lbl':'FAQ','fq.title':'Got questions?',
+  'fq.q1':'Do I need to install anything?','fq.a1':"No. Brami3D runs in your browser. You can add it to your phone's home screen to use it like a native app, without any app store.",
+  'fq.q2':'Is my data safe?','fq.a2':'Yes. Data is stored in Supabase with encryption in transit and at rest. Only you can access your data — not even we can see it.',
+  'fq.q3':'Are the invoices legally valid?','fq.a3':'Yes. They include business and customer tax IDs, sequential numbering, taxable base and tax — all the requirements for a valid invoice.',
+  'fq.q4':'Does it work on desktop too?','fq.a4':'Perfectly. It adapts to any screen and your data syncs across all your devices in real time.',
+  'fq.q5':'What happens when the free plan ends?','fq.a5':'You can keep using the app with up to 10 orders per month. Your data is never deleted. If you want unlimited, you can upgrade to Pro anytime.',
+  'fq.q6':'How is Pro activated after payment?','fq.a6':'If you pay by card (Stripe), your Pro plan activates instantly. If you pay by PayPal, click "I\'ve paid" and we activate your account within 24 hours.',
+  'fq.q7':'Can I cancel anytime?','fq.a7':'Yes. No lock-in. You can manage or cancel your subscription yourself anytime right from the app.',
+  'cal.lbl':'Free calculator','cal.title':'Calculate your part<br>price now','cal.sub':'No sign-up needed — and if you like it, sign up free to save calculations as orders.',
+  'cal.weight':'Weight (g)','cal.time':'Time (h)','cal.fil':'Filament (€/kg)','cal.power':'Power (W)','cal.elec':'Electricity (€/kWh)','cal.margin':'Margin',
+  'cal.material':'Material','cal.elecR':'Electricity','cal.sale':'Sale price','cal.save':'Save orders — Sign up free →',
+  'cta.title':'Start today, free.','cta.sub':'No credit card. No installation. In 30 seconds.','cta.create':'Create free account →','cta.reply':'I reply within 24 hours',
+  'ft.copy':'© 2026 Brami3D · <a href="https://brami3d.app/brami3d_supabase.html">Open the app</a> · <a href="https://brami3d.app/privacidad.html" style="color:var(--text3)">Privacy</a> · <a href="https://brami3d.app/cookies.html" style="color:var(--text3)">Cookies</a>',
+  'pm.activate':'Activate plan','pm.card':'💳 Pay by card — instant activation','pm.cardNote':'We take you to the app to create your account and pay with Stripe (secure). Your Pro plan activates automatically.',
+  'pm.or':'or with PayPal','pm.paypalTitle':'PayPal (manual activation within 24 h)',
+  'pm.s1':'Make the payment via PayPal with the button below','pm.s2':'Come back here and click <b>"I\'ve paid"</b> to give us your email','pm.s3':'We activate your Pro plan within 24 hours',
+  'pm.pp1':'Step 1 — Pay with PayPal','pm.pp2':"✅ Step 2 — I've paid, activate my plan","pm.noSub":'No automatic subscription · Cancel anytime',
+  '_title':'Brami3D — Professional 3D printing management'
+}};
+
+let LANG = (localStorage.getItem('b3d_lang')==='en') ? 'en' : 'es';
+
+function applyLang(){
+  document.documentElement.lang = LANG;
+  document.querySelectorAll('[data-i18n]').forEach(el=>{
+    const k=el.getAttribute('data-i18n');
+    if(I18N.es[k]==null) I18N.es[k]=el.textContent;          // captura el español original
+    const v=I18N[LANG][k]; if(v!=null) el.textContent=v;
+  });
+  document.querySelectorAll('[data-i18n-html]').forEach(el=>{
+    const k=el.getAttribute('data-i18n-html');
+    if(I18N.es[k]==null) I18N.es[k]=el.innerHTML;
+    const v=I18N[LANG][k]; if(v!=null) el.innerHTML=v;
+  });
+  const fb=document.getElementById('lang-flag'); if(fb) fb.innerHTML = LANG==='es'?FLAG_GB:FLAG_ES;
+  if(I18N[LANG]['_title']) document.title = LANG==='es' ? 'Brami3D — Gestión profesional de impresión 3D' : I18N.en['_title'];
+}
+function toggleLang(){ LANG = LANG==='es'?'en':'es'; try{localStorage.setItem('b3d_lang',LANG);}catch(_){} applyLang(); }
+
+/* ── Scroll / reveal / calculadora / modal ──────────────────────────────── */
 if('scrollRestoration' in history) history.scrollRestoration='manual';
 function hardScrollTop(){
   try{ history.replaceState(null,'',location.pathname+location.search); }catch(_){}
@@ -626,13 +720,16 @@ function lcalc(){
 
 function openPayModal(plan){
   const isMensual = plan === 'mensual';
-  const precio = isMensual ? '9€/mes' : '79€/año';
-  const label  = isMensual ? 'Pro Mensual' : 'Pro Anual';
+  const L = {
+    es:{ mensual:{label:'Pro Mensual',precio:'9€/mes'}, anual:{label:'Pro Anual',precio:'79€/año'} },
+    en:{ mensual:{label:'Pro Monthly',precio:'€9/mo'},   anual:{label:'Pro Annual',precio:'€79/yr'} }
+  };
+  const info = L[LANG][plan];
   const paypalAmount = isMensual ? '9' : '79';
   const paypalUrl = 'https://www.paypal.me/Brami3D/' + paypalAmount + 'EUR';
   const modal = document.getElementById('pay-modal');
-  document.getElementById('pay-label').textContent = label;
-  document.getElementById('pay-precio').textContent = precio;
+  document.getElementById('pay-label').textContent = info.label;
+  document.getElementById('pay-precio').textContent = info.precio;
   document.getElementById('pay-paypal-btn').href = paypalUrl;
   document.getElementById('pay-card-btn').href = 'https://brami3d.app/brami3d_supabase.html?suscribir=' + plan;
   modal.style.display = 'flex';
@@ -649,6 +746,8 @@ document.addEventListener('DOMContentLoaded', function(){
     if(e.target === this) closePayModal();
   });
 });
+
+applyLang();
 </script>
 </body>
 </html>
