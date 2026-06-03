@@ -19,10 +19,11 @@ Brami3D — app de gestión para negocio de impresión 3D. Static site **sin bui
 - RLS por `user_id`; RPCs `SECURITY DEFINER` para la parte pública
 
 ### Edge Functions
-Se crean/despliegan desde el **panel web** (Edge Functions → *Via Editor*). Secretos en *Settings → Edge Functions*. **"Verify JWT" = OFF** en las tres (el gateway de la clave nueva rechaza el JWT de usuario; se valida a mano).
+Se crean/despliegan desde el **panel web** (Edge Functions → *Via Editor*). Secretos en *Settings → Edge Functions*. **"Verify JWT" = OFF** en todas (el gateway de la clave nueva rechaza el JWT de usuario; se valida a mano).
 - `enviar-doc` — email vía **Resend**, auth por header `x-user-token` (validado contra `/auth/v1/user`), `from: hola@brami3d.app` (dominio `brami3d.app` verificado: DKIM/SPF `v=spf1 include:amazonses.com ~all`/MX/DMARC en Namecheap).
 - `crear-checkout` — crea sesión de **Stripe Checkout** (suscripción). Auth `x-user-token`. Secreto `STRIPE_SECRET_KEY`. PRICES **live**: mensual `price_1TdvFePrM5C0gGgh2I0Gr6LC`, anual `price_1TdvFePrM5C0gGgh4liis6Os`. `success_url=?pago=ok`.
 - `stripe-webhook` — verifica firma (`constructEventAsync` + `createSubtleCryptoProvider`), y en `checkout.session.completed` / `customer.subscription.*` hace upsert en `user_plans` con la **service role**. Secretos `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`.
+- `portal-cliente` — abre el **Customer Portal** de Stripe (cancelar/cambiar tarjeta/descargar facturas). Auth `x-user-token`; busca `stripe_customer_id` en `user_plans` con la service role; `billingPortal.sessions.create`. App: `irAPortal()` + botón "⚙️ Gestionar suscripción" en `showPlanInfo()` cuando `_plan.hasStripe`. Requiere activar el portal una vez en Stripe → Facturación → Portal de clientes (con Cancelaciones ON, cancelar al fin del periodo).
 
 > ⚠️ Nunca pegar en chat secretos `sk_live_` / `whsec_` → van directos a Supabase secrets. La publishable sí puede ir embebida.
 
@@ -76,6 +77,11 @@ node -e 'const fs=require("fs"),vm=require("vm");const h=fs.readFileSync("brami3
 ```
 Tras cada cambio: **commit + push** (despliega solo).
 
+## Seguridad (auditado 2026-06-03)
+- **RLS** activo y correcto en las 12 tablas: cada política filtra por `(auth.uid() = user_id)`, ninguna permisiva. `user_plans` solo SELECT (writes vía webhook/admin RPC). Tablas VeriFactu append-only (solo INSERT+SELECT). Script de comprobación: `sql/012_audit_rls.sql`.
+- **XSS**: `esc()` aplicado en todo el HTML con datos de usuario (incluido `p.html`, que ve el cliente). `esc()` escapa también `'`.
+
 ## Pendiente / ideas futuras
 - **Landing en inglés** (selector ES/EN + traducir todo el marketing) — no hecho; la app sí está bilingüe
-- Cancelar/reembolsar la suscripción de **prueba** de Stripe (pago test de 9 € real) — el switch ya está en modo live
+- Cancelar/reembolsar la suscripción de **prueba** de Stripe (pago test de 9 € real) — ya se puede desde el propio portal (`irAPortal`) ahora que Cancelaciones está activo
+- (Opcional) i18n del botón "Gestionar suscripción" y limpieza de políticas RLS duplicadas (cosmético, sin riesgo de seguridad)
