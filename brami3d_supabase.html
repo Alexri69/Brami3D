@@ -743,6 +743,7 @@ const I18N = {
     'onb.s1t':'Configura tu empresa','onb.s1d':'Nombre, logo e impuestos para tus facturas.','onb.s1b':'Configurar',
     'onb.s2t':'Añade tu primer filamento','onb.s2d':'Registra una bobina con su precio y stock.','onb.s2b':'Añadir filamento',
     'onb.s3t':'Crea tu primer pedido','onb.s3d':'Calcula el precio y genera el presupuesto o la factura.','onb.s3b':'Crear pedido',
+    'err.generic':'Algo falló. Inténtalo de nuevo.',
     'imp.title':'Impresoras','imp.new':'+ Nueva impresora','imp.empty':'Sin impresoras','imp.wear':'Desgaste','imp.needsReview':'requiere revisión','imp.elecCost':'Coste eléctrico','imp.regUse':'⏱ Registrar uso','imp.editTitle':'Editar impresora','imp.newTitle':'Nueva impresora','imp.fModel':'Modelo','imp.fHours':'Horas de uso','imp.fWear':'% Desgaste','imp.fConsumo':'Consumo eléctrico (W)','imp.consumoHint':'Introduce los vatios de tu impresora','imp.delete':'¿Eliminar esta impresora?','imp.logUsage':'⏱ Registrar uso','imp.accNow':'Acumulado actual:','imp.wearWord':'Desgaste:','imp.estElecCost':'Coste eléctrico estimado:','imp.sessHours':'Horas de esta sesión *','imp.extraWear':'Desgaste adicional (%)','imp.wearAuto':'Si dejas el desgaste en 0 se aplica +0.1% por hora automáticamente.',
     'fil.title':'Filamentos','fil.empty':'Sin filamentos','fil.cRemaining':'Restante','fil.cStock':'Stock','fil.editTitle':'Editar filamento','fil.newTitle':'Nuevo filamento','fil.fType':'Tipo','fil.fBrand':'Marca *','fil.fColor':'Color','fil.fRemaining':'Peso restante (g)','fil.fPriceKg':'Precio por kg (€)','fil.brandReq':'Marca obligatoria','fil.delete':'¿Eliminar este filamento?','fil.cType':'Tipo','fil.cBrand':'Marca','fil.cColor':'Color',
     'pz.title':'Piezas','pz.new':'+ Nueva pieza','pz.empty':'Sin piezas guardadas','pz.hint':'Guarda piezas frecuentes para auto-rellenar pedidos.','pz.material':'Material','pz.weight':'Peso','pz.time':'Tiempo','pz.suggested':'Sugerido','pz.editTitle':'Editar pieza','pz.newTitle':'Nueva pieza','pz.fName':'Nombre *','pz.fMaterial':'Material','pz.fWeight':'Peso (g)','pz.fTime':'Tiempo impresión (h)','pz.fSuggested':'Precio sugerido (€)','pz.delete':'¿Eliminar esta pieza?',
@@ -826,6 +827,7 @@ const I18N = {
     'onb.s1t':'Set up your business','onb.s1d':'Name, logo and taxes for your invoices.','onb.s1b':'Set up',
     'onb.s2t':'Add your first filament','onb.s2d':'Log a spool with its price and stock.','onb.s2b':'Add filament',
     'onb.s3t':'Create your first order','onb.s3d':'Calculate the price and generate the quote or invoice.','onb.s3b':'Create order',
+    'err.generic':'Something went wrong. Please try again.',
     'imp.title':'Printers','imp.new':'+ New printer','imp.empty':'No printers','imp.wear':'Wear','imp.needsReview':'needs servicing','imp.elecCost':'Electricity cost','imp.regUse':'⏱ Log usage','imp.editTitle':'Edit printer','imp.newTitle':'New printer','imp.fModel':'Model','imp.fHours':'Hours of use','imp.fWear':'% Wear','imp.fConsumo':'Power draw (W)','imp.consumoHint':'Enter your printer wattage','imp.delete':'Delete this printer?','imp.logUsage':'⏱ Log usage','imp.accNow':'Current total:','imp.wearWord':'Wear:','imp.estElecCost':'Est. electricity cost:','imp.sessHours':'Hours this session *','imp.extraWear':'Extra wear (%)','imp.wearAuto':'If wear is left at 0, +0.1% per hour is applied automatically.',
     'fil.title':'Filaments','fil.empty':'No filaments','fil.cRemaining':'Remaining','fil.cStock':'Stock','fil.editTitle':'Edit filament','fil.newTitle':'New filament','fil.fType':'Type','fil.fBrand':'Brand *','fil.fColor':'Color','fil.fRemaining':'Remaining weight (g)','fil.fPriceKg':'Price per kg (€)','fil.brandReq':'Brand is required','fil.delete':'Delete this filament?','fil.cType':'Type','fil.cBrand':'Brand','fil.cColor':'Color',
     'pz.title':'Parts','pz.new':'+ New part','pz.empty':'No saved parts','pz.hint':'Save frequent parts to auto-fill orders.','pz.material':'Material','pz.weight':'Weight','pz.time':'Time','pz.suggested':'Suggested','pz.editTitle':'Edit part','pz.newTitle':'New part','pz.fName':'Name *','pz.fMaterial':'Material','pz.fWeight':'Weight (g)','pz.fTime':'Print time (h)','pz.fSuggested':'Suggested price (€)','pz.delete':'Delete this part?',
@@ -910,6 +912,31 @@ function showToast(msg, type='ok', dur=3000){
   document.body.appendChild(el);
   setTimeout(()=>el.remove(), dur);
 }
+
+// ── Captura de errores global ──────────────────────────────────────────────
+// Avisa al usuario con un toast (sin spam) y registra el error en Supabase
+// (tabla error_logs, best-effort) para que el owner tenga visibilidad.
+let _lastErrToast = 0;
+const _ERR_IGNORE = ['ResizeObserver loop','Script error','Load failed','NetworkError','Failed to fetch'];
+function _logError(msg, stack){
+  try{
+    msg = String(msg || 'Error');
+    if(_ERR_IGNORE.some(s => msg.includes(s))) return;   // ruido del navegador / red
+    const now = Date.now();
+    if(now - _lastErrToast > 4000){ _lastErrToast = now; try{ showToast(t('err.generic'),'err',4000); }catch(_){} }
+    if(typeof sb!=='undefined' && CU){
+      sb.from('error_logs').insert({
+        user_id: CU.id,
+        message: msg.slice(0,500),
+        stack: String(stack||'').slice(0,2000),
+        url: location.href,
+        ua: navigator.userAgent.slice(0,300)
+      }).then(()=>{}, ()=>{});   // si la tabla no existe o falla, se ignora
+    }
+  }catch(_){}
+}
+window.addEventListener('error', e => { if(e && e.message) _logError(e.message, e.error && e.error.stack); });
+window.addEventListener('unhandledrejection', e => { const r = e && e.reason; _logError((r && r.message) || r, r && r.stack); });
 
 function setLoading(btnId, loading, label=''){
   const b=$(btnId); if(!b) return;
