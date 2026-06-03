@@ -614,6 +614,23 @@ async function irACheckout(plan){
   } catch(e){ showToast(t('plan.checkoutErr')+': '+(e.message||e),'err',7000); }
 }
 
+// Abre el Portal de Cliente de Stripe (gestionar/cancelar suscripción, tarjeta, facturas).
+async function irAPortal(){
+  showToast(t('plan.redirecting'),'ok',5000);
+  let userToken='';
+  try { const { data:{ session } } = await sb.auth.getSession(); userToken = session?.access_token||''; } catch(_){}
+  try {
+    const r=await fetch(SUPA_URL+'/functions/v1/portal-cliente',{
+      method:'POST',
+      headers:{ 'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'x-user-token':userToken },
+      body: '{}'
+    });
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok || !j.url){ showToast(t('plan.checkoutErr')+': '+(j.error||('HTTP '+r.status)),'err',7000); return; }
+    location.href=j.url;
+  } catch(e){ showToast(t('plan.checkoutErr')+': '+(e.message||e),'err',7000); }
+}
+
 // Si se llega desde el landing con ?suscribir=mensual|anual (tras crear cuenta /
 // iniciar sesión), abre directamente el checkout de Stripe de ese plan.
 function _checkSuscribirIntent(){
@@ -2458,7 +2475,9 @@ function showPlanInfo(){
     const tr  = _plan.trialUntil ? new Date(_plan.trialUntil).toLocaleDateString('es-ES') : null;
     detalle = _plan.source==='trial'
       ? `<p style="color:var(--text4);margin:0 0 12px">Trial gratuito hasta <b>${esc(tr||'')}</b>. Acceso a todas las funciones.</p>`
-      : `<p style="color:var(--text4);margin:0 0 12px">Plan Pro activo${exp?` hasta <b>${esc(exp)}</b>`:''}. Pedidos y clientes ilimitados.</p>`;
+      : `<p style="color:var(--text4);margin:0 0 12px">Plan Pro activo${exp?` hasta <b>${esc(exp)}</b>`:''}. Pedidos y clientes ilimitados.</p>
+         <div style="margin-top:14px"><button class="btn-secondary" style="width:100%;justify-content:center" onclick="closeModal();irAPortal()">⚙️ Gestionar suscripción</button>
+         <p style="color:var(--text5);font-size:11px;margin:8px 0 0;text-align:center">Cambia la tarjeta, descarga facturas o cancela la renovación.</p></div>`;
   } else {
     detalle = `
       <p style="color:var(--text4);margin:0 0 12px">Este mes: <b>${pedidos} / ${FREE_LIMITS.pedidosPorMes}</b> pedidos · <b>${clientes} / ${FREE_LIMITS.clientes}</b> clientes.</p>
