@@ -13,6 +13,7 @@ const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const RESEND = Deno.env.get("RESEND_API_KEY") || "";
 const CRON_SECRET = Deno.env.get("CRON_SECRET") || "";
 const FROM = "Brami3D <hola@brami3d.app>";
+const PUSH_URL = `${Deno.env.get("SUPABASE_URL")}/functions/v1/enviar-push`;
 
 const QUOTE_DAYS = 3;    // presupuestos compartidos sin aceptar con más de N días
 const COLLECT_DAYS = 7;  // pedidos terminados/entregados sin cobrar (igual que la app)
@@ -107,6 +108,18 @@ Deno.serve(async (req) => {
         body: JSON.stringify({ from: FROM, to, subject: "Brami3D — Resumen de pendientes", html }),
       });
       if (rs.ok) sent++;
+
+      // Push (además del email) con un resumen corto, si hay dispositivos suscritos.
+      try {
+        const partes = [];
+        if (d.quotes.length) partes.push(`${d.quotes.length} presupuesto${d.quotes.length > 1 ? "s" : ""} sin aceptar`);
+        if (d.collect.length) partes.push(`${d.collect.length} pedido${d.collect.length > 1 ? "s" : ""} por cobrar`);
+        await fetch(PUSH_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "x-cron-secret": CRON_SECRET },
+          body: JSON.stringify({ user_id: uid, title: "🔔 Tienes pendientes en Brami3D", body: partes.join(" · ") }),
+        });
+      } catch (_) { /* el push es best-effort; el email es lo principal */ }
     }
 
     return json({ ok: true, candidatos: users.length, enviados: sent });
