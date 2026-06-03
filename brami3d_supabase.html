@@ -738,6 +738,7 @@ const I18N = {
     'cli.saved':'Cliente guardado','cli.nameReq':'Nombre obligatorio','cli.deleteConfirm':'¿Eliminar este cliente?','cli.importCsv':'📥 Importar CSV',
     'common.close':'Cerrar','hist.noOrders':'Sin pedidos registrados','hist.orders':'Pedidos','hist.paid':'Pagados','hist.totalCollected':'Total cobrado',
     'common.edit':'Editar','common.saved':'Guardado','common.deleted':'Eliminado','common.nameReq':'Nombre obligatorio',
+    'a11y.delete':'Eliminar','a11y.remove':'Quitar','a11y.search':'Buscar','a11y.lang':'Cambiar idioma','a11y.theme':'Cambiar tema',
     'imp.title':'Impresoras','imp.new':'+ Nueva impresora','imp.empty':'Sin impresoras','imp.wear':'Desgaste','imp.needsReview':'requiere revisión','imp.elecCost':'Coste eléctrico','imp.regUse':'⏱ Registrar uso','imp.editTitle':'Editar impresora','imp.newTitle':'Nueva impresora','imp.fModel':'Modelo','imp.fHours':'Horas de uso','imp.fWear':'% Desgaste','imp.fConsumo':'Consumo eléctrico (W)','imp.consumoHint':'Introduce los vatios de tu impresora','imp.delete':'¿Eliminar esta impresora?','imp.logUsage':'⏱ Registrar uso','imp.accNow':'Acumulado actual:','imp.wearWord':'Desgaste:','imp.estElecCost':'Coste eléctrico estimado:','imp.sessHours':'Horas de esta sesión *','imp.extraWear':'Desgaste adicional (%)','imp.wearAuto':'Si dejas el desgaste en 0 se aplica +0.1% por hora automáticamente.',
     'fil.title':'Filamentos','fil.empty':'Sin filamentos','fil.cRemaining':'Restante','fil.cStock':'Stock','fil.editTitle':'Editar filamento','fil.newTitle':'Nuevo filamento','fil.fType':'Tipo','fil.fBrand':'Marca *','fil.fColor':'Color','fil.fRemaining':'Peso restante (g)','fil.fPriceKg':'Precio por kg (€)','fil.brandReq':'Marca obligatoria','fil.delete':'¿Eliminar este filamento?','fil.cType':'Tipo','fil.cBrand':'Marca','fil.cColor':'Color',
     'pz.title':'Piezas','pz.new':'+ Nueva pieza','pz.empty':'Sin piezas guardadas','pz.hint':'Guarda piezas frecuentes para auto-rellenar pedidos.','pz.material':'Material','pz.weight':'Peso','pz.time':'Tiempo','pz.suggested':'Sugerido','pz.editTitle':'Editar pieza','pz.newTitle':'Nueva pieza','pz.fName':'Nombre *','pz.fMaterial':'Material','pz.fWeight':'Peso (g)','pz.fTime':'Tiempo impresión (h)','pz.fSuggested':'Precio sugerido (€)','pz.delete':'¿Eliminar esta pieza?',
@@ -816,6 +817,7 @@ const I18N = {
     'cli.saved':'Customer saved','cli.nameReq':'Name is required','cli.deleteConfirm':'Delete this customer?','cli.importCsv':'📥 Import CSV',
     'common.close':'Close','hist.noOrders':'No orders yet','hist.orders':'Orders','hist.paid':'Paid','hist.totalCollected':'Total collected',
     'common.edit':'Edit','common.saved':'Saved','common.deleted':'Deleted','common.nameReq':'Name is required',
+    'a11y.delete':'Delete','a11y.remove':'Remove','a11y.search':'Search','a11y.lang':'Switch language','a11y.theme':'Toggle theme',
     'imp.title':'Printers','imp.new':'+ New printer','imp.empty':'No printers','imp.wear':'Wear','imp.needsReview':'needs servicing','imp.elecCost':'Electricity cost','imp.regUse':'⏱ Log usage','imp.editTitle':'Edit printer','imp.newTitle':'New printer','imp.fModel':'Model','imp.fHours':'Hours of use','imp.fWear':'% Wear','imp.fConsumo':'Power draw (W)','imp.consumoHint':'Enter your printer wattage','imp.delete':'Delete this printer?','imp.logUsage':'⏱ Log usage','imp.accNow':'Current total:','imp.wearWord':'Wear:','imp.estElecCost':'Est. electricity cost:','imp.sessHours':'Hours this session *','imp.extraWear':'Extra wear (%)','imp.wearAuto':'If wear is left at 0, +0.1% per hour is applied automatically.',
     'fil.title':'Filaments','fil.empty':'No filaments','fil.cRemaining':'Remaining','fil.cStock':'Stock','fil.editTitle':'Edit filament','fil.newTitle':'New filament','fil.fType':'Type','fil.fBrand':'Brand *','fil.fColor':'Color','fil.fRemaining':'Remaining weight (g)','fil.fPriceKg':'Price per kg (€)','fil.brandReq':'Brand is required','fil.delete':'Delete this filament?','fil.cType':'Type','fil.cBrand':'Brand','fil.cColor':'Color',
     'pz.title':'Parts','pz.new':'+ New part','pz.empty':'No saved parts','pz.hint':'Save frequent parts to auto-fill orders.','pz.material':'Material','pz.weight':'Weight','pz.time':'Time','pz.suggested':'Suggested','pz.editTitle':'Edit part','pz.newTitle':'New part','pz.fName':'Name *','pz.fMaterial':'Material','pz.fWeight':'Weight (g)','pz.fTime':'Print time (h)','pz.fSuggested':'Suggested price (€)','pz.delete':'Delete this part?',
@@ -857,8 +859,9 @@ function applyStaticI18n(){
   set('logout-lbl', t('common.logout'));
   const gs=$('global-search'); if(gs) gs.placeholder=t('topbar.searchDesk');
   const nl=$('net-label'); if(nl && !_outboxCount()) nl.textContent=t('net.offline');
-  const lb=$('lang-btn'); if(lb){ lb.innerHTML = LANG==='es'?FLAG_GB:FLAG_ES; lb.title = LANG==='es'?'Switch to English':'Cambiar a español'; }
-  const tb=$('theme-btn'); if(tb) tb.title=t('theme.toggle');
+  const lb=$('lang-btn'); if(lb){ lb.innerHTML = LANG==='es'?FLAG_GB:FLAG_ES; lb.title = LANG==='es'?'Switch to English':'Cambiar a español'; lb.setAttribute('aria-label', lb.title); }
+  const tb=$('theme-btn'); if(tb){ tb.title=t('theme.toggle'); tb.setAttribute('aria-label', t('a11y.theme')); }
+  const msb=$('mob-search-btn'); if(msb) msb.setAttribute('aria-label', t('a11y.search'));
 }
 function setLang(l){
   LANG = (l==='en')?'en':'es';
@@ -2580,10 +2583,23 @@ function render(){
   if(PAGE==='admin' && !_plan.isAdmin){ PAGE='dashboard'; }
   const fn=map[PAGE];
   $('content').innerHTML=fn?fn():'<p style="color:var(--text4)">Página no encontrada</p>';
+  a11yIcons();
   if(PAGE==='archivos') initDZ();
   if(PAGE==='dashboard') setTimeout(initDashboardCharts,0);
   if(PAGE==='registro') setTimeout(cargarRegistroFiscal,0);
   if(PAGE==='admin') setTimeout(adminLoadUsers,0);
+}
+
+// Accesibilidad: da nombre accesible (aria-label) a los botones de solo icono.
+// Usa el title si lo tienen; si no, deduce por el emoji. Se ejecuta tras cada render.
+const _ICON_A11Y = { '✏️':'common.edit', '🗑️':'a11y.delete', '✕':'a11y.remove' };
+function a11yIcons(root){
+  (root||document).querySelectorAll('button.btn-icon:not([aria-label])').forEach(b=>{
+    const ti=b.getAttribute('title');
+    if(ti){ b.setAttribute('aria-label', ti); return; }
+    const k=_ICON_A11Y[(b.textContent||'').trim()];
+    if(k) b.setAttribute('aria-label', t(k));
+  });
 }
 
 // ═══════════════════════════════════════════════
@@ -2597,7 +2613,7 @@ function openModal(html,wide=false){
   // Foco inicial: primer campo de entrada si lo hay; si no, el propio modal (no
   // un botón, para no enfocar acciones destructivas como "Eliminar").
   const m=$('modal-root').querySelector('.modal');
-  if(m){ const f=m.querySelector('input,select,textarea'); (f||m).focus(); }
+  if(m){ a11yIcons(m); const f=m.querySelector('input,select,textarea'); (f||m).focus(); }
 }
 function closeModal(){
   $('modal-root').innerHTML='';
