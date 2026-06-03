@@ -66,6 +66,21 @@ self.addEventListener('fetch', e => {
   );
 });
 
+// Push real: muestra la notificación aunque la app esté cerrada.
+self.addEventListener('push', e => {
+  let data = {};
+  try { data = e.data ? e.data.json() : {}; } catch(_) { data = { body: e.data && e.data.text() }; }
+  const title = data.title || 'Brami3D';
+  const opts = {
+    body: data.body || '',
+    icon: data.icon || '/icon-192.png',
+    badge: '/icon-192.png',
+    vibrate: [120, 60, 120],
+    data: { url: data.url || '/brami3d_supabase.html' }
+  };
+  e.waitUntil(self.registration.showNotification(title, opts));
+});
+
 self.addEventListener('notificationclick', e => {
   e.notification.close();
   e.waitUntil(

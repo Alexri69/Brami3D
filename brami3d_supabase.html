@@ -745,6 +745,7 @@ const I18N = {
     'onb.s3t':'Crea tu primer pedido','onb.s3d':'Calcula el precio y genera el presupuesto o la factura.','onb.s3b':'Crear pedido',
     'err.generic':'Algo falló. Inténtalo de nuevo.',
     'trial.daysLeft':'Te quedan {n} días de prueba gratis.','trial.lastDay':'Hoy es el último día de tu prueba gratis.','trial.upgrade':'Pásate a Pro',
+    'cfg.notifTest':'📲 Enviar notificación de prueba','push.testBody':'¡Funciona! Tus notificaciones están activas.','push.testSent':'✅ Notificación enviada — míra tu dispositivo','push.testNone':'No hay dispositivos suscritos todavía',
     'imp.title':'Impresoras','imp.new':'+ Nueva impresora','imp.empty':'Sin impresoras','imp.wear':'Desgaste','imp.needsReview':'requiere revisión','imp.elecCost':'Coste eléctrico','imp.regUse':'⏱ Registrar uso','imp.editTitle':'Editar impresora','imp.newTitle':'Nueva impresora','imp.fModel':'Modelo','imp.fHours':'Horas de uso','imp.fWear':'% Desgaste','imp.fConsumo':'Consumo eléctrico (W)','imp.consumoHint':'Introduce los vatios de tu impresora','imp.delete':'¿Eliminar esta impresora?','imp.logUsage':'⏱ Registrar uso','imp.accNow':'Acumulado actual:','imp.wearWord':'Desgaste:','imp.estElecCost':'Coste eléctrico estimado:','imp.sessHours':'Horas de esta sesión *','imp.extraWear':'Desgaste adicional (%)','imp.wearAuto':'Si dejas el desgaste en 0 se aplica +0.1% por hora automáticamente.',
     'fil.title':'Filamentos','fil.empty':'Sin filamentos','fil.cRemaining':'Restante','fil.cStock':'Stock','fil.editTitle':'Editar filamento','fil.newTitle':'Nuevo filamento','fil.fType':'Tipo','fil.fBrand':'Marca *','fil.fColor':'Color','fil.fRemaining':'Peso restante (g)','fil.fPriceKg':'Precio por kg (€)','fil.brandReq':'Marca obligatoria','fil.delete':'¿Eliminar este filamento?','fil.cType':'Tipo','fil.cBrand':'Marca','fil.cColor':'Color',
     'pz.title':'Piezas','pz.new':'+ Nueva pieza','pz.empty':'Sin piezas guardadas','pz.hint':'Guarda piezas frecuentes para auto-rellenar pedidos.','pz.material':'Material','pz.weight':'Peso','pz.time':'Tiempo','pz.suggested':'Sugerido','pz.editTitle':'Editar pieza','pz.newTitle':'Nueva pieza','pz.fName':'Nombre *','pz.fMaterial':'Material','pz.fWeight':'Peso (g)','pz.fTime':'Tiempo impresión (h)','pz.fSuggested':'Precio sugerido (€)','pz.delete':'¿Eliminar esta pieza?',
@@ -830,6 +831,7 @@ const I18N = {
     'onb.s3t':'Create your first order','onb.s3d':'Calculate the price and generate the quote or invoice.','onb.s3b':'Create order',
     'err.generic':'Something went wrong. Please try again.',
     'trial.daysLeft':'You have {n} days left in your free trial.','trial.lastDay':'Today is the last day of your free trial.','trial.upgrade':'Upgrade to Pro',
+    'cfg.notifTest':'📲 Send a test notification','push.testBody':'It works! Your notifications are on.','push.testSent':'✅ Notification sent — check your device','push.testNone':'No subscribed devices yet',
     'imp.title':'Printers','imp.new':'+ New printer','imp.empty':'No printers','imp.wear':'Wear','imp.needsReview':'needs servicing','imp.elecCost':'Electricity cost','imp.regUse':'⏱ Log usage','imp.editTitle':'Edit printer','imp.newTitle':'New printer','imp.fModel':'Model','imp.fHours':'Hours of use','imp.fWear':'% Wear','imp.fConsumo':'Power draw (W)','imp.consumoHint':'Enter your printer wattage','imp.delete':'Delete this printer?','imp.logUsage':'⏱ Log usage','imp.accNow':'Current total:','imp.wearWord':'Wear:','imp.estElecCost':'Est. electricity cost:','imp.sessHours':'Hours this session *','imp.extraWear':'Extra wear (%)','imp.wearAuto':'If wear is left at 0, +0.1% per hour is applied automatically.',
     'fil.title':'Filaments','fil.empty':'No filaments','fil.cRemaining':'Remaining','fil.cStock':'Stock','fil.editTitle':'Edit filament','fil.newTitle':'New filament','fil.fType':'Type','fil.fBrand':'Brand *','fil.fColor':'Color','fil.fRemaining':'Remaining weight (g)','fil.fPriceKg':'Price per kg (€)','fil.brandReq':'Brand is required','fil.delete':'Delete this filament?','fil.cType':'Type','fil.cBrand':'Brand','fil.cColor':'Color',
     'pz.title':'Parts','pz.new':'+ New part','pz.empty':'No saved parts','pz.hint':'Save frequent parts to auto-fill orders.','pz.material':'Material','pz.weight':'Weight','pz.time':'Time','pz.suggested':'Suggested','pz.editTitle':'Edit part','pz.newTitle':'New part','pz.fName':'Name *','pz.fMaterial':'Material','pz.fWeight':'Weight (g)','pz.fTime':'Print time (h)','pz.fSuggested':'Suggested price (€)','pz.delete':'Delete this part?',
@@ -994,9 +996,53 @@ async function requestNotifPermission(){
     localStorage.setItem('b3d_notif_enabled','1');
     showToast(t('toast.notifOn'),'ok');
     checkAndNotify();
+    suscribirPush();   // además, push real (llega con la app cerrada)
   } else {
     showToast(t('toast.permDenied'),'err');
   }
+}
+
+// ── PUSH real (Web Push: llega aunque la app esté cerrada) ─────────────────
+const VAPID_PUBLIC = 'BPWYrzbHiKktnWhkYnySXAlG6Glhpl6s022_WGZkGP2_QoekUoBHzjyShZHwUw4ybWGhjjAeEly3LEdcno1cVWU';
+function _b64ToU8(b64){
+  const pad='='.repeat((4-b64.length%4)%4);
+  const s=(b64+pad).replace(/-/g,'+').replace(/_/g,'/');
+  const raw=atob(s); const a=new Uint8Array(raw.length);
+  for(let i=0;i<raw.length;i++) a[i]=raw.charCodeAt(i);
+  return a;
+}
+async function suscribirPush(){
+  try{
+    if(!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    const reg = await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if(!sub){
+      sub = await reg.pushManager.subscribe({ userVisibleOnly:true, applicationServerKey:_b64ToU8(VAPID_PUBLIC) });
+    }
+    const j = sub.toJSON();
+    if(typeof sb!=='undefined' && CU && j.keys){
+      await sb.from('push_subscriptions').upsert({
+        user_id: CU.id, endpoint: sub.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth
+      }, { onConflict:'endpoint' });
+    }
+  }catch(e){ console.warn('suscribirPush falló:', e); }
+}
+// Envía un push de prueba al propio usuario (botón en Configuración).
+async function probarPush(){
+  try{
+    await suscribirPush();   // asegura que este dispositivo está registrado
+    let token='';
+    try{ const { data:{ session } } = await sb.auth.getSession(); token = session?.access_token||''; }catch(_){}
+    const r=await fetch(SUPA_URL+'/functions/v1/enviar-push',{
+      method:'POST',
+      headers:{ 'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'x-user-token':token },
+      body: JSON.stringify({ title:'Brami3D', body:t('push.testBody') })
+    });
+    const j=await r.json().catch(()=>({}));
+    if(r.ok && j.enviados>0) showToast(t('push.testSent'),'ok');
+    else if(r.ok) showToast(t('push.testNone'),'err',6000);
+    else showToast((j.error||'Error'),'err',6000);
+  }catch(e){ showToast(String(e.message||e),'err',6000); }
 }
 
 function notifEnabled(){
@@ -6228,6 +6274,7 @@ ${(()=>{
   return `<div style="font-size:12px;color:var(--text4);margin-bottom:12px">${t('cfg.notifNotSet')}</div>`;
 })()}
 <button class="btn-primary" onclick="requestNotifPermission()">${Notification.permission==='granted'?t('cfg.notifCheck'):t('cfg.notifEnable')}</button>
+${('Notification' in window && Notification.permission==='granted')?`<button class="btn-secondary" style="margin-top:8px;width:100%" onclick="probarPush()">${t('cfg.notifTest')}</button>`:''}
 </div>
 <div class="card" style="flex:1;min-width:240px">
 <div class="card-title">${t('cfg.priceFormula')}</div>
