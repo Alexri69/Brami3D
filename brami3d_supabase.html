@@ -529,20 +529,22 @@ const FREE_LIMITS = {
 // Resuelve _plan a partir de la fila de user_plans y el email del usuario.
 function resolvePlan(row){
   const email = (CU?.email||'').toLowerCase();
+  // ¿Tiene una suscripción de Stripe? (para mostrar "Gestionar suscripción")
+  const hasStripe = !!(row && row.stripe_customer_id);
   if(ADMIN_EMAILS.includes(email)){
-    _plan = {tier:'admin', source:'whitelist', expiresAt:null, trialUntil:null, isAdmin:true, isPro:true};
+    _plan = {tier:'admin', source:'whitelist', expiresAt:null, trialUntil:null, isAdmin:true, isPro:true, hasStripe};
     return;
   }
   const now = Date.now();
   if(row){
     if(row.plan==='admin'){
-      _plan = {tier:'admin', source:'db', expiresAt:null, trialUntil:null, isAdmin:true, isPro:true};
+      _plan = {tier:'admin', source:'db', expiresAt:null, trialUntil:null, isAdmin:true, isPro:true, hasStripe};
       return;
     }
     if(row.plan==='pro'){
       const exp = row.expires_at ? new Date(row.expires_at).getTime() : null;
       if(!exp || exp>now){
-        _plan = {tier:'pro', source:'db', expiresAt:row.expires_at, trialUntil:row.trial_until, isAdmin:false, isPro:true};
+        _plan = {tier:'pro', source:'db', expiresAt:row.expires_at, trialUntil:row.trial_until, isAdmin:false, isPro:true, hasStripe};
         return;
       }
     }
@@ -550,12 +552,12 @@ function resolvePlan(row){
     if(row.trial_until){
       const tr = new Date(row.trial_until).getTime();
       if(tr>now){
-        _plan = {tier:'pro', source:'trial', expiresAt:null, trialUntil:row.trial_until, isAdmin:false, isPro:true};
+        _plan = {tier:'pro', source:'trial', expiresAt:null, trialUntil:row.trial_until, isAdmin:false, isPro:true, hasStripe};
         return;
       }
     }
   }
-  _plan = {tier:'free', source:row?'db':'default', expiresAt:null, trialUntil:row?.trial_until||null, isAdmin:false, isPro:false};
+  _plan = {tier:'free', source:row?'db':'default', expiresAt:null, trialUntil:row?.trial_until||null, isAdmin:false, isPro:false, hasStripe};
 }
 
 // Cuenta pedidos del mes en curso (usa created_at del pedido en _cache).
@@ -2467,17 +2469,21 @@ function showPlanInfo(){
   const t = _plan.tier==='admin'?'Admin (owner)':_plan.tier==='pro'?(_plan.source==='trial'?'Pro (trial)':'Pro'):'Free';
   const pedidos = pedidosEsteMes();
   const clientes = _cache.clientes.length;
+  // Botón al portal de Stripe — se muestra siempre que exista una suscripción de pago.
+  const btnGestionar = _plan.hasStripe
+    ? `<div style="margin-top:14px"><button class="btn-secondary" style="width:100%;justify-content:center" onclick="closeModal();irAPortal()">⚙️ Gestionar suscripción</button>
+       <p style="color:var(--text5);font-size:11px;margin:8px 0 0;text-align:center">Cambia la tarjeta, descarga facturas o cancela la renovación.</p></div>`
+    : '';
   let detalle='';
   if(_plan.isAdmin){
-    detalle='<p style="color:var(--text4);margin:0 0 12px">Acceso sin límites como propietario.</p>';
+    detalle='<p style="color:var(--text4);margin:0 0 12px">Acceso sin límites como propietario.</p>'+btnGestionar;
   } else if(_plan.isPro){
     const exp = _plan.expiresAt ? new Date(_plan.expiresAt).toLocaleDateString('es-ES') : null;
     const tr  = _plan.trialUntil ? new Date(_plan.trialUntil).toLocaleDateString('es-ES') : null;
-    detalle = _plan.source==='trial'
+    detalle = (_plan.source==='trial'
       ? `<p style="color:var(--text4);margin:0 0 12px">Trial gratuito hasta <b>${esc(tr||'')}</b>. Acceso a todas las funciones.</p>`
-      : `<p style="color:var(--text4);margin:0 0 12px">Plan Pro activo${exp?` hasta <b>${esc(exp)}</b>`:''}. Pedidos y clientes ilimitados.</p>
-         <div style="margin-top:14px"><button class="btn-secondary" style="width:100%;justify-content:center" onclick="closeModal();irAPortal()">⚙️ Gestionar suscripción</button>
-         <p style="color:var(--text5);font-size:11px;margin:8px 0 0;text-align:center">Cambia la tarjeta, descarga facturas o cancela la renovación.</p></div>`;
+      : `<p style="color:var(--text4);margin:0 0 12px">Plan Pro activo${exp?` hasta <b>${esc(exp)}</b>`:''}. Pedidos y clientes ilimitados.</p>`)
+      + btnGestionar;
   } else {
     detalle = `
       <p style="color:var(--text4);margin:0 0 12px">Este mes: <b>${pedidos} / ${FREE_LIMITS.pedidosPorMes}</b> pedidos · <b>${clientes} / ${FREE_LIMITS.clientes}</b> clientes.</p>
