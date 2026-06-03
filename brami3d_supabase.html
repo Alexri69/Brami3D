@@ -739,6 +739,10 @@ const I18N = {
     'common.close':'Cerrar','hist.noOrders':'Sin pedidos registrados','hist.orders':'Pedidos','hist.paid':'Pagados','hist.totalCollected':'Total cobrado',
     'common.edit':'Editar','common.saved':'Guardado','common.deleted':'Eliminado','common.nameReq':'Nombre obligatorio',
     'a11y.delete':'Eliminar','a11y.remove':'Quitar','a11y.search':'Buscar','a11y.lang':'Cambiar idioma','a11y.theme':'Cambiar tema',
+    'onb.title':'¡Bienvenido a Brami3D! 👋','onb.intro':'En 3 pasos tienes tu taller listo para funcionar.','onb.doneTag':'✓ Hecho','onb.skip':'Explorar por mi cuenta',
+    'onb.s1t':'Configura tu empresa','onb.s1d':'Nombre, logo e impuestos para tus facturas.','onb.s1b':'Configurar',
+    'onb.s2t':'Añade tu primer filamento','onb.s2d':'Registra una bobina con su precio y stock.','onb.s2b':'Añadir filamento',
+    'onb.s3t':'Crea tu primer pedido','onb.s3d':'Calcula el precio y genera el presupuesto o la factura.','onb.s3b':'Crear pedido',
     'imp.title':'Impresoras','imp.new':'+ Nueva impresora','imp.empty':'Sin impresoras','imp.wear':'Desgaste','imp.needsReview':'requiere revisión','imp.elecCost':'Coste eléctrico','imp.regUse':'⏱ Registrar uso','imp.editTitle':'Editar impresora','imp.newTitle':'Nueva impresora','imp.fModel':'Modelo','imp.fHours':'Horas de uso','imp.fWear':'% Desgaste','imp.fConsumo':'Consumo eléctrico (W)','imp.consumoHint':'Introduce los vatios de tu impresora','imp.delete':'¿Eliminar esta impresora?','imp.logUsage':'⏱ Registrar uso','imp.accNow':'Acumulado actual:','imp.wearWord':'Desgaste:','imp.estElecCost':'Coste eléctrico estimado:','imp.sessHours':'Horas de esta sesión *','imp.extraWear':'Desgaste adicional (%)','imp.wearAuto':'Si dejas el desgaste en 0 se aplica +0.1% por hora automáticamente.',
     'fil.title':'Filamentos','fil.empty':'Sin filamentos','fil.cRemaining':'Restante','fil.cStock':'Stock','fil.editTitle':'Editar filamento','fil.newTitle':'Nuevo filamento','fil.fType':'Tipo','fil.fBrand':'Marca *','fil.fColor':'Color','fil.fRemaining':'Peso restante (g)','fil.fPriceKg':'Precio por kg (€)','fil.brandReq':'Marca obligatoria','fil.delete':'¿Eliminar este filamento?','fil.cType':'Tipo','fil.cBrand':'Marca','fil.cColor':'Color',
     'pz.title':'Piezas','pz.new':'+ Nueva pieza','pz.empty':'Sin piezas guardadas','pz.hint':'Guarda piezas frecuentes para auto-rellenar pedidos.','pz.material':'Material','pz.weight':'Peso','pz.time':'Tiempo','pz.suggested':'Sugerido','pz.editTitle':'Editar pieza','pz.newTitle':'Nueva pieza','pz.fName':'Nombre *','pz.fMaterial':'Material','pz.fWeight':'Peso (g)','pz.fTime':'Tiempo impresión (h)','pz.fSuggested':'Precio sugerido (€)','pz.delete':'¿Eliminar esta pieza?',
@@ -818,6 +822,10 @@ const I18N = {
     'common.close':'Close','hist.noOrders':'No orders yet','hist.orders':'Orders','hist.paid':'Paid','hist.totalCollected':'Total collected',
     'common.edit':'Edit','common.saved':'Saved','common.deleted':'Deleted','common.nameReq':'Name is required',
     'a11y.delete':'Delete','a11y.remove':'Remove','a11y.search':'Search','a11y.lang':'Switch language','a11y.theme':'Toggle theme',
+    'onb.title':'Welcome to Brami3D! 👋','onb.intro':'Three steps and your workshop is ready to go.','onb.doneTag':'✓ Done','onb.skip':'Explore on my own',
+    'onb.s1t':'Set up your business','onb.s1d':'Name, logo and taxes for your invoices.','onb.s1b':'Set up',
+    'onb.s2t':'Add your first filament','onb.s2d':'Log a spool with its price and stock.','onb.s2b':'Add filament',
+    'onb.s3t':'Create your first order','onb.s3d':'Calculate the price and generate the quote or invoice.','onb.s3b':'Create order',
     'imp.title':'Printers','imp.new':'+ New printer','imp.empty':'No printers','imp.wear':'Wear','imp.needsReview':'needs servicing','imp.elecCost':'Electricity cost','imp.regUse':'⏱ Log usage','imp.editTitle':'Edit printer','imp.newTitle':'New printer','imp.fModel':'Model','imp.fHours':'Hours of use','imp.fWear':'% Wear','imp.fConsumo':'Power draw (W)','imp.consumoHint':'Enter your printer wattage','imp.delete':'Delete this printer?','imp.logUsage':'⏱ Log usage','imp.accNow':'Current total:','imp.wearWord':'Wear:','imp.estElecCost':'Est. electricity cost:','imp.sessHours':'Hours this session *','imp.extraWear':'Extra wear (%)','imp.wearAuto':'If wear is left at 0, +0.1% per hour is applied automatically.',
     'fil.title':'Filaments','fil.empty':'No filaments','fil.cRemaining':'Remaining','fil.cStock':'Stock','fil.editTitle':'Edit filament','fil.newTitle':'New filament','fil.fType':'Type','fil.fBrand':'Brand *','fil.fColor':'Color','fil.fRemaining':'Remaining weight (g)','fil.fPriceKg':'Price per kg (€)','fil.brandReq':'Brand is required','fil.delete':'Delete this filament?','fil.cType':'Type','fil.cBrand':'Brand','fil.cColor':'Color',
     'pz.title':'Parts','pz.new':'+ New part','pz.empty':'No saved parts','pz.hint':'Save frequent parts to auto-fill orders.','pz.material':'Material','pz.weight':'Weight','pz.time':'Time','pz.suggested':'Suggested','pz.editTitle':'Edit part','pz.newTitle':'New part','pz.fName':'Name *','pz.fMaterial':'Material','pz.fWeight':'Weight (g)','pz.fTime':'Print time (h)','pz.fSuggested':'Suggested price (€)','pz.delete':'Delete this part?',
@@ -1543,6 +1551,7 @@ async function bootApp(){
       saveLocalCache();
       buildNav();                 // ← _plan ya resuelto: añade "Admin" si corresponde
       render();
+      maybeShowOnboarding();
       refreshAlerts();
       checkAndNotify();
       registrarInicioSIF();
@@ -1556,6 +1565,7 @@ async function bootApp(){
       saveLocalCache();
       buildNav();                 // ← _plan ya resuelto: añade "Admin" si corresponde
       goTo('dashboard');
+      maybeShowOnboarding();
       checkAndNotify();
       handleShortcut(); _checkPagoReturn(); _checkSuscribirIntent();
       registrarInicioSIF();
@@ -2600,6 +2610,50 @@ function a11yIcons(root){
     const k=_ICON_A11Y[(b.textContent||'').trim()];
     if(k) b.setAttribute('aria-label', t(k));
   });
+}
+
+// ── ONBOARDING de bienvenida (solo cuentas nuevas/vacías) ──────────────────
+function _onbKey(){ return 'b3d_onboarded_' + (CU ? CU.id : 'anon'); }
+function _onbDone(){ try{ localStorage.setItem(_onbKey(),'1'); }catch(_){} }
+function _onbGo(page){ _onbDone(); closeModal(); goTo(page); }
+function maybeShowOnboarding(){
+  try{
+    if(!CU) return;
+    if(localStorage.getItem(_onbKey())==='1') return;
+    const c=_cache;
+    const hasData=(c.pedidos&&c.pedidos.length)||(c.clientes&&c.clientes.length)||(c.filamentos&&c.filamentos.length);
+    if(hasData){ _onbDone(); return; }            // ya empezó a usarla: no molestar
+    if($('modal-root') && $('modal-root').innerHTML.trim()) return; // hay otro modal abierto
+    setTimeout(showOnboarding, 400);
+  }catch(_){}
+}
+function showOnboarding(){
+  const cfg=_cache.cfg||{};
+  const okEmpresa=!!(cfg.empresa && String(cfg.empresa).trim());
+  const okFil=(_cache.filamentos||[]).length>0;
+  const okPed=(_cache.pedidos||[]).length>0;
+  const step=(n,done,title,desc,btn,page)=>`
+    <div style="display:flex;gap:14px;align-items:flex-start;padding:14px 0;border-bottom:1px solid var(--border)">
+      <div style="width:28px;height:28px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;${done?'background:var(--gr-d);color:var(--gr);border:1px solid rgba(34,197,94,.3)':'background:var(--bg4);color:var(--text3);border:1px solid var(--border2)'}">${done?'✓':n}</div>
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:700;color:var(--text2);font-size:14px">${esc(title)}</div>
+        <div style="color:var(--text4);font-size:12px;margin:2px 0 8px">${esc(desc)}</div>
+        ${done
+          ? `<span style="color:var(--gr);font-size:12px;font-weight:700">${t('onb.doneTag')}</span>`
+          : `<button class="btn-secondary" style="font-size:13px;padding:7px 14px" onclick="_onbGo('${page}')">${esc(btn)}</button>`}
+      </div>
+    </div>`;
+  const body=`
+    <p style="color:var(--text4);margin:0 0 8px;font-size:14px">${esc(t('onb.intro'))}</p>
+    <div>
+      ${step(1,okEmpresa,t('onb.s1t'),t('onb.s1d'),t('onb.s1b'),'configuracion')}
+      ${step(2,okFil,t('onb.s2t'),t('onb.s2d'),t('onb.s2b'),'filamentos')}
+      ${step(3,okPed,t('onb.s3t'),t('onb.s3d'),t('onb.s3b'),'pedidos')}
+    </div>
+    <div style="text-align:center;margin-top:16px">
+      <button class="btn-secondary" onclick="_onbDone();closeModal()">${esc(t('onb.skip'))}</button>
+    </div>`;
+  openModal(msh(t('onb.title'), body));
 }
 
 // ═══════════════════════════════════════════════
