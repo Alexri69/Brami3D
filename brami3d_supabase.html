@@ -871,7 +871,7 @@ function fmtFecha(isoDate, cfg){
   if(fmt==='YYYY-MM-DD') return `${y}-${m}-${d}`;
   return `${d}/${m}/${y}`;
 }
-const esc  = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const esc  = s => String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 const $    = id => document.getElementById(id);
 
 function showToast(msg, type='ok', dur=3000){

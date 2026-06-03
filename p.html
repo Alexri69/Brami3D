@@ -50,7 +50,7 @@ const SUPA_URL='https://uzgzfxizpoigzcnlunpr.supabase.co';
 const SUPA_KEY='sb_publishable_4gEjOV3kyfh8_I0f861iow__6b1ueIi';
 const sb=supabase.createClient(SUPA_URL,SUPA_KEY);
 const root=document.getElementById('root');
-const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 const token=new URLSearchParams(location.search).get('t');
 
 function err(msg){ root.innerHTML=`<div class="card"><div class="center" style="padding:40px 10px">😕<div style="margin-top:10px">${esc(msg)}</div></div></div>`; }
