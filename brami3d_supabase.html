@@ -448,7 +448,7 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
           <span id="net-label" style="display:none">Sin conexión</span>
         </div>
         <button onclick="toggleLang()" id="lang-btn" title="Cambiar idioma (ES/EN)"
-          style="background:var(--bg4);border:1.5px solid var(--border2);border-radius:10px;padding:8px 12px;font-size:18px;color:var(--text3);flex-shrink:0;line-height:1">🇬🇧</button>
+          style="background:var(--bg4);border:1.5px solid var(--border2);border-radius:10px;padding:9px 10px;color:var(--text3);flex-shrink:0;line-height:0;display:flex;align-items:center"></button>
         <button onclick="toggleTheme()" id="theme-btn" title="Cambiar tema"
           style="background:var(--bg4);border:1.5px solid var(--border2);border-radius:10px;padding:8px 12px;font-size:18px;color:var(--text3);flex-shrink:0;line-height:1">
           🌙
@@ -827,6 +827,10 @@ function t(key, vars){
   if(vars) for(const k in vars) s = s.replace(new RegExp('\\{'+k+'\\}','g'), vars[k]);
   return s;
 }
+// Banderas en SVG (los emojis 🇬🇧/🇪🇸 NO se renderizan en Windows).
+const FLAG_GB = '<svg viewBox="0 0 60 30" width="22" height="14" style="display:block;border-radius:3px"><clipPath id="fgb1"><path d="M0,0 v30 h60 v-30 z"/></clipPath><clipPath id="fgb2"><path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z"/></clipPath><g clip-path="url(#fgb1)"><path d="M0,0 v30 h60 v-30 z" fill="#012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0 L60,30 M60,0 L0,30" clip-path="url(#fgb2)" stroke="#C8102E" stroke-width="4"/><path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/><path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/></g></svg>';
+const FLAG_ES = '<svg viewBox="0 0 3 2" width="22" height="14" style="display:block;border-radius:3px"><rect width="3" height="2" fill="#c60b1e"/><rect width="3" height="1" y="0.5" fill="#ffc400"/></svg>';
+
 // Aplica traducciones a los elementos estáticos del HTML (los que no pasan por render()).
 function applyStaticI18n(){
   document.documentElement.lang = LANG;
@@ -834,7 +838,7 @@ function applyStaticI18n(){
   set('logout-lbl', t('common.logout'));
   const gs=$('global-search'); if(gs) gs.placeholder=t('topbar.searchDesk');
   const nl=$('net-label'); if(nl && !_outboxCount()) nl.textContent=t('net.offline');
-  const lb=$('lang-btn'); if(lb){ lb.textContent = LANG==='es'?'🇬🇧':'🇪🇸'; lb.title = LANG==='es'?'Switch to English':'Cambiar a español'; }
+  const lb=$('lang-btn'); if(lb){ lb.innerHTML = LANG==='es'?FLAG_GB:FLAG_ES; lb.title = LANG==='es'?'Switch to English':'Cambiar a español'; }
   const tb=$('theme-btn'); if(tb) tb.title=t('theme.toggle');
 }
 function setLang(l){
