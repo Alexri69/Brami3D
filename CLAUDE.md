@@ -37,6 +37,8 @@ Se crean/despliegan desde el **panel web** (Edge Functions → *Via Editor*). Se
 - Detección de columnas opcionales en runtime: `_hasAnticipo`, `_hasShare`
 - Tema: dark por defecto, `body.light` para claro, guardado en `b3d_theme`. Botón `#theme-btn` (🌙)
 - **Dashboard con métricas** de negocio (ingresos, costes, beneficio, consumo)
+- **Onboarding**: `maybeShowOnboarding()` (en bootApp) muestra un asistente de 3 pasos solo en cuentas vacías y no descartadas (flag `b3d_onboarded_<uid>`). Forzar para probar: `showOnboarding()` en consola.
+- **Accesibilidad**: `a11yIcons()` da `aria-label` a los `.btn-icon` tras cada render/modal (por `title` o emoji). Claves `a11y.*`.
 
 ### i18n (ES / EN)
 - `LANG` global (localStorage `b3d_lang`, **default `es`**; inglés es opt-in)
