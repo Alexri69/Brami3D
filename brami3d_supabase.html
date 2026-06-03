@@ -744,6 +744,7 @@ const I18N = {
     'onb.s2t':'Añade tu primer filamento','onb.s2d':'Registra una bobina con su precio y stock.','onb.s2b':'Añadir filamento',
     'onb.s3t':'Crea tu primer pedido','onb.s3d':'Calcula el precio y genera el presupuesto o la factura.','onb.s3b':'Crear pedido',
     'err.generic':'Algo falló. Inténtalo de nuevo.',
+    'trial.daysLeft':'Te quedan {n} días de prueba gratis.','trial.lastDay':'Hoy es el último día de tu prueba gratis.','trial.upgrade':'Pásate a Pro',
     'imp.title':'Impresoras','imp.new':'+ Nueva impresora','imp.empty':'Sin impresoras','imp.wear':'Desgaste','imp.needsReview':'requiere revisión','imp.elecCost':'Coste eléctrico','imp.regUse':'⏱ Registrar uso','imp.editTitle':'Editar impresora','imp.newTitle':'Nueva impresora','imp.fModel':'Modelo','imp.fHours':'Horas de uso','imp.fWear':'% Desgaste','imp.fConsumo':'Consumo eléctrico (W)','imp.consumoHint':'Introduce los vatios de tu impresora','imp.delete':'¿Eliminar esta impresora?','imp.logUsage':'⏱ Registrar uso','imp.accNow':'Acumulado actual:','imp.wearWord':'Desgaste:','imp.estElecCost':'Coste eléctrico estimado:','imp.sessHours':'Horas de esta sesión *','imp.extraWear':'Desgaste adicional (%)','imp.wearAuto':'Si dejas el desgaste en 0 se aplica +0.1% por hora automáticamente.',
     'fil.title':'Filamentos','fil.empty':'Sin filamentos','fil.cRemaining':'Restante','fil.cStock':'Stock','fil.editTitle':'Editar filamento','fil.newTitle':'Nuevo filamento','fil.fType':'Tipo','fil.fBrand':'Marca *','fil.fColor':'Color','fil.fRemaining':'Peso restante (g)','fil.fPriceKg':'Precio por kg (€)','fil.brandReq':'Marca obligatoria','fil.delete':'¿Eliminar este filamento?','fil.cType':'Tipo','fil.cBrand':'Marca','fil.cColor':'Color',
     'pz.title':'Piezas','pz.new':'+ Nueva pieza','pz.empty':'Sin piezas guardadas','pz.hint':'Guarda piezas frecuentes para auto-rellenar pedidos.','pz.material':'Material','pz.weight':'Peso','pz.time':'Tiempo','pz.suggested':'Sugerido','pz.editTitle':'Editar pieza','pz.newTitle':'Nueva pieza','pz.fName':'Nombre *','pz.fMaterial':'Material','pz.fWeight':'Peso (g)','pz.fTime':'Tiempo impresión (h)','pz.fSuggested':'Precio sugerido (€)','pz.delete':'¿Eliminar esta pieza?',
@@ -828,6 +829,7 @@ const I18N = {
     'onb.s2t':'Add your first filament','onb.s2d':'Log a spool with its price and stock.','onb.s2b':'Add filament',
     'onb.s3t':'Create your first order','onb.s3d':'Calculate the price and generate the quote or invoice.','onb.s3b':'Create order',
     'err.generic':'Something went wrong. Please try again.',
+    'trial.daysLeft':'You have {n} days left in your free trial.','trial.lastDay':'Today is the last day of your free trial.','trial.upgrade':'Upgrade to Pro',
     'imp.title':'Printers','imp.new':'+ New printer','imp.empty':'No printers','imp.wear':'Wear','imp.needsReview':'needs servicing','imp.elecCost':'Electricity cost','imp.regUse':'⏱ Log usage','imp.editTitle':'Edit printer','imp.newTitle':'New printer','imp.fModel':'Model','imp.fHours':'Hours of use','imp.fWear':'% Wear','imp.fConsumo':'Power draw (W)','imp.consumoHint':'Enter your printer wattage','imp.delete':'Delete this printer?','imp.logUsage':'⏱ Log usage','imp.accNow':'Current total:','imp.wearWord':'Wear:','imp.estElecCost':'Est. electricity cost:','imp.sessHours':'Hours this session *','imp.extraWear':'Extra wear (%)','imp.wearAuto':'If wear is left at 0, +0.1% per hour is applied automatically.',
     'fil.title':'Filaments','fil.empty':'No filaments','fil.cRemaining':'Remaining','fil.cStock':'Stock','fil.editTitle':'Edit filament','fil.newTitle':'New filament','fil.fType':'Type','fil.fBrand':'Brand *','fil.fColor':'Color','fil.fRemaining':'Remaining weight (g)','fil.fPriceKg':'Price per kg (€)','fil.brandReq':'Brand is required','fil.delete':'Delete this filament?','fil.cType':'Type','fil.cBrand':'Brand','fil.cColor':'Color',
     'pz.title':'Parts','pz.new':'+ New part','pz.empty':'No saved parts','pz.hint':'Save frequent parts to auto-fill orders.','pz.material':'Material','pz.weight':'Weight','pz.time':'Time','pz.suggested':'Suggested','pz.editTitle':'Edit part','pz.newTitle':'New part','pz.fName':'Name *','pz.fMaterial':'Material','pz.fWeight':'Weight (g)','pz.fTime':'Print time (h)','pz.fSuggested':'Suggested price (€)','pz.delete':'Delete this part?',
@@ -2619,7 +2621,7 @@ function render(){
   // Gate admin page: si alguien hace goTo('admin') sin ser admin, redirige.
   if(PAGE==='admin' && !_plan.isAdmin){ PAGE='dashboard'; }
   const fn=map[PAGE];
-  $('content').innerHTML=fn?fn():'<p style="color:var(--text4)">Página no encontrada</p>';
+  $('content').innerHTML=trialBannerHTML()+(fn?fn():'<p style="color:var(--text4)">Página no encontrada</p>');
   a11yIcons();
   if(PAGE==='archivos') initDZ();
   if(PAGE==='dashboard') setTimeout(initDashboardCharts,0);
@@ -2637,6 +2639,25 @@ function a11yIcons(root){
     const k=_ICON_A11Y[(b.textContent||'').trim()];
     if(k) b.setAttribute('aria-label', t(k));
   });
+}
+
+// ── Banner de fin de prueba (nudge de conversión a Pro) ────────────────────
+let _trialDismissed = false;
+function _dismissTrial(){ _trialDismissed=true; const b=$('trial-banner'); if(b) b.remove(); }
+function trialBannerHTML(){
+  try{
+    if(_trialDismissed) return '';
+    if(!_plan || _plan.isAdmin || !_plan.isPro || _plan.source!=='trial' || !_plan.trialUntil) return '';
+    const days = Math.ceil((new Date(_plan.trialUntil).getTime() - Date.now())/864e5);
+    if(days<0 || days>7) return '';                       // solo en la última semana
+    const txt = days<=0 ? t('trial.lastDay') : t('trial.daysLeft',{n:days});
+    return `<div id="trial-banner" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);border-radius:12px;padding:12px 16px;margin-bottom:16px">
+      <span style="font-size:18px">⏳</span>
+      <span style="flex:1;min-width:180px;color:var(--text2);font-size:14px;font-weight:600">${esc(txt)}</span>
+      <button class="btn-primary" style="padding:8px 16px;font-size:13px" onclick="showPlanInfo()">${esc(t('trial.upgrade'))}</button>
+      <button class="btn-icon" aria-label="${esc(t('common.close'))}" onclick="_dismissTrial()" style="font-size:16px">✕</button>
+    </div>`;
+  }catch(_){ return ''; }
 }
 
 // ── ONBOARDING de bienvenida (solo cuentas nuevas/vacías) ──────────────────
