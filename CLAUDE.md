@@ -73,9 +73,9 @@ Se crean/despliegan desde el **panel web** (Edge Functions → *Via Editor*). Se
 ## Validar JS antes de commitear
 ```bash
 cd /c/Users/alexr/Brami3D
-node -e 'const fs=require("fs"),vm=require("vm");const h=fs.readFileSync("brami3d_supabase.html","utf8");const re=/<script(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi;let m,i=0,e=0;while((m=re.exec(h))){i++;try{new vm.Script(m[1])}catch(x){e++;console.log("ERR",x.message)}}console.log("bloques:",i,"errores:",e)'
+node scripts/validate.js   # valida los <script> inline de todos los .html + JSON
 ```
-Tras cada cambio: **commit + push** (despliega solo).
+Hay **CI** (`.github/workflows/validate.yml`) que ejecuta esto en cada push/PR — como push a main = producción, sirve de red de seguridad. Tras cada cambio: **commit + push** (despliega solo).
 
 ## Seguridad (auditado 2026-06-03)
 - **RLS** activo y correcto en las 12 tablas: cada política filtra por `(auth.uid() = user_id)`, ninguna permisiva. `user_plans` solo SELECT (writes vía webhook/admin RPC). Tablas VeriFactu append-only (solo INSERT+SELECT). Script de comprobación: `sql/012_audit_rls.sql`.

@@ -1,0 +1,25 @@
+name: Validar antes de desplegar
+
+# Comprueba la sintaxis de todos los <script> inline y los JSON en cada push y PR.
+# Como "push a main = producción" (GitHub Pages), esto evita publicar una web rota.
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: ['**']
+
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Configurar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validar sintaxis JS y JSON
+        run: node scripts/validate.js
