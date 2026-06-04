@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Brami3D — Lo que la hace diferente (vídeo)</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#09090B;--bg2:#111115;--bg3:#18181D;--or:#F97316;--gr:#22C55E;--am:#F59E0B;--bl:#60a5fa;--text:#F4F4F5;--text2:#A1A1AA;--text3:#52525B;--border:#27272A}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#000;font-family:'Space Grotesk',sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
+#stage{position:fixed;inset:0;background:var(--bg);overflow:hidden;display:flex;align-items:center;justify-content:center}
+.glow{position:absolute;width:80vw;height:80vw;border-radius:50%;background:radial-gradient(circle,rgba(249,115,22,.16),transparent 65%);top:42%;left:50%;transform:translate(-50%,-50%);filter:blur(20px)}
+.scene{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8vw 7vw;opacity:0;pointer-events:none}
+.scene.active{opacity:1}
+.tag{font-size:3.6vw;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:var(--or);margin-bottom:3.5vw}
+.title{font-size:8vw;font-weight:700;color:var(--text);line-height:1.12;letter-spacing:-.02em}
+.title em{font-style:normal;color:var(--or)}
+.sub{font-size:4vw;color:var(--text2);margin-top:4vw;line-height:1.5;max-width:82vw}
+.emoji{font-size:17vw;line-height:1;margin-bottom:4vw}
+.logo-mark{width:22vw;height:22vw;border-radius:5.5vw;background:var(--or);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:6.5vw;color:#000;font-weight:500;margin-bottom:4vw}
+.cta-url{display:inline-block;background:var(--or);color:#000;font-size:6vw;font-weight:700;padding:4vw 9vw;border-radius:3vw;margin-top:5vw}
+.free{font-size:4.6vw;color:var(--gr);font-weight:700;margin-top:4vw}
+
+.scene.active .anim{animation:up .6s cubic-bezier(.2,.7,.2,1) both}
+.scene.active .anim2{animation:up .6s .18s cubic-bezier(.2,.7,.2,1) both}
+.scene.active .anim3{animation:up .6s .36s cubic-bezier(.2,.7,.2,1) both}
+@keyframes up{from{opacity:0;transform:translateY(6vw)}to{opacity:1;transform:none}}
+.scene.active .pop{animation:pop .55s cubic-bezier(.2,1.3,.4,1) both}
+@keyframes pop{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
+
+/* tarjetas / chips */
+.card{background:var(--bg2);border:.4vw solid var(--border);border-radius:4vw;padding:5vw;width:80vw;max-width:80vw}
+.qrow{display:flex;justify-content:space-between;align-items:center;font-size:3.6vw;color:var(--text2);padding:1.6vw 0}
+.qrow b{color:var(--text);font-family:'DM Mono',monospace}
+.divider{height:.3vw;background:var(--border);margin:2.5vw 0}
+.accept{display:inline-flex;align-items:center;gap:2vw;background:rgba(34,197,94,.12);color:var(--gr);border:.4vw solid rgba(34,197,94,.3);border-radius:3vw;padding:3vw 5vw;font-size:4.4vw;font-weight:700;margin-top:4vw}
+.notif{display:flex;align-items:center;gap:3vw;background:var(--bg2);border:.4vw solid var(--border);border-radius:3.5vw;padding:3.6vw 4vw;width:82vw;margin-bottom:2.6vw;text-align:left}
+.notif .ic{font-size:6vw;flex-shrink:0}
+.notif .t{font-size:3.6vw;font-weight:700;color:var(--text)}
+.notif .d{font-size:3vw;color:var(--text3);margin-top:.6vw}
+.langwrap{display:flex;gap:3vw;align-items:center;justify-content:center;flex-wrap:wrap;margin-top:2vw}
+.langpill{display:flex;align-items:center;gap:2.4vw;background:var(--bg2);border:.4vw solid var(--border);border-radius:3vw;padding:3vw 5vw;font-size:4.4vw;font-weight:700;color:var(--text)}
+.langpill svg{width:7vw;height:4.4vw;border-radius:1vw;display:block}
+.cur-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:2.6vw;width:82vw;margin-top:2vw}
+.cpill{background:var(--bg3);border:.4vw solid var(--border);border-radius:2.6vw;padding:3vw;display:flex;align-items:center;justify-content:center;gap:1.6vw;font-family:'DM Mono',monospace;font-size:3.4vw;color:var(--text2)}
+.offline{display:inline-flex;align-items:center;gap:2vw;background:rgba(96,165,250,.1);color:var(--bl);border:.4vw solid rgba(96,165,250,.3);border-radius:99px;padding:2.4vw 4.5vw;font-size:3.4vw;font-weight:700;margin-top:4vw}
+.homeicon{width:26vw;height:26vw;border-radius:6vw;background:var(--or);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:8vw;color:#000;font-weight:500;box-shadow:0 4vw 8vw rgba(249,115,22,.3)}
+
+#bar{position:fixed;top:0;left:0;height:1vw;background:var(--or);width:0;z-index:50}
+#controls{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.78);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8vw;gap:4vw}
+#controls h2{color:#fff;font-size:6vw}#controls p{color:#A1A1AA;font-size:3.8vw;line-height:1.6;max-width:80vw}
+#playBtn{background:var(--or);color:#000;border:none;font-family:inherit;font-size:5vw;font-weight:700;padding:4vw 10vw;border-radius:3vw;cursor:pointer}
+#replay{position:fixed;bottom:6vw;left:50%;transform:translateX(-50%);z-index:60;background:rgba(255,255,255,.1);color:#fff;border:.3vw solid rgba(255,255,255,.3);font-family:inherit;font-size:3.8vw;padding:3vw 7vw;border-radius:3vw;cursor:pointer;display:none}
+
+@media(min-aspect-ratio:1/1){
+  #stage{width:min(46vh,420px);height:96vh;left:50%;top:2vh;inset:auto;transform:translateX(-50%);border-radius:24px;border:1px solid var(--border)}
+  .tag{font-size:15px}.title{font-size:38px}.sub{font-size:18px}.emoji{font-size:78px}
+  .logo-mark{width:104px;height:104px;border-radius:26px;font-size:30px}.cta-url{font-size:26px;padding:18px 40px;border-radius:14px}.free{font-size:21px}
+  .card{width:330px;max-width:330px;padding:22px;border-radius:18px}.qrow{font-size:15px}.divider{height:1px}
+  .accept{font-size:18px;padding:12px 22px;border-radius:12px}
+  .notif{width:330px;padding:14px 16px;border-radius:14px;margin-bottom:11px}.notif .ic{font-size:26px}.notif .t{font-size:15px}.notif .d{font-size:12px}
+  .langpill{font-size:18px;padding:12px 22px;border-radius:12px}.langpill svg{width:30px;height:19px;border-radius:4px}
+  .cur-grid{width:330px;gap:11px}.cpill{font-size:14px;padding:13px;border-radius:11px}
+  .offline{font-size:14px;padding:10px 18px}.homeicon{width:110px;height:110px;border-radius:26px;font-size:34px}
+  #bar{left:50%;transform:translateX(-50%);max-width:420px}
+}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<div id="stage">
+  <div class="glow"></div>
+
+  <!-- intro -->
+  <div class="scene" data-dur="3000">
+    <div class="logo-mark pop">B3D</div>
+    <div class="title anim2">Lo que la hace<br><em>diferente</em></div>
+  </div>
+
+  <!-- 1: presupuestos que el cliente acepta online -->
+  <div class="scene" data-dur="6200">
+    <div class="tag anim">Presupuestos</div>
+    <div class="title anim" style="font-size:6.5vw;margin-bottom:4vw">Tu cliente lo acepta<br><em>online</em></div>
+    <div class="card anim2">
+      <div class="qrow"><span>Soporte GoPro</span><b>18.50€</b></div>
+      <div class="divider"></div>
+      <div style="font-size:3vw;color:var(--text3);text-align:center">Le envías un enlace por WhatsApp 💬</div>
+      <div style="text-align:center"><span class="accept">✅ Presupuesto aceptado</span></div>
+    </div>
+    <div class="sub anim3">Sin imprimir, sin papeleo. Y te avisa al momento.</div>
+  </div>
+
+  <!-- 2: bilingüe -->
+  <div class="scene" data-dur="5200">
+    <div class="tag anim">Idioma</div>
+    <div class="title anim" style="font-size:7vw">En español<br>e inglés</div>
+    <div class="langwrap anim2">
+      <span class="langpill"><svg viewBox="0 0 3 2"><rect width="3" height="2" fill="#c60b1e"/><rect width="3" height="1" y="0.5" fill="#ffc400"/></svg> Presupuesto</span>
+      <span class="langpill"><svg viewBox="0 0 60 30"><clipPath id="g"><path d="M0,0 v30 h60 v-30 z"/></clipPath><clipPath id="s"><path d="M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z"/></clipPath><g clip-path="url(#g)"><path d="M0,0 v30 h60 v-30 z" fill="#012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0 L60,30 M60,0 L0,30" clip-path="url(#s)" stroke="#C8102E" stroke-width="4"/><path d="M30,0 v30 M0,15 h60" stroke="#fff" stroke-width="10"/><path d="M30,0 v30 M0,15 h60" stroke="#C8102E" stroke-width="6"/></g></svg> Quote</span>
+    </div>
+    <div class="sub anim3">Cambia el idioma de un toque — app y facturas.</div>
+  </div>
+
+  <!-- 3: te avisa + offline -->
+  <div class="scene" data-dur="5800">
+    <div class="tag anim">Notificaciones</div>
+    <div class="title anim" style="font-size:7vw;margin-bottom:4vw">Te avisa de todo</div>
+    <div class="anim2">
+      <div class="notif"><span class="ic">✅</span><div><div class="t">Presupuesto aceptado</div><div class="d">Soporte GoPro — 18.50€</div></div></div>
+      <div class="notif"><span class="ic">⚠️</span><div><div class="t">Filamento bajo</div><div class="d">PLA Smartfil — 180g restantes</div></div></div>
+    </div>
+    <div class="anim3"><span class="offline">📴 Funciona sin conexión</span></div>
+  </div>
+
+  <!-- 4: internacional -->
+  <div class="scene" data-dur="5000">
+    <div class="tag anim">Internacional</div>
+    <div class="title anim" style="font-size:7vw;margin-bottom:4vw">Cualquier moneda,<br>cualquier país</div>
+    <div class="cur-grid anim2">
+      <div class="cpill">€ IVA</div><div class="cpill">$ Tax</div><div class="cpill">£ VAT</div>
+      <div class="cpill">R$ ICMS</div><div class="cpill">MXN</div><div class="cpill">+ otras</div>
+    </div>
+  </div>
+
+  <!-- 5: instalable -->
+  <div class="scene" data-dur="5000">
+    <div class="tag anim">Como una app</div>
+    <div class="homeicon pop">B3D</div>
+    <div class="title anim2" style="font-size:6.5vw;margin-top:5vw">Instálala en tu<br>pantalla de inicio</div>
+    <div class="sub anim3">Sin tiendas de apps. Pesa casi nada.</div>
+  </div>
+
+  <!-- outro -->
+  <div class="scene" data-dur="5200">
+    <div class="logo-mark pop">B3D</div>
+    <div class="title anim2">Pruébala <em>gratis</em></div>
+    <div class="free anim2">Sin tarjeta · Desde el móvil</div>
+    <div class="anim2"><span class="cta-url">brami3d.app</span></div>
+  </div>
+</div>
+
+<button id="replay" onclick="play()">↻ Volver a reproducir</button>
+<div id="controls">
+  <h2>🎬 Lo que hace especial a Brami3D</h2>
+  <p>1. Empieza a <b>grabar la pantalla</b>.<br>2. Pulsa <b>Reproducir</b>.<br>3. Al terminar, para la grabación.</p>
+  <button id="playBtn" onclick="play()">▶ Reproducir</button>
+  <p style="font-size:3.2vw;opacity:.7">Dura ~35s · vertical (Reels/Stories)</p>
+</div>
+
+<script>
+const scenes=[...document.querySelectorAll('.scene')];
+const bar=document.getElementById('bar'), replay=document.getElementById('replay');
+const total=scenes.reduce((a,s)=>a+(+s.dataset.dur),0);
+let timers=[];
+function play(){
+  timers.forEach(clearTimeout);timers=[];
+  document.getElementById('controls').style.display='none';replay.style.display='none';
+  scenes.forEach(s=>s.classList.remove('active'));
+  bar.style.transition='none';bar.style.width='0';
+  requestAnimationFrame(()=>{bar.style.transition='width '+total+'ms linear';bar.style.width='100%';});
+  let t=0;
+  scenes.forEach(s=>{
+    timers.push(setTimeout(()=>{ scenes.forEach(x=>x.classList.remove('active')); s.classList.add('active'); },t));
+    t+=(+s.dataset.dur);
+  });
+  timers.push(setTimeout(()=>{replay.style.display='block';},total));
+}
+</script>
+</body>
+</html>
