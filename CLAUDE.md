@@ -43,6 +43,7 @@ Se crean/despliegan desde el **panel web** (Edge Functions → *Via Editor*). Se
 - **Onboarding**: `maybeShowOnboarding()` (en bootApp) muestra un asistente de 3 pasos solo en cuentas vacías y no descartadas (flag `b3d_onboarded_<uid>`). Forzar para probar: `showOnboarding()` en consola.
 - **Accesibilidad**: `a11yIcons()` da `aria-label` a los `.btn-icon` tras cada render/modal (por `title` o emoji). Claves `a11y.*`.
 - **Errores globales**: `window.onerror`/`unhandledrejection` → `_logError()` muestra un toast (`err.generic`, sin spam, ignora ruido de red) y registra en la tabla `error_logs` (best-effort). Migración `sql/014_error_logs.sql` (RLS: insert propio, select solo admin). Ver: `select ... from error_logs order by created_at desc`.
+- **Referidos**: enlace `?ref=CODE` → `localStorage b3d_ref` → `_aplicarReferido()` (en bootApp) llama RPC `aplicar_referido` (+30 días Pro a ambos, vía `_sumar_trial`). UI `mostrarReferidos()` (card en Config) usa RPC `mi_ref_code()` y cuenta `referidos`. SQL: `sql/017_referidos.sql` (tabla `referidos`, columna `user_plans.ref_code`, RPCs SECURITY DEFINER). Sin Edge Functions ni Stripe.
 - **Nudge de trial**: `trialBannerHTML()` (en render) muestra un banner en los últimos ≤7 días de prueba (`_plan.source==='trial'`) con CTA a `showPlanInfo()`. Descartable en sesión (`_dismissTrial`). Claves `trial.*`.
 
 ### i18n (ES / EN)

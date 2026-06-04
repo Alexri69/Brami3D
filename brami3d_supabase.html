@@ -490,6 +490,9 @@ const SUPA_KEY = 'sb_publishable_4gEjOV3kyfh8_I0f861iow__6b1ueIi';
 const { createClient } = supabase;
 const sb = createClient(SUPA_URL, SUPA_KEY);
 
+// Captura el código de invitación si se llega con ?ref=CODE (antes de registrarse).
+try{ const _r=new URLSearchParams(location.search).get('ref'); if(_r) localStorage.setItem('b3d_ref', _r.trim()); }catch(_){}
+
 // ═══════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════
@@ -758,6 +761,8 @@ const I18N = {
     'help.q2':'¿Cómo paso a Pro?','help.a2':'Toca tu plan arriba (la etiqueta junto a tu nombre) y elige Pro mensual o anual. El pago con tarjeta lo activa al instante.',
     'help.q3':'¿Mis datos están seguros?','help.a3':'Sí. Se guardan cifrados en la nube y solo tú accedes a ellos. Puedes exportarlos o eliminar tu cuenta cuando quieras.',
     'help.wa':'Escríbenos por WhatsApp','help.email':'Escríbenos un email','help.waMsg':'Hola, necesito ayuda con Brami3D',
+    'cfg.referrals':'🤝 Invita y gana','cfg.referralsHint':'Invita a otro taller. Cuando se registre con tu enlace, os lleváis los dos 30 días de Pro gratis.','cfg.referralsBtn':'Ver mi enlace de invitación',
+    'ref.title':'Invita y gana','ref.intro':'Comparte tu enlace. Cuando otro taller se registre con él, ambos conseguís 30 días de Pro gratis. 🎁','ref.copy':'Copiar','ref.copied':'Enlace copiado','ref.share':'Compartir por WhatsApp','ref.count':'Talleres que has invitado','ref.waMsg':'Te recomiendo Brami3D para gestionar tu taller de impresión 3D. Regístrate con mi enlace y los dos nos llevamos 30 días Pro gratis: {url}','ref.rewarded':'🎁 ¡Bienvenido! Tienes 30 días de Pro gratis por venir invitado.',
     'imp.title':'Impresoras','imp.new':'+ Nueva impresora','imp.empty':'Sin impresoras','imp.wear':'Desgaste','imp.needsReview':'requiere revisión','imp.elecCost':'Coste eléctrico','imp.regUse':'⏱ Registrar uso','imp.editTitle':'Editar impresora','imp.newTitle':'Nueva impresora','imp.fModel':'Modelo','imp.fHours':'Horas de uso','imp.fWear':'% Desgaste','imp.fConsumo':'Consumo eléctrico (W)','imp.consumoHint':'Introduce los vatios de tu impresora','imp.delete':'¿Eliminar esta impresora?','imp.logUsage':'⏱ Registrar uso','imp.accNow':'Acumulado actual:','imp.wearWord':'Desgaste:','imp.estElecCost':'Coste eléctrico estimado:','imp.sessHours':'Horas de esta sesión *','imp.extraWear':'Desgaste adicional (%)','imp.wearAuto':'Si dejas el desgaste en 0 se aplica +0.1% por hora automáticamente.',
     'fil.title':'Filamentos','fil.empty':'Sin filamentos','fil.cRemaining':'Restante','fil.cStock':'Stock','fil.editTitle':'Editar filamento','fil.newTitle':'Nuevo filamento','fil.fType':'Tipo','fil.fBrand':'Marca *','fil.fColor':'Color','fil.fRemaining':'Peso restante (g)','fil.fPriceKg':'Precio por kg (€)','fil.brandReq':'Marca obligatoria','fil.delete':'¿Eliminar este filamento?','fil.cType':'Tipo','fil.cBrand':'Marca','fil.cColor':'Color',
     'pz.title':'Piezas','pz.new':'+ Nueva pieza','pz.empty':'Sin piezas guardadas','pz.hint':'Guarda piezas frecuentes para auto-rellenar pedidos.','pz.material':'Material','pz.weight':'Peso','pz.time':'Tiempo','pz.suggested':'Sugerido','pz.editTitle':'Editar pieza','pz.newTitle':'Nueva pieza','pz.fName':'Nombre *','pz.fMaterial':'Material','pz.fWeight':'Peso (g)','pz.fTime':'Tiempo impresión (h)','pz.fSuggested':'Precio sugerido (€)','pz.delete':'¿Eliminar esta pieza?',
@@ -851,6 +856,8 @@ const I18N = {
     'help.q2':'How do I upgrade to Pro?','help.a2':'Tap your plan at the top (the badge next to your name) and pick Pro monthly or annual. Paying by card activates it instantly.',
     'help.q3':'Is my data safe?','help.a3':'Yes. It is stored encrypted in the cloud and only you can access it. You can export it or delete your account anytime.',
     'help.wa':'Message us on WhatsApp','help.email':'Send us an email','help.waMsg':'Hi, I need help with Brami3D',
+    'cfg.referrals':'🤝 Refer & earn','cfg.referralsHint':'Invite another workshop. When they sign up with your link, you both get 30 days of Pro free.','cfg.referralsBtn':'See my invite link',
+    'ref.title':'Refer & earn','ref.intro':'Share your link. When another workshop signs up with it, you both get 30 days of Pro free. 🎁','ref.copy':'Copy','ref.copied':'Link copied','ref.share':'Share on WhatsApp','ref.count':'Workshops you have invited','ref.waMsg':'I recommend Brami3D to manage your 3D printing workshop. Sign up with my link and we both get 30 days of Pro free: {url}','ref.rewarded':'🎁 Welcome! You have 30 days of Pro free for joining via an invite.',
     'imp.title':'Printers','imp.new':'+ New printer','imp.empty':'No printers','imp.wear':'Wear','imp.needsReview':'needs servicing','imp.elecCost':'Electricity cost','imp.regUse':'⏱ Log usage','imp.editTitle':'Edit printer','imp.newTitle':'New printer','imp.fModel':'Model','imp.fHours':'Hours of use','imp.fWear':'% Wear','imp.fConsumo':'Power draw (W)','imp.consumoHint':'Enter your printer wattage','imp.delete':'Delete this printer?','imp.logUsage':'⏱ Log usage','imp.accNow':'Current total:','imp.wearWord':'Wear:','imp.estElecCost':'Est. electricity cost:','imp.sessHours':'Hours this session *','imp.extraWear':'Extra wear (%)','imp.wearAuto':'If wear is left at 0, +0.1% per hour is applied automatically.',
     'fil.title':'Filaments','fil.empty':'No filaments','fil.cRemaining':'Remaining','fil.cStock':'Stock','fil.editTitle':'Edit filament','fil.newTitle':'New filament','fil.fType':'Type','fil.fBrand':'Brand *','fil.fColor':'Color','fil.fRemaining':'Remaining weight (g)','fil.fPriceKg':'Price per kg (€)','fil.brandReq':'Brand is required','fil.delete':'Delete this filament?','fil.cType':'Type','fil.cBrand':'Brand','fil.cColor':'Color',
     'pz.title':'Parts','pz.new':'+ New part','pz.empty':'No saved parts','pz.hint':'Save frequent parts to auto-fill orders.','pz.material':'Material','pz.weight':'Weight','pz.time':'Time','pz.suggested':'Suggested','pz.editTitle':'Edit part','pz.newTitle':'New part','pz.fName':'Name *','pz.fMaterial':'Material','pz.fWeight':'Weight (g)','pz.fTime':'Print time (h)','pz.fSuggested':'Suggested price (€)','pz.delete':'Delete this part?',
@@ -1680,6 +1687,7 @@ async function bootApp(){
       buildNav();                 // ← _plan ya resuelto: añade "Admin" si corresponde
       render();
       maybeShowOnboarding();
+      _aplicarReferido();
       refreshAlerts();
       checkAndNotify();
       registrarInicioSIF();
@@ -1694,6 +1702,7 @@ async function bootApp(){
       buildNav();                 // ← _plan ya resuelto: añade "Admin" si corresponde
       goTo('dashboard');
       maybeShowOnboarding();
+      _aplicarReferido();
       checkAndNotify();
       handleShortcut(); _checkPagoReturn(); _checkSuscribirIntent();
       registrarInicioSIF();
@@ -2822,6 +2831,45 @@ function mostrarAyuda(){
       <a href="${mail}" style="display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(59,130,246,.12);border:1.5px solid rgba(59,130,246,.3);color:#60a5fa;border-radius:9px;padding:12px;font-size:14px;font-weight:700;text-decoration:none">✉️ ${esc(t('help.email'))}</a>
     </div>`;
   openModal(msh(t('help.title'), body));
+}
+
+// ── Programa de referidos ──────────────────────────────────────────────────
+// Aplica el código guardado (si el usuario se registró con un enlace de invitación).
+async function _aplicarReferido(){
+  try{
+    const code = localStorage.getItem('b3d_ref');
+    if(!code || !CU) return;
+    localStorage.removeItem('b3d_ref');   // un solo intento
+    const { data } = await sb.rpc('aplicar_referido', { p_code: code });
+    if(data && data.ok){
+      showToast(t('ref.rewarded'),'ok',6000);
+      try{ await loadAll(true); buildNav(); render(); }catch(_){}
+    }
+  }catch(_){}
+}
+// Modal "Invita y gana": muestra el enlace propio y cuántos has invitado.
+async function mostrarReferidos(){
+  openModal(msh(t('ref.title'), `<div style="text-align:center;padding:24px 0;color:var(--text4)">…</div>`));
+  let code='', count=0;
+  try{ const r=await sb.rpc('mi_ref_code'); code=r.data||''; }catch(_){}
+  try{ const c=await sb.from('referidos').select('id',{count:'exact',head:true}).eq('referrer_user_id',CU.id); count=c.count||0; }catch(_){}
+  const link='https://brami3d.app/brami3d_supabase.html?ref='+encodeURIComponent(code);
+  const waMsg=t('ref.waMsg').replace('{url}',link);
+  const wa='https://wa.me/?text='+encodeURIComponent(waMsg);
+  const body=`
+    <p style="color:var(--text4);margin:0 0 14px;font-size:14px;line-height:1.6">${esc(t('ref.intro'))}</p>
+    <div style="background:var(--bg);border:1px solid var(--border2);border-radius:10px;padding:12px;display:flex;gap:8px;align-items:center;margin-bottom:12px">
+      <input id="ref-link" readonly value="${esc(link)}" style="flex:1;background:transparent;border:none;color:var(--text2);font-size:12px;outline:none">
+      <button class="btn-secondary" style="padding:8px 12px;font-size:12px" onclick="_copiarRef()">${esc(t('ref.copy'))}</button>
+    </div>
+    <a href="${wa}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(37,211,102,.12);border:1.5px solid rgba(37,211,102,.3);color:#25d366;border-radius:9px;padding:12px;font-size:14px;font-weight:700;text-decoration:none;margin-bottom:14px">💬 ${esc(t('ref.share'))}</a>
+    <div style="text-align:center;color:var(--text3);font-size:13px">${esc(t('ref.count'))}: <b style="color:var(--or);font-size:16px">${count}</b></div>`;
+  openModal(msh(t('ref.title'), body));
+}
+function _copiarRef(){
+  const i=$('ref-link'); if(!i) return;
+  try{ navigator.clipboard.writeText(i.value); }catch(_){ i.select(); document.execCommand('copy'); }
+  showToast(t('ref.copied'),'ok');
 }
 
 // ═══════════════════════════════════════════════
@@ -6336,6 +6384,11 @@ ${fld(t('cfg.secondTaxRate'),'tipoIva2',cfg.tipoIva2||0,'number')}
 <button class="btn-primary" onclick="exportAllData()">${t('cfg.downloadBackup')}</button>
 <button class="btn-secondary" onclick="pickBackupFile()">${t('cfg.restoreBackup')}</button>
 </div>
+</div>
+<div class="card" style="flex:1;min-width:240px">
+<div class="card-title">${t('cfg.referrals')}</div>
+<p style="font-size:12px;color:var(--text4);margin-bottom:14px;line-height:1.6">${t('cfg.referralsHint')}</p>
+<button class="btn-primary" onclick="mostrarReferidos()">🤝 ${t('cfg.referralsBtn')}</button>
 </div>
 ${LANG==='es'?`<div class="card" style="flex:1;min-width:240px">
 <div class="card-title">📜 Registro fiscal AEAT</div>
