@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Brami3D — Así funciona (vídeo)</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#09090B;--bg2:#111115;--or:#F97316;--gr:#22C55E;--am:#F59E0B;--text:#F4F4F5;--text2:#A1A1AA;--text3:#52525B;--border:#27272A}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#000;font-family:'Space Grotesk',sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
+#stage{position:fixed;inset:0;background:var(--bg);overflow:hidden;display:flex;align-items:center;justify-content:center}
+.glow{position:absolute;width:80vw;height:80vw;border-radius:50%;background:radial-gradient(circle,rgba(249,115,22,.16),transparent 65%);top:42%;left:50%;transform:translate(-50%,-50%);filter:blur(20px)}
+.scene{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:7vw 6vw;opacity:0;pointer-events:none}
+.scene.active{opacity:1;pointer-events:auto}
+.tag{font-size:3.6vw;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:var(--or);margin-bottom:3vw}
+.big{font-size:8vw;font-weight:700;color:var(--text);line-height:1.12;letter-spacing:-.02em}
+.big em{font-style:normal;color:var(--or)}
+.sub{font-size:4vw;color:var(--text2);margin-top:3.5vw;line-height:1.5;max-width:82vw}
+.logo-mark{width:22vw;height:22vw;border-radius:5.5vw;background:var(--or);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:6.5vw;color:#000;font-weight:500;margin-bottom:4vw}
+.cta-url{display:inline-block;background:var(--or);color:#000;font-size:6vw;font-weight:700;padding:4vw 9vw;border-radius:3vw;margin-top:5vw}
+.free{font-size:4.6vw;color:var(--gr);font-weight:700;margin-top:4vw}
+
+/* animaciones */
+.scene.active .anim{animation:up .6s cubic-bezier(.2,.7,.2,1) both}
+.scene.active .anim2{animation:up .6s .15s cubic-bezier(.2,.7,.2,1) both}
+.scene.active .ph{animation:up .65s .1s cubic-bezier(.2,.7,.2,1) both}
+@keyframes up{from{opacity:0;transform:translateY(6vw)}to{opacity:1;transform:none}}
+.scene.active .pop{animation:pop .55s cubic-bezier(.2,1.3,.4,1) both}
+@keyframes pop{from{opacity:0;transform:scale(.5)}to{opacity:1;transform:scale(1)}}
+
+/* móvil mock */
+.phone{width:60vw;background:var(--bg2);border:.4vw solid var(--border);border-radius:7vw;padding:3vw;box-shadow:0 4vw 9vw rgba(0,0,0,.6)}
+.scr{background:var(--bg);border-radius:5vw;padding:3.5vw 3vw;min-height:74vw;text-align:left}
+.scr-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:3vw}
+.scr-logo{font-size:3.1vw;font-weight:700;color:var(--or)}
+.scr-tt{font-size:3vw;color:var(--text3)}
+.scr-title{font-size:2.9vw;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.1em;margin:2.5vw 0 2vw}
+.field{background:var(--bg2);border:.3vw solid var(--border);border-radius:2.6vw;padding:2.6vw 3vw;margin-bottom:2vw;display:flex;justify-content:space-between;align-items:center}
+.field .l{font-size:2.8vw;color:var(--text3);text-transform:uppercase;letter-spacing:.05em}
+.field .v{font-size:3.8vw;font-weight:700;font-family:'DM Mono',monospace;color:var(--text)}
+.field .v.sm{font-size:3.1vw}
+.field.hl{background:rgba(249,115,22,.1);border-color:rgba(249,115,22,.3)}
+.field.hl .v{color:var(--or);font-size:5vw}
+.line{display:flex;justify-content:space-between;font-size:3.2vw;color:var(--text2);padding:1.4vw 0}
+.line b{color:var(--text);font-family:'DM Mono',monospace}
+.divider{height:.3vw;background:var(--border);margin:2vw 0}
+.btn{background:var(--or);color:#000;border-radius:2.6vw;padding:3vw;text-align:center;font-size:3.2vw;font-weight:700;margin-top:2.5vw}
+.stat{flex:1;background:var(--bg2);border:.3vw solid var(--border);border-radius:3vw;padding:3vw;text-align:center}
+.stat .n{font-size:5vw;font-weight:700;font-family:'DM Mono',monospace;color:var(--gr)}
+.stat .n.or{color:var(--or)}
+.stat .l{font-size:2.4vw;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-top:1vw}
+.order{background:var(--bg2);border:.3vw solid var(--border);border-radius:2.6vw;padding:2.4vw 3vw;margin-bottom:1.6vw;display:flex;justify-content:space-between;align-items:center}
+.order .n{font-size:3vw;font-weight:600;color:var(--text)}
+.order .p{font-size:3vw;font-weight:700;color:var(--or);font-family:'DM Mono',monospace}
+.badge{font-size:2.2vw;padding:.6vw 2vw;border-radius:99px;font-weight:700}
+.bc{background:rgba(34,197,94,.12);color:var(--gr)}
+.bi{background:rgba(59,130,246,.14);color:#60a5fa}
+.warn{font-size:2.7vw;color:var(--am);background:rgba(245,158,11,.08);border:.3vw solid rgba(245,158,11,.2);border-radius:2.6vw;padding:2.4vw 3vw;margin-top:2vw}
+.okb{display:inline-flex;align-items:center;gap:1.6vw;background:rgba(34,197,94,.1);color:var(--gr);border:.3vw solid rgba(34,197,94,.3);border-radius:2.4vw;padding:2vw 3.4vw;font-size:3vw;font-weight:700;margin-top:2.4vw}
+.steptitle{font-size:6.5vw;font-weight:700;color:var(--text);letter-spacing:-.02em;margin:0 0 4vw;line-height:1.1}
+
+#bar{position:fixed;top:0;left:0;height:1vw;background:var(--or);width:0;z-index:50}
+#controls{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.78);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8vw;gap:4vw}
+#controls h2{color:#fff;font-size:6vw}#controls p{color:#A1A1AA;font-size:3.8vw;line-height:1.6;max-width:80vw}
+#playBtn{background:var(--or);color:#000;border:none;font-family:inherit;font-size:5vw;font-weight:700;padding:4vw 10vw;border-radius:3vw;cursor:pointer}
+#replay{position:fixed;bottom:6vw;left:50%;transform:translateX(-50%);z-index:60;background:rgba(255,255,255,.1);color:#fff;border:.3vw solid rgba(255,255,255,.3);font-family:inherit;font-size:3.8vw;padding:3vw 7vw;border-radius:3vw;cursor:pointer;display:none}
+
+@media(min-aspect-ratio:1/1){
+  #stage{width:min(46vh,420px);height:96vh;left:50%;top:2vh;inset:auto;transform:translateX(-50%);border-radius:24px;border:1px solid var(--border)}
+  .tag{font-size:15px}.big{font-size:38px}.sub{font-size:18px}.steptitle{font-size:30px}
+  .logo-mark{width:104px;height:104px;border-radius:26px;font-size:30px}.cta-url{font-size:26px;padding:18px 40px;border-radius:14px}.free{font-size:21px}
+  .phone{width:270px;border-radius:30px;padding:14px}.scr{border-radius:22px;padding:16px 14px;min-height:330px}
+  .scr-logo{font-size:13px}.scr-tt{font-size:12px}.scr-title{font-size:12px}
+  .field{padding:11px 13px;border-radius:11px;margin-bottom:8px}.field .l{font-size:11px}.field .v{font-size:16px}.field .v.sm{font-size:13px}.field.hl .v{font-size:21px}
+  .line{font-size:13px}.divider{height:1px}.btn{padding:12px;border-radius:11px;font-size:13px}
+  .stat{padding:12px;border-radius:12px}.stat .n{font-size:21px}.stat .l{font-size:9px}
+  .order{padding:9px 12px;border-radius:11px}.order .n{font-size:12px}.order .p{font-size:12px}.badge{font-size:8px;padding:2px 7px}
+  .warn{font-size:11px;padding:9px 12px;border-radius:11px}.okb{font-size:12px;padding:8px 14px;border-radius:10px}
+  #bar{left:50%;transform:translateX(-50%);max-width:420px}
+}
+</style>
+</head>
+<body>
+<div id="bar"></div>
+<div id="stage">
+  <div class="glow"></div>
+
+  <!-- intro -->
+  <div class="scene" data-dur="3200">
+    <div class="logo-mark pop">B3D</div>
+    <div class="big anim2">Así funciona<br><em>Brami3D</em></div>
+    <div class="sub anim2">Tu taller 3D, en 4 pasos</div>
+  </div>
+
+  <!-- paso 1 -->
+  <div class="scene" data-dur="6000">
+    <div class="tag anim">Paso 1</div>
+    <div class="steptitle anim">Añade el trabajo</div>
+    <div class="phone ph"><div class="scr">
+      <div class="scr-top"><span class="scr-logo">Brami3D</span><span class="scr-tt">Nuevo pedido</span></div>
+      <div class="scr-title">Pieza</div>
+      <div class="field"><span class="l">Proyecto</span><span class="v sm">Soporte GoPro</span></div>
+      <div class="field"><span class="l">Peso</span><span class="v">85 g</span></div>
+      <div class="field"><span class="l">Tiempo</span><span class="v">4.5 h</span></div>
+      <div class="field"><span class="l">Filamento</span><span class="v sm">PLA Negro</span></div>
+      <div class="btn">Calcular precio</div>
+    </div></div>
+  </div>
+
+  <!-- paso 2 -->
+  <div class="scene" data-dur="6000">
+    <div class="tag anim">Paso 2</div>
+    <div class="steptitle anim">Te da el precio real</div>
+    <div class="phone ph"><div class="scr">
+      <div class="scr-top"><span class="scr-logo">Brami3D</span><span class="scr-tt">Costes</span></div>
+      <div class="scr-title">Desglose automático</div>
+      <div class="line"><span>Filamento</span><b>1.70€</b></div>
+      <div class="line"><span>Electricidad</span><b>0.14€</b></div>
+      <div class="line"><span>Diseño</span><b>3.00€</b></div>
+      <div class="line"><span>Margen (30%)</span><b>1.45€</b></div>
+      <div class="divider"></div>
+      <div class="field hl"><span class="l">Precio venta</span><span class="v" id="priceNum">0.00€</span></div>
+      <div class="line" style="color:var(--gr);justify-content:center;margin-top:1vw">Beneficio: <b style="color:var(--gr);margin-left:1.6vw">13.66€</b></div>
+    </div></div>
+  </div>
+
+  <!-- paso 3 -->
+  <div class="scene" data-dur="6000">
+    <div class="tag anim">Paso 3</div>
+    <div class="steptitle anim">Factura legal en 1 toque</div>
+    <div class="phone ph"><div class="scr">
+      <div class="scr-top"><span class="scr-logo">Brami3D</span><span class="scr-tt">Factura</span></div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin:2vw 0">
+        <div><div style="font-size:3.2vw;font-weight:700">Tu Taller 3D</div><div style="font-size:2.5vw;color:var(--text3);font-family:'DM Mono',monospace">NIF B-12345678</div></div>
+        <div style="text-align:right"><div style="font-size:2.5vw;color:var(--text3);font-family:'DM Mono',monospace">Nº 2026-0042</div><div style="font-size:2.5vw;color:var(--text3);font-family:'DM Mono',monospace">03/06/2026</div></div>
+      </div>
+      <div class="divider"></div>
+      <div class="line"><span>Soporte GoPro ×1</span><b>15.29€</b></div>
+      <div class="line"><span>IVA (21%)</span><b>3.21€</b></div>
+      <div class="divider"></div>
+      <div class="field hl"><span class="l">Total</span><span class="v">18.50€</span></div>
+      <div style="text-align:center"><span class="okb">✓ PDF listo · enviar</span></div>
+    </div></div>
+  </div>
+
+  <!-- paso 4 -->
+  <div class="scene" data-dur="6000">
+    <div class="tag anim">Paso 4</div>
+    <div class="steptitle anim">Controla todo tu taller</div>
+    <div class="phone ph"><div class="scr">
+      <div class="scr-top"><span class="scr-logo">Brami3D</span><span class="scr-tt">🌙</span></div>
+      <div style="display:flex;gap:2vw;margin:2.5vw 0">
+        <div class="stat"><div class="n">1.240€</div><div class="l">Ingresos</div></div>
+        <div class="stat"><div class="n or">892€</div><div class="l">Beneficio</div></div>
+      </div>
+      <div class="scr-title">Pedidos recientes</div>
+      <div class="order"><span class="n">Cerrojos ×3</span><span style="display:flex;align-items:center;gap:1.6vw"><span class="badge bc">cobrado</span><span class="p">25€</span></span></div>
+      <div class="order"><span class="n">Soporte GoPro</span><span style="display:flex;align-items:center;gap:1.6vw"><span class="badge bi">imprimiendo</span><span class="p">18€</span></span></div>
+      <div class="warn">⚠ PLA Smartfil — 180g restantes</div>
+    </div></div>
+  </div>
+
+  <!-- outro -->
+  <div class="scene" data-dur="5200">
+    <div class="logo-mark pop">B3D</div>
+    <div class="big anim2">Empieza <em>gratis</em></div>
+    <div class="free anim2">Sin tarjeta · Desde el móvil</div>
+    <div class="anim2"><span class="cta-url">brami3d.app</span></div>
+  </div>
+</div>
+
+<button id="replay" onclick="play()">↻ Volver a reproducir</button>
+<div id="controls">
+  <h2>🎬 Así funciona Brami3D</h2>
+  <p>1. Empieza a <b>grabar la pantalla</b>.<br>2. Pulsa <b>Reproducir</b>.<br>3. Al terminar, para la grabación. ¡Ya tienes tu vídeo!</p>
+  <button id="playBtn" onclick="play()">▶ Reproducir</button>
+  <p style="font-size:3.2vw;opacity:.7">Dura ~33s · vertical (Reels/Stories)</p>
+</div>
+
+<script>
+const scenes=[...document.querySelectorAll('.scene')];
+const bar=document.getElementById('bar'), replay=document.getElementById('replay');
+const total=scenes.reduce((a,s)=>a+(+s.dataset.dur),0);
+let timers=[];
+function countPrice(){
+  const el=document.getElementById('priceNum'); if(!el) return;
+  const target=18.50,dur=1100,t0=performance.now();
+  (function step(now){const k=Math.min(1,(now-t0)/dur);el.textContent=(target*k).toFixed(2)+'€';if(k<1)requestAnimationFrame(step);})(performance.now());
+}
+function play(){
+  timers.forEach(clearTimeout);timers=[];
+  document.getElementById('controls').style.display='none';replay.style.display='none';
+  scenes.forEach(s=>s.classList.remove('active'));
+  bar.style.transition='none';bar.style.width='0';
+  requestAnimationFrame(()=>{bar.style.transition='width '+total+'ms linear';bar.style.width='100%';});
+  let t=0;
+  scenes.forEach(s=>{
+    timers.push(setTimeout(()=>{
+      scenes.forEach(x=>x.classList.remove('active'));
+      s.classList.add('active');
+      if(s.querySelector('#priceNum')) setTimeout(countPrice,350);
+    },t));
+    t+=(+s.dataset.dur);
+  });
+  timers.push(setTimeout(()=>{replay.style.display='block';},total));
+}
+</script>
+</body>
+</html>
