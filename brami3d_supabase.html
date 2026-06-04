@@ -746,6 +746,8 @@ const I18N = {
     'err.generic':'Algo falló. Inténtalo de nuevo.',
     'trial.daysLeft':'Te quedan {n} días de prueba gratis.','trial.lastDay':'Hoy es el último día de tu prueba gratis.','trial.upgrade':'Pásate a Pro',
     'cfg.notifTest':'📲 Enviar notificación de prueba','push.testBody':'¡Funciona! Tus notificaciones están activas.','push.testSent':'✅ Notificación enviada — míra tu dispositivo','push.testNone':'No hay dispositivos suscritos todavía',
+    'cfg.dangerZone':'Zona de peligro','cfg.deleteAccount':'Eliminar mi cuenta','cfg.deleteAccountHint':'Borra permanentemente tu cuenta y todos tus datos (pedidos, clientes, facturas…). No se puede deshacer.',
+    'del.title':'Eliminar cuenta','del.warn':'Esto borrará para siempre tu cuenta y TODOS tus datos: pedidos, clientes, filamentos, facturas y configuración. Esta acción no se puede deshacer.','del.confirmHint':'Para confirmar, escribe ELIMINAR:','del.confirmWord':'ELIMINAR','del.confirmBtn':'Eliminar todo','del.done':'Tu cuenta y tus datos se han eliminado.','del.error':'No se pudo eliminar la cuenta',
     'imp.title':'Impresoras','imp.new':'+ Nueva impresora','imp.empty':'Sin impresoras','imp.wear':'Desgaste','imp.needsReview':'requiere revisión','imp.elecCost':'Coste eléctrico','imp.regUse':'⏱ Registrar uso','imp.editTitle':'Editar impresora','imp.newTitle':'Nueva impresora','imp.fModel':'Modelo','imp.fHours':'Horas de uso','imp.fWear':'% Desgaste','imp.fConsumo':'Consumo eléctrico (W)','imp.consumoHint':'Introduce los vatios de tu impresora','imp.delete':'¿Eliminar esta impresora?','imp.logUsage':'⏱ Registrar uso','imp.accNow':'Acumulado actual:','imp.wearWord':'Desgaste:','imp.estElecCost':'Coste eléctrico estimado:','imp.sessHours':'Horas de esta sesión *','imp.extraWear':'Desgaste adicional (%)','imp.wearAuto':'Si dejas el desgaste en 0 se aplica +0.1% por hora automáticamente.',
     'fil.title':'Filamentos','fil.empty':'Sin filamentos','fil.cRemaining':'Restante','fil.cStock':'Stock','fil.editTitle':'Editar filamento','fil.newTitle':'Nuevo filamento','fil.fType':'Tipo','fil.fBrand':'Marca *','fil.fColor':'Color','fil.fRemaining':'Peso restante (g)','fil.fPriceKg':'Precio por kg (€)','fil.brandReq':'Marca obligatoria','fil.delete':'¿Eliminar este filamento?','fil.cType':'Tipo','fil.cBrand':'Marca','fil.cColor':'Color',
     'pz.title':'Piezas','pz.new':'+ Nueva pieza','pz.empty':'Sin piezas guardadas','pz.hint':'Guarda piezas frecuentes para auto-rellenar pedidos.','pz.material':'Material','pz.weight':'Peso','pz.time':'Tiempo','pz.suggested':'Sugerido','pz.editTitle':'Editar pieza','pz.newTitle':'Nueva pieza','pz.fName':'Nombre *','pz.fMaterial':'Material','pz.fWeight':'Peso (g)','pz.fTime':'Tiempo impresión (h)','pz.fSuggested':'Precio sugerido (€)','pz.delete':'¿Eliminar esta pieza?',
@@ -832,6 +834,8 @@ const I18N = {
     'err.generic':'Something went wrong. Please try again.',
     'trial.daysLeft':'You have {n} days left in your free trial.','trial.lastDay':'Today is the last day of your free trial.','trial.upgrade':'Upgrade to Pro',
     'cfg.notifTest':'📲 Send a test notification','push.testBody':'It works! Your notifications are on.','push.testSent':'✅ Notification sent — check your device','push.testNone':'No subscribed devices yet',
+    'cfg.dangerZone':'Danger zone','cfg.deleteAccount':'Delete my account','cfg.deleteAccountHint':'Permanently delete your account and all your data (orders, customers, invoices…). This cannot be undone.',
+    'del.title':'Delete account','del.warn':'This will permanently delete your account and ALL your data: orders, customers, filaments, invoices and settings. This cannot be undone.','del.confirmHint':'To confirm, type DELETE:','del.confirmWord':'DELETE','del.confirmBtn':'Delete everything','del.done':'Your account and data have been deleted.','del.error':'Could not delete the account',
     'imp.title':'Printers','imp.new':'+ New printer','imp.empty':'No printers','imp.wear':'Wear','imp.needsReview':'needs servicing','imp.elecCost':'Electricity cost','imp.regUse':'⏱ Log usage','imp.editTitle':'Edit printer','imp.newTitle':'New printer','imp.fModel':'Model','imp.fHours':'Hours of use','imp.fWear':'% Wear','imp.fConsumo':'Power draw (W)','imp.consumoHint':'Enter your printer wattage','imp.delete':'Delete this printer?','imp.logUsage':'⏱ Log usage','imp.accNow':'Current total:','imp.wearWord':'Wear:','imp.estElecCost':'Est. electricity cost:','imp.sessHours':'Hours this session *','imp.extraWear':'Extra wear (%)','imp.wearAuto':'If wear is left at 0, +0.1% per hour is applied automatically.',
     'fil.title':'Filaments','fil.empty':'No filaments','fil.cRemaining':'Remaining','fil.cStock':'Stock','fil.editTitle':'Edit filament','fil.newTitle':'New filament','fil.fType':'Type','fil.fBrand':'Brand *','fil.fColor':'Color','fil.fRemaining':'Remaining weight (g)','fil.fPriceKg':'Price per kg (€)','fil.brandReq':'Brand is required','fil.delete':'Delete this filament?','fil.cType':'Type','fil.cBrand':'Brand','fil.cColor':'Color',
     'pz.title':'Parts','pz.new':'+ New part','pz.empty':'No saved parts','pz.hint':'Save frequent parts to auto-fill orders.','pz.material':'Material','pz.weight':'Weight','pz.time':'Time','pz.suggested':'Suggested','pz.editTitle':'Edit part','pz.newTitle':'New part','pz.fName':'Name *','pz.fMaterial':'Material','pz.fWeight':'Weight (g)','pz.fTime':'Print time (h)','pz.fSuggested':'Suggested price (€)','pz.delete':'Delete this part?',
@@ -1337,6 +1341,39 @@ async function logout(){
   _bootedFor=null;
   clearLocalCache();
   await sb.auth.signOut();
+}
+
+// Eliminar cuenta (RGPD): borra todos los datos del usuario y su cuenta.
+function confirmarEliminarCuenta(){
+  openModal(msh(t('del.title'), `
+    <p style="color:var(--text2);margin:0 0 12px;line-height:1.6">${t('del.warn')}</p>
+    <p style="color:var(--text4);font-size:13px;margin:0 0 16px">${t('del.confirmHint')}</p>
+    <input id="del-confirm" placeholder="${t('del.confirmWord')}" style="margin-bottom:16px" oninput="document.getElementById('del-go').disabled = this.value.trim().toUpperCase()!=='${t('del.confirmWord')}'">
+    <div style="display:flex;gap:10px">
+      <button id="del-go" class="btn-danger" disabled onclick="eliminarCuenta()" style="opacity:1">${t('del.confirmBtn')}</button>
+      <button class="btn-secondary" onclick="closeModal()">${t('plan.notNow')}</button>
+    </div>`));
+}
+async function eliminarCuenta(){
+  const btn=$('del-go'); if(btn){ btn.disabled=true; btn.textContent='…'; }
+  let token='';
+  try{ const { data:{ session } } = await sb.auth.getSession(); token = session?.access_token||''; }catch(_){}
+  try{
+    const r=await fetch(SUPA_URL+'/functions/v1/borrar-cuenta',{
+      method:'POST',
+      headers:{ 'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'x-user-token':token }
+    });
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok || !j.ok){ showToast((j.error||t('del.error')),'err',7000); if(btn){ btn.disabled=false; btn.textContent=t('del.confirmBtn'); } return; }
+    // Borrado OK: limpiar y salir
+    try{ clearLocalCache(); }catch(_){}
+    try{ localStorage.removeItem('b3d_notif_enabled'); }catch(_){}
+    closeModal();
+    showToast(t('del.done'),'ok',5000);
+    _bootedFor=null;
+    try{ await sb.auth.signOut(); }catch(_){}
+    setTimeout(()=>location.reload(), 1500);
+  }catch(e){ showToast(String(e.message||e),'err',7000); if(btn){ btn.disabled=false; btn.textContent=t('del.confirmBtn'); } }
 }
 
 // Backup: download all user data as JSON. File bytes in Storage are NOT included
@@ -6249,6 +6286,11 @@ ${fld(t('cfg.secondTaxRate'),'tipoIva2',cfg.tipoIva2||0,'number')}
 <div style="color:var(--text4);font-size:13px;margin-bottom:6px">${t('cfg.emailLabel')} <b style="color:var(--text2)">${esc(CU.email)}</b></div>
 <div style="background:var(--bg);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--text4);line-height:1.6;margin-bottom:16px">${t('cfg.cloudNote')}</div>
 <button class="btn-danger" onclick="logout()">🚪 ${t('common.logout')}</button>
+<div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border)">
+  <div style="font-size:11px;font-weight:700;color:#f87171;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">${t('cfg.dangerZone')}</div>
+  <p style="font-size:12px;color:var(--text4);line-height:1.6;margin-bottom:10px">${t('cfg.deleteAccountHint')}</p>
+  <button onclick="confirmarEliminarCuenta()" style="background:transparent;border:1.5px solid rgba(239,68,68,.4);color:#f87171;border-radius:9px;padding:10px 16px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit">🗑️ ${t('cfg.deleteAccount')}</button>
+</div>
 </div>
 <div class="card" style="flex:1;min-width:240px">
 <div class="card-title">${t('cfg.backup')}</div>
