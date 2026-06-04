@@ -456,6 +456,8 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
           style="background:var(--bg4);border:1.5px solid var(--border2);border-radius:10px;padding:8px 12px;font-size:18px;color:var(--text3);flex-shrink:0;line-height:1">
           🌙
         </button>
+        <button onclick="mostrarAyuda()" id="help-btn" title="Ayuda"
+          style="background:var(--bg4);border:1.5px solid var(--border2);border-radius:10px;padding:8px 13px;font-size:16px;font-weight:800;color:var(--text3);flex-shrink:0;line-height:1">?</button>
       </div>
     </div>
     <!-- Mobile search bar (hidden by default) -->
@@ -751,6 +753,11 @@ const I18N = {
     'cfg.notifTest':'📲 Enviar notificación de prueba','push.testBody':'¡Funciona! Tus notificaciones están activas.','push.testSent':'✅ Notificación enviada — míra tu dispositivo','push.testNone':'No hay dispositivos suscritos todavía',
     'cfg.dangerZone':'Zona de peligro','cfg.deleteAccount':'Eliminar mi cuenta','cfg.deleteAccountHint':'Borra permanentemente tu cuenta y todos tus datos (pedidos, clientes, facturas…). No se puede deshacer.',
     'del.title':'Eliminar cuenta','del.warn':'Esto borrará para siempre tu cuenta y TODOS tus datos: pedidos, clientes, filamentos, facturas y configuración. Esta acción no se puede deshacer.','del.confirmHint':'Para confirmar, escribe ELIMINAR:','del.confirmWord':'ELIMINAR','del.confirmBtn':'Eliminar todo','del.done':'Tu cuenta y tus datos se han eliminado.','del.error':'No se pudo eliminar la cuenta',
+    'help.btn':'Ayuda','help.title':'Ayuda y contacto','help.intro':'Dudas rápidas — y si no, escríbenos, respondemos en menos de 24 h.',
+    'help.q1':'¿Cómo creo una factura?','help.a1':'Marca el pedido como cobrado y se genera la factura legal automáticamente. La ves o la compartes en PDF desde el propio pedido.',
+    'help.q2':'¿Cómo paso a Pro?','help.a2':'Toca tu plan arriba (la etiqueta junto a tu nombre) y elige Pro mensual o anual. El pago con tarjeta lo activa al instante.',
+    'help.q3':'¿Mis datos están seguros?','help.a3':'Sí. Se guardan cifrados en la nube y solo tú accedes a ellos. Puedes exportarlos o eliminar tu cuenta cuando quieras.',
+    'help.wa':'Escríbenos por WhatsApp','help.email':'Escríbenos un email','help.waMsg':'Hola, necesito ayuda con Brami3D',
     'imp.title':'Impresoras','imp.new':'+ Nueva impresora','imp.empty':'Sin impresoras','imp.wear':'Desgaste','imp.needsReview':'requiere revisión','imp.elecCost':'Coste eléctrico','imp.regUse':'⏱ Registrar uso','imp.editTitle':'Editar impresora','imp.newTitle':'Nueva impresora','imp.fModel':'Modelo','imp.fHours':'Horas de uso','imp.fWear':'% Desgaste','imp.fConsumo':'Consumo eléctrico (W)','imp.consumoHint':'Introduce los vatios de tu impresora','imp.delete':'¿Eliminar esta impresora?','imp.logUsage':'⏱ Registrar uso','imp.accNow':'Acumulado actual:','imp.wearWord':'Desgaste:','imp.estElecCost':'Coste eléctrico estimado:','imp.sessHours':'Horas de esta sesión *','imp.extraWear':'Desgaste adicional (%)','imp.wearAuto':'Si dejas el desgaste en 0 se aplica +0.1% por hora automáticamente.',
     'fil.title':'Filamentos','fil.empty':'Sin filamentos','fil.cRemaining':'Restante','fil.cStock':'Stock','fil.editTitle':'Editar filamento','fil.newTitle':'Nuevo filamento','fil.fType':'Tipo','fil.fBrand':'Marca *','fil.fColor':'Color','fil.fRemaining':'Peso restante (g)','fil.fPriceKg':'Precio por kg (€)','fil.brandReq':'Marca obligatoria','fil.delete':'¿Eliminar este filamento?','fil.cType':'Tipo','fil.cBrand':'Marca','fil.cColor':'Color',
     'pz.title':'Piezas','pz.new':'+ Nueva pieza','pz.empty':'Sin piezas guardadas','pz.hint':'Guarda piezas frecuentes para auto-rellenar pedidos.','pz.material':'Material','pz.weight':'Peso','pz.time':'Tiempo','pz.suggested':'Sugerido','pz.editTitle':'Editar pieza','pz.newTitle':'Nueva pieza','pz.fName':'Nombre *','pz.fMaterial':'Material','pz.fWeight':'Peso (g)','pz.fTime':'Tiempo impresión (h)','pz.fSuggested':'Precio sugerido (€)','pz.delete':'¿Eliminar esta pieza?',
@@ -839,6 +846,11 @@ const I18N = {
     'cfg.notifTest':'📲 Send a test notification','push.testBody':'It works! Your notifications are on.','push.testSent':'✅ Notification sent — check your device','push.testNone':'No subscribed devices yet',
     'cfg.dangerZone':'Danger zone','cfg.deleteAccount':'Delete my account','cfg.deleteAccountHint':'Permanently delete your account and all your data (orders, customers, invoices…). This cannot be undone.',
     'del.title':'Delete account','del.warn':'This will permanently delete your account and ALL your data: orders, customers, filaments, invoices and settings. This cannot be undone.','del.confirmHint':'To confirm, type DELETE:','del.confirmWord':'DELETE','del.confirmBtn':'Delete everything','del.done':'Your account and data have been deleted.','del.error':'Could not delete the account',
+    'help.btn':'Help','help.title':'Help & contact','help.intro':'Quick answers — and if not, message us, we reply within 24h.',
+    'help.q1':'How do I create an invoice?','help.a1':'Mark the order as paid and the legal invoice is generated automatically. View or share it as PDF from the order itself.',
+    'help.q2':'How do I upgrade to Pro?','help.a2':'Tap your plan at the top (the badge next to your name) and pick Pro monthly or annual. Paying by card activates it instantly.',
+    'help.q3':'Is my data safe?','help.a3':'Yes. It is stored encrypted in the cloud and only you can access it. You can export it or delete your account anytime.',
+    'help.wa':'Message us on WhatsApp','help.email':'Send us an email','help.waMsg':'Hi, I need help with Brami3D',
     'imp.title':'Printers','imp.new':'+ New printer','imp.empty':'No printers','imp.wear':'Wear','imp.needsReview':'needs servicing','imp.elecCost':'Electricity cost','imp.regUse':'⏱ Log usage','imp.editTitle':'Edit printer','imp.newTitle':'New printer','imp.fModel':'Model','imp.fHours':'Hours of use','imp.fWear':'% Wear','imp.fConsumo':'Power draw (W)','imp.consumoHint':'Enter your printer wattage','imp.delete':'Delete this printer?','imp.logUsage':'⏱ Log usage','imp.accNow':'Current total:','imp.wearWord':'Wear:','imp.estElecCost':'Est. electricity cost:','imp.sessHours':'Hours this session *','imp.extraWear':'Extra wear (%)','imp.wearAuto':'If wear is left at 0, +0.1% per hour is applied automatically.',
     'fil.title':'Filaments','fil.empty':'No filaments','fil.cRemaining':'Remaining','fil.cStock':'Stock','fil.editTitle':'Edit filament','fil.newTitle':'New filament','fil.fType':'Type','fil.fBrand':'Brand *','fil.fColor':'Color','fil.fRemaining':'Remaining weight (g)','fil.fPriceKg':'Price per kg (€)','fil.brandReq':'Brand is required','fil.delete':'Delete this filament?','fil.cType':'Type','fil.cBrand':'Brand','fil.cColor':'Color',
     'pz.title':'Parts','pz.new':'+ New part','pz.empty':'No saved parts','pz.hint':'Save frequent parts to auto-fill orders.','pz.material':'Material','pz.weight':'Weight','pz.time':'Time','pz.suggested':'Suggested','pz.editTitle':'Edit part','pz.newTitle':'New part','pz.fName':'Name *','pz.fMaterial':'Material','pz.fWeight':'Weight (g)','pz.fTime':'Print time (h)','pz.fSuggested':'Suggested price (€)','pz.delete':'Delete this part?',
@@ -883,6 +895,7 @@ function applyStaticI18n(){
   const lb=$('lang-btn'); if(lb){ lb.innerHTML = LANG==='es'?FLAG_GB:FLAG_ES; lb.title = LANG==='es'?'Switch to English':'Cambiar a español'; lb.setAttribute('aria-label', lb.title); }
   const tb=$('theme-btn'); if(tb){ tb.title=t('theme.toggle'); tb.setAttribute('aria-label', t('a11y.theme')); }
   const msb=$('mob-search-btn'); if(msb) msb.setAttribute('aria-label', t('a11y.search'));
+  const hb=$('help-btn'); if(hb){ hb.title=t('help.btn'); hb.setAttribute('aria-label', t('help.btn')); }
 }
 function setLang(l){
   LANG = (l==='en')?'en':'es';
@@ -2788,6 +2801,27 @@ function showOnboarding(){
       <button class="btn-secondary" onclick="_onbDone();closeModal()">${esc(t('onb.skip'))}</button>
     </div>`;
   openModal(msh(t('onb.title'), body));
+}
+
+// ── Ayuda / contacto (botón ? en la barra superior) ────────────────────────
+function mostrarAyuda(){
+  const qa = (q,a)=>`<div style="padding:12px 0;border-bottom:1px solid var(--border)">
+    <div style="font-weight:700;color:var(--text2);font-size:14px;margin-bottom:4px">${esc(q)}</div>
+    <div style="color:var(--text4);font-size:13px;line-height:1.6">${esc(a)}</div></div>`;
+  const wa = 'https://wa.me/34648931530?text='+encodeURIComponent(t('help.waMsg'));
+  const mail = 'mailto:brami3d@gmail.com?subject='+encodeURIComponent('Ayuda Brami3D');
+  const body = `
+    <p style="color:var(--text4);margin:0 0 8px;font-size:14px">${esc(t('help.intro'))}</p>
+    <div style="margin:6px 0 18px">
+      ${qa(t('help.q1'),t('help.a1'))}
+      ${qa(t('help.q2'),t('help.a2'))}
+      ${qa(t('help.q3'),t('help.a3'))}
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <a href="${wa}" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(37,211,102,.12);border:1.5px solid rgba(37,211,102,.3);color:#25d366;border-radius:9px;padding:12px;font-size:14px;font-weight:700;text-decoration:none">💬 ${esc(t('help.wa'))}</a>
+      <a href="${mail}" style="display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(59,130,246,.12);border:1.5px solid rgba(59,130,246,.3);color:#60a5fa;border-radius:9px;padding:12px;font-size:14px;font-weight:700;text-decoration:none">✉️ ${esc(t('help.email'))}</a>
+    </div>`;
+  openModal(msh(t('help.title'), body));
 }
 
 // ═══════════════════════════════════════════════
