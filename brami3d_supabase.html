@@ -87,9 +87,12 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+<!-- Librerías pesadas fuera del camino crítico: 'defer' no bloquea el primer pintado.
+     Solo se usan en el panel (Chart), al generar PDF (jsPDF) o QR (QRious), y para
+     entonces ya están cargadas. supabase NO lleva defer porque se usa al instante. -->
+<script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
 <script>
 // Fallback de QRious sin document.write (que puede borrar el documento si se
 // ejecuta tras el parseo). Carga síncrona desde unpkg sólo si jsdelivr falló.
