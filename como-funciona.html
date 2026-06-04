@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Así funciona Brami3D — gestión de impresión 3D en 4 pasos</title>
+<meta name="description" content="Mira cómo funciona Brami3D paso a paso: añade el trabajo, te da el precio real, genera la factura legal y controla tu taller. Gratis para empezar.">
+<link rel="canonical" href="https://brami3d.app/como-funciona.html">
+<meta property="og:title" content="Así funciona Brami3D — en 4 pasos">
+<meta property="og:description" content="Añade el trabajo, te da el precio real y la factura legal en segundos. Mira lo fácil que es.">
+<meta property="og:image" content="https://brami3d.app/og-image.png">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#09090B;--bg2:#111115;--bg3:#18181D;--bg4:#1F1F27;--or:#F97316;--or-d:rgba(249,115,22,.1);--or-b:rgba(249,115,22,.24);--am:#F59E0B;--gr:#22C55E;--gr-d:rgba(34,197,94,.1);--text:#F4F4F5;--text2:#A1A1AA;--text3:#52525B;--text4:#3F3F46;--border:#27272A;--border2:#3F3F46}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+
+/* HEADER */
+header{text-align:center;padding:64px 24px 40px;max-width:760px;margin:0 auto}
+.logo{display:inline-flex;align-items:center;gap:10px;margin-bottom:28px}
+.logo .mark{width:34px;height:34px;border-radius:8px;background:var(--or);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:11px;color:#000;font-weight:500}
+.logo .name{font-size:18px;font-weight:700;letter-spacing:-.3px}
+header h1{font-size:clamp(32px,5.5vw,52px);font-weight:700;letter-spacing:-1.5px;line-height:1.08;margin-bottom:16px}
+header h1 em{font-style:normal;color:var(--or)}
+header p{font-size:clamp(16px,2vw,19px);color:var(--text2);line-height:1.6;max-width:520px;margin:0 auto}
+
+/* STEPS */
+.steps{max-width:1000px;margin:0 auto;padding:24px}
+.step{display:flex;align-items:center;gap:56px;padding:48px 0;border-bottom:1px solid var(--border)}
+.step:nth-child(even){flex-direction:row-reverse}
+.step-txt{flex:1;min-width:0}
+.step-num{display:inline-flex;align-items:center;justify-content:center;width:42px;height:42px;border-radius:12px;background:var(--or-d);border:1px solid var(--or-b);color:var(--or);font-family:'DM Mono',monospace;font-size:18px;font-weight:500;margin-bottom:18px}
+.step h2{font-size:clamp(24px,3vw,34px);font-weight:700;letter-spacing:-1px;line-height:1.1;margin-bottom:12px}
+.step p{font-size:16px;color:var(--text2);line-height:1.7;max-width:420px}
+.step-visual{flex-shrink:0;display:flex;justify-content:center}
+
+/* PHONE MOCK */
+.phone{width:260px;background:var(--bg2);border:1px solid var(--border);border-radius:34px;padding:14px;box-shadow:0 40px 80px rgba(0,0,0,.6)}
+.scr{background:var(--bg);border-radius:24px;padding:16px 14px;min-height:420px}
+.scr-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.scr-logo{font-size:12px;font-weight:700;color:var(--or)}
+.scr-title{font-size:11px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:1.2px;margin:12px 0 8px}
+.field{background:var(--bg2);border:1px solid var(--border);border-radius:11px;padding:11px 13px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.field .l{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px}
+.field .v{font-size:15px;font-weight:700;font-family:'DM Mono',monospace;color:var(--text)}
+.field.hl{background:var(--or-d);border-color:var(--or-b)}
+.field.hl .v{color:var(--or);font-size:20px}
+.line{display:flex;justify-content:space-between;font-size:13px;color:var(--text2);padding:6px 0}
+.line b{color:var(--text);font-family:'DM Mono',monospace}
+.divider{height:1px;background:var(--border);margin:8px 0}
+.btn{background:var(--or);color:#000;border-radius:10px;padding:12px;text-align:center;font-size:13px;font-weight:700;margin-top:10px}
+.stat{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:12px;text-align:center}
+.stat .n{font-size:20px;font-weight:700;font-family:'DM Mono',monospace;color:var(--gr)}
+.stat .n.or{color:var(--or)}
+.stat .l{font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px;margin-top:3px}
+.order{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:9px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
+.order .n{font-size:12px;font-weight:600}
+.order .p{font-size:12px;font-weight:700;color:var(--or);font-family:'DM Mono',monospace}
+.badge{font-size:8px;padding:2px 7px;border-radius:99px;font-weight:700}
+.bc{background:var(--gr-d);color:var(--gr)}
+.bi{background:rgba(59,130,246,.14);color:#60a5fa}
+.warn{font-size:10px;color:var(--am);background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:8px;padding:8px 10px;margin-top:8px}
+.inv-h{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.inv-h .co{font-size:13px;font-weight:700;color:var(--text)}
+.inv-h .nn{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace}
+.ok-badge{display:inline-flex;align-items:center;gap:6px;background:var(--gr-d);color:var(--gr);border:1px solid rgba(34,197,94,.3);border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;margin-top:10px}
+
+/* CTA */
+.cta{text-align:center;padding:72px 24px 88px;max-width:640px;margin:0 auto}
+.cta h2{font-size:clamp(28px,4vw,42px);font-weight:700;letter-spacing:-1.5px;margin-bottom:14px}
+.cta p{font-size:16px;color:var(--text2);margin-bottom:28px}
+.cta-btn{display:inline-block;background:var(--or);color:#000;font-size:17px;font-weight:700;padding:16px 40px;border-radius:11px}
+.cta small{display:block;margin-top:18px;color:var(--text4);font-size:13px}
+
+footer{text-align:center;padding:24px;border-top:1px solid var(--border);color:var(--text3);font-size:13px}
+footer a{color:var(--or)}
+
+@media(max-width:760px){
+  .step,.step:nth-child(even){flex-direction:column;gap:28px;padding:40px 0;text-align:center}
+  .step p{margin:0 auto}
+  .step-num{margin-left:auto;margin-right:auto}
+  .phone{width:230px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="https://brami3d.app/" class="logo"><span class="mark">B3D</span><span class="name">Brami3D</span></a>
+  <h1>Así funciona,<br><em>en 4 pasos.</em></h1>
+  <p>De calcular precios a ojo a tener tu taller de impresión 3D bajo control. Mira lo fácil que es 👇</p>
+</header>
+
+<div class="steps">
+
+  <!-- 1 -->
+  <div class="step">
+    <div class="step-txt">
+      <div class="step-num">1</div>
+      <h2>Añade el trabajo</h2>
+      <p>Pones el peso, las horas de impresión y el filamento que usas. Sin hojas de cálculo ni fórmulas raras: lo rellenas en el móvil en 20 segundos.</p>
+    </div>
+    <div class="step-visual">
+      <div class="phone"><div class="scr">
+        <div class="scr-top"><span class="scr-logo">Brami3D</span><span style="font-size:11px;color:var(--text3)">Nuevo pedido</span></div>
+        <div class="scr-title">Pieza</div>
+        <div class="field"><span class="l">Proyecto</span><span class="v" style="font-size:13px">Soporte GoPro</span></div>
+        <div class="field"><span class="l">Peso</span><span class="v">85 g</span></div>
+        <div class="field"><span class="l">Tiempo</span><span class="v">4.5 h</span></div>
+        <div class="field"><span class="l">Filamento</span><span class="v" style="font-size:13px">PLA Negro</span></div>
+        <div class="btn">Calcular precio</div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="step">
+    <div class="step-txt">
+      <div class="step-num">2</div>
+      <h2>Te da el precio real</h2>
+      <p>Brami3D calcula solo el coste de filamento, la electricidad, el diseño y tu margen. Sabes lo que cuesta y lo que ganas en cada pieza, sin perder dinero.</p>
+    </div>
+    <div class="step-visual">
+      <div class="phone"><div class="scr">
+        <div class="scr-top"><span class="scr-logo">Brami3D</span><span style="font-size:11px;color:var(--text3)">Costes</span></div>
+        <div class="scr-title">Desglose</div>
+        <div class="line"><span>Filamento</span><b>1.70€</b></div>
+        <div class="line"><span>Electricidad</span><b>0.14€</b></div>
+        <div class="line"><span>Diseño</span><b>3.00€</b></div>
+        <div class="line"><span>Margen (30%)</span><b>1.45€</b></div>
+        <div class="divider"></div>
+        <div class="field hl" style="margin-top:4px"><span class="l">Precio venta</span><span class="v">18.50€</span></div>
+        <div class="line" style="color:var(--gr);justify-content:center;margin-top:6px">Beneficio: <b style="color:var(--gr);margin-left:6px">13.66€</b></div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="step">
+    <div class="step-txt">
+      <div class="step-num">3</div>
+      <h2>Factura legal en 1 toque</h2>
+      <p>Cuando cobras, generas la factura con tu NIF, la del cliente y el IVA — un PDF válido listo para enviar por WhatsApp o email. Se acabó el lío de las facturas.</p>
+    </div>
+    <div class="step-visual">
+      <div class="phone"><div class="scr">
+        <div class="scr-top"><span class="scr-logo">Brami3D</span><span style="font-size:11px;color:var(--text3)">Factura</span></div>
+        <div class="inv-h" style="margin-top:8px">
+          <div><div class="co">Tu Taller 3D</div><div class="nn">NIF B-12345678</div></div>
+          <div style="text-align:right"><div class="nn">Nº 2026-0042</div><div class="nn">03/06/2026</div></div>
+        </div>
+        <div class="divider"></div>
+        <div class="line"><span>Soporte GoPro ×1</span><b>15.29€</b></div>
+        <div class="line"><span>IVA (21%)</span><b>3.21€</b></div>
+        <div class="divider"></div>
+        <div class="field hl"><span class="l">Total</span><span class="v">18.50€</span></div>
+        <div style="text-align:center"><span class="ok-badge">✓ PDF generado · enviar</span></div>
+      </div></div>
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <div class="step">
+    <div class="step-txt">
+      <div class="step-num">4</div>
+      <h2>Controla todo tu taller</h2>
+      <p>Ingresos, beneficio, stock de filamento (te avisa cuando queda poco), clientes e impresoras. Todo en un panel, desde el móvil, donde estés.</p>
+    </div>
+    <div class="step-visual">
+      <div class="phone"><div class="scr">
+        <div class="scr-top"><span class="scr-logo">Brami3D</span><span style="font-size:11px;color:var(--text3)">🌙</span></div>
+        <div style="display:flex;gap:8px;margin:10px 0">
+          <div class="stat"><div class="n">1.240€</div><div class="l">Ingresos</div></div>
+          <div class="stat"><div class="n or">892€</div><div class="l">Beneficio</div></div>
+        </div>
+        <div class="scr-title">Pedidos recientes</div>
+        <div class="order"><div><div class="n">Cerrojos ×3</div></div><div style="display:flex;align-items:center;gap:6px"><span class="badge bc">cobrado</span><span class="p">25€</span></div></div>
+        <div class="order"><div><div class="n">Soporte GoPro</div></div><div style="display:flex;align-items:center;gap:6px"><span class="badge bi">imprimiendo</span><span class="p">18€</span></div></div>
+        <div class="warn">⚠ PLA Smartfil — 180g restantes</div>
+      </div></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="cta">
+  <h2>Pruébalo gratis ahora</h2>
+  <p>Sin tarjeta, sin instalar nada. Funciona desde el móvil y el ordenador.</p>
+  <a href="https://brami3d.app/brami3d_supabase.html" class="cta-btn">Empezar gratis →</a>
+  <small>📲 Añádela a tu pantalla de inicio y úsala como una app · 🇪🇸 🇬🇧 Español e inglés</small>
+</div>
+
+<footer>
+  © 2026 Brami3D · <a href="https://brami3d.app/">Inicio</a> · <a href="https://brami3d.app/brami3d_supabase.html">Entrar a la app</a>
+</footer>
+
+</body>
+</html>
