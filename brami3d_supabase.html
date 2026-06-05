@@ -6075,7 +6075,13 @@ async function adminSavePlan(userId){
 
 // ── Bloqueo ───────────────────────────────────────────────────────────────
 async function adminToggleBlocked(userId, newBlocked){
-  if(newBlocked && !confirm('¿Seguro que quieres BLOQUEAR a este usuario? No podrá entrar hasta que lo desbloquees.')) return;
+  if(newBlocked){
+    openModal(msh('Bloquear usuario', `<p style="color:var(--text2);margin-bottom:20px;line-height:1.6">¿Seguro que quieres <b style="color:#f87171">BLOQUEAR</b> a este usuario? No podrá entrar hasta que lo desbloquees.</p><div style="display:flex;gap:10px"><button class="btn-danger" onclick="closeModal();_doAdminBlock('${userId}',true)">Bloquear</button><button class="btn-secondary" onclick="closeModal()">Cancelar</button></div>`));
+    return;
+  }
+  return _doAdminBlock(userId, false);
+}
+async function _doAdminBlock(userId, newBlocked){
   try {
     const {error} = await sb.rpc('admin_set_blocked', {
       target_user: userId,
@@ -6131,9 +6137,11 @@ async function adminSaveNotes(userId){
 }
 
 // ── Reset password ────────────────────────────────────────────────────────
-async function adminResetPassword(email){
+function adminResetPassword(email){
   if(!email) return;
-  if(!confirm(`Enviar email de reset de contraseña a ${email}?`)) return;
+  openModal(msh('Restablecer contraseña', `<p style="color:var(--text2);margin-bottom:20px;line-height:1.6">¿Enviar un email para restablecer la contraseña a <b style="color:var(--text)">${esc(email)}</b>?</p><div style="display:flex;gap:10px"><button class="btn-primary" onclick="closeModal();_doAdminReset('${esc(email)}')">Enviar</button><button class="btn-secondary" onclick="closeModal()">Cancelar</button></div>`));
+}
+async function _doAdminReset(email){
   try {
     const {error} = await sb.auth.resetPasswordForEmail(email, {
       redirectTo: location.origin + '/brami3d_supabase.html'
