@@ -476,7 +476,7 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
   <button onclick="goTo('dashboard')" id="mn-dashboard"><span class="mico">📊</span>Inicio</button>
   <button onclick="goTo('clientes')" id="mn-clientes"><span class="mico">👥</span>Clientes</button>
   <button onclick="goTo('pedidos')" id="mn-pedidos"><span class="mico">📋</span>Pedidos</button>
-  <button onclick="goTo('filamentos')" id="mn-filamentos"><span class="mico">🧵</span>Stock</button>
+  <button onclick="goTo('agenda')" id="mn-agenda"><span class="mico">📅</span>Agenda</button>
   <button onclick="mobMore()" id="mn-more"><span class="mico">☰</span>Más</button>
 </div>
 <div id="modal-root"></div>
@@ -695,7 +695,8 @@ function checkPlanLimit(action, editingId){
 let LANG = (localStorage.getItem('b3d_lang')==='en') ? 'en' : 'es';
 const I18N = {
   es: {
-    'nav.dashboard':'Dashboard','nav.clientes':'Clientes','nav.pedidos':'Pedidos','nav.impresoras':'Impresoras',
+    'nav.dashboard':'Dashboard','nav.agenda':'Agenda','nav.clientes':'Clientes',
+    'agenda.title':'Agenda','agenda.overdue':'Atrasados','agenda.todayTitle':'Para hoy','agenda.today':'Hoy','agenda.week':'Esta semana','agenda.noDate':'Sin fecha de entrega','agenda.empty':'No tienes entregas pendientes. ¡Todo al día! 🎉','agenda.late':'hace {n} día(s)','agenda.in':'en {n} día(s)','nav.pedidos':'Pedidos','nav.impresoras':'Impresoras',
     'nav.filamentos':'Filamentos','nav.piezas':'Piezas','nav.cobros':'Cobros','nav.archivos':'Archivos',
     'nav.gastos':'Gastos','nav.registro':'Registro fiscal','nav.calculadora':'Calculadora','nav.configuracion':'Configuración','nav.admin':'Admin',
     'common.logout':'Cerrar sesión','common.menu':'Menú','common.cancel':'Cancelar','common.save':'Guardar','common.new':'+ Nuevo','common.delete':'Eliminar',
@@ -790,7 +791,8 @@ const I18N = {
     'rpt.annualSummary':'Resumen completo','rpt.ordersWord':'pedidos','rpt.collectedWord':'cobrados','rpt.totalIncome':'Ingresos totales','rpt.paidOrders':'pedidos cobrados','rpt.monthlyAvg':'Media mensual','rpt.ordersPerMonth':'pedidos/mes','rpt.bestMonth':'Mejor mes','rpt.worstMonth':'Mes más flojo','rpt.monthlyBreakdown':'Desglose mensual','rpt.cMonth':'Mes','rpt.cProdCosts':'Costes prod.','rpt.cExpenses':'Gastos','rpt.cProfit':'Beneficio','rpt.cOrders':'Pedidos','rpt.total':'TOTAL','rpt.exportMonthly':'Exportar informe mensual','rpt.pickMonth':'Selecciona el mes y año para generar el informe en PDF.','rpt.month':'Mes','rpt.year':'Año','rpt.genPdf':'📊 Generar PDF','rpt.annualDesc':'Resumen completo del año con desglose mensual.','rpt.genPdfAnnual':'📈 Generar PDF'
   },
   en: {
-    'nav.dashboard':'Dashboard','nav.clientes':'Customers','nav.pedidos':'Orders','nav.impresoras':'Printers',
+    'nav.dashboard':'Dashboard','nav.agenda':'Schedule','nav.clientes':'Customers',
+    'agenda.title':'Schedule','agenda.overdue':'Overdue','agenda.todayTitle':'For today','agenda.today':'Today','agenda.week':'This week','agenda.noDate':'No delivery date','agenda.empty':'No pending deliveries. All caught up! 🎉','agenda.late':'{n} day(s) ago','agenda.in':'in {n} day(s)','nav.pedidos':'Orders','nav.impresoras':'Printers',
     'nav.filamentos':'Filaments','nav.piezas':'Parts','nav.cobros':'Payments','nav.archivos':'Files',
     'nav.gastos':'Expenses','nav.registro':'Tax record','nav.calculadora':'Calculator','nav.configuracion':'Settings','nav.admin':'Admin',
     'common.logout':'Sign out','common.menu':'Menu','common.cancel':'Cancel','common.save':'Save','common.new':'+ New','common.delete':'Delete',
@@ -2528,6 +2530,7 @@ async function exportarRegistrosXML(){
 // ═══════════════════════════════════════════════
 const NAV=[
   {id:'dashboard',lbl:'Dashboard',icon:'📊'},
+  {id:'agenda',lbl:'Agenda',icon:'📅'},
   {id:'clientes',lbl:'Clientes',icon:'👥'},
   {id:'pedidos',lbl:'Pedidos',icon:'📋'},
   {id:'impresoras',lbl:'Impresoras',icon:'🖨️'},
@@ -2573,6 +2576,7 @@ function mobMore(){
   // Show a bottom sheet with remaining nav items (los que no caben en la bottom nav).
   // Se añade Admin al final si el usuario es admin.
   let items = [
+    {id:'filamentos',    ico:'🧵'},
     {id:'impresoras',    ico:'🖨️'},
     {id:'piezas',        ico:'🧩'},
     {id:'cobros',        ico:'💳'},
@@ -2746,7 +2750,7 @@ document.addEventListener('click', e=>{
 //  RENDER
 // ═══════════════════════════════════════════════
 function render(){
-  const map={dashboard:pgDashboard,clientes:pgClientes,pedidos:pgPedidos,impresoras:pgImpresoras,filamentos:pgFilamentos,piezas:pgPiezas,archivos:pgArchivos,gastos:pgGastos,cobros:pgCobros,registro:pgRegistro,calculadora:pgCalculadora,configuracion:pgConfig,admin:pgAdmin};
+  const map={dashboard:pgDashboard,agenda:pgAgenda,clientes:pgClientes,pedidos:pgPedidos,impresoras:pgImpresoras,filamentos:pgFilamentos,piezas:pgPiezas,archivos:pgArchivos,gastos:pgGastos,cobros:pgCobros,registro:pgRegistro,calculadora:pgCalculadora,configuracion:pgConfig,admin:pgAdmin};
   // Gate admin page: si alguien hace goTo('admin') sin ser admin, redirige.
   if(PAGE==='admin' && !_plan.isAdmin){ PAGE='dashboard'; }
   const fn=map[PAGE];
@@ -4804,6 +4808,56 @@ async function savePz(id){
 }
 function delPz(id){ confirmDel(t('pz.delete'),`doDelPz('${id}')`); }
 async function doDelPz(id){ if(await dbDel('piezas',id)){_cache.piezas=_cache.piezas.filter(x=>x.id!==id);render();showToast(t('common.deleted'),'ok');} }
+
+// ═══════════════════════════════════════════════
+//  AGENDA (qué toca hoy, por fecha de entrega)
+// ═══════════════════════════════════════════════
+function pgAgenda(){
+  const hoy=today();
+  const d7=new Date(); d7.setDate(d7.getDate()+7); const lim7=d7.toISOString().split('T')[0];
+  const pend=_cache.pedidos.filter(o=>!o.cobrado && o.estado!=='entregado' && o.estado!=='cobrado');
+  const conFecha=pend.filter(o=>o.fechaEntrega);
+  const byDate=(a,b)=>a.fechaEntrega<b.fechaEntrega?-1:1;
+  const atrasados=conFecha.filter(o=>o.fechaEntrega<hoy).sort(byDate);
+  const deHoy=conFecha.filter(o=>o.fechaEntrega===hoy);
+  const semana=conFecha.filter(o=>o.fechaEntrega>hoy && o.fechaEntrega<=lim7).sort(byDate);
+  const sinFecha=pend.filter(o=>!o.fechaEntrega);
+
+  const clientName=cid=>{ const c=_cache.clientes.find(x=>x.id===cid); return c?c.nombre:''; };
+  const fmtD=iso=>{ try{ return new Date(iso+'T00:00:00').toLocaleDateString(LANG==='es'?'es-ES':'en-GB',{day:'2-digit',month:'short'}); }catch(_){ return iso; } };
+  const diffDays=iso=>Math.round((new Date(iso+'T00:00:00')-new Date(hoy+'T00:00:00'))/864e5);
+
+  const card=(o,accent)=>{
+    const cn=clientName(o.clienteId);
+    let when='';
+    if(o.fechaEntrega){
+      const dd=diffDays(o.fechaEntrega);
+      when = dd<0 ? `<span style="color:#f87171;font-weight:700">${fmtD(o.fechaEntrega)} · ${t('agenda.late').replace('{n}',Math.abs(dd))}</span>`
+           : dd===0 ? `<span style="color:#f59e0b;font-weight:700">${t('agenda.today')}</span>`
+           : `<span style="color:var(--text3)">${fmtD(o.fechaEntrega)} · ${t('agenda.in').replace('{n}',dd)}</span>`;
+    }
+    return `<div onclick="editO('${o.id}')" style="display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--bg2);border:1px solid var(--border);border-left:3px solid ${accent};border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer">
+      <div style="min-width:0">
+        <div style="font-weight:700;color:var(--text2);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(o.proyecto||'—')}</div>
+        <div style="font-size:12px;color:var(--text4);margin-top:2px">${cn?'👤 '+esc(cn)+' · ':''}${mkBadge(o.estado)}</div>
+      </div>
+      <div style="font-size:12px;text-align:right;white-space:nowrap">${when}</div>
+    </div>`;
+  };
+  const sec=(titulo,color,arr)=> arr.length?`<div style="margin-bottom:22px">
+      <div style="font-size:11px;font-weight:800;color:${color};text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">${titulo} · ${arr.length}</div>
+      ${arr.map(o=>card(o,color)).join('')}</div>`:'';
+
+  const total=atrasados.length+deHoy.length+semana.length+sinFecha.length;
+  const body = total===0
+    ? `<div style="text-align:center;color:var(--text4);padding:48px 12px;font-size:15px">📭 ${t('agenda.empty')}</div>`
+    : sec('🔴 '+t('agenda.overdue'),'#ef4444',atrasados)
+      + sec('🟠 '+t('agenda.todayTitle'),'#f59e0b',deHoy)
+      + sec('🟡 '+t('agenda.week'),'#eab308',semana)
+      + sec('⚪ '+t('agenda.noDate'),'#52525b',sinFecha);
+
+  return`<div class="page-header"><h2 class="page-title">📅 ${t('agenda.title')}</h2></div>${body}`;
+}
 
 // ═══════════════════════════════════════════════
 //  PEDIDOS
