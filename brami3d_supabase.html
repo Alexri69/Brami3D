@@ -3287,7 +3287,7 @@ _¿Tienes alguna pregunta? Estoy a tu disposición._`;
 async function ensureFacturaNum(id){
   let o=_cache.pedidos.find(x=>x.id===id);
   if(!o) return null;
-  if(!o.cobrado){ alert('Solo pedidos cobrados'); return null; }
+  if(!o.cobrado){ showToast(t('ped.tSoloPagados'),'err'); return null; }
   if(o.facturaNum) return o;
   const fn=await nextFacturaNum();
   const fd=today();
