@@ -696,7 +696,7 @@ let LANG = (localStorage.getItem('b3d_lang')==='en') ? 'en' : 'es';
 const I18N = {
   es: {
     'nav.dashboard':'Dashboard','nav.agenda':'Agenda','nav.clientes':'Clientes',
-    'agenda.title':'Agenda','agenda.overdue':'Atrasados','agenda.todayTitle':'Para hoy','agenda.today':'Hoy','agenda.week':'Esta semana','agenda.noDate':'Sin fecha de entrega','agenda.empty':'No tienes entregas pendientes. ¡Todo al día! 🎉','agenda.late':'hace {n} día(s)','agenda.in':'en {n} día(s)','agenda.toCollect':'Pendiente de cobro','agenda.later':'Más adelante','nav.pedidos':'Pedidos','nav.impresoras':'Impresoras',
+    'agenda.title':'Agenda','agenda.overdue':'Atrasados','agenda.todayTitle':'Para hoy','agenda.today':'Hoy','agenda.week':'Esta semana','agenda.noDate':'Sin fecha de entrega','agenda.empty':'No tienes entregas pendientes. ¡Todo al día! 🎉','agenda.late':'hace {n} día(s)','agenda.in':'en {n} día(s)','agenda.toCollect':'Pendiente de cobro','agenda.later':'Más adelante','agenda.deliver':'Marcar entregado','agenda.collect':'Cobrar','nav.pedidos':'Pedidos','nav.impresoras':'Impresoras',
     'nav.filamentos':'Filamentos','nav.piezas':'Piezas','nav.cobros':'Cobros','nav.archivos':'Archivos',
     'nav.gastos':'Gastos','nav.registro':'Registro fiscal','nav.calculadora':'Calculadora','nav.configuracion':'Configuración','nav.admin':'Admin',
     'common.logout':'Cerrar sesión','common.menu':'Menú','common.cancel':'Cancelar','common.save':'Guardar','common.new':'+ Nuevo','common.delete':'Eliminar',
@@ -792,7 +792,7 @@ const I18N = {
   },
   en: {
     'nav.dashboard':'Dashboard','nav.agenda':'Schedule','nav.clientes':'Customers',
-    'agenda.title':'Schedule','agenda.overdue':'Overdue','agenda.todayTitle':'For today','agenda.today':'Today','agenda.week':'This week','agenda.noDate':'No delivery date','agenda.empty':'No pending deliveries. All caught up! 🎉','agenda.late':'{n} day(s) ago','agenda.in':'in {n} day(s)','agenda.toCollect':'Pending payment','agenda.later':'Later','nav.pedidos':'Orders','nav.impresoras':'Printers',
+    'agenda.title':'Schedule','agenda.overdue':'Overdue','agenda.todayTitle':'For today','agenda.today':'Today','agenda.week':'This week','agenda.noDate':'No delivery date','agenda.empty':'No pending deliveries. All caught up! 🎉','agenda.late':'{n} day(s) ago','agenda.in':'in {n} day(s)','agenda.toCollect':'Pending payment','agenda.later':'Later','agenda.deliver':'Mark delivered','agenda.collect':'Collect','nav.pedidos':'Orders','nav.impresoras':'Printers',
     'nav.filamentos':'Filaments','nav.piezas':'Parts','nav.cobros':'Payments','nav.archivos':'Files',
     'nav.gastos':'Expenses','nav.registro':'Tax record','nav.calculadora':'Calculator','nav.configuracion':'Settings','nav.admin':'Admin',
     'common.logout':'Sign out','common.menu':'Menu','common.cancel':'Cancel','common.save':'Save','common.new':'+ New','common.delete':'Delete',
@@ -4841,12 +4841,18 @@ function pgAgenda(){
            : dd===0 ? `<span style="color:#f59e0b;font-weight:700">${t('agenda.today')}</span>`
            : `<span style="color:var(--text3)">${fmtD(o.fechaEntrega)} · ${t('agenda.in').replace('{n}',dd)}</span>`;
     }
-    return `<div onclick="editO('${o.id}')" style="display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--bg2);border:1px solid var(--border);border-left:3px solid ${accent};border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer">
-      <div style="min-width:0">
+    const accion = o.estado==='entregado'
+      ? `<button class="btn-icon" title="${t('agenda.collect')}" onclick="marcarCobrado('${o.id}')" style="font-size:16px;color:#4ade80">💰</button>`
+      : `<button class="btn-icon" title="${t('agenda.deliver')}" onclick="agendaSetEstado('${o.id}','entregado')" style="font-size:16px;color:#a78bfa">📦</button>`;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--border);border-left:3px solid ${accent};border-radius:10px;padding:10px 12px;margin-bottom:8px">
+      <div style="min-width:0;flex:1">
         <div style="font-weight:700;color:var(--text2);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(o.proyecto||'—')}</div>
-        <div style="font-size:12px;color:var(--text4);margin-top:2px">${cn?'👤 '+esc(cn)+' · ':''}${mkBadge(o.estado)}</div>
+        <div style="font-size:12px;color:var(--text4);margin-top:3px;display:flex;flex-wrap:wrap;gap:8px;align-items:center">${cn?'<span>👤 '+esc(cn)+'</span>':''}${mkBadge(o.estado)}${when}</div>
       </div>
-      <div style="font-size:12px;text-align:right;white-space:nowrap">${when}</div>
+      <div style="display:flex;gap:4px;flex-shrink:0">
+        <button class="btn-icon" title="${t('common.edit')}" onclick="editO('${o.id}')" style="font-size:15px">✏️</button>
+        ${accion}
+      </div>
     </div>`;
   };
   const sec=(titulo,color,arr)=> arr.length?`<div style="margin-bottom:22px">
@@ -4864,6 +4870,17 @@ function pgAgenda(){
       + sec('💰 '+t('agenda.toCollect'),'#22c55e',porCobrar);
 
   return`<div class="page-header"><h2 class="page-title">📅 ${t('agenda.title')}</h2></div>${body}`;
+}
+
+// Cambio rápido de estado desde la agenda (sin abrir el formulario).
+async function agendaSetEstado(id, estado){
+  const o=_cache.pedidos.find(x=>x.id===id); if(!o) return;
+  const ok=await dbSave('pedidos',{id, estado});
+  if(ok){
+    _cache.pedidos=_cache.pedidos.map(x=>x.id===id?{...x,estado}:x);
+    render(); refreshAlerts();
+    showToast('✅ '+t('st.'+estado),'ok');
+  }
 }
 
 // ═══════════════════════════════════════════════
