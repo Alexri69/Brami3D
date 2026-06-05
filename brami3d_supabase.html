@@ -4604,7 +4604,8 @@ async function saveP(id){
   const prev=id?_cache.impresoras.find(i=>i.id===id):null;
   const mantenimientoCada=_hasMant?numVal(d.mantCada,{min:0})||MANT_DEFAULT:MANT_DEFAULT;
   const ultimoMantH=prev?(prev.ultimoMantH||0):0;
-  const row={nombre:d.nombre,modelo:d.modelo,estado:d.estado,horas_uso:horasUso,desgaste:desgaste,consumo_w:consumoW,mantenimientoCada,ultimoMantH};
+  const row={nombre:d.nombre,modelo:d.modelo,estado:d.estado,horas_uso:horasUso,desgaste:desgaste,consumo_w:consumoW};
+  if(_hasMant){ row.mantenimiento_cada=mantenimientoCada; row.ultimo_mant_h=ultimoMantH; }
   if(id)row.id=id;else row.id=uid();
   const ok=await dbSave('impresoras',row);
   const mapped={id:row.id,nombre:d.nombre,modelo:d.modelo,estado:d.estado,horasUso:horasUso,desgaste:desgaste,consumoW:consumoW,mantenimientoCada,ultimoMantH};
@@ -4661,7 +4662,8 @@ async function doAddPrintTime(id){
   const nuevasHoras=parseFloat(((parseFloat(p.horasUso)||0)+horas).toFixed(1));
   const nuevoDesgaste=Math.min(100,parseFloat(((parseFloat(p.desgaste)||0)+incrementoDesgaste).toFixed(1)));
   setLoading('save-pt-btn',true);
-  const row={id:p.id,nombre:p.nombre,modelo:p.modelo,estado:p.estado,horas_uso:nuevasHoras,desgaste:nuevoDesgaste,consumo_w:parseFloat(p.consumoW)||0,mantenimientoCada:p.mantenimientoCada,ultimoMantH:p.ultimoMantH};
+  const row={id:p.id,nombre:p.nombre,modelo:p.modelo,estado:p.estado,horas_uso:nuevasHoras,desgaste:nuevoDesgaste,consumo_w:parseFloat(p.consumoW)||0};
+  if(_hasMant){ row.mantenimiento_cada=p.mantenimientoCada; row.ultimo_mant_h=p.ultimoMantH; }
   const ok=await dbSave('impresoras',row);
   if(ok){
     const mapped={...p,horasUso:nuevasHoras,desgaste:nuevoDesgaste};
@@ -4675,7 +4677,8 @@ async function doAddPrintTime(id){
 async function marcarMantenimiento(id){
   const p=_cache.impresoras.find(x=>x.id===id); if(!p) return;
   const ultimoMantH=parseFloat(p.horasUso)||0;
-  const row={id:p.id,nombre:p.nombre,modelo:p.modelo,estado:p.estado,horas_uso:p.horasUso,desgaste:p.desgaste,consumo_w:parseFloat(p.consumoW)||0,mantenimientoCada:p.mantenimientoCada,ultimoMantH};
+  const row={id:p.id,nombre:p.nombre,modelo:p.modelo,estado:p.estado,horas_uso:p.horasUso,desgaste:p.desgaste,consumo_w:parseFloat(p.consumoW)||0};
+  if(_hasMant){ row.mantenimiento_cada=p.mantenimientoCada; row.ultimo_mant_h=ultimoMantH; }
   const ok=await dbSave('impresoras',row);
   if(ok){
     _cache.impresoras=_cache.impresoras.map(i=>i.id===id?{...p,ultimoMantH}:i);
