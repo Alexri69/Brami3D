@@ -503,6 +503,8 @@ let _bootedFor = null;   // id del usuario para el que ya se ejecutó bootApp (e
 let _lastSyncAt = 0;     // timestamp del último loadAll OK (throttle de resumeSync)
 let _hasAnticipo = false; // ¿existe la columna pedidos.anticipo? (migración sql/009)
 let _hasShare = false;    // ¿existen las columnas de aceptación pública? (migración sql/010)
+let _hasMant = false;     // ¿existen las columnas de mantenimiento de impresoras? (migración sql/018)
+const MANT_DEFAULT = 250; // horas por defecto entre mantenimientos
 
 // In-memory cache (reloaded on every page navigation)
 let _cache = { clientes:[], pedidos:[], impresoras:[], filamentos:[], piezas:[], archivos:[], gastos:[], cfg:{} };
@@ -763,7 +765,7 @@ const I18N = {
     'help.wa':'Escríbenos por WhatsApp','help.email':'Escríbenos un email','help.waMsg':'Hola, necesito ayuda con Brami3D',
     'cfg.referrals':'🤝 Invita y gana','cfg.referralsHint':'Invita a otro taller. Cuando se registre con tu enlace, os lleváis los dos 30 días de Pro gratis.','cfg.referralsBtn':'Ver mi enlace de invitación',
     'ref.title':'Invita y gana','ref.intro':'Comparte tu enlace. Cuando otro taller se registre con él, ambos conseguís 30 días de Pro gratis. 🎁','ref.copy':'Copiar','ref.copied':'Enlace copiado','ref.share':'Compartir por WhatsApp','ref.count':'Talleres que has invitado','ref.waMsg':'Te recomiendo Brami3D para gestionar tu taller de impresión 3D. Regístrate con mi enlace y los dos nos llevamos 30 días Pro gratis: {url}','ref.rewarded':'🎁 ¡Bienvenido! Tienes 30 días de Pro gratis por venir invitado.',
-    'imp.title':'Impresoras','imp.new':'+ Nueva impresora','imp.empty':'Sin impresoras','imp.wear':'Desgaste','imp.needsReview':'requiere revisión','imp.elecCost':'Coste eléctrico','imp.regUse':'⏱ Registrar uso','imp.editTitle':'Editar impresora','imp.newTitle':'Nueva impresora','imp.fModel':'Modelo','imp.fHours':'Horas de uso','imp.fWear':'% Desgaste','imp.fConsumo':'Consumo eléctrico (W)','imp.consumoHint':'Introduce los vatios de tu impresora','imp.delete':'¿Eliminar esta impresora?','imp.logUsage':'⏱ Registrar uso','imp.accNow':'Acumulado actual:','imp.wearWord':'Desgaste:','imp.estElecCost':'Coste eléctrico estimado:','imp.sessHours':'Horas de esta sesión *','imp.extraWear':'Desgaste adicional (%)','imp.wearAuto':'Si dejas el desgaste en 0 se aplica +0.1% por hora automáticamente.',
+    'imp.title':'Impresoras','imp.new':'+ Nueva impresora','imp.empty':'Sin impresoras','imp.wear':'Desgaste','imp.needsReview':'requiere revisión','imp.elecCost':'Coste eléctrico','imp.regUse':'⏱ Registrar uso','imp.editTitle':'Editar impresora','imp.newTitle':'Nueva impresora','imp.fModel':'Modelo','imp.fHours':'Horas de uso','imp.fWear':'% Desgaste','imp.fConsumo':'Consumo eléctrico (W)','imp.consumoHint':'Introduce los vatios de tu impresora','imp.delete':'¿Eliminar esta impresora?','imp.logUsage':'⏱ Registrar uso','imp.accNow':'Acumulado actual:','imp.wearWord':'Desgaste:','imp.estElecCost':'Coste eléctrico estimado:','imp.sessHours':'Horas de esta sesión *','imp.extraWear':'Desgaste adicional (%)','imp.wearAuto':'Si dejas el desgaste en 0 se aplica +0.1% por hora automáticamente.','imp.fMantCada':'Mantenimiento cada (h)','imp.maint':'Mantenimiento','imp.maintDue':'Toca mantenimiento','imp.mantBtn':'Mantenimiento hecho','imp.mantDone':'Mantenimiento registrado ✅',
     'fil.title':'Filamentos','fil.empty':'Sin filamentos','fil.cRemaining':'Restante','fil.cStock':'Stock','fil.editTitle':'Editar filamento','fil.newTitle':'Nuevo filamento','fil.fType':'Tipo','fil.fBrand':'Marca *','fil.fColor':'Color','fil.fRemaining':'Peso restante (g)','fil.fPriceKg':'Precio por kg (€)','fil.brandReq':'Marca obligatoria','fil.delete':'¿Eliminar este filamento?','fil.cType':'Tipo','fil.cBrand':'Marca','fil.cColor':'Color',
     'pz.title':'Piezas','pz.new':'+ Nueva pieza','pz.empty':'Sin piezas guardadas','pz.hint':'Guarda piezas frecuentes para auto-rellenar pedidos.','pz.material':'Material','pz.weight':'Peso','pz.time':'Tiempo','pz.suggested':'Sugerido','pz.editTitle':'Editar pieza','pz.newTitle':'Nueva pieza','pz.fName':'Nombre *','pz.fMaterial':'Material','pz.fWeight':'Peso (g)','pz.fTime':'Tiempo impresión (h)','pz.fSuggested':'Precio sugerido (€)','pz.delete':'¿Eliminar esta pieza?',
     'gas.title':'Gastos','gas.subtitle':'Control de todos tus gastos','gas.new':'+ Nuevo gasto','gas.empty':'Sin gastos registrados','gas.total':'Total gastos','gas.registered':'gastos registrados','gas.thisMonth':'Este mes','gas.byCat':'Por categoría','gas.noData':'Sin datos','gas.editTitle':'Editar gasto','gas.newTitle':'Nuevo gasto','gas.fDesc':'Descripción *','gas.fCat':'Categoría','gas.fAmount':'Importe (€)','gas.fDate':'Fecha','gas.fSupplier':'Proveedor','gas.descReq':'Descripción obligatoria','gas.saved':'Gasto guardado','gas.delete':'¿Eliminar este gasto?',
@@ -858,7 +860,7 @@ const I18N = {
     'help.wa':'Message us on WhatsApp','help.email':'Send us an email','help.waMsg':'Hi, I need help with Brami3D',
     'cfg.referrals':'🤝 Refer & earn','cfg.referralsHint':'Invite another workshop. When they sign up with your link, you both get 30 days of Pro free.','cfg.referralsBtn':'See my invite link',
     'ref.title':'Refer & earn','ref.intro':'Share your link. When another workshop signs up with it, you both get 30 days of Pro free. 🎁','ref.copy':'Copy','ref.copied':'Link copied','ref.share':'Share on WhatsApp','ref.count':'Workshops you have invited','ref.waMsg':'I recommend Brami3D to manage your 3D printing workshop. Sign up with my link and we both get 30 days of Pro free: {url}','ref.rewarded':'🎁 Welcome! You have 30 days of Pro free for joining via an invite.',
-    'imp.title':'Printers','imp.new':'+ New printer','imp.empty':'No printers','imp.wear':'Wear','imp.needsReview':'needs servicing','imp.elecCost':'Electricity cost','imp.regUse':'⏱ Log usage','imp.editTitle':'Edit printer','imp.newTitle':'New printer','imp.fModel':'Model','imp.fHours':'Hours of use','imp.fWear':'% Wear','imp.fConsumo':'Power draw (W)','imp.consumoHint':'Enter your printer wattage','imp.delete':'Delete this printer?','imp.logUsage':'⏱ Log usage','imp.accNow':'Current total:','imp.wearWord':'Wear:','imp.estElecCost':'Est. electricity cost:','imp.sessHours':'Hours this session *','imp.extraWear':'Extra wear (%)','imp.wearAuto':'If wear is left at 0, +0.1% per hour is applied automatically.',
+    'imp.title':'Printers','imp.new':'+ New printer','imp.empty':'No printers','imp.wear':'Wear','imp.needsReview':'needs servicing','imp.elecCost':'Electricity cost','imp.regUse':'⏱ Log usage','imp.editTitle':'Edit printer','imp.newTitle':'New printer','imp.fModel':'Model','imp.fHours':'Hours of use','imp.fWear':'% Wear','imp.fConsumo':'Power draw (W)','imp.consumoHint':'Enter your printer wattage','imp.delete':'Delete this printer?','imp.logUsage':'⏱ Log usage','imp.accNow':'Current total:','imp.wearWord':'Wear:','imp.estElecCost':'Est. electricity cost:','imp.sessHours':'Hours this session *','imp.extraWear':'Extra wear (%)','imp.wearAuto':'If wear is left at 0, +0.1% per hour is applied automatically.','imp.fMantCada':'Maintenance every (h)','imp.maint':'Maintenance','imp.maintDue':'Maintenance due','imp.mantBtn':'Maintenance done','imp.mantDone':'Maintenance logged ✅',
     'fil.title':'Filaments','fil.empty':'No filaments','fil.cRemaining':'Remaining','fil.cStock':'Stock','fil.editTitle':'Edit filament','fil.newTitle':'New filament','fil.fType':'Type','fil.fBrand':'Brand *','fil.fColor':'Color','fil.fRemaining':'Remaining weight (g)','fil.fPriceKg':'Price per kg (€)','fil.brandReq':'Brand is required','fil.delete':'Delete this filament?','fil.cType':'Type','fil.cBrand':'Brand','fil.cColor':'Color',
     'pz.title':'Parts','pz.new':'+ New part','pz.empty':'No saved parts','pz.hint':'Save frequent parts to auto-fill orders.','pz.material':'Material','pz.weight':'Weight','pz.time':'Time','pz.suggested':'Suggested','pz.editTitle':'Edit part','pz.newTitle':'New part','pz.fName':'Name *','pz.fMaterial':'Material','pz.fWeight':'Weight (g)','pz.fTime':'Print time (h)','pz.fSuggested':'Suggested price (€)','pz.delete':'Delete this part?',
     'gas.title':'Expenses','gas.subtitle':'Track all your expenses','gas.new':'+ New expense','gas.empty':'No expenses recorded','gas.total':'Total expenses','gas.registered':'expenses recorded','gas.thisMonth':'This month','gas.byCat':'By category','gas.noData':'No data','gas.editTitle':'Edit expense','gas.newTitle':'New expense','gas.fDesc':'Description *','gas.fCat':'Category','gas.fAmount':'Amount (€)','gas.fDate':'Date','gas.fSupplier':'Supplier','gas.descReq':'Description is required','gas.saved':'Expense saved','gas.delete':'Delete this expense?',
@@ -1111,6 +1113,16 @@ function checkAndNotify(){
   if(desgastadas.length){
     const nombres = desgastadas.map(p=>p.nombre).join(', ');
     showNotif('🔧 Mantenimiento recomendado', desgastadas.length + ' impresora' + (desgastadas.length>1?'s':'') + ' con desgaste >80%: ' + nombres);
+  }
+
+  if(_hasMant){
+    const tocaMant = (_cache.impresoras||[]).filter(p => {
+      const cada=parseFloat(p.mantenimientoCada)||MANT_DEFAULT;
+      return cada>0 && ((parseFloat(p.horasUso)||0)-(parseFloat(p.ultimoMantH)||0)) >= cada;
+    });
+    if(tocaMant.length){
+      showNotif('🔧 ' + t('imp.maintDue'), tocaMant.map(p=>p.nombre).join(', '));
+    }
   }
 
   // Entregas próximas o vencidas (pedidos no cobrados con fecha de entrega ≤ 2 días).
@@ -1458,7 +1470,11 @@ function _unmapForDb(table, r){
       impresora_id:r.impresoraId??r.impresora_id??null, cobrado:!!r.cobrado, fecha_cobrado:r.fechaCobrado??r.fecha_cobrado??null,
       fecha_entrega:r.fechaEntrega??r.fecha_entrega??null
     };
-    case 'impresoras': return {id:r.id,user_id:CU.id,nombre:r.nombre,modelo:r.modelo,estado:r.estado,horas_uso:r.horasUso??r.horas_uso,desgaste:r.desgaste,consumo_w:r.consumoW??r.consumo_w??0};
+    case 'impresoras': {
+      const o={id:r.id,user_id:CU.id,nombre:r.nombre,modelo:r.modelo,estado:r.estado,horas_uso:r.horasUso??r.horas_uso,desgaste:r.desgaste,consumo_w:r.consumoW??r.consumo_w??0};
+      if(_hasMant){ o.mantenimiento_cada=r.mantenimientoCada??r.mantenimiento_cada??MANT_DEFAULT; o.ultimo_mant_h=r.ultimoMantH??r.ultimo_mant_h??0; }
+      return o;
+    }
     case 'filamentos': return {id:r.id,user_id:CU.id,tipo:r.tipo,marca:r.marca,color:r.color,peso_restante:r.pesoRestante??r.peso_restante,precio_por_kg:r.precioPorKg??r.precio_por_kg};
     case 'piezas': return {id:r.id,user_id:CU.id,nombre:r.nombre,material:r.material,peso:r.peso,tiempo_impresion:r.tiempoImpresion??r.tiempo_impresion,precio_sugerido:r.precioSugerido??r.precio_sugerido};
     case 'clientes':
@@ -1809,6 +1825,8 @@ async function loadAll(silent=false){
   }
 
   _cache.impresoras = mapImpresoras(im.data||[]);
+  if(im.data && im.data.length){ _hasMant = ('mantenimiento_cada' in im.data[0]); }
+  else { try { const {error}=await sb.from('impresoras').select('mantenimiento_cada').limit(1); _hasMant=!error; } catch(_){ _hasMant=false; } }
   _cache.filamentos = mapFilamentos(fi.data||[]);
   _cache.piezas     = mapPiezas(pz.data||[]);
   _cache.archivos   = ar.data||[];
@@ -1873,7 +1891,8 @@ function mapPedidos(rows){ return rows.map(r=>({
 function mapImpresoras(rows){ return rows.map(r=>({
   id:r.id,nombre:r.nombre,modelo:r.modelo,estado:r.estado,
   horasUso:r.horas_uso,desgaste:r.desgaste,
-  consumoW:r.consumo_w||0
+  consumoW:r.consumo_w||0,
+  mantenimientoCada:r.mantenimiento_cada??MANT_DEFAULT, ultimoMantH:r.ultimo_mant_h??0
 }));}
 
 function mapFilamentos(rows){ return rows.map(r=>({
@@ -4529,13 +4548,19 @@ function pgImpresoras(){
     const cfg=_cache.cfg;
     const consumoW=parseFloat(p.consumoW)||0;
     const costH=consumoW>0?(consumoW/1000)*(parseFloat(cfg.costePorHora)||0.15):null;
-    return`<div class="card" style="min-width:240px;flex:1 1 240px">${deg>80?`<div class="warn-box">⚠️ ${t('imp.wear')} ${p.desgaste}% — ${t('imp.needsReview')}</div>`:''}
+    const mHm=Math.max(0,(parseFloat(p.horasUso)||0)-(parseFloat(p.ultimoMantH)||0));
+    const mCada=parseFloat(p.mantenimientoCada)||MANT_DEFAULT;
+    const mDue=_hasMant&&mCada>0&&mHm>=mCada;
+    const mPct=mCada>0?Math.min(mHm/mCada*100,100):0;
+    const mCol=mDue?'#ef4444':mPct>75?'#f59e0b':'#22c55e';
+    return`<div class="card" style="min-width:240px;flex:1 1 240px">${mDue?`<div class="warn-box">🔧 ${t('imp.maintDue')}</div>`:''}${deg>80?`<div class="warn-box">⚠️ ${t('imp.wear')} ${p.desgaste}% — ${t('imp.needsReview')}</div>`:''}
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-size:15px;font-weight:700;color:var(--text2)">🖨️ ${esc(p.nombre)}</div>${mkBadge(p.estado)}</div>
 <div style="font-size:13px;color:var(--text4);margin-bottom:10px">${esc(p.modelo)}</div>
 <div style="display:flex;gap:16px;font-size:13px;color:var(--text4);margin-bottom:6px"><span>⏱ ${p.horasUso}h</span><span>🔧 ${p.desgaste}%</span>${consumoW?`<span>⚡ ${consumoW}W</span>`:''}</div>
 ${costH?`<div style="font-size:12px;color:#60a5fa;margin-bottom:10px;font-weight:600">${t('imp.elecCost')}: ${costH.toFixed(4)}€/h</div>`:''}
 <div class="progress-track"><div class="progress-fill" style="width:${Math.min(deg,100)}%;background:${bc}"></div></div>
-<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-primary" style="font-size:12px;padding:7px 12px" onclick="addPrintTime('${p.id}')">${t('imp.regUse')}</button><button class="btn-secondary" onclick="editP('${p.id}')">${t('common.edit')}</button><button class="btn-icon" onclick="delP('${p.id}')">🗑️</button></div></div>`;}).join('');
+${_hasMant?`<div style="font-size:12px;color:${mDue?'#f87171':'var(--text4)'};margin:8px 0 4px;font-weight:600">🔧 ${t('imp.maint')}: ${round2(mHm)} / ${mCada}h</div><div class="progress-track"><div class="progress-fill" style="width:${mPct}%;background:${mCol}"></div></div>`:''}
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-primary" style="font-size:12px;padding:7px 12px" onclick="addPrintTime('${p.id}')">${t('imp.regUse')}</button>${_hasMant?`<button class="btn-secondary" style="font-size:12px;padding:7px 12px" onclick="marcarMantenimiento('${p.id}')">🔧 ${t('imp.mantBtn')}</button>`:''}<button class="btn-secondary" onclick="editP('${p.id}')">${t('common.edit')}</button><button class="btn-icon" onclick="delP('${p.id}')">🗑️</button></div></div>`;}).join('');
   return`<div class="page-header"><h2 class="page-title">${t('imp.title')}</h2><button class="btn-primary" onclick="editP(null)">${t('imp.new')}</button></div><div class="flexwrap">${cards}</div>`;
 }
 function impresoraFrm(x={}){
@@ -4548,6 +4573,7 @@ function impresoraFrm(x={}){
     +fld(t('col.status'),'estado',x.estado||'activa','text',['activa','mantenimiento','averiada'].map(e=>({value:e,label:t('st.'+e)})))
     +fld(t('imp.fHours'),'horasUso',x.horasUso||0,'number',{min:0})
     +fld(t('imp.fWear'),'desgaste',x.desgaste||0,'number',{min:0,max:100})
+    +(_hasMant?fld(t('imp.fMantCada'),'mantCada',x.mantenimientoCada??MANT_DEFAULT,'number',{min:0}):'')
     +`<div class="field">
         <label>${t('imp.fConsumo')}</label>
         <input name="consumoW" type="text" inputmode="decimal" value="${esc(x.consumoW||'')}" placeholder="Ej: 200" oninput="updConsumoPreview(this.value)">
@@ -4561,7 +4587,7 @@ function editP(id){
   openModal(msh(id?t('imp.editTitle'):t('imp.newTitle'),`${impresoraFrm(x)}<div style="display:flex;gap:10px;margin-top:8px"><button class="btn-primary" id="save-p-btn" onclick="saveP('${id||''}')">${t('common.save')}</button><button class="btn-secondary" onclick="closeModal()">${t('common.cancel')}</button></div>`));
 }
 async function saveP(id){
-  const d=gfd(['nombre','modelo','estado','horasUso','desgaste','consumoW']);
+  const d=gfd(['nombre','modelo','estado','horasUso','desgaste','consumoW','mantCada']);
   if(!d.nombre.trim()){showToast(t('common.nameReq'),'err');return;}
   // Validación numérica
   for(const [label,raw,opts] of [
@@ -4575,10 +4601,13 @@ async function saveP(id){
   const horasUso=numVal(d.horasUso,{min:0});
   const desgaste=numVal(d.desgaste,{min:0,max:100});
   const consumoW=numVal(d.consumoW,{min:0});
-  const row={nombre:d.nombre,modelo:d.modelo,estado:d.estado,horas_uso:horasUso,desgaste:desgaste,consumo_w:consumoW};
+  const prev=id?_cache.impresoras.find(i=>i.id===id):null;
+  const mantenimientoCada=_hasMant?numVal(d.mantCada,{min:0})||MANT_DEFAULT:MANT_DEFAULT;
+  const ultimoMantH=prev?(prev.ultimoMantH||0):0;
+  const row={nombre:d.nombre,modelo:d.modelo,estado:d.estado,horas_uso:horasUso,desgaste:desgaste,consumo_w:consumoW,mantenimientoCada,ultimoMantH};
   if(id)row.id=id;else row.id=uid();
   const ok=await dbSave('impresoras',row);
-  const mapped={id:row.id,nombre:d.nombre,modelo:d.modelo,estado:d.estado,horasUso:horasUso,desgaste:desgaste,consumoW:consumoW};
+  const mapped={id:row.id,nombre:d.nombre,modelo:d.modelo,estado:d.estado,horasUso:horasUso,desgaste:desgaste,consumoW:consumoW,mantenimientoCada,ultimoMantH};
   if(ok){if(id)_cache.impresoras=_cache.impresoras.map(i=>i.id===id?mapped:i);else _cache.impresoras.push(mapped);closeModal();render();refreshAlerts();showToast(t('common.saved'),'ok');}
 }
 
@@ -4632,13 +4661,25 @@ async function doAddPrintTime(id){
   const nuevasHoras=parseFloat(((parseFloat(p.horasUso)||0)+horas).toFixed(1));
   const nuevoDesgaste=Math.min(100,parseFloat(((parseFloat(p.desgaste)||0)+incrementoDesgaste).toFixed(1)));
   setLoading('save-pt-btn',true);
-  const row={id:p.id,nombre:p.nombre,modelo:p.modelo,estado:p.estado,horas_uso:nuevasHoras,desgaste:nuevoDesgaste,consumo_w:parseFloat(p.consumoW)||0};
+  const row={id:p.id,nombre:p.nombre,modelo:p.modelo,estado:p.estado,horas_uso:nuevasHoras,desgaste:nuevoDesgaste,consumo_w:parseFloat(p.consumoW)||0,mantenimientoCada:p.mantenimientoCada,ultimoMantH:p.ultimoMantH};
   const ok=await dbSave('impresoras',row);
   if(ok){
     const mapped={...p,horasUso:nuevasHoras,desgaste:nuevoDesgaste};
     _cache.impresoras=_cache.impresoras.map(i=>i.id===id?mapped:i);
     closeModal();render();refreshAlerts();
     showToast(`+${horas}h registradas · Desgaste: ${nuevoDesgaste}%`,'ok');
+  }
+}
+
+// Marca el mantenimiento como hecho: reinicia el contador a las horas actuales.
+async function marcarMantenimiento(id){
+  const p=_cache.impresoras.find(x=>x.id===id); if(!p) return;
+  const ultimoMantH=parseFloat(p.horasUso)||0;
+  const row={id:p.id,nombre:p.nombre,modelo:p.modelo,estado:p.estado,horas_uso:p.horasUso,desgaste:p.desgaste,consumo_w:parseFloat(p.consumoW)||0,mantenimientoCada:p.mantenimientoCada,ultimoMantH};
+  const ok=await dbSave('impresoras',row);
+  if(ok){
+    _cache.impresoras=_cache.impresoras.map(i=>i.id===id?{...p,ultimoMantH}:i);
+    render();refreshAlerts();showToast(t('imp.mantDone'),'ok');
   }
 }
 
