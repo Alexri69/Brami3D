@@ -696,7 +696,7 @@ let LANG = (localStorage.getItem('b3d_lang')==='en') ? 'en' : 'es';
 const I18N = {
   es: {
     'nav.dashboard':'Dashboard','nav.agenda':'Agenda','nav.clientes':'Clientes',
-    'agenda.title':'Agenda','agenda.overdue':'Atrasados','agenda.todayTitle':'Para hoy','agenda.today':'Hoy','agenda.week':'Esta semana','agenda.noDate':'Sin fecha de entrega','agenda.empty':'No tienes entregas pendientes. ¡Todo al día! 🎉','agenda.late':'hace {n} día(s)','agenda.in':'en {n} día(s)','agenda.toCollect':'Pendiente de cobro','nav.pedidos':'Pedidos','nav.impresoras':'Impresoras',
+    'agenda.title':'Agenda','agenda.overdue':'Atrasados','agenda.todayTitle':'Para hoy','agenda.today':'Hoy','agenda.week':'Esta semana','agenda.noDate':'Sin fecha de entrega','agenda.empty':'No tienes entregas pendientes. ¡Todo al día! 🎉','agenda.late':'hace {n} día(s)','agenda.in':'en {n} día(s)','agenda.toCollect':'Pendiente de cobro','agenda.later':'Más adelante','nav.pedidos':'Pedidos','nav.impresoras':'Impresoras',
     'nav.filamentos':'Filamentos','nav.piezas':'Piezas','nav.cobros':'Cobros','nav.archivos':'Archivos',
     'nav.gastos':'Gastos','nav.registro':'Registro fiscal','nav.calculadora':'Calculadora','nav.configuracion':'Configuración','nav.admin':'Admin',
     'common.logout':'Cerrar sesión','common.menu':'Menú','common.cancel':'Cancelar','common.save':'Guardar','common.new':'+ Nuevo','common.delete':'Eliminar',
@@ -792,7 +792,7 @@ const I18N = {
   },
   en: {
     'nav.dashboard':'Dashboard','nav.agenda':'Schedule','nav.clientes':'Customers',
-    'agenda.title':'Schedule','agenda.overdue':'Overdue','agenda.todayTitle':'For today','agenda.today':'Today','agenda.week':'This week','agenda.noDate':'No delivery date','agenda.empty':'No pending deliveries. All caught up! 🎉','agenda.late':'{n} day(s) ago','agenda.in':'in {n} day(s)','agenda.toCollect':'Pending payment','nav.pedidos':'Orders','nav.impresoras':'Printers',
+    'agenda.title':'Schedule','agenda.overdue':'Overdue','agenda.todayTitle':'For today','agenda.today':'Today','agenda.week':'This week','agenda.noDate':'No delivery date','agenda.empty':'No pending deliveries. All caught up! 🎉','agenda.late':'{n} day(s) ago','agenda.in':'in {n} day(s)','agenda.toCollect':'Pending payment','agenda.later':'Later','nav.pedidos':'Orders','nav.impresoras':'Printers',
     'nav.filamentos':'Filaments','nav.piezas':'Parts','nav.cobros':'Payments','nav.archivos':'Files',
     'nav.gastos':'Expenses','nav.registro':'Tax record','nav.calculadora':'Calculator','nav.configuracion':'Settings','nav.admin':'Admin',
     'common.logout':'Sign out','common.menu':'Menu','common.cancel':'Cancel','common.save':'Save','common.new':'+ New','common.delete':'Delete',
@@ -4821,6 +4821,7 @@ function pgAgenda(){
   const atrasados=conFecha.filter(o=>o.fechaEntrega<hoy).sort(byDate);
   const deHoy=conFecha.filter(o=>o.fechaEntrega===hoy);
   const semana=conFecha.filter(o=>o.fechaEntrega>hoy && o.fechaEntrega<=lim7).sort(byDate);
+  const masAdelante=conFecha.filter(o=>o.fechaEntrega>lim7).sort(byDate);
   const sinFecha=pend.filter(o=>!o.fechaEntrega);
   // Entregados pero sin cobrar → pendientes de cobro
   const porCobrar=_cache.pedidos.filter(o=>!o.cobrado && o.estado==='entregado')
@@ -4851,12 +4852,13 @@ function pgAgenda(){
       <div style="font-size:11px;font-weight:800;color:${color};text-transform:uppercase;letter-spacing:1px;margin-bottom:10px">${titulo} · ${arr.length}</div>
       ${arr.map(o=>card(o,color)).join('')}</div>`:'';
 
-  const total=atrasados.length+deHoy.length+semana.length+sinFecha.length+porCobrar.length;
+  const total=atrasados.length+deHoy.length+semana.length+masAdelante.length+sinFecha.length+porCobrar.length;
   const body = total===0
     ? `<div style="text-align:center;color:var(--text4);padding:48px 12px;font-size:15px">📭 ${t('agenda.empty')}</div>`
     : sec('🔴 '+t('agenda.overdue'),'#ef4444',atrasados)
       + sec('🟠 '+t('agenda.todayTitle'),'#f59e0b',deHoy)
       + sec('🟡 '+t('agenda.week'),'#eab308',semana)
+      + sec('🔵 '+t('agenda.later'),'#3b82f6',masAdelante)
       + sec('⚪ '+t('agenda.noDate'),'#52525b',sinFecha)
       + sec('💰 '+t('agenda.toCollect'),'#22c55e',porCobrar);
 
