@@ -4815,7 +4815,8 @@ async function doDelPz(id){ if(await dbDel('piezas',id)){_cache.piezas=_cache.pi
 function pgAgenda(){
   const hoy=today();
   const d7=new Date(); d7.setDate(d7.getDate()+7); const lim7=d7.toISOString().split('T')[0];
-  const pend=_cache.pedidos.filter(o=>!o.cobrado && o.estado!=='entregado' && o.estado!=='cobrado');
+  // Por hacer/entregar: cualquier pedido no entregado (esté cobrado o no).
+  const pend=_cache.pedidos.filter(o=>o.estado!=='entregado' && o.estado!=='cobrado');
   const conFecha=pend.filter(o=>o.fechaEntrega);
   const byDate=(a,b)=>a.fechaEntrega<b.fechaEntrega?-1:1;
   const atrasados=conFecha.filter(o=>o.fechaEntrega<hoy).sort(byDate);
