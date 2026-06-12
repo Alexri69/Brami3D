@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Guía rápida — B3D Print Studio</title>
+<style>
+  @page { size: A4; margin: 16mm 15mm; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; color: #1e293b; font-size: 10.5pt; line-height: 1.55; }
+  .portada { background: #1d4ed8; color: #fff; border-radius: 14px; padding: 28px 30px; margin-bottom: 22px; }
+  .portada .logo { display: inline-block; background: #fff; color: #1d4ed8; font-weight: 900; font-size: 20pt; border-radius: 10px; padding: 4px 14px; margin-bottom: 10px; letter-spacing: 1px; }
+  .portada h1 { font-size: 19pt; font-weight: 800; margin-bottom: 4px; }
+  .portada p { font-size: 10.5pt; opacity: .92; }
+  h2 { color: #1d4ed8; font-size: 13pt; font-weight: 800; margin: 18px 0 8px; padding-bottom: 3px; border-bottom: 2px solid #dbeafe; }
+  h2 .n { display: inline-block; background: #1d4ed8; color: #fff; border-radius: 6px; width: 22px; height: 22px; text-align: center; line-height: 22px; font-size: 10.5pt; margin-right: 7px; }
+  p { margin-bottom: 7px; }
+  ul { margin: 4px 0 8px 18px; }
+  li { margin-bottom: 4px; }
+  b { color: #0f172a; }
+  .paso { display: flex; gap: 10px; margin-bottom: 9px; }
+  .paso .num { flex-shrink: 0; background: #dbeafe; color: #1d4ed8; font-weight: 800; border-radius: 50%; width: 24px; height: 24px; text-align: center; line-height: 24px; font-size: 10pt; }
+  .caja { background: #f1f5f9; border-left: 4px solid #1d4ed8; border-radius: 8px; padding: 10px 14px; margin: 10px 0; }
+  .caja.verde { border-color: #16a34a; background: #f0fdf4; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; margin: 8px 0; }
+  .mod { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 11px; }
+  .mod b { display: block; margin-bottom: 1px; }
+  .mod span { font-size: 9.5pt; color: #475569; }
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 10pt; }
+  th { background: #1d4ed8; color: #fff; text-align: left; padding: 6px 10px; font-weight: 700; }
+  td { padding: 6px 10px; border-bottom: 1px solid #e2e8f0; }
+  .salto { page-break-before: always; }
+  .pie { margin-top: 20px; padding-top: 8px; border-top: 1px solid #e2e8f0; font-size: 9pt; color: #94a3b8; text-align: center; }
+  .badge { display: inline-block; background: #dbeafe; color: #1d4ed8; border-radius: 99px; padding: 1px 10px; font-size: 9pt; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="portada">
+  <div class="logo">B3D</div>
+  <h1>Guía rápida de B3D Print Studio</h1>
+  <p>La app de gestión para tu negocio de impresión 3D: pedidos, presupuestos, facturas, filamentos y costes — todo en uno y desde el móvil. <b>brami3d.app</b></p>
+</div>
+
+<h2><span class="n">1</span>Instalar la app</h2>
+<p>B3D es una <b>PWA</b>: funciona en el navegador pero se instala como una app normal, con su icono, y sigue funcionando <b>sin conexión</b>.</p>
+<ul>
+  <li><b>Android / PC (Chrome o Edge):</b> entra en brami3d.app, pulsa el botón <b>«Instalar»</b> que aparece en la barra de direcciones (o menú ⋮ → «Instalar aplicación»).</li>
+  <li><b>iPhone / iPad (Safari):</b> botón Compartir <b>□↑</b> → <b>«Añadir a pantalla de inicio»</b>.</li>
+</ul>
+<div class="caja">💡 Instalada en el inicio, la app puede enviarte <b>notificaciones</b> (entregas próximas, cobros pendientes, mantenimiento de impresoras) aunque esté cerrada. Se activan en <b>Configuración</b>.</div>
+
+<h2><span class="n">2</span>Primeros pasos (5 minutos)</h2>
+<div class="paso"><div class="num">1</div><div><b>Configura tu taller</b> en ⚙️ Configuración: nombre, datos fiscales, precio de la luz, precio/hora de trabajo e IVA. Con esto la app calcula el coste real de cada pieza.</div></div>
+<div class="paso"><div class="num">2</div><div><b>Da de alta tus impresoras</b> (consumo en W y precio de compra) y tus <b>filamentos</b> (material, color, precio y peso de bobina). El stock se descuenta solo con cada pedido.</div></div>
+<div class="paso"><div class="num">3</div><div><b>Añade tus clientes</b> con su teléfono y email: así podrás enviarles presupuestos y facturas por WhatsApp o correo con un toque.</div></div>
+
+<h2><span class="n">3</span>El flujo de un pedido (lo que usarás a diario)</h2>
+<div class="paso"><div class="num">1</div><div><b>Crea el pedido</b> en 📦 Pedidos → «Nuevo»: cliente, piezas (peso, tiempo de impresión, cantidad) y fecha de entrega. La app calcula <b>coste, precio y ganancia</b> al momento, incluso con varias piezas y varios filamentos.</div></div>
+<div class="paso"><div class="num">2</div><div><b>Envía el presupuesto</b>: en PDF 📄, por WhatsApp 💬, por email ✉️ o con un <b>enlace público</b> 🔗 que el cliente abre y <b>acepta sin necesidad de cuenta</b> — te llega la confirmación a la app.</div></div>
+<div class="paso"><div class="num">3</div><div><b>Avanza el estado</b> según trabajas: <span class="badge">pendiente</span> → <span class="badge">imprimiendo</span> → <span class="badge">terminado</span> → <span class="badge">entregado</span>. Puedes apuntar un <b>anticipo</b> y la app te muestra lo pendiente de cobro.</div></div>
+<div class="paso"><div class="num">4</div><div><b>Marca como cobrado</b> 💰 y se genera <b>la factura legal automáticamente</b>, numerada y lista para ver, imprimir o enviar 📤 al cliente.</div></div>
+<div class="caja verde">✅ Un pedido cobrado y entregado queda <b>cerrado</b>: la app esconde los botones que ya no aplican y solo deja ver/enviar la factura, duplicarlo o borrarlo.</div>
+
+<div class="salto"></div>
+
+<h2><span class="n">4</span>Los módulos, de un vistazo</h2>
+<div class="grid">
+  <div class="mod"><b>📊 Panel</b><span>Ingresos, costes, beneficio y consumo del mes, con gráficas.</span></div>
+  <div class="mod"><b>📅 Agenda</b><span>Qué entregar hoy, esta semana, lo atrasado y lo pendiente de cobrar.</span></div>
+  <div class="mod"><b>📦 Pedidos</b><span>Todo el flujo del punto 3, con buscador y cambio de estado en lote.</span></div>
+  <div class="mod"><b>👥 Clientes</b><span>Fichas con historial de pedidos y total facturado. Importa/exporta CSV.</span></div>
+  <div class="mod"><b>🖨️ Impresoras</b><span>Horas de uso, amortización y avisos de mantenimiento periódico.</span></div>
+  <div class="mod"><b>🧵 Filamentos</b><span>Stock por bobina con descuento automático y aviso cuando queda poco.</span></div>
+  <div class="mod"><b>🧩 Piezas</b><span>Tu catálogo: piezas que repites, con peso y tiempo ya guardados.</span></div>
+  <div class="mod"><b>📁 Archivos</b><span>Guarda los STL/3MF de cada proyecto, con arrastrar y soltar.</span></div>
+  <div class="mod"><b>💸 Gastos</b><span>Gastos del negocio para que el beneficio del panel sea el real.</span></div>
+  <div class="mod"><b>💰 Cobros</b><span>Lista de pedidos sin cobrar, con lo más urgente arriba.</span></div>
+  <div class="mod"><b>📒 Registro fiscal</b><span>Libro de facturas emitidas e informes mensuales/anuales en PDF.</span></div>
+  <div class="mod"><b>🧮 Calculadora</b><span>Calcula el precio de una pieza suelta sin crear pedido.</span></div>
+</div>
+
+<h2><span class="n">5</span>Trucos que marcan la diferencia</h2>
+<ul>
+  <li><b>Funciona sin internet:</b> si te quedas sin cobertura en el taller, sigue trabajando; los cambios se sincronizan solos al volver la conexión.</li>
+  <li><b>Mantén pulsado el icono</b> de la app: accesos directos a «Nuevo pedido» y «Nuevo cliente».</li>
+  <li><b>Tema claro u oscuro</b> con el botón 🌙 · <b>español o inglés</b> con el botón de la bandera.</li>
+  <li><b>Cada lunes</b> recibirás un email-resumen con presupuestos sin respuesta y cobros pendientes.</li>
+  <li><b>Invita a otro maker</b> desde Configuración → Referidos: 30 días Pro gratis para los dos.</li>
+</ul>
+
+<h2><span class="n">6</span>Planes</h2>
+<table>
+  <tr><th>Plan</th><th>Precio</th><th>Incluye</th></tr>
+  <tr><td><b>Básico</b></td><td>Gratis</td><td>10 pedidos/mes y 5 clientes — para empezar.</td></tr>
+  <tr><td><b>Pro</b></td><td>9 €/mes ó 79 €/año</td><td>Todo sin límites. <b>30 días de prueba gratis</b> al registrarte, sin tarjeta.</td></tr>
+</table>
+<p>La suscripción se gestiona desde la propia app (cambiar tarjeta, descargar recibos o cancelar cuando quieras).</p>
+
+<div class="pie">B3D Print Studio · brami3d.app · Guía rápida — junio 2026</div>
+
+</body>
+</html>
