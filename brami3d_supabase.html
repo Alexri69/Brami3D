@@ -2764,6 +2764,15 @@ function render(){
 
 // Accesibilidad: da nombre accesible (aria-label) a los botones de solo icono.
 // Usa el title si lo tienen; si no, deduce por el emoji. Se ejecuta tras cada render.
+// Los buscadores de listas llaman a render() en cada tecla, lo que destruye el
+// propio input y pierde el foco: tras re-renderizar hay que devolvérselo.
+function _refocus(id){
+  const i=$(id); if(!i) return;
+  i.focus();
+  const v=i.value.length;
+  try{ i.setSelectionRange(v,v); }catch(_){}
+}
+
 const _ICON_A11Y = { '✏️':'common.edit', '🗑️':'a11y.delete', '✕':'a11y.remove' };
 function a11yIcons(root){
   (root||document).querySelectorAll('button.btn-icon:not([aria-label])').forEach(b=>{
@@ -4346,7 +4355,7 @@ function pgClientes(){
   <button class="btn-primary" onclick="editC(null)">${t('common.new')}</button>
 </div>
 </div>
-<input style="margin-bottom:14px" placeholder="🔍 ${t('common.search')}" value="${esc(_cSearch)}" oninput="_cSearch=this.value;_cPage=0;render()">
+<input id="c-search" style="margin-bottom:14px" placeholder="🔍 ${t('common.search')}" value="${esc(_cSearch)}" oninput="_cSearch=this.value;_cPage=0;render();_refocus('c-search')">
 ${isMob
   ? `<div>${rows}</div>${pager}`
   : `<div class="card" style="padding:0;overflow:hidden"><div style="overflow-x:auto"><table><thead><tr><th>${t('col.name')}</th><th>${t('col.nif')}</th><th>${t('col.empresa')}</th><th>${t('col.phone')}</th><th>${t('col.email')}</th><th>${t('col.notes')}</th><th></th></tr></thead><tbody>${rows}</tbody></table></div></div>${pager}`
@@ -4921,6 +4930,9 @@ function pgPedidos(){
     const c=calcOrderCosts(o,cfg);
     const bg=rowHl[o.estado]||'';
     const isPagado=o.cobrado===true;
+    // Pedido cerrado (cobrado + entregado): se ocultan los botones de la fase
+    // de presupuesto (PDF, WhatsApp, compartir, email, cobrar) — ya no aplican.
+    const cerrado=isPagado&&o.estado==='entregado';
     const hasFactura=!!o.facturaNum;
     const piezasCount=(o.lineas||[]).reduce((s,l)=>s+(parseInt(l.qty)||1),0)||'—';
     let factBtn;
@@ -4946,11 +4958,12 @@ function pgPedidos(){
       +'<td>'+mkBadge(o.estado)+'</td>'
       +'<td style="color:var(--text5)">'+esc(o.fecha)+'</td>'
       +'<td style="text-align:right;white-space:nowrap">'
-        +'<button class="btn-icon" title="'+t('ped.tPresupuesto')+'" onclick="genPDF(\''+o.id+'\')">📄</button>'
-        +'<button class="btn-icon" title="'+t('ped.tWhatsApp')+'" onclick="sendWA(\''+o.id+'\')">💬</button>'
-        +(_hasShare?'<button class="btn-icon" title="'+t('share.tShare')+'" onclick="sharePresupuestoLink(\''+o.id+'\')">🔗</button>':'')
-        +'<button class="btn-icon" title="'+t('email.title')+'" onclick="sendPresupuestoEmail(\''+o.id+'\')">✉️</button>'
-        +cobrarBtn
+        +(cerrado?'':
+          '<button class="btn-icon" title="'+t('ped.tPresupuesto')+'" onclick="genPDF(\''+o.id+'\')">📄</button>'
+          +'<button class="btn-icon" title="'+t('ped.tWhatsApp')+'" onclick="sendWA(\''+o.id+'\')">💬</button>'
+          +(_hasShare?'<button class="btn-icon" title="'+t('share.tShare')+'" onclick="sharePresupuestoLink(\''+o.id+'\')">🔗</button>':'')
+          +'<button class="btn-icon" title="'+t('email.title')+'" onclick="sendPresupuestoEmail(\''+o.id+'\')">✉️</button>'
+          +cobrarBtn)
         +factBtn
         +'<button class="btn-icon" title="'+t('ped.tDuplicar')+'" onclick="cloneO(\''+o.id+'\')">📋</button>'
         +'<button class="btn-icon" onclick="editO(\''+o.id+'\')">✏️</button>'
@@ -4964,6 +4977,7 @@ function pgPedidos(){
     const cl=clients.find(x=>x.id===o.clienteId)||{};
     const c=calcOrderCosts(o,cfg);
     const hasFactura=!!o.facturaNum;
+    const cerrado=o.cobrado===true&&o.estado==='entregado';
     return`<div class="mob-card">
       ${o.fotoUrl?`<img src="${esc(o.fotoUrl)}" style="width:100%;max-height:140px;object-fit:cover;border-radius:10px;margin-bottom:12px;border:1px solid var(--border)">`:''}
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
@@ -4986,10 +5000,10 @@ function pgPedidos(){
       ${(o.aceptado&&!o.cobrado)?`<div style="margin-bottom:10px"><span style="background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:800">✅ ${t('share.accepted')}</span></div>`:''}
       ${(o.anticipo>0&&!o.cobrado)?`<div style="margin-bottom:10px"><span style="background:rgba(96,165,250,.12);color:#60a5fa;border:1px solid rgba(96,165,250,.3);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:700">💵 ${t('ped.deposit')} ${o.anticipo.toFixed(2)}${cfg.moneda||'€'} · ${t('ped.balance')} ${Math.max(0,(c.fp||0)-o.anticipo).toFixed(2)}${cfg.moneda||'€'}</span></div>`:''}
       <div style="display:flex;gap:8px;padding-top:10px;border-top:1px solid var(--border);flex-wrap:wrap">
-        <button onclick="genPDF('${o.id}')" style="flex:1;padding:10px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:13px">📄 PDF</button>
+        ${cerrado?'':`<button onclick="genPDF('${o.id}')" style="flex:1;padding:10px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:13px">📄 PDF</button>
         <button onclick="sendWA('${o.id}')" style="flex:1;padding:10px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:13px">💬 WA</button>
         ${_hasShare?`<button onclick="sharePresupuestoLink('${o.id}')" title="${t('share.tShare')}" style="padding:10px 14px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:16px">🔗</button>`:''}
-        <button onclick="sendPresupuestoEmail('${o.id}')" title="${t('email.title')}" style="padding:10px 14px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:16px">✉️</button>
+        <button onclick="sendPresupuestoEmail('${o.id}')" title="${t('email.title')}" style="padding:10px 14px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:16px">✉️</button>`}
         ${!o.cobrado
           ?`<button onclick="marcarCobrado('${o.id}')" style="flex:1;padding:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;color:#4ade80;font-size:12px;font-weight:700">💰 ${t('dash.collect')}</button>`
           :`<button onclick="genFactura('${o.id}')" style="flex:1;padding:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;color:#4ade80;font-size:13px">🧾</button><button onclick="sendFacturaWA('${o.id}')" title="Enviar factura" style="flex:1;padding:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;color:#4ade80;font-size:13px">📤</button>`
@@ -5002,8 +5016,8 @@ function pgPedidos(){
   }).join('');
 
   return`<div class="page-header"><div><h2 class="page-title">${t('ped.title')}</h2><div class="page-subtitle">${orders.length} ${t('ped.ordersWord')} ${t('ped.inTotal')}</div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-secondary" onclick="exportPedidosCSV()" style="display:flex;align-items:center;gap:6px">📊 ${t('common.exportExcel')}</button><button class="btn-primary" onclick="editO(null)">${t('common.new')}</button></div></div>
-<div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center">${chips}${!isMob?`<input style="flex:1;min-width:160px" placeholder="🔍 ${t('common.search')}" value="${esc(_pSearch)}" oninput="_pSearch=this.value;_pPage=0;render()">`:''}</div>
-${isMob?`<input style="margin-bottom:12px" placeholder="🔍 ${t('ped.searchProject')}" value="${esc(_pSearch)}" oninput="_pSearch=this.value;_pPage=0;render()">`:``}
+<div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center">${chips}${!isMob?`<input id="p-search" style="flex:1;min-width:160px" placeholder="🔍 ${t('common.search')}" value="${esc(_pSearch)}" oninput="_pSearch=this.value;_pPage=0;render();_refocus('p-search')">`:''}</div>
+${isMob?`<input id="p-search" style="margin-bottom:12px" placeholder="🔍 ${t('ped.searchProject')}" value="${esc(_pSearch)}" oninput="_pSearch=this.value;_pPage=0;render();_refocus('p-search')">`:``}
 ${bulkBar}
 ${isMob
   ? `<div>${mobCards}</div>${pPager}`
