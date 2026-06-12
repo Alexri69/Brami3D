@@ -716,7 +716,7 @@ const I18N = {
     'an.title':'Análisis','an.avgTicket':'Ticket medio','an.avgTicketSub':'por pedido cobrado','an.conversion':'Tasa de conversión','an.conversionSub':'presupuestos cobrados','an.grossProfit':'Beneficio bruto','an.grossMargin':'margen','an.profitByClient':'Rentabilidad por cliente','an.profitByMaterial':'Rentabilidad por material','an.colProfit':'Beneficio','an.colIncome':'Ingresos','an.colOrders':'Pedidos','an.colMargin':'Margen','an.noData':'Aún no hay pedidos cobrados','an.client':'Cliente','an.material':'Material',
     'st.todos':'todos','st.pendiente':'pendiente','st.imprimiendo':'imprimiendo','st.terminado':'terminado','st.entregado':'entregado','st.cobrado':'cobrado','st.pagado':'pagado','st.activa':'activa','st.mantenimiento':'mantenimiento','st.averiada':'averiada',
     'common.exportExcel':'Exportar Excel','common.page':'Página','common.of':'de','common.search':'Buscar…',
-    'ped.title':'Pedidos','ped.ordersWord':'pedidos','ped.inTotal':'en total','ped.searchProject':'Buscar proyecto…',
+    'ped.title':'Pedidos','ped.ordersWord':'pedidos','ped.inTotal':'en total','ped.searchProject':'Buscar proyecto, cliente, nº factura…',
     'ped.selectedWord':'seleccionados','ped.changeStatusTo':'→ Cambiar estado a:','ped.deselect':'✕ Deseleccionar',
     'ped.empty':'Sin pedidos — crea tu primer pedido 👆','ped.selectAll':'Seleccionar página','ped.deselectAll':'Deseleccionar todo',
     'col.client':'Cliente','col.weight':'Peso','col.numInvoice':'Nº / Factura',
@@ -812,7 +812,7 @@ const I18N = {
     'an.title':'Analytics','an.avgTicket':'Average ticket','an.avgTicketSub':'per paid order','an.conversion':'Conversion rate','an.conversionSub':'quotes paid','an.grossProfit':'Gross profit','an.grossMargin':'margin','an.profitByClient':'Profit by customer','an.profitByMaterial':'Profit by material','an.colProfit':'Profit','an.colIncome':'Income','an.colOrders':'Orders','an.colMargin':'Margin','an.noData':'No paid orders yet','an.client':'Customer','an.material':'Material',
     'st.todos':'all','st.pendiente':'pending','st.imprimiendo':'printing','st.terminado':'finished','st.entregado':'delivered','st.cobrado':'paid','st.pagado':'paid','st.activa':'active','st.mantenimiento':'maintenance','st.averiada':'broken',
     'common.exportExcel':'Export Excel','common.page':'Page','common.of':'of','common.search':'Search…',
-    'ped.title':'Orders','ped.ordersWord':'orders','ped.inTotal':'total','ped.searchProject':'Search project…',
+    'ped.title':'Orders','ped.ordersWord':'orders','ped.inTotal':'total','ped.searchProject':'Search project, client, invoice no.…',
     'ped.selectedWord':'selected','ped.changeStatusTo':'→ Change status to:','ped.deselect':'✕ Deselect',
     'ped.empty':'No orders — create your first one 👆','ped.selectAll':'Select page','ped.deselectAll':'Deselect all',
     'col.client':'Customer','col.weight':'Weight','col.numInvoice':'No. / Invoice',
@@ -4902,10 +4902,15 @@ function pgPedidos(){
   const ESTADOS=['todos','pendiente','imprimiendo','terminado','entregado','cobrado'];
   const rowHl={pendiente:'rgba(245,158,11,.06)',imprimiendo:'rgba(59,130,246,.06)',terminado:'rgba(16,185,129,.04)',entregado:'rgba(139,92,246,.05)',cobrado:'rgba(34,197,94,.06)'};
   const chips=ESTADOS.map(e=>`<button class="chip${_pFilt===e?' active':''}" onclick="_pFilt='${e}';_pPage=0;_pSelected.clear();render()">${t('st.'+e)}</button>`).join('');
+  const q=_pSearch.trim().toLowerCase();
   const fl=orders.filter(o=>{
-    if(_pFilt==='cobrado') return o.cobrado===true;
-    if(_pFilt!=='todos'&&o.estado!==_pFilt)return false;
-    if(_pSearch&&!o.proyecto?.toLowerCase().includes(_pSearch.toLowerCase()))return false;
+    if(_pFilt==='cobrado'){ if(o.cobrado!==true) return false; }
+    else if(_pFilt!=='todos'&&o.estado!==_pFilt) return false;
+    if(q){
+      const cl=clients.find(x=>x.id===o.clienteId)||{};
+      const hay=[o.proyecto,cl.nombre,cl.empresa,o.presNum,o.facturaNum,o.material].join(' ').toLowerCase();
+      if(!hay.includes(q)) return false;
+    }
     return true;
   });
   const totalPPages=Math.max(1,Math.ceil(fl.length/_P_PAGE_SIZE));
@@ -4938,16 +4943,19 @@ function pgPedidos(){
     let factBtn;
     if(isPagado){factBtn='<button class="btn-icon fact-btn" title="'+(hasFactura?t('ped.tVerFactura'):t('ped.tGenFactura'))+'" onclick="genFactura(\''+o.id+'\')" style="font-size:18px">🧾</button>'
       +'<button class="btn-icon" title="'+t('ped.tEnviarFactura')+'" onclick="sendFacturaWA(\''+o.id+'\')" style="font-size:16px">📤</button>';}
-    else{factBtn='<button class="btn-icon" title="'+t('ped.tSoloPagados')+'" style="opacity:.18;cursor:not-allowed;font-size:18px">🧾</button>';}
+    // El onclick reutiliza el toast de genFactura ("solo pedidos pagados") para
+    // que en táctil también haya feedback, no solo el title con ratón.
+    else{factBtn='<button class="btn-icon" title="'+t('ped.tSoloPagados')+'" onclick="genFactura(\''+o.id+'\')" style="opacity:.18;cursor:not-allowed;font-size:18px">🧾</button>';}
     const factBadge=hasFactura?'<div style="margin-top:3px"><span style="display:inline-block;background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800;font-family:monospace">🧾 '+esc(o.facturaNum)+'</span></div>':'';
     const multiPieza=(o.lineas&&o.lineas.length>1)?'<div style="font-size:10px;color:var(--text4);margin-top:2px">'+o.lineas.length+' '+t('ped.types')+' · '+piezasCount+' '+t('ped.units')+'</div>':'';
     const cobradoBadge=o.cobrado?'<div style="margin-top:3px"><span style="display:inline-block;background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800">💰 '+t('ped.paidBadge')+'</span></div>':'';
     const entregaBadge=(()=>{if(!o.fechaEntrega)return'';const hoy2=new Date();hoy2.setHours(0,0,0,0);const fe=new Date(o.fechaEntrega+'T00:00:00');const diff=Math.ceil((fe-hoy2)/(1000*60*60*24));if(o.cobrado)return'';if(diff<0)return'<div style="margin-top:2px"><span style="display:inline-block;background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800">⚠️ '+t('ped.overdue')+' '+o.fechaEntrega+'</span></div>';if(diff<=3)return'<div style="margin-top:2px"><span style="display:inline-block;background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800">⏰ '+t('ped.delivery')+' '+o.fechaEntrega+'</span></div>';return'<div style="margin-top:2px"><span style="display:inline-block;background:rgba(96,165,250,.1);color:#60a5fa;border:1px solid rgba(96,165,250,.2);border-radius:5px;padding:1px 7px;font-size:9px">📅 '+o.fechaEntrega+'</span></div>';})();
     const anticipoBadge=(o.anticipo>0&&!o.cobrado)?(()=>{const pend=Math.max(0,(c.fp||0)-o.anticipo);return '<div style="margin-top:3px"><span style="display:inline-block;background:rgba(96,165,250,.12);color:#60a5fa;border:1px solid rgba(96,165,250,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:700">💵 '+t('ped.deposit')+' '+o.anticipo.toFixed(2)+(cfg.moneda||'€')+' · '+t('ped.balance')+' '+pend.toFixed(2)+(cfg.moneda||'€')+'</span></div>';})():'';
     const aceptadoBadge=(o.aceptado&&!o.cobrado)?'<div style="margin-top:3px"><span style="display:inline-block;background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3);border-radius:5px;padding:1px 7px;font-size:9px;font-weight:800">✅ '+t('share.accepted')+'</span></div>':'';
+    // Si ya está cobrado no se pinta ningún 💰: el badge verde ya lo indica.
     const cobrarBtn=!o.cobrado
       ?'<button class="btn-icon" title="'+t('ped.tCobrado')+'" onclick="marcarCobrado(\''+o.id+'\')" style="font-size:18px;color:#4ade80;opacity:.7">💰</button>'
-      :'<button class="btn-icon" title="'+t('ped.tYaCobrado')+'" style="opacity:.2;cursor:default;font-size:18px">💰</button>';
+      :'';
     const chk=`<input type="checkbox" ${_pSelected.has(o.id)?'checked':''} onchange="if(this.checked)_pSelected.add('${o.id}');else _pSelected.delete('${o.id}');render()" style="width:16px;height:16px;accent-color:#3b82f6;cursor:pointer;flex-shrink:0">`;
     return'<tr style="'+(bg?'background:'+bg:'')+'"><td style="padding:8px 10px">'+chk+'</td><td><span class="num-badge">'+esc(o.presNum||'—')+'</span>'+factBadge+'</td>'
       +'<td><span style="color:var(--text2);font-weight:700;font-size:13.5px">'+esc(o.proyecto)+'</span>'+multiPieza+cobradoBadge+aceptadoBadge+anticipoBadge+entregaBadge+'</td>'
@@ -5016,7 +5024,7 @@ function pgPedidos(){
   }).join('');
 
   return`<div class="page-header"><div><h2 class="page-title">${t('ped.title')}</h2><div class="page-subtitle">${orders.length} ${t('ped.ordersWord')} ${t('ped.inTotal')}</div></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-secondary" onclick="exportPedidosCSV()" style="display:flex;align-items:center;gap:6px">📊 ${t('common.exportExcel')}</button><button class="btn-primary" onclick="editO(null)">${t('common.new')}</button></div></div>
-<div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center">${chips}${!isMob?`<input id="p-search" style="flex:1;min-width:160px" placeholder="🔍 ${t('common.search')}" value="${esc(_pSearch)}" oninput="_pSearch=this.value;_pPage=0;render();_refocus('p-search')">`:''}</div>
+<div style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;align-items:center">${chips}${!isMob?`<input id="p-search" style="flex:1;min-width:160px" placeholder="🔍 ${t('ped.searchProject')}" value="${esc(_pSearch)}" oninput="_pSearch=this.value;_pPage=0;render();_refocus('p-search')">`:''}</div>
 ${isMob?`<input id="p-search" style="margin-bottom:12px" placeholder="🔍 ${t('ped.searchProject')}" value="${esc(_pSearch)}" oninput="_pSearch=this.value;_pPage=0;render();_refocus('p-search')">`:``}
 ${bulkBar}
 ${isMob
