@@ -4,97 +4,290 @@
 <meta charset="UTF-8">
 <title>Guía rápida — B3D Print Studio</title>
 <style>
-  @page { size: A4; margin: 16mm 15mm; }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Segoe UI', system-ui, sans-serif; color: #1e293b; font-size: 10.5pt; line-height: 1.55; }
-  .portada { background: #1d4ed8; color: #fff; border-radius: 14px; padding: 28px 30px; margin-bottom: 22px; }
-  .portada .logo { display: inline-block; background: #fff; color: #1d4ed8; font-weight: 900; font-size: 20pt; border-radius: 10px; padding: 4px 14px; margin-bottom: 10px; letter-spacing: 1px; }
-  .portada h1 { font-size: 19pt; font-weight: 800; margin-bottom: 4px; }
-  .portada p { font-size: 10.5pt; opacity: .92; }
-  h2 { color: #1d4ed8; font-size: 13pt; font-weight: 800; margin: 18px 0 8px; padding-bottom: 3px; border-bottom: 2px solid #dbeafe; }
-  h2 .n { display: inline-block; background: #1d4ed8; color: #fff; border-radius: 6px; width: 22px; height: 22px; text-align: center; line-height: 22px; font-size: 10.5pt; margin-right: 7px; }
-  p { margin-bottom: 7px; }
+  @page { size: A4; margin: 13mm 14mm; }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; color: #1e293b; font-size: 10pt; line-height: 1.5; }
+
+  /* ── Portada ── */
+  .hero { background: #070e1c; background-image: linear-gradient(rgba(29,78,216,.08) 1px, transparent 1px), linear-gradient(90deg, rgba(29,78,216,.08) 1px, transparent 1px); background-size: 28px 28px; color: #fff; border-radius: 16px; padding: 30px 32px 26px; margin-bottom: 18px; text-align: center; }
+  .hero img.logo { width: 64px; height: 64px; border-radius: 14px; margin-bottom: 10px; }
+  .hero h1 { font-size: 21pt; font-weight: 900; letter-spacing: -.5px; }
+  .hero .sub { color: #93b4f8; font-size: 12pt; margin: 4px 0 14px; }
+  .hero .chips { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; }
+  .hero .chip { background: rgba(29,78,216,.25); border: 1px solid rgba(99,140,245,.45); color: #dbe6fd; border-radius: 99px; padding: 4px 14px; font-size: 9.5pt; font-weight: 600; }
+  .hero .web { margin-top: 14px; font-size: 10pt; color: #64748b; }
+  .hero .web b { color: #93b4f8; }
+
+  h2 { color: #1d4ed8; font-size: 12.5pt; font-weight: 800; margin: 16px 0 8px; padding-bottom: 3px; border-bottom: 2px solid #dbeafe; }
+  h2 .n { display: inline-block; background: #1d4ed8; color: #fff; border-radius: 6px; width: 21px; height: 21px; text-align: center; line-height: 21px; font-size: 10pt; margin-right: 7px; }
+  p { margin-bottom: 6px; }
   ul { margin: 4px 0 8px 18px; }
-  li { margin-bottom: 4px; }
+  li { margin-bottom: 3px; }
   b { color: #0f172a; }
-  .paso { display: flex; gap: 10px; margin-bottom: 9px; }
-  .paso .num { flex-shrink: 0; background: #dbeafe; color: #1d4ed8; font-weight: 800; border-radius: 50%; width: 24px; height: 24px; text-align: center; line-height: 24px; font-size: 10pt; }
-  .caja { background: #f1f5f9; border-left: 4px solid #1d4ed8; border-radius: 8px; padding: 10px 14px; margin: 10px 0; }
+  .dos-col { display: grid; grid-template-columns: 1.15fr .85fr; gap: 16px; align-items: start; }
+
+  .paso { display: flex; gap: 10px; margin-bottom: 8px; }
+  .paso .num { flex-shrink: 0; background: #dbeafe; color: #1d4ed8; font-weight: 800; border-radius: 50%; width: 23px; height: 23px; text-align: center; line-height: 23px; font-size: 10pt; }
+  .caja { background: #f1f5f9; border-left: 4px solid #1d4ed8; border-radius: 8px; padding: 9px 13px; margin: 9px 0; }
   .caja.verde { border-color: #16a34a; background: #f0fdf4; }
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; margin: 8px 0; }
-  .mod { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 8px 11px; }
-  .mod b { display: block; margin-bottom: 1px; }
-  .mod span { font-size: 9.5pt; color: #475569; }
-  table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 10pt; }
-  th { background: #1d4ed8; color: #fff; text-align: left; padding: 6px 10px; font-weight: 700; }
-  td { padding: 6px 10px; border-bottom: 1px solid #e2e8f0; }
+
+  /* ── Maquetas de la app (tema oscuro real) ── */
+  .shot { background: #070e1c; border: 1px solid #1e293b; border-radius: 14px; padding: 14px; color: #e2e8f0; font-size: 8.5pt; box-shadow: 0 4px 14px rgba(7,14,28,.25); }
+  .shot .tit { color: #64748b; font-size: 7.5pt; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; font-weight: 700; }
+  .ucard { background: #0d1628; border: 1px solid #1e2c47; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; }
+  .ucard:last-child { margin-bottom: 0; }
+  .urow { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .uname { font-weight: 800; color: #f1f5f9; font-size: 9.5pt; }
+  .uprice { font-weight: 900; color: #34d399; font-size: 11pt; white-space: nowrap; }
+  .uprice.paid { color: #4ade80; }
+  .umeta { color: #64748b; font-size: 7.5pt; margin-top: 2px; }
+  .ub { display: inline-block; border-radius: 99px; padding: 1px 8px; font-size: 7pt; font-weight: 700; margin-right: 4px; }
+  .ub.pen { background: rgba(245,158,11,.15); color: #fbbf24; border: 1px solid rgba(245,158,11,.35); }
+  .ub.imp { background: rgba(59,130,246,.15); color: #60a5fa; border: 1px solid rgba(59,130,246,.35); }
+  .ub.ter { background: rgba(16,185,129,.15); color: #34d399; border: 1px solid rgba(16,185,129,.35); }
+  .ub.ent { background: rgba(139,92,246,.15); color: #a78bfa; border: 1px solid rgba(139,92,246,.35); }
+  .ub.cob { background: rgba(34,197,94,.15); color: #4ade80; border: 1px solid rgba(34,197,94,.35); }
+  .ub.fac { background: rgba(34,197,94,.15); color: #4ade80; border: 1px solid rgba(34,197,94,.35); font-family: Consolas, monospace; }
+  .ub.ven { background: rgba(239,68,68,.15); color: #f87171; border: 1px solid rgba(239,68,68,.35); }
+  .ubtns { display: flex; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #1e2c47; }
+  .ubtn { flex: 1; background: #131f36; border: 1px solid #24355c; border-radius: 8px; text-align: center; padding: 5px 2px; font-size: 8pt; color: #94a3b8; }
+  .ubtn.ok { background: rgba(34,197,94,.1); border-color: rgba(34,197,94,.35); color: #4ade80; font-weight: 700; }
+
+  /* flujo de estados */
+  .flow { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin: 8px 0 10px; }
+  .flow .st { border-radius: 99px; padding: 3px 11px; font-size: 8.5pt; font-weight: 700; }
+  .flow .ar { color: #94a3b8; font-weight: 800; }
+  .st.s1 { background: #fef3c7; color: #b45309; border: 1px solid #fcd34d; }
+  .st.s2 { background: #dbeafe; color: #1d4ed8; border: 1px solid #93c5fd; }
+  .st.s3 { background: #d1fae5; color: #047857; border: 1px solid #6ee7b7; }
+  .st.s4 { background: #ede9fe; color: #6d28d9; border: 1px solid #c4b5fd; }
+  .st.s5 { background: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+
+  /* dashboard mock */
+  .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-bottom: 10px; }
+  .stat { background: #0d1628; border: 1px solid #1e2c47; border-radius: 10px; padding: 8px 10px; }
+  .stat .v { font-size: 11pt; font-weight: 900; }
+  .stat .l { font-size: 6.8pt; color: #64748b; text-transform: uppercase; letter-spacing: .5px; }
+  .chart { display: flex; align-items: flex-end; gap: 6px; height: 60px; padding: 0 4px; }
+  .bar { flex: 1; background: linear-gradient(180deg, #3b82f6, #1d4ed8); border-radius: 4px 4px 0 0; }
+  .chart-l { display: flex; gap: 6px; padding: 3px 4px 0; }
+  .chart-l span { flex: 1; text-align: center; font-size: 6.5pt; color: #64748b; }
+
+  /* presupuesto público mock */
+  .pub { text-align: center; padding: 6px 4px 2px; }
+  .pub .doc { font-size: 9pt; color: #94a3b8; margin-bottom: 2px; }
+  .pub .tot { font-size: 15pt; font-weight: 900; color: #f1f5f9; margin-bottom: 8px; }
+  .pub .btn { display: inline-block; background: #16a34a; color: #fff; border-radius: 10px; padding: 7px 22px; font-weight: 800; font-size: 9.5pt; }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px 12px; margin: 8px 0; }
+  .mod { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 7px 10px; }
+  .mod b { display: block; margin-bottom: 0; }
+  .mod span { font-size: 9pt; color: #475569; }
+
+  table { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 9.5pt; }
+  th { background: #1d4ed8; color: #fff; text-align: left; padding: 5px 10px; font-weight: 700; }
+  td { padding: 5px 10px; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+  tr:nth-child(even) td { background: #f8fafc; }
+
+  .faq dt { font-weight: 800; color: #0f172a; margin-top: 7px; }
+  .faq dd { margin-left: 0; color: #334155; }
+
   .salto { page-break-before: always; }
-  .pie { margin-top: 20px; padding-top: 8px; border-top: 1px solid #e2e8f0; font-size: 9pt; color: #94a3b8; text-align: center; }
-  .badge { display: inline-block; background: #dbeafe; color: #1d4ed8; border-radius: 99px; padding: 1px 10px; font-size: 9pt; font-weight: 700; }
+  .no-break { page-break-inside: avoid; }
+  .pie { margin-top: 18px; padding-top: 8px; border-top: 1px solid #e2e8f0; font-size: 8.5pt; color: #94a3b8; text-align: center; }
+  .cierre { background: #070e1c; color: #fff; border-radius: 14px; padding: 18px 22px; text-align: center; margin-top: 14px; }
+  .cierre b { color: #93b4f8; }
 </style>
 </head>
 <body>
 
-<div class="portada">
-  <div class="logo">B3D</div>
+<!-- ════════ PÁGINA 1 ════════ -->
+<div class="hero">
+  <img class="logo" src="icon-192.png" alt="B3D">
   <h1>Guía rápida de B3D Print Studio</h1>
-  <p>La app de gestión para tu negocio de impresión 3D: pedidos, presupuestos, facturas, filamentos y costes — todo en uno y desde el móvil. <b>brami3d.app</b></p>
+  <div class="sub">Gestión profesional para tu negocio de impresión 3D</div>
+  <div class="chips">
+    <span class="chip">📦 Pedidos</span><span class="chip">📄 Presupuestos</span><span class="chip">🧾 Facturas legales</span><span class="chip">🧵 Filamento</span><span class="chip">💶 Costes reales</span>
+  </div>
+  <div class="web">Funciona en móvil, tablet y ordenador · <b>brami3d.app</b></div>
 </div>
 
-<h2><span class="n">1</span>Instalar la app</h2>
-<p>B3D es una <b>PWA</b>: funciona en el navegador pero se instala como una app normal, con su icono, y sigue funcionando <b>sin conexión</b>.</p>
-<ul>
-  <li><b>Android / PC (Chrome o Edge):</b> entra en brami3d.app, pulsa el botón <b>«Instalar»</b> que aparece en la barra de direcciones (o menú ⋮ → «Instalar aplicación»).</li>
-  <li><b>iPhone / iPad (Safari):</b> botón Compartir <b>□↑</b> → <b>«Añadir a pantalla de inicio»</b>.</li>
-</ul>
-<div class="caja">💡 Instalada en el inicio, la app puede enviarte <b>notificaciones</b> (entregas próximas, cobros pendientes, mantenimiento de impresoras) aunque esté cerrada. Se activan en <b>Configuración</b>.</div>
+<p><b>¿Qué es?</b> B3D Print Studio es tu oficina de impresión 3D en una sola app: desde que un cliente te pide una pieza hasta que cobras y emites la factura, todo queda registrado y la app te dice <b>cuánto te cuesta de verdad cada impresión</b> (filamento, luz, desgaste de la máquina y tu tiempo) y cuánto ganas.</p>
+
+<h2><span class="n">1</span>Instálala como una app</h2>
+<div class="dos-col">
+  <div>
+    <p>B3D es una <b>PWA</b>: se abre desde el navegador, pero se instala con su propio icono y funciona <b>incluso sin internet</b>.</p>
+    <ul>
+      <li><b>Android / PC (Chrome o Edge):</b> entra en <b>brami3d.app</b> y pulsa <b>«Instalar»</b> en la barra de direcciones (o menú ⋮ → «Instalar aplicación»).</li>
+      <li><b>iPhone / iPad (Safari):</b> botón Compartir <b>□↑</b> → <b>«Añadir a pantalla de inicio»</b>.</li>
+    </ul>
+    <div class="caja">💡 Una vez instalada, activa las <b>notificaciones</b> en ⚙️ Configuración: te avisará de entregas próximas, cobros pendientes y mantenimiento de impresoras <b>aunque la app esté cerrada</b>.</div>
+  </div>
+  <div class="shot no-break">
+    <div class="tit">📊 Así se ve tu panel</div>
+    <div class="stats">
+      <div class="stat"><div class="v" style="color:#4ade80">1.240€</div><div class="l">Ingresos</div></div>
+      <div class="stat"><div class="v" style="color:#f87171">312€</div><div class="l">Costes</div></div>
+      <div class="stat"><div class="v" style="color:#60a5fa">928€</div><div class="l">Beneficio</div></div>
+      <div class="stat"><div class="v" style="color:#a78bfa">4,2kg</div><div class="l">Filamento</div></div>
+    </div>
+    <div class="chart">
+      <div class="bar" style="height:35%"></div><div class="bar" style="height:55%"></div><div class="bar" style="height:42%"></div><div class="bar" style="height:70%"></div><div class="bar" style="height:58%"></div><div class="bar" style="height:100%"></div>
+    </div>
+    <div class="chart-l"><span>Ene</span><span>Feb</span><span>Mar</span><span>Abr</span><span>May</span><span>Jun</span></div>
+  </div>
+</div>
 
 <h2><span class="n">2</span>Primeros pasos (5 minutos)</h2>
-<div class="paso"><div class="num">1</div><div><b>Configura tu taller</b> en ⚙️ Configuración: nombre, datos fiscales, precio de la luz, precio/hora de trabajo e IVA. Con esto la app calcula el coste real de cada pieza.</div></div>
-<div class="paso"><div class="num">2</div><div><b>Da de alta tus impresoras</b> (consumo en W y precio de compra) y tus <b>filamentos</b> (material, color, precio y peso de bobina). El stock se descuenta solo con cada pedido.</div></div>
-<div class="paso"><div class="num">3</div><div><b>Añade tus clientes</b> con su teléfono y email: así podrás enviarles presupuestos y facturas por WhatsApp o correo con un toque.</div></div>
+<div class="paso"><div class="num">1</div><div><b>Configura tu taller</b> en ⚙️ Configuración: datos fiscales, precio de la luz (kWh), precio/hora de tu trabajo e IVA. Es la base de todos los cálculos.</div></div>
+<div class="paso"><div class="num">2</div><div><b>Da de alta impresoras y filamentos</b>: consumo en vatios y precio de cada máquina; material, color, precio y peso de cada bobina. <b>El stock se descuenta solo</b> con cada pedido y te avisa cuando una bobina se agota.</div></div>
+<div class="paso"><div class="num">3</div><div><b>Añade tus clientes</b> con teléfono y email para enviarles presupuestos y facturas con un toque. Si vienes de otra herramienta, puedes <b>importarlos desde CSV</b>.</div></div>
 
-<h2><span class="n">3</span>El flujo de un pedido (lo que usarás a diario)</h2>
-<div class="paso"><div class="num">1</div><div><b>Crea el pedido</b> en 📦 Pedidos → «Nuevo»: cliente, piezas (peso, tiempo de impresión, cantidad) y fecha de entrega. La app calcula <b>coste, precio y ganancia</b> al momento, incluso con varias piezas y varios filamentos.</div></div>
-<div class="paso"><div class="num">2</div><div><b>Envía el presupuesto</b>: en PDF 📄, por WhatsApp 💬, por email ✉️ o con un <b>enlace público</b> 🔗 que el cliente abre y <b>acepta sin necesidad de cuenta</b> — te llega la confirmación a la app.</div></div>
-<div class="paso"><div class="num">3</div><div><b>Avanza el estado</b> según trabajas: <span class="badge">pendiente</span> → <span class="badge">imprimiendo</span> → <span class="badge">terminado</span> → <span class="badge">entregado</span>. Puedes apuntar un <b>anticipo</b> y la app te muestra lo pendiente de cobro.</div></div>
-<div class="paso"><div class="num">4</div><div><b>Marca como cobrado</b> 💰 y se genera <b>la factura legal automáticamente</b>, numerada y lista para ver, imprimir o enviar 📤 al cliente.</div></div>
-<div class="caja verde">✅ Un pedido cobrado y entregado queda <b>cerrado</b>: la app esconde los botones que ya no aplican y solo deja ver/enviar la factura, duplicarlo o borrarlo.</div>
-
+<!-- ════════ PÁGINA 2 ════════ -->
 <div class="salto"></div>
 
-<h2><span class="n">4</span>Los módulos, de un vistazo</h2>
-<div class="grid">
-  <div class="mod"><b>📊 Panel</b><span>Ingresos, costes, beneficio y consumo del mes, con gráficas.</span></div>
-  <div class="mod"><b>📅 Agenda</b><span>Qué entregar hoy, esta semana, lo atrasado y lo pendiente de cobrar.</span></div>
-  <div class="mod"><b>📦 Pedidos</b><span>Todo el flujo del punto 3, con buscador y cambio de estado en lote.</span></div>
-  <div class="mod"><b>👥 Clientes</b><span>Fichas con historial de pedidos y total facturado. Importa/exporta CSV.</span></div>
-  <div class="mod"><b>🖨️ Impresoras</b><span>Horas de uso, amortización y avisos de mantenimiento periódico.</span></div>
-  <div class="mod"><b>🧵 Filamentos</b><span>Stock por bobina con descuento automático y aviso cuando queda poco.</span></div>
-  <div class="mod"><b>🧩 Piezas</b><span>Tu catálogo: piezas que repites, con peso y tiempo ya guardados.</span></div>
-  <div class="mod"><b>📁 Archivos</b><span>Guarda los STL/3MF de cada proyecto, con arrastrar y soltar.</span></div>
-  <div class="mod"><b>💸 Gastos</b><span>Gastos del negocio para que el beneficio del panel sea el real.</span></div>
-  <div class="mod"><b>💰 Cobros</b><span>Lista de pedidos sin cobrar, con lo más urgente arriba.</span></div>
-  <div class="mod"><b>📒 Registro fiscal</b><span>Libro de facturas emitidas e informes mensuales/anuales en PDF.</span></div>
-  <div class="mod"><b>🧮 Calculadora</b><span>Calcula el precio de una pieza suelta sin crear pedido.</span></div>
+<h2><span class="n">3</span>El flujo de un pedido, de principio a fin</h2>
+<p>Es lo que usarás a diario. El pedido pasa por estos estados (puedes cambiarlos desde la lista, la agenda o en lote):</p>
+<div class="flow no-break">
+  <span class="st s1">⏳ pendiente</span><span class="ar">→</span>
+  <span class="st s2">🖨️ imprimiendo</span><span class="ar">→</span>
+  <span class="st s3">✅ terminado</span><span class="ar">→</span>
+  <span class="st s4">📦 entregado</span><span class="ar">→</span>
+  <span class="st s5">💰 cobrado + 🧾 factura</span>
 </div>
 
-<h2><span class="n">5</span>Trucos que marcan la diferencia</h2>
+<div class="dos-col">
+  <div>
+    <div class="paso"><div class="num">1</div><div><b>Crea el pedido</b>: cliente, piezas (peso, tiempo, cantidad — admite varias piezas y varios filamentos por pieza) y fecha de entrega. Verás al instante <b>coste, precio recomendado y ganancia</b>.</div></div>
+    <div class="paso"><div class="num">2</div><div><b>Envía el presupuesto</b> como prefiera el cliente: PDF 📄, WhatsApp 💬, email ✉️ o un <b>enlace público</b> 🔗 que abre en su móvil y acepta con un botón, <b>sin registrarse</b>. La aceptación te llega a la app.</div></div>
+    <div class="paso"><div class="num">3</div><div><b>Trabaja y avanza el estado.</b> ¿Te dan una señal? Apunta el <b>anticipo</b> y la app te mostrará siempre lo que queda pendiente.</div></div>
+    <div class="paso"><div class="num">4</div><div><b>Marca 💰 cobrado</b> y la <b>factura legal se genera sola</b>, con su número correlativo: ábrela, imprímela o envíala 📤 al momento.</div></div>
+  </div>
+  <div>
+    <div class="shot no-break" style="margin-bottom:10px">
+      <div class="tit">🔗 Lo que ve tu cliente (sin cuenta)</div>
+      <div class="pub">
+        <div class="doc">Presupuesto P-2026-0047 · Soporte cascos x4</div>
+        <div class="tot">86,50 €</div>
+        <div class="btn">✓ Aceptar presupuesto</div>
+      </div>
+    </div>
+    <div class="shot no-break">
+      <div class="tit">📦 Tus pedidos en la app</div>
+      <div class="ucard">
+        <div class="urow"><span class="uname">Soporte cascos x4</span><span class="uprice">86,50€</span></div>
+        <div style="margin-top:4px"><span class="ub imp">🖨️ imprimiendo</span><span class="ub ven">⏰ entrega 15-06</span></div>
+        <div class="umeta">👤 Carlos M. · 🧵 PETG · 380g</div>
+      </div>
+      <div class="ucard">
+        <div class="urow"><span class="uname">Maceta hexagonal</span><span class="uprice paid">24,90€</span></div>
+        <div style="margin-top:4px"><span class="ub ent">📦 entregado</span><span class="ub cob">💰 cobrado</span><span class="ub fac">🧾 F-2026-0031</span></div>
+        <div class="umeta">👤 Laura G. · 🧵 PLA · 120g</div>
+        <div class="ubtns"><div class="ubtn ok">🧾 Factura</div><div class="ubtn ok">📤 Enviar</div><div class="ubtn">📋</div><div class="ubtn">✏️</div><div class="ubtn">🗑️</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="caja verde">✅ Un pedido <b>cobrado y entregado queda cerrado</b>: la app oculta los botones de presupuesto que ya no aplican (como en la maqueta de arriba) y deja solo factura, duplicar, editar o borrar.</div>
+
+<h2><span class="n">4</span>La agenda: tu día en 10 segundos</h2>
+<div class="dos-col">
+  <div>
+    <p>La 📅 <b>Agenda</b> ordena automáticamente todos los pedidos por urgencia: lo <b>atrasado</b> en rojo, lo de <b>hoy</b>, lo de <b>esta semana</b> y, al final, lo <b>pendiente de cobrar</b>. Desde la misma lista puedes marcar entregado o cobrar sin abrir nada.</p>
+    <p>Y cada <b>lunes a primera hora</b> recibirás un email-resumen con los presupuestos que el cliente aún no ha respondido y los trabajos entregados que siguen sin cobrarse.</p>
+  </div>
+  <div class="shot no-break">
+    <div class="tit">📅 Agenda</div>
+    <div class="ucard" style="border-color:rgba(239,68,68,.4)">
+      <div class="urow"><span class="uname" style="font-size:8.5pt">🔴 Engranajes RC — Pedro L.</span><span class="ub ven">hace 2 días</span></div>
+    </div>
+    <div class="ucard" style="border-color:rgba(245,158,11,.4)">
+      <div class="urow"><span class="uname" style="font-size:8.5pt">🟠 Llaveros logo x20 — Bar Luna</span><span class="ub pen">hoy</span></div>
+    </div>
+    <div class="ucard" style="border-color:rgba(34,197,94,.4)">
+      <div class="urow"><span class="uname" style="font-size:8.5pt">💰 Maceta hexagonal — Laura G.</span><span class="ub cob">cobrar</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════ PÁGINA 3 ════════ -->
+<div class="salto"></div>
+
+<h2><span class="n">5</span>Todos los módulos, de un vistazo</h2>
+<div class="grid">
+  <div class="mod"><b>📊 Panel</b><span>Ingresos, costes, beneficio y consumo del mes, con gráficas.</span></div>
+  <div class="mod"><b>📅 Agenda</b><span>Qué entregar hoy, lo atrasado y lo pendiente de cobrar.</span></div>
+  <div class="mod"><b>📦 Pedidos</b><span>Todo el flujo del punto 3, con buscador (por proyecto, cliente o nº de factura) y cambios de estado en lote.</span></div>
+  <div class="mod"><b>👥 Clientes</b><span>Fichas con historial y total facturado. Importa/exporta CSV.</span></div>
+  <div class="mod"><b>🖨️ Impresoras</b><span>Horas de uso, amortización y avisos de mantenimiento periódico.</span></div>
+  <div class="mod"><b>🧵 Filamentos</b><span>Stock por bobina con descuento automático y aviso cuando queda poco.</span></div>
+  <div class="mod"><b>🧩 Piezas</b><span>Catálogo de piezas que repites, con peso y tiempo ya guardados.</span></div>
+  <div class="mod"><b>📁 Archivos</b><span>Los STL/3MF de cada proyecto, con arrastrar y soltar.</span></div>
+  <div class="mod"><b>💸 Gastos</b><span>Gastos del negocio para que el beneficio del panel sea el real.</span></div>
+  <div class="mod"><b>💰 Cobros</b><span>Pedidos sin cobrar, con lo más urgente arriba.</span></div>
+  <div class="mod"><b>📒 Registro fiscal</b><span>Libro de facturas emitidas e informes mensuales/anuales en PDF.</span></div>
+  <div class="mod"><b>🧮 Calculadora</b><span>Precio de una pieza suelta sin crear pedido.</span></div>
+</div>
+
+<h2><span class="n">6</span>Dónde está cada cosa (chuleta)</h2>
+<table>
+  <tr><th>Quiero…</th><th>Ve a…</th></tr>
+  <tr><td>Saber cuánto cobrar por una pieza rápida</td><td>🧮 Calculadora</td></tr>
+  <tr><td>Mandar un presupuesto que se acepte con un clic</td><td>📦 Pedidos → 🔗 en el pedido</td></tr>
+  <tr><td>Ver qué tengo que imprimir o entregar hoy</td><td>📅 Agenda</td></tr>
+  <tr><td>Saber quién me debe dinero</td><td>💰 Cobros</td></tr>
+  <tr><td>Sacar el informe del mes o del año en PDF</td><td>📒 Registro fiscal</td></tr>
+  <tr><td>Saber cuánto filamento me queda</td><td>🧵 Filamentos</td></tr>
+  <tr><td>Cambiar idioma (ES/EN) o tema claro/oscuro</td><td>Botones 🇬🇧 y 🌙 arriba</td></tr>
+  <tr><td>Activar avisos, exportar datos o gestionar mi plan</td><td>⚙️ Configuración</td></tr>
+</table>
+
+<h2><span class="n">7</span>Trucos que marcan la diferencia</h2>
 <ul>
-  <li><b>Funciona sin internet:</b> si te quedas sin cobertura en el taller, sigue trabajando; los cambios se sincronizan solos al volver la conexión.</li>
+  <li><b>Funciona sin internet:</b> sigue trabajando sin cobertura; los cambios se guardan y se sincronizan solos al volver la conexión.</li>
   <li><b>Mantén pulsado el icono</b> de la app: accesos directos a «Nuevo pedido» y «Nuevo cliente».</li>
-  <li><b>Tema claro u oscuro</b> con el botón 🌙 · <b>español o inglés</b> con el botón de la bandera.</li>
-  <li><b>Cada lunes</b> recibirás un email-resumen con presupuestos sin respuesta y cobros pendientes.</li>
-  <li><b>Invita a otro maker</b> desde Configuración → Referidos: 30 días Pro gratis para los dos.</li>
+  <li><b>Duplicar 📋 un pedido</b> es la forma más rápida de presupuestar un trabajo repetido.</li>
+  <li><b>Selección en lote:</b> marca varios pedidos con las casillas y cámbialos de estado de una vez.</li>
+  <li><b>Invita a otro maker</b> desde Configuración → Referidos: <b>30 días Pro gratis para los dos</b>.</li>
 </ul>
 
-<h2><span class="n">6</span>Planes</h2>
+<!-- ════════ PÁGINA 4 ════════ -->
+<div class="salto"></div>
+
+<h2><span class="n">8</span>Planes y precios</h2>
 <table>
   <tr><th>Plan</th><th>Precio</th><th>Incluye</th></tr>
-  <tr><td><b>Básico</b></td><td>Gratis</td><td>10 pedidos/mes y 5 clientes — para empezar.</td></tr>
+  <tr><td><b>Básico</b></td><td>Gratis</td><td>10 pedidos/mes y 5 clientes — perfecto para empezar.</td></tr>
   <tr><td><b>Pro</b></td><td>9 €/mes ó 79 €/año</td><td>Todo sin límites. <b>30 días de prueba gratis</b> al registrarte, sin tarjeta.</td></tr>
 </table>
-<p>La suscripción se gestiona desde la propia app (cambiar tarjeta, descargar recibos o cancelar cuando quieras).</p>
+<p>El pago es con tarjeta (Stripe) y la suscripción se gestiona desde la propia app: cambiar tarjeta, descargar recibos o cancelar cuando quieras, sin llamadas ni emails.</p>
+
+<h2><span class="n">9</span>Tus datos, seguros</h2>
+<ul>
+  <li><b>Cada taller solo ve lo suyo:</b> tus clientes, precios y facturas están aislados a nivel de base de datos.</li>
+  <li><b>Exporta cuando quieras:</b> pedidos y clientes a Excel/CSV, informes y facturas en PDF. Tus datos son tuyos.</li>
+  <li><b>Derecho al olvido (RGPD):</b> en ⚙️ Configuración → Zona de peligro puedes eliminar tu cuenta y todos tus datos, definitivamente.</li>
+</ul>
+
+<h2><span class="n">10</span>Preguntas frecuentes</h2>
+<dl class="faq">
+  <dt>¿Cómo creo una factura?</dt>
+  <dd>No la creas: marca el pedido como 💰 cobrado y la factura legal se genera sola con su número correlativo.</dd>
+  <dt>¿Puede mi cliente aceptar el presupuesto sin instalarse nada?</dt>
+  <dd>Sí. Le envías el enlace 🔗 y lo acepta desde su navegador con un botón. Te llega la confirmación.</dd>
+  <dt>¿Qué pasa si me equivoco al marcar un cobro?</dt>
+  <dd>Selecciona el pedido y cámbialo de estado en lote (o edítalo ✏️): el cobro se puede revertir.</dd>
+  <dt>¿Sirve para resina, no solo FDM?</dt>
+  <dd>Sí: registra el material por peso y precio de la misma forma, y la calculadora hace el resto.</dd>
+  <dt>¿Y si dejo de pagar Pro?</dt>
+  <dd>No pierdes nada: tus datos siguen ahí y vuelves al plan Básico con sus límites mensuales.</dd>
+</dl>
+
+<div class="cierre">
+  <div style="font-size:13pt;font-weight:900;margin-bottom:4px">Empieza hoy en <b>brami3d.app</b></div>
+  <div style="color:#94a3b8;font-size:9.5pt">30 días de prueba Pro gratis, sin tarjeta · Soporte: <b>hola@brami3d.app</b></div>
+</div>
 
 <div class="pie">B3D Print Studio · brami3d.app · Guía rápida — junio 2026</div>
 
