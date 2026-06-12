@@ -18,7 +18,9 @@
   .hero .web { margin-top: 14px; font-size: 10pt; color: #64748b; }
   .hero .web b { color: #93b4f8; }
 
-  h2 { color: #1d4ed8; font-size: 12.5pt; font-weight: 800; margin: 16px 0 8px; padding-bottom: 3px; border-bottom: 2px solid #dbeafe; }
+  h2 { color: #1d4ed8; font-size: 12.5pt; font-weight: 800; margin: 16px 0 8px; padding-bottom: 3px; border-bottom: 2px solid #dbeafe; page-break-after: avoid; }
+  .sec { page-break-inside: avoid; }
+  table, .caja, .paso, .mod { page-break-inside: avoid; }
   h2 .n { display: inline-block; background: #1d4ed8; color: #fff; border-radius: 6px; width: 21px; height: 21px; text-align: center; line-height: 21px; font-size: 10pt; margin-right: 7px; }
   p { margin-bottom: 6px; }
   ul { margin: 4px 0 8px 18px; }
@@ -114,6 +116,7 @@
 
 <p><b>¿Qué es?</b> B3D Print Studio es tu oficina de impresión 3D en una sola app: desde que un cliente te pide una pieza hasta que cobras y emites la factura, todo queda registrado y la app te dice <b>cuánto te cuesta de verdad cada impresión</b> (filamento, luz, desgaste de la máquina y tu tiempo) y cuánto ganas.</p>
 
+<div class="sec">
 <h2><span class="n">1</span>Instálala como una app</h2>
 <div class="dos-col">
   <div>
@@ -138,15 +141,16 @@
     <div class="chart-l"><span>Ene</span><span>Feb</span><span>Mar</span><span>Abr</span><span>May</span><span>Jun</span></div>
   </div>
 </div>
+</div>
 
+<div class="sec">
 <h2><span class="n">2</span>Primeros pasos (5 minutos)</h2>
 <div class="paso"><div class="num">1</div><div><b>Configura tu taller</b> en ⚙️ Configuración: datos fiscales, precio de la luz (kWh), precio/hora de tu trabajo e IVA. Es la base de todos los cálculos.</div></div>
 <div class="paso"><div class="num">2</div><div><b>Da de alta impresoras y filamentos</b>: consumo en vatios y precio de cada máquina; material, color, precio y peso de cada bobina. <b>El stock se descuenta solo</b> con cada pedido y te avisa cuando una bobina se agota.</div></div>
 <div class="paso"><div class="num">3</div><div><b>Añade tus clientes</b> con teléfono y email para enviarles presupuestos y facturas con un toque. Si vienes de otra herramienta, puedes <b>importarlos desde CSV</b>.</div></div>
+</div>
 
-<!-- ════════ PÁGINA 2 ════════ -->
-<div class="salto"></div>
-
+<div class="sec">
 <h2><span class="n">3</span>El flujo de un pedido, de principio a fin</h2>
 <p>Es lo que usarás a diario. El pedido pasa por estos estados (puedes cambiarlos desde la lista, la agenda o en lote):</p>
 <div class="flow no-break">
@@ -190,7 +194,9 @@
   </div>
 </div>
 <div class="caja verde">✅ Un pedido <b>cobrado y entregado queda cerrado</b>: la app oculta los botones de presupuesto que ya no aplican (como en la maqueta de arriba) y deja solo factura, duplicar, editar o borrar.</div>
+</div>
 
+<div class="sec">
 <h2><span class="n">4</span>La agenda: tu día en 10 segundos</h2>
 <div class="dos-col">
   <div>
@@ -210,10 +216,9 @@
     </div>
   </div>
 </div>
+</div>
 
-<!-- ════════ PÁGINA 3 ════════ -->
-<div class="salto"></div>
-
+<div class="sec">
 <h2><span class="n">5</span>Todos los módulos, de un vistazo</h2>
 <div class="grid">
   <div class="mod"><b>📊 Panel</b><span>Ingresos, costes, beneficio y consumo del mes, con gráficas.</span></div>
@@ -229,7 +234,9 @@
   <div class="mod"><b>📒 Registro fiscal</b><span>Libro de facturas emitidas e informes mensuales/anuales en PDF.</span></div>
   <div class="mod"><b>🧮 Calculadora</b><span>Precio de una pieza suelta sin crear pedido.</span></div>
 </div>
+</div>
 
+<div class="sec">
 <h2><span class="n">6</span>Dónde está cada cosa (chuleta)</h2>
 <table>
   <tr><th>Quiero…</th><th>Ve a…</th></tr>
@@ -242,7 +249,9 @@
   <tr><td>Cambiar idioma (ES/EN) o tema claro/oscuro</td><td>Botones 🇬🇧 y 🌙 arriba</td></tr>
   <tr><td>Activar avisos, exportar datos o gestionar mi plan</td><td>⚙️ Configuración</td></tr>
 </table>
+</div>
 
+<div class="sec">
 <h2><span class="n">7</span>Trucos que marcan la diferencia</h2>
 <ul>
   <li><b>Funciona sin internet:</b> sigue trabajando sin cobertura; los cambios se guardan y se sincronizan solos al volver la conexión.</li>
@@ -251,10 +260,9 @@
   <li><b>Selección en lote:</b> marca varios pedidos con las casillas y cámbialos de estado de una vez.</li>
   <li><b>Invita a otro maker</b> desde Configuración → Referidos: <b>30 días Pro gratis para los dos</b>.</li>
 </ul>
+</div>
 
-<!-- ════════ PÁGINA 4 ════════ -->
-<div class="salto"></div>
-
+<div class="sec">
 <h2><span class="n">8</span>Planes y precios</h2>
 <table>
   <tr><th>Plan</th><th>Precio</th><th>Incluye</th></tr>
@@ -262,14 +270,18 @@
   <tr><td><b>Pro</b></td><td>9 €/mes ó 79 €/año</td><td>Todo sin límites. <b>30 días de prueba gratis</b> al registrarte, sin tarjeta.</td></tr>
 </table>
 <p>El pago es con tarjeta (Stripe) y la suscripción se gestiona desde la propia app: cambiar tarjeta, descargar recibos o cancelar cuando quieras, sin llamadas ni emails.</p>
+</div>
 
+<div class="sec">
 <h2><span class="n">9</span>Tus datos, seguros</h2>
 <ul>
   <li><b>Cada taller solo ve lo suyo:</b> tus clientes, precios y facturas están aislados a nivel de base de datos.</li>
   <li><b>Exporta cuando quieras:</b> pedidos y clientes a Excel/CSV, informes y facturas en PDF. Tus datos son tuyos.</li>
   <li><b>Derecho al olvido (RGPD):</b> en ⚙️ Configuración → Zona de peligro puedes eliminar tu cuenta y todos tus datos, definitivamente.</li>
 </ul>
+</div>
 
+<div class="sec">
 <h2><span class="n">10</span>Preguntas frecuentes</h2>
 <dl class="faq">
   <dt>¿Cómo creo una factura?</dt>
@@ -283,8 +295,9 @@
   <dt>¿Y si dejo de pagar Pro?</dt>
   <dd>No pierdes nada: tus datos siguen ahí y vuelves al plan Básico con sus límites mensuales.</dd>
 </dl>
+</div>
 
-<div class="cierre">
+<div class="cierre no-break">
   <div style="font-size:13pt;font-weight:900;margin-bottom:4px">Empieza hoy en <b>brami3d.app</b></div>
   <div style="color:#94a3b8;font-size:9.5pt">30 días de prueba Pro gratis, sin tarjeta · Soporte: <b>hola@brami3d.app</b></div>
 </div>
