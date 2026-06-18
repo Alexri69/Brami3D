@@ -402,7 +402,7 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
   <div class="auth-card" style="position:relative;width:100%;max-width:380px">
     <button onclick="closeLoginModal()" style="position:absolute;top:14px;right:14px;background:none;border:none;color:#7a9ab8;font-size:22px;cursor:pointer;line-height:1">✕</button>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
-      <svg width="32" height="32" viewBox="0 0 38 38" fill="none"><defs><linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#1e3a8a"/><stop offset="100%" stop-color="#0f172a"/></linearGradient><linearGradient id="face-top" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#93c5fd"/><stop offset="100%" stop-color="#60a5fa"/></linearGradient><linearGradient id="face-left" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#1d4ed8"/></linearGradient><linearGradient id="face-right" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#1d4ed8"/><stop offset="100%" stop-color="#1e3a8a"/></linearGradient></defs><rect width="38" height="38" rx="10" fill="url(#bg-grad)"/><path d="M12 9 L22 14 L22 29 L12 24 Z" fill="url(#face-left)" opacity="0.9"/><path d="M22 14 L30 10 L30 25 L22 29 Z" fill="url(#face-right)" opacity="0.85"/><path d="M12 9 L20 5 L30 10 L22 14 Z" fill="url(#face-top)" opacity="0.95"/><path d="M22 19 L30 15" stroke="#070e1c" stroke-width="2" stroke-linecap="round"/><path d="M22 24 L30 20" stroke="#070e1c" stroke-width="2" stroke-linecap="round"/></svg>
+      <svg width="32" height="32" viewBox="0 0 38 38" fill="none"><defs><linearGradient id="pilar-grad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#1d4ed8"/></linearGradient><linearGradient id="bucle-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#60a5fa"/><stop offset="100%" stop-color="#1d4ed8"/></linearGradient><linearGradient id="bg-grad-new" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0f172a"/><stop offset="100%" stop-color="#020617"/></linearGradient></defs><rect width="38" height="38" rx="10" fill="url(#bg-grad-new)"/><path d="M8 8 L12 10 L12 30 L8 28 Z" fill="#1e3a8a"/><path d="M12 10 L15 8.5 L15 28.5 L12 30 Z" fill="url(#pilar-grad)"/><path d="M8 8 L11 6.5 L15 8.5 L12 10 Z" fill="#93c5fd"/><path d="M15 10 L25 15 L25 18 L15 13 Z" fill="url(#bucle-grad)" opacity="0.95"/><path d="M15 10 L25 15 L23 16 L15 12 Z" fill="#93c5fd" opacity="0.9"/><path d="M15 17 L27 23 L27 26 L15 20 Z" fill="url(#bucle-grad)" opacity="0.95"/><path d="M15 17 L27 23 L25 24 L15 19 Z" fill="#93c5fd" opacity="0.9"/><path d="M25 15 L27 16 L27 25 L25 24 Z" fill="#1d4ed8" opacity="0.8"/></svg>
       <div style="font-size:20px;font-weight:900;color:#f1f5f9;letter-spacing:-1px">Brami3D</div>
     </div>
     <div class="tabs">
@@ -2628,28 +2628,40 @@ function goTo(page){
 function goToEstado(e){ _pFilt=e;_pSearch=''; goTo('pedidos'); }
 
 function mobMore(){
-  // Show a bottom sheet with remaining nav items (los que no caben en la bottom nav).
-  // Se añade Admin al final si el usuario es admin.
-  let items = [
-    {id:'filamentos',    ico:'🧵'},
-    {id:'impresoras',    ico:'🖨️'},
-    {id:'piezas',        ico:'🧩'},
+  // Hoja inferior con el resto de secciones, agrupadas como en el escritorio
+  // (Taller / Finanzas) + sueltos. Clientes y Pedidos ya están en la barra inferior.
+  const groups = [
+    {id:'taller',   items:[
+      {id:'impresoras', ico:'🖨️'},
+      {id:'filamentos', ico:'🧵'},
+      {id:'piezas',     ico:'🧩'},
+      {id:'archivos',   ico:'📁'},
+    ]},
+    {id:'finanzas', items:[
+      {id:'gastos',      ico:'💸'},
+      {id:'registro',    ico:'📜'},
+      {id:'calculadora', ico:'🧮'},
+    ]},
+  ].map(g=>({...g, items: g.items.filter(it=> LANG==='es' || it.id!=='registro')}));
+  // Sueltos (sin grupo): Cobros + Configuración + Admin (si procede).
+  let loose = [
     {id:'cobros',        ico:'💳'},
-    {id:'gastos',        ico:'💸'},
-    {id:'archivos',      ico:'📁'},
-    {id:'registro',      ico:'📜'},
-    {id:'calculadora',   ico:'🧮'},
     {id:'configuracion', ico:'⚙️'},
   ];
-  if(LANG!=='es') items = items.filter(n=>n.id!=='registro');
-  if(_plan.isAdmin) items.push({id:'admin', ico:'🛡️'});
-  openModal(msh(t('common.menu'),`
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
-      ${items.map(n=>`
+  if(_plan.isAdmin) loose.push({id:'admin', ico:'🛡️'});
+
+  const cell = n=>`
         <button onclick="goTo('${n.id}');closeModal()" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px;background:var(--bg4);border:1.5px solid #132540;border-radius:14px;color:var(--text3);font-size:13px;font-weight:600;text-align:center">
           <span style="font-size:28px">${n.ico}</span>${t('nav.'+n.id)}
-        </button>`).join('')}
-    </div>
+        </button>`;
+  const grid = arr=>`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">${arr.map(cell).join('')}</div>`;
+  const hd = txt=>`<div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text5);margin:2px 2px 8px">${txt}</div>`;
+
+  let body = groups.map(g=>hd(t('nav.grp.'+g.id))+grid(g.items)).join('');
+  body += grid(loose);
+
+  openModal(msh(t('common.menu'),`
+    ${body}
     <button onclick="logout()" style="width:100%;padding:14px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:12px;color:#f87171;font-size:14px;font-weight:700;margin-top:4px">🚪 ${t('common.logout')}</button>
   `));
 }
