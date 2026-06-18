@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -190,6 +190,11 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
 .nav-btn{display:flex;align-items:center;gap:12px;width:100%;padding:11px 18px;background:none;border:none;border-right:3px solid transparent;color:var(--text4);text-align:left;font-size:13.5px;transition:all .18s;white-space:nowrap}
 .nav-btn:hover{background:rgba(59,130,246,.07);color:#7aabcc;transform:none;opacity:1}
 .nav-btn.active{background:linear-gradient(90deg,rgba(37,99,235,.18),rgba(37,99,235,.06));border-right-color:#3b82f6;color:#93c5fd;font-weight:600}
+.nav-btn.nav-sub{padding-left:28px;font-size:13px}
+.nav-group-hd{display:flex;align-items:center;gap:12px;width:100%;padding:11px 18px;background:none;border:none;color:var(--text5);text-align:left;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;transition:color .15s}
+.nav-group-hd:hover{color:var(--text3)}
+.nav-arrow{font-size:10px;opacity:.6;transition:transform .2s}
+.nav-group-hd.open .nav-arrow{transform:rotate(90deg)}
 .chip{padding:6px 15px;border-radius:99px;border:1.5px solid var(--border);background:none;color:var(--text4);font-size:12px;font-weight:600;transition:all .18s}
 .chip:hover{border-color:var(--border2);color:var(--text3);transform:none}
 .chip.active{background:linear-gradient(135deg,rgba(37,99,235,.2),rgba(29,78,216,.12));color:#93c5fd;border-color:#2563eb}
@@ -297,7 +302,7 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
     <!-- Topbar -->
     <div style="display:flex;align-items:center;justify-content:space-between;width:100%;max-width:460px;margin-bottom:28px;padding-top:8px">
       <div style="display:flex;align-items:center;gap:10px">
-        <svg width="32" height="32" viewBox="0 0 38 38" fill="none"><rect width="38" height="38" rx="9" fill="#1d4ed8"/><polygon points="19,7 30,13 30,25 19,31 8,25 8,13" fill="none" stroke="#93c5fd" stroke-width="1.5"/><polygon points="19,7 30,13 19,19 8,13" fill="#3b82f6" opacity="0.8"/><polygon points="8,13 19,19 19,31 8,25" fill="#2563eb"/><polygon points="30,13 19,19 19,31 30,25" fill="#1d4ed8"/></svg>
+        <svg width="32" height="32" viewBox="0 0 38 38" fill="none"><defs><linearGradient id="pilar-grad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#1d4ed8"/></linearGradient><linearGradient id="bucle-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#60a5fa"/><stop offset="100%" stop-color="#1d4ed8"/></linearGradient><linearGradient id="bg-grad-new" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0f172a"/><stop offset="100%" stop-color="#020617"/></linearGradient></defs><rect width="38" height="38" rx="10" fill="url(#bg-grad-new)"/><path d="M8 8 L12 10 L12 30 L8 28 Z" fill="#1e3a8a"/><path d="M12 10 L15 8.5 L15 28.5 L12 30 Z" fill="url(#pilar-grad)"/><path d="M8 8 L11 6.5 L15 8.5 L12 10 Z" fill="#93c5fd"/><path d="M15 10 L25 15 L25 18 L15 13 Z" fill="url(#bucle-grad)" opacity="0.95"/><path d="M15 10 L25 15 L23 16 L15 12 Z" fill="#93c5fd" opacity="0.9"/><path d="M15 17 L27 23 L27 26 L15 20 Z" fill="url(#bucle-grad)" opacity="0.95"/><path d="M15 17 L27 23 L25 24 L15 19 Z" fill="#93c5fd" opacity="0.9"/><path d="M25 15 L27 16 L27 25 L25 24 Z" fill="#1d4ed8" opacity="0.8"/></svg>
         <div style="font-size:18px;font-weight:900;color:#f1f5f9;letter-spacing:-1px">Brami3D</div>
       </div>
       <button onclick="openLoginModal()" style="background:rgba(37,99,235,.15);color:#60a5fa;border:1.5px solid rgba(37,99,235,.3);border-radius:10px;padding:9px 18px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer">
@@ -397,7 +402,7 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
   <div class="auth-card" style="position:relative;width:100%;max-width:380px">
     <button onclick="closeLoginModal()" style="position:absolute;top:14px;right:14px;background:none;border:none;color:#7a9ab8;font-size:22px;cursor:pointer;line-height:1">✕</button>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
-      <svg width="32" height="32" viewBox="0 0 38 38" fill="none"><rect width="38" height="38" rx="9" fill="#1d4ed8"/><polygon points="19,7 30,13 30,25 19,31 8,25 8,13" fill="none" stroke="#93c5fd" stroke-width="1.5"/><polygon points="19,7 30,13 19,19 8,13" fill="#3b82f6" opacity="0.8"/><polygon points="8,13 19,19 19,31 8,25" fill="#2563eb"/><polygon points="30,13 19,19 19,31 30,25" fill="#1d4ed8"/></svg>
+      <svg width="32" height="32" viewBox="0 0 38 38" fill="none"><defs><linearGradient id="pilar-grad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#1d4ed8"/></linearGradient><linearGradient id="bucle-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#60a5fa"/><stop offset="100%" stop-color="#1d4ed8"/></linearGradient><linearGradient id="bg-grad-new" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0f172a"/><stop offset="100%" stop-color="#020617"/></linearGradient></defs><rect width="38" height="38" rx="10" fill="url(#bg-grad-new)"/><path d="M8 8 L12 10 L12 30 L8 28 Z" fill="#1e3a8a"/><path d="M12 10 L15 8.5 L15 28.5 L12 30 Z" fill="url(#pilar-grad)"/><path d="M8 8 L11 6.5 L15 8.5 L12 10 Z" fill="#93c5fd"/><path d="M15 10 L25 15 L25 18 L15 13 Z" fill="url(#bucle-grad)" opacity="0.95"/><path d="M15 10 L25 15 L23 16 L15 12 Z" fill="#93c5fd" opacity="0.9"/><path d="M15 17 L27 23 L27 26 L15 20 Z" fill="url(#bucle-grad)" opacity="0.95"/><path d="M15 17 L27 23 L25 24 L15 19 Z" fill="#93c5fd" opacity="0.9"/><path d="M25 15 L27 16 L27 25 L25 24 Z" fill="#1d4ed8" opacity="0.8"/></svg>
       <div style="font-size:20px;font-weight:900;color:#f1f5f9;letter-spacing:-1px">Brami3D</div>
     </div>
     <div class="tabs">
@@ -419,7 +424,7 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
 <div id="app" class="hidden">
   <div id="sidebar">
     <div id="sb-logo" onclick="toggleSb()">
-      <svg width="30" height="30" viewBox="0 0 38 38" fill="none" style="flex-shrink:0"><rect width="38" height="38" rx="9" fill="#1d4ed8"/><polygon points="19,7 30,13 30,25 19,31 8,25 8,13" fill="none" stroke="#93c5fd" stroke-width="1.5"/><polygon points="19,7 30,13 19,19 8,13" fill="#3b82f6" opacity="0.8"/><polygon points="8,13 19,19 19,31 8,25" fill="#2563eb"/><polygon points="30,13 19,19 19,31 30,25" fill="#1d4ed8"/></svg>
+      <svg width="30" height="30" viewBox="0 0 38 38" fill="none" style="flex-shrink:0"><defs><linearGradient id="pilar-grad" x1="0%" y1="0%" x2="0%" y2="100%"><stop offset="0%" stop-color="#3b82f6"/><stop offset="100%" stop-color="#1d4ed8"/></linearGradient><linearGradient id="bucle-grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#60a5fa"/><stop offset="100%" stop-color="#1d4ed8"/></linearGradient><linearGradient id="bg-grad-new" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#0f172a"/><stop offset="100%" stop-color="#020617"/></linearGradient></defs><rect width="38" height="38" rx="10" fill="url(#bg-grad-new)"/><path d="M8 8 L12 10 L12 30 L8 28 Z" fill="#1e3a8a"/><path d="M12 10 L15 8.5 L15 28.5 L12 30 Z" fill="url(#pilar-grad)"/><path d="M8 8 L11 6.5 L15 8.5 L12 10 Z" fill="#93c5fd"/><path d="M15 10 L25 15 L25 18 L15 13 Z" fill="url(#bucle-grad)" opacity="0.95"/><path d="M15 10 L25 15 L23 16 L15 12 Z" fill="#93c5fd" opacity="0.9"/><path d="M15 17 L27 23 L27 26 L15 20 Z" fill="url(#bucle-grad)" opacity="0.95"/><path d="M15 17 L27 23 L25 24 L15 19 Z" fill="#93c5fd" opacity="0.9"/><path d="M25 15 L27 16 L27 25 L25 24 Z" fill="#1d4ed8" opacity="0.8"/></svg>
       <div id="brand-lbl" style="white-space:nowrap"><div style="font-size:16px;font-weight:900;color:#f1f5f9;letter-spacing:-1px;line-height:1.1">B3D</div><div style="font-size:9px;color:#3b82f6;font-weight:600;letter-spacing:1.5px;text-transform:uppercase">Print Studio</div></div>
     </div>
     <nav id="sb-nav" style="flex:1;overflow-y:auto;overflow-x:hidden"></nav>
@@ -699,6 +704,7 @@ const I18N = {
     'agenda.title':'Agenda','agenda.overdue':'Atrasados','agenda.todayTitle':'Para hoy','agenda.today':'Hoy','agenda.week':'Esta semana','agenda.noDate':'Sin fecha de entrega','agenda.empty':'No tienes entregas pendientes. ¡Todo al día! 🎉','agenda.late':'hace {n} día(s)','agenda.in':'en {n} día(s)','agenda.toCollect':'Pendiente de cobro','agenda.later':'Más adelante','agenda.deliver':'Marcar entregado','agenda.collect':'Cobrar','nav.pedidos':'Pedidos','nav.impresoras':'Impresoras',
     'nav.filamentos':'Filamentos','nav.piezas':'Piezas','nav.cobros':'Cobros','nav.archivos':'Archivos',
     'nav.gastos':'Gastos','nav.registro':'Registro fiscal','nav.calculadora':'Calculadora','nav.configuracion':'Configuración','nav.admin':'Admin',
+    'nav.grp.ventas':'Ventas','nav.grp.taller':'Taller','nav.grp.finanzas':'Finanzas',
     'common.logout':'Cerrar sesión','common.menu':'Menú','common.cancel':'Cancelar','common.save':'Guardar','common.new':'+ Nuevo','common.delete':'Eliminar',
     'common.day':'día','common.days':'días','common.prev':'← Anterior','common.next':'Siguiente →',
     'topbar.searchDesk':'Buscar clientes, pedidos, piezas…','net.offline':'Sin conexión','net.unsynced':'sin sincronizar',
@@ -795,6 +801,7 @@ const I18N = {
     'agenda.title':'Schedule','agenda.overdue':'Overdue','agenda.todayTitle':'For today','agenda.today':'Today','agenda.week':'This week','agenda.noDate':'No delivery date','agenda.empty':'No pending deliveries. All caught up! 🎉','agenda.late':'{n} day(s) ago','agenda.in':'in {n} day(s)','agenda.toCollect':'Pending payment','agenda.later':'Later','agenda.deliver':'Mark delivered','agenda.collect':'Collect','nav.pedidos':'Orders','nav.impresoras':'Printers',
     'nav.filamentos':'Filaments','nav.piezas':'Parts','nav.cobros':'Payments','nav.archivos':'Files',
     'nav.gastos':'Expenses','nav.registro':'Tax record','nav.calculadora':'Calculator','nav.configuracion':'Settings','nav.admin':'Admin',
+    'nav.grp.ventas':'Sales','nav.grp.taller':'Workshop','nav.grp.finanzas':'Finance',
     'common.logout':'Sign out','common.menu':'Menu','common.cancel':'Cancel','common.save':'Save','common.new':'+ New','common.delete':'Delete',
     'common.day':'day','common.days':'days','common.prev':'← Previous','common.next':'Next →',
     'topbar.searchDesk':'Search customers, orders, parts…','net.offline':'Offline','net.unsynced':'unsynced',
@@ -2528,42 +2535,90 @@ async function exportarRegistrosXML(){
 // ═══════════════════════════════════════════════
 //  NAV
 // ═══════════════════════════════════════════════
-const NAV=[
-  {id:'dashboard',lbl:'Dashboard',icon:'📊'},
-  {id:'agenda',lbl:'Agenda',icon:'📅'},
-  {id:'clientes',lbl:'Clientes',icon:'👥'},
-  {id:'pedidos',lbl:'Pedidos',icon:'📋'},
-  {id:'impresoras',lbl:'Impresoras',icon:'🖨️'},
-  {id:'filamentos',lbl:'Filamentos',icon:'🧵'},
-  {id:'piezas',lbl:'Piezas',icon:'🧩'},
-  {id:'cobros',lbl:'Cobros',icon:'💳'},
-  {id:'archivos',lbl:'Archivos',icon:'📁'},
-  {id:'gastos',lbl:'Gastos',icon:'💸'},
-  {id:'registro',lbl:'Registro fiscal',icon:'📜'},
-  {id:'calculadora',lbl:'Calculadora',icon:'🧮'},
-  {id:'configuracion',lbl:'Configuración',icon:'⚙️'},
+// Dashboard y Agenda van sueltos arriba (sin grupo). El resto se agrupa en
+// categorías plegables (acordeón). "configuracion"/"admin" sueltos al final.
+const NAV_TOP=[
+  {id:'dashboard', icon:'📊'},
+  {id:'agenda',    icon:'📅'},
+];
+const NAV_GROUPS=[
+  {id:'ventas',   icon:'🛒', items:[
+    {id:'clientes', icon:'👥'},
+    {id:'pedidos',  icon:'📋'},
+    {id:'cobros',   icon:'💳'},
+  ]},
+  {id:'taller',   icon:'🖨️', items:[
+    {id:'impresoras',icon:'🖨️'},
+    {id:'filamentos',icon:'🧵'},
+    {id:'piezas',    icon:'🧩'},
+    {id:'archivos',  icon:'📁'},
+  ]},
+  {id:'finanzas', icon:'💰', items:[
+    {id:'gastos',     icon:'💸'},
+    {id:'registro',   icon:'📜'},
+    {id:'calculadora',icon:'🧮'},
+  ]},
 ];
 
-function buildNav(){
-  // Admin-only: añadir entry "Admin" al final si el usuario es admin.
-  let items = _plan.isAdmin
-    ? [...NAV, {id:'admin', icon:'🛡️'}]
-    : NAV;
-  // El módulo fiscal (registro SIF/AEAT) es específico de España: se oculta en inglés.
-  if(LANG!=='es') items = items.filter(n=>n.id!=='registro');
-  $('sb-nav').innerHTML=items.map(n=>`
-    <button class="nav-btn${PAGE===n.id?' active':''}" id="nb-${n.id}" onclick="goTo('${n.id}')">
+// Estado abierto/cerrado de cada grupo (persistido). Vacío = solo se abre el grupo activo.
+let _navOpen = {};
+try{ _navOpen = JSON.parse(localStorage.getItem('b3d_nav_groups')||'{}'); }catch(_){ _navOpen={}; }
+
+function toggleNavGroup(id){
+  _navOpen[id] = !_navOpen[id];
+  try{ localStorage.setItem('b3d_nav_groups', JSON.stringify(_navOpen)); }catch(_){}
+  buildNav();
+}
+
+// HTML de un item de navegación (hoja). sub=true → sangrado dentro de un grupo.
+function _navItemHTML(n, sub){
+  return `<button class="nav-btn${sub?' nav-sub':''}${PAGE===n.id?' active':''}" id="nb-${n.id}" onclick="goTo('${n.id}')">
       <span style="font-size:18px;flex-shrink:0">${n.icon}</span>
       <span class="nl">${t('nav.'+n.id)}</span>
       ${n.id==='impresoras'?'<span id="pw-badge" style="display:none;background:#f59e0b;color:#000;border-radius:99px;padding:1px 7px;font-size:10px;font-weight:800"></span>':''}
-    </button>`).join('');
+    </button>`;
+}
+
+function buildNav(){
+  // El módulo fiscal (registro SIF/AEAT) es específico de España: se oculta en inglés.
+  const groups = NAV_GROUPS.map(g=>({...g, items: g.items.filter(it=> LANG==='es' || it.id!=='registro')}));
+  // Sueltos al final: Configuración + Admin (solo si el usuario es admin).
+  const loose = [{id:'configuracion', icon:'⚙️'}];
+  if(_plan.isAdmin) loose.push({id:'admin', icon:'🛡️'});
+
+  // Sidebar colapsado (solo iconos): lista plana, sin grupos (no hay sitio para el acordeón).
+  if(!SB_OPEN){
+    const flat=[...NAV_TOP, ...groups.flatMap(g=>g.items), ...loose];
+    $('sb-nav').innerHTML = flat.map(n=>_navItemHTML(n,false)).join('');
+    refreshAlerts();
+    return;
+  }
+
+  // Expandido: Dashboard/Agenda sueltos + acordeón. Forzamos abierto el grupo activo.
+  const activeGrp = groups.find(g=>g.items.some(it=>it.id===PAGE));
+  if(activeGrp) _navOpen[activeGrp.id]=true;
+
+  let html = NAV_TOP.map(n=>_navItemHTML(n,false)).join('');
+  html += groups.map(g=>{
+    const open = !!_navOpen[g.id];
+    const body = g.items.map(it=>_navItemHTML(it,true)).join('');
+    return `<div class="nav-group">
+      <button class="nav-group-hd${open?' open':''}" onclick="toggleNavGroup('${g.id}')">
+        <span style="font-size:18px;flex-shrink:0">${g.icon}</span>
+        <span class="nl" style="flex:1">${t('nav.grp.'+g.id)}</span>
+        <span class="nl nav-arrow">▸</span>
+      </button>
+      <div class="nav-group-body"${open?'':' style="display:none"'}>${body}</div>
+    </div>`;
+  }).join('');
+  html += loose.map(n=>_navItemHTML(n,false)).join('');
+  $('sb-nav').innerHTML = html;
   refreshAlerts();
 }
 
 function goTo(page){
   PAGE=page;
-  document.querySelectorAll('.nav-btn').forEach(e=>e.classList.remove('active'));
-  const nb=$('nb-'+page);if(nb)nb.classList.add('active');
+  buildNav();  // reconstruye el menú: resalta la activa y abre su grupo (acordeón)
   // Mobile nav highlight
   document.querySelectorAll('#mob-nav button').forEach(e=>e.classList.remove('active'));
   const mb=$('mn-'+page);if(mb)mb.classList.add('active');
@@ -2573,28 +2628,40 @@ function goTo(page){
 function goToEstado(e){ _pFilt=e;_pSearch=''; goTo('pedidos'); }
 
 function mobMore(){
-  // Show a bottom sheet with remaining nav items (los que no caben en la bottom nav).
-  // Se añade Admin al final si el usuario es admin.
-  let items = [
-    {id:'filamentos',    ico:'🧵'},
-    {id:'impresoras',    ico:'🖨️'},
-    {id:'piezas',        ico:'🧩'},
+  // Hoja inferior con el resto de secciones, agrupadas como en el escritorio
+  // (Taller / Finanzas) + sueltos. Clientes y Pedidos ya están en la barra inferior.
+  const groups = [
+    {id:'taller',   items:[
+      {id:'impresoras', ico:'🖨️'},
+      {id:'filamentos', ico:'🧵'},
+      {id:'piezas',     ico:'🧩'},
+      {id:'archivos',   ico:'📁'},
+    ]},
+    {id:'finanzas', items:[
+      {id:'gastos',      ico:'💸'},
+      {id:'registro',    ico:'📜'},
+      {id:'calculadora', ico:'🧮'},
+    ]},
+  ].map(g=>({...g, items: g.items.filter(it=> LANG==='es' || it.id!=='registro')}));
+  // Sueltos (sin grupo): Cobros + Configuración + Admin (si procede).
+  let loose = [
     {id:'cobros',        ico:'💳'},
-    {id:'gastos',        ico:'💸'},
-    {id:'archivos',      ico:'📁'},
-    {id:'registro',      ico:'📜'},
-    {id:'calculadora',   ico:'🧮'},
     {id:'configuracion', ico:'⚙️'},
   ];
-  if(LANG!=='es') items = items.filter(n=>n.id!=='registro');
-  if(_plan.isAdmin) items.push({id:'admin', ico:'🛡️'});
-  openModal(msh(t('common.menu'),`
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px">
-      ${items.map(n=>`
+  if(_plan.isAdmin) loose.push({id:'admin', ico:'🛡️'});
+
+  const cell = n=>`
         <button onclick="goTo('${n.id}');closeModal()" style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px;background:var(--bg4);border:1.5px solid #132540;border-radius:14px;color:var(--text3);font-size:13px;font-weight:600;text-align:center">
           <span style="font-size:28px">${n.ico}</span>${t('nav.'+n.id)}
-        </button>`).join('')}
-    </div>
+        </button>`;
+  const grid = arr=>`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">${arr.map(cell).join('')}</div>`;
+  const hd = txt=>`<div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text5);margin:2px 2px 8px">${txt}</div>`;
+
+  let body = groups.map(g=>hd(t('nav.grp.'+g.id))+grid(g.items)).join('');
+  body += grid(loose);
+
+  openModal(msh(t('common.menu'),`
+    ${body}
     <button onclick="logout()" style="width:100%;padding:14px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:12px;color:#f87171;font-size:14px;font-weight:700;margin-top:4px">🚪 ${t('common.logout')}</button>
   `));
 }
@@ -2602,6 +2669,7 @@ function mobMore(){
 function toggleSb(){
   SB_OPEN=!SB_OPEN;
   $('sidebar').className=SB_OPEN?'':'collapsed';
+  buildNav();  // alterna entre acordeón (expandido) y lista plana de iconos (colapsado)
   document.querySelectorAll('.nl').forEach(e=>e.style.display=SB_OPEN?'':'none');
   const bl=$('brand-lbl');if(bl)bl.style.display=SB_OPEN?'':'none';
   $('logout-lbl').style.display=SB_OPEN?'':'none';
