@@ -42,11 +42,11 @@
     b.id='rgpd-banner';
     b.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:9999;padding:14px 20px;background:rgba(9,9,11,.97);backdrop-filter:blur(12px);border-top:1px solid #27272A;color:#F4F4F5;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;display:none;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:0 -4px 24px rgba(0,0,0,.5);font-size:13px';
     const txt = EN
-      ? 'We use analytics cookies (Google Analytics) to understand site usage. You can accept or reject them; essential technical cookies always apply. More info in our <a href="https://brami3d.app/cookies.html" style="color:#F97316">Cookie policy</a> and <a href="https://brami3d.app/privacidad.html" style="color:#F97316">Privacy</a>.'
-      : 'Usamos cookies analíticas (Google Analytics) para entender el uso del sitio. Puedes aceptarlas o rechazarlas; las cookies técnicas imprescindibles se aplican siempre. Más info en <a href="https://brami3d.app/cookies.html" style="color:#F97316">Política de cookies</a> y <a href="https://brami3d.app/privacidad.html" style="color:#F97316">Privacidad</a>.';
+      ? 'We use analytics cookies (Google Analytics) to understand site usage. You can accept or reject them; essential technical cookies always apply. More info in our <a href="https://brami3d.app/cookies.html" style="color:#E2C799">Cookie policy</a> and <a href="https://brami3d.app/privacidad.html" style="color:#E2C799">Privacy</a>.'
+      : 'Usamos cookies analíticas (Google Analytics) para entender el uso del sitio. Puedes aceptarlas o rechazarlas; las cookies técnicas imprescindibles se aplican siempre. Más info en <a href="https://brami3d.app/cookies.html" style="color:#E2C799">Política de cookies</a> y <a href="https://brami3d.app/privacidad.html" style="color:#E2C799">Privacidad</a>.';
     const rej = EN ? 'Reject' : 'Rechazar';
     const acc = EN ? 'Accept' : 'Aceptar';
-    b.innerHTML='<div style="flex:1;min-width:240px;line-height:1.5">'+txt+'</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" id="rgpd-reject" style="background:transparent;border:1px solid #3F3F46;color:#F4F4F5;padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit">'+rej+'</button><button type="button" id="rgpd-accept" style="background:#F97316;border:none;color:#000;padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer;font-weight:700;font-family:inherit">'+acc+'</button></div>';
+    b.innerHTML='<div style="flex:1;min-width:240px;line-height:1.5">'+txt+'</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" id="rgpd-reject" style="background:transparent;border:1px solid #3F3F46;color:#F4F4F5;padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit">'+rej+'</button><button type="button" id="rgpd-accept" style="background:#E2C799;border:none;color:#000;padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer;font-weight:700;font-family:inherit">'+acc+'</button></div>';
     document.body.appendChild(b);
     document.getElementById('rgpd-accept').addEventListener('click',function(){B3D_CONSENT.accept();});
     document.getElementById('rgpd-reject').addEventListener('click',function(){B3D_CONSENT.reject();});
@@ -54,226 +54,1009 @@
   });
 })();
 </script>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-:root{
-  --bg:#09090B;
-  --bg2:#111115;
-  --bg3:#18181D;
-  --bg4:#1F1F27;
-  --or:#F97316;
-  --or-d:rgba(249,115,22,.1);
-  --or-b:rgba(249,115,22,.24);
-  --am:#F59E0B;
-  --gr:#22C55E;
-  --gr-d:rgba(34,197,94,.1);
-  --text:#F4F4F5;
-  --text2:#A1A1AA;
-  --text3:#52525B;
-  --text4:#3F3F46;
-  --border:#27272A;
-  --border2:#3F3F46
+:root {
+  --bg: #070709;
+  --bg2: #0E0E12;
+  --bg3: #141418;
+  --accent: #E2C799; /* Champán satinado */
+  --accent-dim: rgba(226, 199, 153, 0.08);
+  --accent-border: rgba(226, 199, 153, 0.25);
+  --accent-glow: rgba(226, 199, 153, 0.04);
+  --text: #F4F4F5;
+  --text2: #A1A1AA;
+  --text3: #71717A;
+  --text4: #52525B;
+  --border: rgba(255, 255, 255, 0.06);
+  --border2: rgba(255, 255, 255, 0.12);
+  --gr: #4ade80;
+  --gr-d: rgba(74, 222, 128, 0.1);
+  --am: #fbbf24;
+  --am-d: rgba(251, 191, 36, 0.1);
 }
-*{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:auto}
-body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
 
-/* ── NAV ── */
-nav{
-  position:fixed;top:0;left:0;right:0;z-index:100;
-  padding:16px 48px;display:flex;align-items:center;justify-content:space-between;
-  background:rgba(9,9,11,.85);backdrop-filter:blur(18px);border-bottom:1px solid var(--border)
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
-.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
-.logo-mark{
-  width:32px;height:32px;border-radius:7px;background:var(--or);
-  display:flex;align-items:center;justify-content:center;
-  font-family:'DM Mono',monospace;font-size:10px;font-weight:500;color:#000;letter-spacing:-.3px
+
+html {
+  scroll-behavior: auto;
 }
-.nav-brand{font-size:16px;font-weight:700;color:var(--text);letter-spacing:-.3px}
-.nav-links{display:flex;gap:28px}
-.nav-links a{font-size:14px;color:var(--text2);text-decoration:none;transition:color .15s}
-.nav-links a:hover{color:var(--text)}
-.nav-right{display:flex;align-items:center;gap:14px}
-.lang-flag{background:transparent;border:1.5px solid var(--border2);border-radius:8px;padding:7px 9px;cursor:pointer;display:flex;align-items:center;line-height:0;transition:border-color .15s}
-.lang-flag:hover{border-color:var(--or)}
-.nav-cta{
-  background:transparent;border:1.5px solid var(--border2);color:var(--text);
-  border-radius:8px;padding:9px 20px;font-size:14px;font-weight:600;
-  font-family:inherit;cursor:pointer;text-decoration:none;transition:all .15s
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  line-height: 1.5;
 }
-.nav-cta:hover{border-color:var(--or);color:var(--or)}
 
-/* ── HERO ── */
-.hero{
-  min-height:100vh;display:flex;align-items:center;
-  padding:120px 48px 80px;max-width:1160px;margin:0 auto;gap:72px
+/* ── NAVEGACIÓN (Sleek Height 64px) ── */
+nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  height: 68px;
+  padding: 0 48px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(7, 7, 9, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
 }
-.hero-left{flex:1;min-width:0}
-.hero-tag{display:inline-block;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--or);margin-bottom:22px}
-h1{font-size:clamp(44px,5.5vw,80px);font-weight:700;line-height:1.0;letter-spacing:-2.5px;color:var(--text);margin-bottom:22px}
-h1 em{font-style:normal;color:var(--or)}
-.hero-sub{font-size:clamp(16px,1.7vw,19px);color:var(--text2);max-width:480px;line-height:1.65;margin-bottom:40px}
-.hero-btns{display:flex;gap:12px;flex-wrap:wrap}
-.hero-right{flex-shrink:0}
-.btn-primary{
-  background:var(--or);color:#000;border:none;border-radius:9px;
-  padding:14px 28px;font-size:15px;font-weight:700;font-family:inherit;
-  cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:opacity .15s
+
+.nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
 }
-.btn-primary:hover{opacity:.85}
-.btn-ghost{
-  background:transparent;color:var(--text2);border:1.5px solid var(--border2);
-  border-radius:9px;padding:13px 22px;font-size:15px;font-weight:500;font-family:inherit;
-  cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;transition:all .15s
+
+.logo-mark {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  background: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  color: #000;
 }
-.btn-ghost:hover{color:var(--text);border-color:var(--text4)}
 
-/* ── PHONE MOCKUP ── */
-.phone{
-  width:240px;background:var(--bg2);border:1px solid var(--border);
-  border-radius:32px;padding:14px;box-shadow:0 40px 80px rgba(0,0,0,.65)
+.nav-brand {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.5px;
 }
-.phone-scr{background:var(--bg);border-radius:22px;padding:14px 12px;min-height:380px}
-.p-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-.p-logo{font-size:11px;font-weight:700;color:var(--or);letter-spacing:-.2px}
-.p-stat{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-bottom:8px;display:flex;justify-content:space-between}
-.p-stat-v{font-size:15px;font-weight:700;font-family:'DM Mono',monospace;color:var(--gr)}
-.p-stat-l{font-size:9px;color:var(--text2);text-transform:uppercase;letter-spacing:.8px}
-.p-order{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:9px 12px;margin-bottom:6px;display:flex;justify-content:space-between;align-items:center}
-.p-ord-n{font-size:11px;font-weight:600;color:var(--text)}
-.p-ord-p{font-size:12px;font-weight:700;color:var(--or);font-family:'DM Mono',monospace}
-.pbadge{font-size:8px;padding:2px 7px;border-radius:99px;font-weight:700}
-.bp{background:rgba(245,158,11,.12);color:#F59E0B;border:1px solid rgba(245,158,11,.22)}
-.bc{background:var(--gr-d);color:var(--gr);border:1px solid rgba(34,197,94,.22)}
-.bi{background:rgba(59,130,246,.12);color:#60a5fa;border:1px solid rgba(59,130,246,.22)}
 
-/* ── STATS ── */
-.stats{border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--bg2);display:flex;justify-content:center}
-.stat{flex:1;max-width:220px;padding:28px 20px;text-align:center;border-right:1px solid var(--border)}
-.stat:last-child{border-right:none}
-.stat-n{font-size:34px;font-weight:700;color:var(--text);letter-spacing:-2px;font-family:'DM Mono',monospace}
-.stat-l{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:1.2px;margin-top:5px}
+.nav-links {
+  display: flex;
+  gap: 36px;
+}
 
-/* ── SECCIONES ── */
-.sec{padding:96px 48px;max-width:1100px;margin:0 auto}
-.sec-lbl{font-size:10px;font-weight:700;color:var(--or);text-transform:uppercase;letter-spacing:2.5px;margin-bottom:14px;display:block}
-.sec-title{font-size:clamp(30px,3.5vw,46px);font-weight:700;color:var(--text);letter-spacing:-1.5px;line-height:1.08;margin-bottom:14px}
-.sec-sub{font-size:16px;color:var(--text2);max-width:460px;line-height:1.65}
+.nav-links a {
+  font-size: 14px;
+  color: var(--text2);
+  text-decoration: none;
+  transition: color 0.2s ease;
+  font-weight: 400;
+}
 
-/* ── FEATURES ── */
-.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1px;margin-top:56px;background:var(--border);border:1px solid var(--border);border-radius:16px;overflow:hidden}
-.feat{background:var(--bg2);padding:36px 32px;transition:background .2s}
-.feat:hover{background:var(--bg3)}
-.feat-num{display:block;font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:var(--or);letter-spacing:.5px;margin-bottom:16px}
-.feat h3{font-size:16px;font-weight:600;color:var(--text);margin-bottom:8px;letter-spacing:-.2px}
-.feat p{font-size:14px;color:var(--text2);line-height:1.65}
+.nav-links a:hover {
+  color: var(--text);
+}
 
-/* ── INTERNACIONAL ── */
-.intl-sec{background:var(--bg2);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:80px 48px}
-.intl-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:72px;flex-wrap:wrap}
-.intl-txt{flex:1;min-width:280px}
-.intl-pills{flex-shrink:0}
-.currency-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;max-width:300px}
-.cpill{background:var(--bg3);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;display:flex;align-items:center;gap:8px;transition:border-color .15s}
-.cpill:hover{border-color:var(--or-b)}
-.cflag{font-size:18px;line-height:1;flex-shrink:0}
-.ccode{font-family:'DM Mono',monospace;font-size:12px;font-weight:500;color:var(--text2)}
-.cpill-more{grid-column:1/-1;justify-content:center;background:var(--or-d);border-color:var(--or-b)}
-.cpill-more .ccode{color:var(--or);font-size:11px}
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
 
-/* ── MOCKUP SECTION ── */
-.mockup-wrap{padding:80px 48px;display:flex;align-items:center;justify-content:center;gap:80px;max-width:1100px;margin:0 auto;flex-wrap:wrap}
-.mockup-txt{flex:1;min-width:280px;max-width:460px}
-.mockup-txt h2{font-size:clamp(28px,3vw,42px);font-weight:700;color:var(--text);letter-spacing:-1.5px;line-height:1.08;margin-bottom:16px}
-.mockup-txt p{font-size:16px;color:var(--text2);line-height:1.7;margin-bottom:28px}
-.chk{list-style:none;display:flex;flex-direction:column;gap:10px}
-.chk li{display:flex;align-items:center;gap:11px;font-size:15px;color:var(--text)}
-.chk li::before{content:'✓';width:20px;height:20px;border-radius:5px;flex-shrink:0;background:var(--gr-d);border:1px solid rgba(34,197,94,.25);display:flex;align-items:center;justify-content:center;color:var(--gr);font-size:11px;font-weight:700}
+.lang-flag {
+  background: transparent;
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 6px 9px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  line-height: 0;
+  transition: all 0.2s ease;
+}
 
-/* ── TESTIMONIOS ── */
-.testi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:40px}
-.testi{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:24px 22px}
-.testi-quote{font-size:36px;color:var(--or);line-height:1;margin-bottom:6px;opacity:.45;font-family:Georgia,serif;font-weight:700}
-.testi p{font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:18px}
-.testi-author{display:flex;align-items:center;gap:10px}
-.testi-init{width:32px;height:32px;border-radius:7px;background:var(--bg4);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--text3)}
-.testi-name{font-size:13px;font-weight:600;color:var(--text)}
-.testi-loc{font-size:11px;color:var(--text3);margin-top:2px}
+.lang-flag:hover {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
 
-/* ── PRICING ── */
-.pricing{padding:96px 48px;text-align:center}
-.pricing h2{font-size:clamp(30px,4vw,46px);font-weight:700;color:var(--text);letter-spacing:-1.5px;margin-bottom:10px}
-.pricing > p{font-size:16px;color:var(--text2);margin-bottom:52px}
-.price-cards{display:flex;gap:20px;justify-content:center;flex-wrap:wrap;max-width:920px;margin:0 auto}
-.pc{flex:1;min-width:260px;max-width:285px;background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:28px 24px;text-align:left;transition:transform .2s}
-.pc:hover{transform:translateY(-3px)}
-.pc.feat{border-color:var(--or-b);box-shadow:0 0 0 1px var(--or-b),0 20px 50px rgba(249,115,22,.07)}
-.pc.anual{border-color:rgba(245,158,11,.28);box-shadow:0 0 0 1px rgba(245,158,11,.14)}
-.pc-lbl{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:2px;margin-bottom:12px}
-.pc-lbl.or{color:var(--or)}
-.pc-lbl.am{color:var(--am)}
-.pc-amt{font-size:44px;font-weight:700;color:var(--text);letter-spacing:-2.5px;font-family:'DM Mono',monospace;line-height:1}
-.pc-per{font-size:14px;color:var(--text2);margin-left:3px;font-family:inherit}
-.pc-desc{font-size:14px;color:var(--text2);margin:12px 0 20px;line-height:1.5}
-.pc-feats{list-style:none;display:flex;flex-direction:column;gap:9px;margin-bottom:24px}
-.pc-feats li{font-size:13px;color:var(--text);display:flex;align-items:center;gap:9px}
-.pc-feats li::before{content:'✓';color:var(--gr);font-weight:700;font-size:11px;flex-shrink:0}
-.pc-btn{width:100%;padding:12px;border-radius:8px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;text-align:center;text-decoration:none;display:block;transition:all .15s}
-.pc-btn-free{background:transparent;color:var(--text);border:1.5px solid var(--border2)}
-.pc-btn-free:hover{border-color:var(--text3)}
-.pc-btn-or{background:var(--or);color:#000;border:none}
-.pc-btn-or:hover{opacity:.85}
-.pc-btn-am{background:var(--am);color:#000;border:none}
-.pc-btn-am:hover{opacity:.85}
-.tag-or{display:inline-block;border-radius:99px;font-size:10px;font-weight:700;padding:2px 10px;letter-spacing:.8px;text-transform:uppercase;margin-bottom:12px;background:var(--or-d);color:var(--or);border:1px solid var(--or-b)}
-.tag-am{display:inline-block;border-radius:99px;font-size:10px;font-weight:700;padding:2px 10px;letter-spacing:.8px;text-transform:uppercase;margin-bottom:12px;background:rgba(245,158,11,.1);color:var(--am);border:1px solid rgba(245,158,11,.25)}
+.nav-cta {
+  background: transparent;
+  border: 1px solid var(--border2);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-size: 13.5px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
 
-/* ── FAQ ── */
-.faq{padding:80px 48px;max-width:680px;margin:0 auto}
-.faq-i{border-bottom:1px solid var(--border);padding:22px 0}
-.faq-q{font-size:15px;font-weight:600;color:var(--text);margin-bottom:8px;display:flex;justify-content:space-between;gap:16px}
-.faq-q span{color:var(--text3);flex-shrink:0}
-.faq-a{font-size:14px;color:var(--text2);line-height:1.7}
+.nav-cta:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+}
 
-/* ── CTA ── */
-.cta{padding:96px 48px;text-align:center;border-top:1px solid var(--border)}
-.cta h2{font-size:clamp(32px,4vw,52px);font-weight:700;color:var(--text);letter-spacing:-2px;margin-bottom:12px}
-.cta p{font-size:16px;color:var(--text2);margin-bottom:32px}
-.cta-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:20px}
-.wa-btn{display:inline-flex;align-items:center;gap:8px;background:rgba(37,211,102,.07);border:1.5px solid rgba(37,211,102,.18);color:#25d366;border-radius:8px;padding:11px 20px;font-size:14px;font-weight:600;text-decoration:none;font-family:inherit;transition:all .15s}
-.wa-btn:hover{background:rgba(37,211,102,.14)}
-.em-btn{display:inline-flex;align-items:center;gap:8px;background:rgba(59,130,246,.07);border:1.5px solid rgba(59,130,246,.18);color:#60a5fa;border-radius:8px;padding:11px 20px;font-size:14px;font-weight:600;text-decoration:none;font-family:inherit;transition:all .15s}
-.em-btn:hover{background:rgba(59,130,246,.14)}
+/* ── HERO A PANTALLA COMPLETA (Cinemático y Atmosférico) ── */
+.hero-fullscreen {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.hero-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  filter: brightness(0.35) contrast(1.05);
+  z-index: 1;
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at center, rgba(7, 7, 9, 0.2) 0%, rgba(7, 7, 9, 0.95) 100%);
+  z-index: 2;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 3;
+  max-width: 900px;
+  padding: 0 24px;
+  text-align: center;
+  margin-top: 24px;
+}
+
+.hero-tag {
+  display: inline-block;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 24px;
+}
+
+h1 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(40px, 5.8vw, 80px);
+  font-weight: 700;
+  line-height: 1.0;
+  letter-spacing: -2.5px;
+  color: var(--text);
+  margin-bottom: 24px;
+  text-transform: uppercase;
+}
+
+h1 em {
+  font-style: normal;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.hero-sub {
+  font-size: clamp(15px, 1.6vw, 18px);
+  color: var(--text2);
+  max-width: 580px;
+  margin: 0 auto 40px;
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+.hero-btns {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  padding: 14px 28px;
+  font-size: 14.5px;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  opacity: 0.92;
+  box-shadow: 0 10px 25px rgba(226, 199, 153, 0.15);
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border2);
+  border-radius: 8px;
+  padding: 13px 26px;
+  font-size: 14.5px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.btn-ghost:hover {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+
+/* ── SECCIONES GENERALES ── */
+.sec {
+  padding: 120px 48px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.sec-lbl {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.sec-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(28px, 3.8vw, 44px);
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -1.5px;
+  line-height: 1.1;
+  margin-bottom: 20px;
+}
+
+.sec-sub {
+  font-size: 16px;
+  color: var(--text2);
+  max-width: 520px;
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+/* ── LA EXPERIENCIA (Diseño Asimétrico 50/50 Split) ── */
+.experience-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.1fr;
+  gap: 80px;
+  align-items: center;
+}
+
+.experience-left {
+  min-width: 0;
+}
+
+.experience-right {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.chk {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 36px;
+}
+
+.chk li {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  font-size: 15px;
+  color: var(--text2);
+  line-height: 1.5;
+}
+
+.chk li::before {
+  content: '✓';
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  flex-shrink: 0;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--accent);
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 1px;
+}
+
+.experience-img-wrap {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+  background: var(--bg2);
+}
+
+.experience-img-wrap::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+  pointer-events: none;
+}
+
+.experience-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 520px;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.experience-img-wrap:hover .experience-img {
+  transform: scale(1.02);
+}
+
+/* ── TESTIMONIOS (2 Columns Premium) ── */
+.testi-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-top: 56px;
+}
+
+.testi {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 48px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.3s ease;
+}
+
+.testi:hover {
+  border-color: var(--accent-border);
+  background: rgba(20, 20, 24, 0.6);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+.testi-quote {
+  font-family: Georgia, serif;
+  font-size: 64px;
+  color: var(--accent);
+  line-height: 1;
+  opacity: 0.2;
+  position: absolute;
+  top: 24px;
+  left: 32px;
+}
+
+.testi p {
+  font-size: 16px;
+  color: var(--text);
+  line-height: 1.7;
+  position: relative;
+  z-index: 2;
+  margin-bottom: 36px;
+  font-weight: 300;
+}
+
+.testi-author {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.testi-init {
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--accent);
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.testi-name {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.testi-loc {
+  font-size: 12px;
+  color: var(--text3);
+  margin-top: 2px;
+  font-weight: 300;
+}
+
+/* ── PRECIOS Y PLANES ── */
+.pricing {
+  padding: 120px 48px;
+  text-align: center;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.pricing h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(28px, 3.8vw, 44px);
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -1.5px;
+  margin-bottom: 16px;
+}
+
+.price-cards {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 56px;
+}
+
+.pc {
+  flex: 1;
+  min-width: 280px;
+  max-width: 340px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 40px 32px;
+  text-align: left;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pc:hover {
+  transform: translateY(-4px);
+  border-color: var(--border2);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.35);
+}
+
+.pc.feat {
+  border-color: var(--accent-border);
+  background: rgba(226, 199, 153, 0.02);
+  box-shadow: 0 0 0 1px var(--accent-border), 0 20px 40px rgba(0,0,0,0.2);
+}
+
+.pc.feat:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), 0 30px 60px rgba(226, 199, 153, 0.06);
+}
+
+.pc.anual {
+  border-color: rgba(251, 191, 36, 0.2);
+  background: rgba(251, 191, 36, 0.01);
+}
+
+.pc.anual:hover {
+  border-color: var(--am);
+  box-shadow: 0 0 0 1px var(--am), 0 30px 60px rgba(251, 191, 36, 0.06);
+}
+
+.pc-lbl {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 16px;
+}
+
+.pc-lbl.or {
+  color: var(--accent);
+}
+
+.pc-lbl.am {
+  color: var(--am);
+}
+
+.pc-amt {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -2px;
+  line-height: 1;
+}
+
+.pc-per {
+  font-size: 14px;
+  color: var(--text2);
+  margin-left: 4px;
+}
+
+.pc-desc {
+  font-size: 14px;
+  color: var(--text2);
+  margin: 16px 0 28px;
+  line-height: 1.5;
+  min-height: 42px;
+}
+
+.pc-feats {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 36px;
+}
+
+.pc-feats li {
+  font-size: 13.5px;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pc-feats li::before {
+  content: '✓';
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.pc.anual .pc-feats li::before {
+  color: var(--am);
+}
+
+.pc-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 14.5px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  text-align: center;
+  text-decoration: none;
+  display: block;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.pc-btn-free {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border2);
+}
+
+.pc-btn-free:hover {
+  border-color: var(--text2);
+  background: rgba(255,255,255,0.03);
+}
+
+.pc-btn-or {
+  background: var(--accent);
+  color: #000;
+  border: none;
+}
+
+.pc-btn-or:hover {
+  opacity: 0.9;
+  box-shadow: 0 8px 20px rgba(226, 199, 153, 0.15);
+}
+
+.pc-btn-am {
+  background: var(--am);
+  color: #000;
+  border: none;
+}
+
+.pc-btn-am:hover {
+  opacity: 0.9;
+  box-shadow: 0 8px 20px rgba(251, 191, 36, 0.15);
+}
+
+.tag-or {
+  display: inline-block;
+  align-self: flex-start;
+  border-radius: 99px;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 3px 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: 1px solid var(--accent-border);
+}
+
+.tag-am {
+  display: inline-block;
+  align-self: flex-start;
+  border-radius: 99px;
+  font-size: 9px;
+  font-weight: 700;
+  padding: 3px 12px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 20px;
+  background: var(--am-d);
+  color: var(--am);
+  border: 1px solid rgba(251, 191, 36, 0.2);
+}
+
+/* ── CALCULADORA DE COSTES (Satinada e Instrumental) ── */
+.calc-card {
+  margin: 0 auto;
+  max-width: 540px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 40px;
+  text-align: left;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+}
+
+.calc-input-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.calc-input {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-size: 16px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.calc-input:focus {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 2px var(--accent-dim);
+}
+
+.calc-range {
+  flex: 1;
+  accent-color: var(--accent);
+  height: 4px;
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.calc-result-box {
+  background: var(--bg);
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  padding: 16px;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.calc-result-box.highlight {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.calc-result-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+
+.calc-result-value {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.calc-cta-btn {
+  display: block;
+  background: var(--accent);
+  color: #000;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 14.5px;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  margin-top: 12px;
+  transition: all 0.2s ease;
+}
+
+.calc-cta-btn:hover {
+  opacity: 0.9;
+  box-shadow: 0 8px 20px rgba(226, 199, 153, 0.15);
+}
+
+/* ── PREGUNTAS FRECUENTES (FAQ Accordions) ── */
+.faq {
+  padding: 120px 48px;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.faq-i {
+  border-bottom: 1px solid var(--border);
+  padding: 24px 0;
+  cursor: pointer;
+}
+
+.faq-q {
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  transition: color 0.2s ease;
+}
+
+.faq-q span {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px;
+  color: var(--text3);
+  transition: transform 0.3s ease, color 0.2s ease;
+}
+
+.faq-i:hover .faq-q {
+  color: var(--accent);
+}
+.faq-i:hover .faq-q span {
+  color: var(--accent);
+}
+
+.faq-a {
+  font-size: 14.5px;
+  color: var(--text2);
+  line-height: 1.6;
+  margin-top: 12px;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+  opacity: 0;
+  pointer-events: none;
+  font-weight: 300;
+}
+
+.faq-i.active .faq-a {
+  max-height: 160px;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.faq-i.active .faq-q span {
+  transform: rotate(45deg);
+  color: var(--accent);
+}
+
+/* ── CTA FINAL SECCIÓN ── */
+.cta {
+  padding: 120px 48px;
+  text-align: center;
+  border-top: 1px solid var(--border);
+  background: var(--bg2);
+}
+
+.cta h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: clamp(32px, 4.5vw, 56px);
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -2px;
+  margin-bottom: 16px;
+}
+
+.cta p {
+  font-size: 16px;
+  color: var(--text2);
+  margin-bottom: 40px;
+  font-weight: 300;
+}
+
+.cta-btns {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin-top: 24px;
+}
+
+.wa-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(37, 211, 102, 0.04);
+  border: 1px solid rgba(37, 211, 102, 0.2);
+  color: #25d366;
+  border-radius: 8px;
+  padding: 12px 22px;
+  font-size: 14.5px;
+  font-weight: 600;
+  text-decoration: none;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.wa-btn:hover {
+  background: rgba(37, 211, 102, 0.1);
+  border-color: #25d366;
+}
+
+.em-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(226, 199, 153, 0.04);
+  border: 1px solid var(--accent-border);
+  color: var(--accent);
+  border-radius: 8px;
+  padding: 12px 22px;
+  font-size: 14.5px;
+  font-weight: 600;
+  text-decoration: none;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.em-btn:hover {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+}
 
 /* ── FOOTER ── */
-footer{padding:28px 48px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;font-size:13px;color:var(--text3)}
-footer a{color:var(--or);text-decoration:none}
-footer a:hover{text-decoration:underline}
+footer {
+  padding: 40px 48px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+  font-size: 13px;
+  color: var(--text3);
+}
 
-/* ── ANIMACIONES ── */
-.reveal{opacity:0;transform:translateY(22px);transition:opacity .65s ease,transform .65s ease}
-.reveal.visible{opacity:1;transform:none}
-@supports not (overflow:clip){.reveal{opacity:1;transform:none}}
+footer a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+footer a:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+/* ── REVEAL SYSTEM ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: none;
+}
+
+@supports not (overflow:clip) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
 
 /* ── RESPONSIVE ── */
-@media(max-width:860px){
-  nav{padding:14px 20px}
-  .nav-links{display:none}
-  .hero{padding:100px 20px 60px;flex-direction:column;gap:40px;min-height:auto}
-  .hero-right{display:flex;justify-content:center;width:100%}
-  h1{letter-spacing:-1.5px}
-  .stats{flex-wrap:wrap}
-  .stat{min-width:50%;border-bottom:1px solid var(--border)}
-  .sec,.faq,.pricing,.cta{padding:60px 20px}
-  .mockup-wrap{padding:60px 20px;gap:40px;flex-direction:column}
-  .phone{width:200px}
-  .intl-sec{padding:60px 20px}
-  .intl-inner{gap:40px}
-  .currency-grid{max-width:100%}
-  .price-cards{flex-direction:column;align-items:center}
-  .pc{max-width:100%;min-width:unset;width:100%}
-  footer{padding:24px 20px;flex-direction:column;text-align:center}
+@media (max-width: 960px) {
+  nav {
+    padding: 0 24px;
+  }
+  .nav-links {
+    display: none;
+  }
+  .experience-grid {
+    grid-template-columns: 1fr;
+    gap: 48px;
+  }
+  .experience-right {
+    justify-content: center;
+  }
+  .testi-grid-2 {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .sec, .pricing, .faq, .cta {
+    padding: 80px 24px;
+  }
+  .calc-card {
+    padding: 24px;
+  }
+  footer {
+    padding: 32px 24px;
+    flex-direction: column;
+    text-align: center;
+  }
 }
 </style>
 </head>
@@ -286,7 +1069,7 @@ footer a:hover{text-decoration:underline}
     <span class="nav-brand">Brami3D</span>
   </a>
   <div class="nav-links">
-    <a href="#funciones" data-i18n="nav.features">Funciones</a>
+    <a href="#experiencia" data-i18n="nav.features">Experiencia</a>
     <a href="#precios" data-i18n="nav.pricing">Precios</a>
     <a href="#calculadora" data-i18n="nav.calc">Calculadora</a>
   </div>
@@ -297,194 +1080,126 @@ footer a:hover{text-decoration:underline}
 </nav>
 
 <!-- ── HERO ── -->
-<section class="hero">
-  <div class="hero-left">
-    <p class="hero-tag" data-i18n="hero.tag">Gestión para impresión 3D</p>
-    <h1 data-i18n-html="hero.h1">Tu taller merece<br>algo mejor que<br><em>un Excel.</em></h1>
-    <p class="hero-sub" data-i18n="hero.sub">Pedidos, facturas legales, stock de filamento y clientes. Todo en una app que cabe en tu bolsillo y funciona desde el móvil.</p>
+<section class="hero-fullscreen">
+  <div class="hero-bg" style="background-image: url('hero_cinematic.png');"></div>
+  <div class="hero-overlay"></div>
+  <div class="hero-content">
+    <p class="hero-tag" data-i18n="hero.tag">Orquestación para impresión 3D</p>
+    <h1 data-i18n-html="hero.h1">La materia cobra orden.<br>El control se hace <em>arte.</em></h1>
+    <p class="hero-sub" data-i18n="hero.sub">Brami3D orquesta cada filamento, cada pedido y cada factura de tu taller. Para que tú solo pienses en crear.</p>
     <div class="hero-btns">
       <a href="https://brami3d.app/brami3d_supabase.html" class="btn-primary" data-i18n="hero.start">Empezar gratis →</a>
-      <a href="#funciones" class="btn-ghost" data-i18n="hero.see">Ver funciones</a>
+      <a href="#experiencia" class="btn-ghost" data-i18n="hero.see">Vivir la experiencia</a>
     </div>
   </div>
-  <div class="hero-right">
-    <div class="phone">
-      <div class="phone-scr">
-        <div class="p-top">
-          <span class="p-logo">Brami3D</span>
-          <span style="font-size:12px;color:var(--text3)">🌙</span>
-        </div>
-        <div class="p-stat">
-          <div><div class="p-stat-l" data-i18n="ph.revenue">Ingresos</div><div class="p-stat-v">1.240€</div></div>
-          <div style="text-align:right"><div class="p-stat-l" data-i18n="ph.profit">Beneficio</div><div class="p-stat-v" style="color:var(--or)">892€</div></div>
-        </div>
-        <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin:10px 0 6px;font-weight:700" data-i18n="ph.recent">Pedidos recientes</div>
-        <div class="p-order"><div><div class="p-ord-n" data-i18n="ph.o1">Cerrojos x3</div><span class="pbadge bc" data-i18n="ph.paid">cobrado</span></div><div class="p-ord-p">25.00€</div></div>
-        <div class="p-order"><div><div class="p-ord-n" data-i18n="ph.o2">Soporte GoPro</div><span class="pbadge bi" data-i18n="ph.printing">imprimiendo</span></div><div class="p-ord-p">18.50€</div></div>
-        <div class="p-order"><div><div class="p-ord-n" data-i18n="ph.o3">Pieza motor</div><span class="pbadge bp" data-i18n="ph.pending">pendiente</span></div><div class="p-ord-p">42.00€</div></div>
-        <div style="font-size:9px;color:var(--am);background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.18);border-radius:8px;padding:7px 10px;margin-top:8px" data-i18n="ph.warn">⚠ PLA Smartfil — 180g restantes</div>
+</section>
+
+<!-- ── LA EXPERIENCIA ── -->
+<section id="experiencia" class="sec reveal">
+  <div class="experience-grid">
+    <div class="experience-left">
+      <span class="sec-lbl" data-i18n="exp.lbl">La Experiencia</span>
+      <h2 class="sec-title" data-i18n-html="exp.title">El flujo impecable:<br>de la idea a la pieza física.</h2>
+      <p class="sec-sub" data-i18n="exp.sub">Una interfaz calibrada para la agilidad absoluta. Registra bobinas, calcula costes reales y genera facturas con un solo toque.</p>
+      <ul class="chk">
+        <li data-i18n="exp.c1">Rapidez sin fricciones — emite facturas en segundos</li>
+        <li data-i18n="exp.c2">Todo en su sitio — pedidos, clientes, stock de filamento y mantenimiento</li>
+        <li data-i18n="exp.c3">Movilidad total — diseñado para smartphones y PWAs nativas</li>
+        <li data-i18n="exp.c4">Métricas de precisión — costes de energía y material al milímetro</li>
+      </ul>
+    </div>
+    <div class="experience-right">
+      <div class="experience-img-wrap">
+        <img src="experience_pwa.png" alt="Brami3D Experiencia PWA" class="experience-img">
       </div>
     </div>
   </div>
 </section>
 
-<!-- ── STATS ── -->
-<div class="stats reveal">
-  <div class="stat"><div class="stat-n">30s</div><div class="stat-l" data-i18n="st.1l">Para crear una factura</div></div>
-  <div class="stat"><div class="stat-n">6</div><div class="stat-l" data-i18n="st.2l">Módulos integrados</div></div>
-  <div class="stat"><div class="stat-n">100%</div><div class="stat-l" data-i18n="st.3l">Desde el móvil</div></div>
-  <div class="stat"><div class="stat-n">0€</div><div class="stat-l" data-i18n="st.4l">Para empezar</div></div>
-</div>
-
-<!-- ── FEATURES ── -->
-<div id="funciones" class="sec reveal">
-  <span class="sec-lbl" data-i18n="feat.lbl">Funcionalidades</span>
-  <h2 class="sec-title" data-i18n-html="feat.title">Todo lo que necesitas<br>para tu taller</h2>
-  <p class="sec-sub" data-i18n="feat.sub">Diseñada específicamente para negocios de impresión 3D.</p>
-  <div class="feat-grid">
-    <div class="feat"><span class="feat-num">01</span><h3 data-i18n="f1.t">Gestión de pedidos</h3><p data-i18n="f1.p">Crea presupuestos profesionales y genera facturas legales con un toque.</p></div>
-    <div class="feat"><span class="feat-num">02</span><h3 data-i18n="f2.t">Control de filamento</h3><p data-i18n="f2.p">Registra cada bobina con su precio y stock. Alerta cuando queda menos de 250g.</p></div>
-    <div class="feat"><span class="feat-num">03</span><h3 data-i18n="f3.t">Cálculo de costes real</h3><p data-i18n="f3.p">Filamento, electricidad, diseño y postprocesado calculados automáticamente.</p></div>
-    <div class="feat"><span class="feat-num">04</span><h3 data-i18n="f4.t">Clientes y historial</h3><p data-i18n="f4.p">Base de datos con NIF/CIF, historial de compras y exportación a Excel.</p></div>
-    <div class="feat"><span class="feat-num">05</span><h3 data-i18n="f5.t">Control de impresoras</h3><p data-i18n="f5.p">Consumo eléctrico, horas de uso y nivel de desgaste de cada máquina.</p></div>
-    <div class="feat"><span class="feat-num">06</span><h3 data-i18n="f6.t">Informes mensuales</h3><p data-i18n="f6.p">PDF mensual con ingresos, costes, beneficio y consumo de filamento.</p></div>
-  </div>
-</div>
-
-<!-- ── INTERNACIONAL ── -->
-<div class="intl-sec reveal">
-  <div class="intl-inner">
-    <div class="intl-txt">
-      <span class="sec-lbl" data-i18n="intl.lbl">Internacional</span>
-      <h2 class="sec-title" data-i18n="intl.title">Funciona en cualquier país</h2>
-      <p class="sec-sub" data-i18n="intl.sub">Configura tu moneda, el nombre y el porcentaje de tus impuestos. Brami3D no asume que estás en España.</p>
-      <ul class="chk" style="margin-top:24px">
-        <li data-i18n="intl.c1">Moneda personalizable — €, $, £, R$, MXN y cualquier otra</li>
-        <li data-i18n="intl.c2">Nombre del impuesto libre — IVA, VAT, GST, IGIC...</li>
-        <li data-i18n="intl.c3">Dos tipos impositivos simultáneos</li>
-        <li data-i18n="intl.c4">Disponible en español e inglés — cambia el idioma con un toque</li>
-        <li data-i18n="intl.c5">Facturas adaptadas a tu país desde el primer pedido</li>
-      </ul>
-    </div>
-    <div class="intl-pills">
-      <div class="currency-grid">
-        <div class="cpill"><span class="cflag">🇪🇸</span><span class="ccode">€ IVA</span></div>
-        <div class="cpill"><span class="cflag">🇺🇸</span><span class="ccode">$ Tax</span></div>
-        <div class="cpill"><span class="cflag">🇬🇧</span><span class="ccode">£ VAT</span></div>
-        <div class="cpill"><span class="cflag">🇧🇷</span><span class="ccode">R$ ICMS</span></div>
-        <div class="cpill"><span class="cflag">🇲🇽</span><span class="ccode">MXN IVA</span></div>
-        <div class="cpill"><span class="cflag">🇦🇷</span><span class="ccode">ARS IVA</span></div>
-        <div class="cpill"><span class="cflag">🇨🇦</span><span class="ccode">CAD GST</span></div>
-        <div class="cpill"><span class="cflag">🇦🇺</span><span class="ccode">AUD GST</span></div>
-        <div class="cpill cpill-more"><span class="ccode" data-i18n="intl.more">+ cualquier otra</span></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ── MOCKUP ── -->
-<div class="mockup-wrap reveal">
-  <div class="mockup-txt">
-    <span class="sec-lbl" data-i18n="mk.lbl">Diseñada para móvil</span>
-    <h2 data-i18n="mk.title">Gestiona desde donde estés</h2>
-    <p data-i18n="mk.p">Funciona en móvil, tablet y ordenador. Instálala en tu pantalla de inicio y úsala como una app nativa.</p>
-    <ul class="chk">
-      <li data-i18n="mk.c1">Navegación inferior táctil</li>
-      <li data-i18n="mk.c2">Modo claro y oscuro</li>
-      <li data-i18n="mk.c3">Datos sincronizados en todos tus dispositivos</li>
-      <li data-i18n="mk.c4">Funciona desde cualquier navegador</li>
-    </ul>
-  </div>
-  <div class="phone">
-    <div class="phone-scr">
-      <div class="p-top">
-        <span class="p-logo">Brami3D</span>
-        <span style="font-size:12px;color:var(--text3)">☀</span>
-      </div>
-      <div class="p-stat">
-        <div><div class="p-stat-l" data-i18n="ph.revenue">Ingresos</div><div class="p-stat-v">1.240€</div></div>
-        <div style="text-align:right"><div class="p-stat-l" data-i18n="ph.profit">Beneficio</div><div class="p-stat-v" style="color:var(--or)">892€</div></div>
-      </div>
-      <div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin:10px 0 6px;font-weight:700" data-i18n="ph.recent">Pedidos recientes</div>
-      <div class="p-order"><div><div class="p-ord-n" data-i18n="ph.o1">Cerrojos x3</div><span class="pbadge bc" data-i18n="ph.paid">cobrado</span></div><div class="p-ord-p">25.00€</div></div>
-      <div class="p-order"><div><div class="p-ord-n" data-i18n="ph.o2">Soporte GoPro</div><span class="pbadge bi" data-i18n="ph.printing">imprimiendo</span></div><div class="p-ord-p">18.50€</div></div>
-      <div class="p-order"><div><div class="p-ord-n" data-i18n="ph.o3">Pieza motor</div><span class="pbadge bp" data-i18n="ph.pending">pendiente</span></div><div class="p-ord-p">42.00€</div></div>
-      <div style="font-size:9px;color:var(--am);background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.18);border-radius:8px;padding:7px 10px;margin-top:8px" data-i18n="ph.warn">⚠ PLA Smartfil — 180g restantes</div>
-    </div>
-  </div>
-</div>
-
 <!-- ── TESTIMONIOS ── -->
-<div class="sec reveal" style="padding-top:60px;padding-bottom:60px">
-  <span class="sec-lbl" data-i18n="ts.lbl">Testimonios</span>
-  <h2 class="sec-title" data-i18n="ts.title">Lo que dicen los usuarios</h2>
-  <div class="testi-grid">
+<section class="sec reveal" style="padding-top:40px; padding-bottom:80px;">
+  <span class="sec-lbl" data-i18n="ts.lbl" style="text-align: center;">Testimonios</span>
+  <h2 class="sec-title" data-i18n="ts.title" style="text-align: center; margin-bottom: 56px;">La precisión en palabras</h2>
+  <div class="testi-grid-2">
     <div class="testi">
-      <div class="testi-quote">"</div>
-      <p data-i18n="ts.1">Antes usaba Excel y perdía tiempo calculando cada pedido. Con Brami3D el precio me sale solo y la factura en 10 segundos.</p>
-      <div class="testi-author"><div class="testi-init">C</div><div><div class="testi-name">Carlos M.</div><div class="testi-loc" data-i18n="ts.1loc">Taller 3D en Madrid</div></div></div>
+      <div class="testi-quote">“</div>
+      <p data-i18n="ts.1">Brami3D ha transformado nuestra línea de producción de componentes aeroespaciales en Alicante. De la cotización a la impresión en un flujo impecable.</p>
+      <div class="testi-author">
+        <div class="testi-init">HV</div>
+        <div>
+          <div class="testi-name">Héctor Valls</div>
+          <div class="testi-loc" data-i18n="ts.1loc">Director de Ingeniería en Valls Digital</div>
+        </div>
+      </div>
     </div>
     <div class="testi">
-      <div class="testi-quote">"</div>
-      <p data-i18n="ts.2">El control de filamento es lo que más uso. Me avisa cuando queda poco y nunca más me he quedado sin material en medio de un pedido.</p>
-      <div class="testi-author"><div class="testi-init">L</div><div><div class="testi-name">Laura G.</div><div class="testi-loc" data-i18n="ts.2loc">Impresión 3D en Valencia</div></div></div>
-    </div>
-    <div class="testi">
-      <div class="testi-quote">"</div>
-      <p data-i18n="ts.3">Mis clientes me piden facturas y antes era un lío. Ahora genero un PDF legal en segundos directamente desde el móvil.</p>
-      <div class="testi-author"><div class="testi-init">R</div><div><div class="testi-name">Roberto F.</div><div class="testi-loc" data-i18n="ts.3loc">Maker & freelance en Sevilla</div></div></div>
+      <div class="testi-quote">“</div>
+      <p data-i18n="ts.2">Bajo volumen ya no significa caos operativo. La precisión que exigimos a nuestras impresoras es la misma que Brami3D aporta a nuestras finanzas.</p>
+      <div class="testi-author">
+        <div class="testi-init">SL</div>
+        <div>
+          <div class="testi-name">Sofía G. Lerma</div>
+          <div class="testi-loc" data-i18n="ts.2loc">Cofundadora de Additive Atelier</div>
+        </div>
+      </div>
     </div>
   </div>
-</div>
+</section>
 
 <!-- ── PRICING ── -->
-<div id="precios" class="pricing reveal">
-  <span class="sec-lbl" data-i18n="pr.lbl">Precios</span>
-  <h2 data-i18n="pr.title">Simple y sin sorpresas</h2>
-  <p data-i18n="pr.sub">Prueba gratis 30 días. Sin tarjeta de crédito.</p>
+<section id="precios" class="pricing reveal">
+  <span class="sec-lbl" data-i18n="pr.lbl">Planes de Control</span>
+  <h2 data-i18n="pr.title">Inversión clara, sin sorpresas</h2>
+  <p data-i18n="pr.sub" style="max-width: 600px; margin: 0 auto 56px;">Prueba gratis 30 días. Sin tarjeta de crédito. Cancela en cualquier momento.</p>
+  
   <div class="price-cards">
+    <!-- Básico -->
     <div class="pc">
       <div class="pc-lbl" data-i18n="pr.basic">Básico</div>
       <div><span class="pc-amt" data-i18n="pr.free">Gratis</span></div>
-      <p class="pc-desc" data-i18n="pr.basicDesc">Para empezar y probar sin compromiso.</p>
+      <p class="pc-desc" data-i18n="pr.basicDesc">Control esencial para pequeños creadores.</p>
       <ul class="pc-feats">
         <li data-i18n="pr.b1">Hasta 10 pedidos al mes</li>
-        <li data-i18n="pr.b2">5 clientes</li>
-        <li data-i18n="pr.b3">Presupuestos PDF</li>
-        <li data-i18n="pr.b4">Control de filamento</li>
+        <li data-i18n="pr.b2">5 clientes activos</li>
+        <li data-i18n="pr.b3">Presupuestos en PDF</li>
+        <li data-i18n="pr.b4">Control de stock de filamento</li>
       </ul>
       <a href="https://brami3d.app/brami3d_supabase.html" class="pc-btn pc-btn-free" data-i18n="pr.startFree">Empezar gratis</a>
     </div>
+    
+    <!-- Pro Mensual -->
     <div class="pc feat">
-      <span class="tag-or" data-i18n="pr.popular">Más popular</span>
+      <span class="tag-or" data-i18n="pr.popular">Recomendado</span>
       <div class="pc-lbl or" data-i18n="pr.monthly">Pro Mensual</div>
       <div><span class="pc-amt">9</span><span class="pc-per" data-i18n="pr.permo">€/mes</span></div>
-      <p class="pc-desc" style="color:var(--or);font-weight:600" data-i18n="pr.monthlyDesc">Menos de lo que cobras por una pieza</p>
+      <p class="pc-desc" data-i18n="pr.monthlyDesc">Potencia y capacidad sin límites operativos.</p>
       <ul class="pc-feats">
         <li data-i18n="pr.m1">Pedidos y clientes ilimitados</li>
-        <li data-i18n="pr.m2">Facturas legales con NIF</li>
-        <li data-i18n="pr.m3">Informes mensuales PDF</li>
-        <li data-i18n="pr.m4">Exportar a Excel</li>
-        <li data-i18n="pr.m5">Soporte prioritario</li>
+        <li data-i18n="pr.m2">Facturas legales con NIF/CIF</li>
+        <li data-i18n="pr.m3">Informes mensuales en PDF</li>
+        <li data-i18n="pr.m4">Exportación a Excel</li>
+        <li data-i18n="pr.m5">Soporte técnico prioritario</li>
       </ul>
-      <button onclick="openPayModal('mensual')" class="pc-btn pc-btn-or" data-i18n="pr.getMonthly">Contratar Pro Mensual →</button>
+      <button onclick="openPayModal('mensual')" class="pc-btn pc-btn-or" data-i18n="pr.getMonthly">Adquirir Plan Mensual →</button>
     </div>
+    
+    <!-- Pro Anual -->
     <div class="pc anual">
       <span class="tag-am" data-i18n="pr.save">Ahorra 29€</span>
       <div class="pc-lbl am" data-i18n="pr.annual">Pro Anual</div>
-      <div><span class="pc-amt" style="color:var(--am)">79</span><span class="pc-per" data-i18n="pr.peryr">€/año</span></div>
-      <p class="pc-desc" data-i18n-html="pr.annualDesc">Equivale a <b style="color:var(--am)">6.50€/mes</b> — recuperas el coste con el primer pedido del año.</p>
+      <div><span class="pc-amt">79</span><span class="pc-per" data-i18n="pr.peryr">€/año</span></div>
+      <p class="pc-desc" data-i18n-html="pr.annualDesc">Equivale a <b style="color:var(--accent)">6,50€/mes</b>. La máxima rentabilidad anual.</p>
       <ul class="pc-feats">
         <li data-i18n="pr.a1">Todo lo del plan mensual</li>
-        <li data-i18n="pr.a2">2 meses gratis incluidos</li>
-        <li data-i18n="pr.a3">Acceso anticipado a novedades</li>
-        <li data-i18n="pr.a4">Soporte prioritario</li>
+        <li data-i18n="pr.a2">2 meses de cortesía incluidos</li>
+        <li data-i18n="pr.a3">Acceso exclusivo a betas</li>
+        <li data-i18n="pr.a4">Soporte prioritario 24/7</li>
       </ul>
-      <button onclick="openPayModal('anual')" class="pc-btn pc-btn-am" data-i18n="pr.getAnnual">Contratar Pro Anual →</button>
+      <button onclick="openPayModal('anual')" class="pc-btn pc-btn-am" data-i18n="pr.getAnnual">Adquirir Plan Anual →</button>
     </div>
   </div>
-  <p style="font-size:13px;color:var(--text4);margin-top:28px" data-i18n="pr.note">Sin permanencia &nbsp;·&nbsp; Cancela cuando quieras &nbsp;·&nbsp; Datos siempre tuyos</p>
-</div>
+  <p style="font-size:13px;color:var(--text3);margin-top:32px" data-i18n="pr.note">Sin permanencia &nbsp;·&nbsp; Cancela cuando quieras &nbsp;·&nbsp; Datos siempre exportables</p>
+</section>
 
 <!-- ── FAQ ── -->
 <div class="faq reveal">
@@ -500,38 +1215,63 @@ footer a:hover{text-decoration:underline}
 </div>
 
 <!-- ── CALCULADORA ── -->
-<div id="calculadora" class="pricing reveal" style="padding-bottom:40px">
-  <span class="sec-lbl" data-i18n="cal.lbl">Calculadora gratuita</span>
-  <h2 data-i18n-html="cal.title">Calcula el precio<br>de tu pieza ahora</h2>
-  <p style="font-size:17px" data-i18n="cal.sub">Sin registrarte — y si te gusta, regístrate gratis para guardar los cálculos como pedidos.</p>
-  <div style="margin:32px auto 0;max-width:460px;background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:24px;text-align:left">
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-      <div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px" data-i18n="cal.weight">Peso (g)</div><input type="number" id="lc-peso" placeholder="85" oninput="lcalc()" style="width:100%;padding:10px 12px;background:var(--bg);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);font-size:16px;font-family:inherit;outline:none"></div>
-      <div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px" data-i18n="cal.time">Tiempo (h)</div><input type="number" id="lc-tiempo" placeholder="4.5" step="0.1" oninput="lcalc()" style="width:100%;padding:10px 12px;background:var(--bg);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);font-size:16px;font-family:inherit;outline:none"></div>
-      <div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px" data-i18n="cal.fil">Filamento (€/kg)</div><input type="number" id="lc-fil" placeholder="20" oninput="lcalc()" style="width:100%;padding:10px 12px;background:var(--bg);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);font-size:16px;font-family:inherit;outline:none"></div>
-      <div><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px" data-i18n="cal.power">Consumo (W)</div><input type="number" id="lc-w" placeholder="200" oninput="lcalc()" style="width:100%;padding:10px 12px;background:var(--bg);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);font-size:16px;font-family:inherit;outline:none"></div>
-      <div style="grid-column:1/-1"><div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px" data-i18n="cal.elec">Electricidad (€/kWh)</div><input type="number" id="lc-kwh" placeholder="0.15" step="0.01" value="0.15" oninput="lcalc()" style="width:100%;padding:10px 12px;background:var(--bg);border:1.5px solid var(--border2);border-radius:8px;color:var(--text);font-size:16px;font-family:inherit;outline:none"></div>
+<section id="calculadora" class="pricing reveal" style="padding-bottom:120px; border-top: 1px solid var(--border);">
+  <span class="sec-lbl" data-i18n="cal.lbl">Herramienta Gratuita</span>
+  <h2 data-i18n-html="cal.title">Cotizador de Precisión</h2>
+  <p style="font-size:16px; color: var(--text2); margin-bottom: 48px;" data-i18n="cal.sub">Calcula el precio de tu pieza al instante. Sin registros.</p>
+  
+  <div class="calc-card">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+      <div>
+        <div class="calc-input-label" data-i18n="cal.weight">Peso (g)</div>
+        <input type="number" id="lc-peso" placeholder="85" oninput="lcalc()" class="calc-input">
+      </div>
+      <div>
+        <div class="calc-input-label" data-i18n="cal.time">Tiempo (h)</div>
+        <input type="number" id="lc-tiempo" placeholder="4.5" step="0.1" oninput="lcalc()" class="calc-input">
+      </div>
+      <div>
+        <div class="calc-input-label" data-i18n="cal.fil">Filamento (€/kg)</div>
+        <input type="number" id="lc-fil" placeholder="20" oninput="lcalc()" class="calc-input">
+      </div>
+      <div>
+        <div class="calc-input-label" data-i18n="cal.power">Consumo (W)</div>
+        <input type="number" id="lc-w" placeholder="200" oninput="lcalc()" class="calc-input">
+      </div>
+      <div style="grid-column:1/-1">
+        <div class="calc-input-label" data-i18n="cal.elec">Electricidad (€/kWh)</div>
+        <input type="number" id="lc-kwh" placeholder="0.15" step="0.01" value="0.15" oninput="lcalc()" class="calc-input">
+      </div>
     </div>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-      <div style="font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;white-space:nowrap" data-i18n="cal.margin">Margen</div>
-      <input type="range" id="lc-margen" min="10" max="200" value="30" oninput="lcalc();document.getElementById('lc-mv').textContent=this.value+'%'" style="flex:1;accent-color:var(--or)">
-      <span id="lc-mv" style="font-size:13px;font-weight:700;color:var(--or);min-width:38px">30%</span>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:24px">
+      <div class="calc-input-label" style="margin-bottom:0;white-space:nowrap" data-i18n="cal.margin">Margen</div>
+      <input type="range" id="lc-margen" min="10" max="200" value="30" oninput="lcalc();document.getElementById('lc-mv').textContent=this.value+'%'" class="calc-range">
+      <span id="lc-mv" style="font-size:14px;font-weight:700;color:var(--accent);min-width:44px">30%</span>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
-      <div style="background:var(--bg);border-radius:9px;padding:12px;text-align:center"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px" data-i18n="cal.material">Material</div><div id="lc-mat" style="font-size:18px;font-weight:900;color:var(--text2);font-family:'DM Mono',monospace">0.00€</div></div>
-      <div style="background:var(--bg);border-radius:9px;padding:12px;text-align:center"><div style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px" data-i18n="cal.elecR">Electricidad</div><div id="lc-elec" style="font-size:18px;font-weight:900;color:var(--text2);font-family:'DM Mono',monospace">0.00€</div></div>
-      <div style="background:var(--or-d);border:1.5px solid var(--or-b);border-radius:9px;padding:12px;text-align:center"><div style="font-size:9px;color:var(--or);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px" data-i18n="cal.sale">Precio venta</div><div id="lc-total" style="font-size:20px;font-weight:900;color:var(--or);font-family:'DM Mono',monospace">0.00€</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:24px">
+      <div class="calc-result-box">
+        <div class="calc-result-label" data-i18n="cal.material">Material</div>
+        <div id="lc-mat" class="calc-result-value">0.00€</div>
+      </div>
+      <div class="calc-result-box">
+        <div class="calc-result-label" data-i18n="cal.elecR">Electricidad</div>
+        <div id="lc-elec" class="calc-result-value">0.00€</div>
+      </div>
+      <div class="calc-result-box highlight">
+        <div class="calc-result-label" style="color: var(--bg)" data-i18n="cal.sale">Venta</div>
+        <div id="lc-total" class="calc-result-value" style="color: var(--bg)">0.00€</div>
+      </div>
     </div>
-    <a href="https://brami3d.app/brami3d_supabase.html" style="display:block;background:var(--or);color:#000;border-radius:9px;padding:13px;font-size:15px;font-weight:700;text-align:center;text-decoration:none" data-i18n="cal.save">Guardar pedidos — Registrarse gratis →</a>
+    <a href="https://brami3d.app/brami3d_supabase.html" class="calc-cta-btn" data-i18n="cal.save">Guardar cálculo en la app gratis →</a>
   </div>
-</div>
+</section>
 
-<!-- ── CTA ── -->
+<!-- ── CTA FINAL ── -->
 <div class="cta reveal">
-  <h2 data-i18n="cta.title">Empieza hoy, gratis.</h2>
-  <p data-i18n="cta.sub">Sin tarjeta de crédito. Sin instalación. En 30 segundos.</p>
+  <h2 data-i18n="cta.title">Toma las riendas de tu producción.</h2>
+  <p data-i18n="cta.sub">Comienza en 30 segundos. Sin tarjetas de crédito ni permanencias.</p>
   <div style="margin-bottom:20px">
-    <a href="https://brami3d.app/brami3d_supabase.html" class="btn-primary" style="font-size:17px;padding:16px 36px;display:inline-flex" data-i18n="cta.create">Crear cuenta gratis →</a>
+    <a href="https://brami3d.app/brami3d_supabase.html" class="btn-primary" style="font-size:16px;padding:16px 36px;display:inline-flex" data-i18n="cta.create">Comenzar gratis →</a>
   </div>
   <div class="cta-btns">
     <a href="https://wa.me/34648931530?text=Hola%2C%20me%20interesa%20Brami3D" target="_blank" class="wa-btn">
@@ -546,42 +1286,46 @@ footer a:hover{text-decoration:underline}
 <!-- ── FOOTER ── -->
 <footer>
   <div style="display:flex;align-items:center;gap:10px">
-    <div style="width:26px;height:26px;border-radius:6px;background:var(--or);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:9px;color:#000;font-weight:500">B3D</div>
+    <div style="width:26px;height:26px;border-radius:6px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:9px;color:#000;font-weight:700">B3D</div>
     <span>Brami3D Print Studio</span>
   </div>
   <span data-i18n-html="ft.copy">© 2026 Brami3D · <a href="https://brami3d.app/brami3d_supabase.html">Entrar a la app</a> · <a href="https://brami3d.app/privacidad.html" style="color:var(--text3)">Privacidad</a> · <a href="https://brami3d.app/cookies.html" style="color:var(--text3)">Cookies</a></span>
 </footer>
 
-<!-- ── MODAL DE PAGO ── -->
-<div id="pay-modal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(9,9,11,.88);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px">
-  <div style="background:var(--bg2);border:1px solid var(--border2);border-radius:16px;padding:32px 28px;max-width:420px;width:100%;position:relative;box-shadow:0 24px 60px rgba(0,0,0,.7)">
-    <button onclick="closePayModal()" style="position:absolute;top:14px;right:16px;background:none;border:none;color:var(--text3);font-size:22px;cursor:pointer;line-height:1">×</button>
-    <div style="text-align:center;margin-bottom:24px">
-      <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:2px;color:var(--or);margin-bottom:6px" data-i18n="pm.activate">Activar plan</div>
-      <div id="pay-label" style="font-size:22px;font-weight:700;color:var(--text)"></div>
-      <div id="pay-precio" style="font-size:15px;color:var(--text2);margin-top:2px"></div>
+<!-- ── MODAL DE PAGO (Rediseñado) ── -->
+<div id="pay-modal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(7,7,9,0.85);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);align-items:center;justify-content:center;padding:20px">
+  <div style="background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:40px 32px;max-width:440px;width:100%;position:relative;box-shadow:0 30px 60px rgba(0,0,0,0.5)">
+    <button onclick="closePayModal()" style="position:absolute;top:16px;right:18px;background:none;border:none;color:var(--text3);font-size:24px;cursor:pointer;line-height:1">×</button>
+    <div style="text-align:center;margin-bottom:28px">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:2px;color:var(--accent);margin-bottom:8px" data-i18n="pm.activate">Activar plan</div>
+      <div id="pay-label" style="font-family:'Space Grotesk',sans-serif;font-size:24px;font-weight:700;color:var(--text)"></div>
+      <div id="pay-precio" style="font-size:16px;color:var(--accent);margin-top:4px;font-weight:600"></div>
     </div>
-    <a id="pay-card-btn" href="#" style="display:flex;align-items:center;justify-content:center;gap:10px;background:#635bff;color:#fff;border-radius:9px;padding:15px;font-size:15px;font-weight:700;text-decoration:none;text-align:center" data-i18n="pm.card">💳 Pagar con tarjeta — activación al instante</a>
-    <p style="font-size:11px;color:var(--text4);text-align:center;margin:8px 0 18px" data-i18n="pm.cardNote">Te llevamos a la app para crear tu cuenta y pagar con Stripe (seguro). Tu plan Pro se activa solo.</p>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;color:var(--text4);font-size:12px"><div style="flex:1;height:1px;background:var(--border2)"></div><span data-i18n="pm.or">o con PayPal</span><div style="flex:1;height:1px;background:var(--border2)"></div></div>
-    <div style="background:var(--or-d);border:1px solid var(--or-b);border-radius:12px;padding:16px 18px;margin-bottom:20px">
-      <div style="font-size:11px;font-weight:700;color:var(--or);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px" data-i18n="pm.paypalTitle">PayPal (activación manual en 24 h)</div>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text)"><span style="background:var(--or);color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px">1</span><span data-i18n="pm.s1">Haz el pago por PayPal con el botón de abajo</span></div>
-        <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text)"><span style="background:var(--or);color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px">2</span><span data-i18n-html="pm.s2">Vuelve aquí y haz clic en <b>"Ya pagué"</b> para darnos tu email</span></div>
-        <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text)"><span style="background:var(--or);color:#000;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px">3</span><span data-i18n="pm.s3">Activamos tu plan Pro en menos de 24 horas</span></div>
+    
+    <a id="pay-card-btn" href="#" style="display:flex;align-items:center;justify-content:center;gap:10px;background:#635bff;color:#fff;border-radius:8px;padding:15px;font-size:15px;font-weight:700;text-decoration:none;text-align:center;transition:opacity 0.2s ease">💳 Pagar con tarjeta — activación al instante</a>
+    <p style="font-size:11px;color:var(--text3);text-align:center;margin:8px 0 20px" data-i18n="pm.cardNote">Te llevamos a la app para crear tu cuenta y pagar con Stripe (seguro). Tu plan Pro se activa solo.</p>
+    
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;color:var(--text4);font-size:12px"><div style="flex:1;height:1px;background:var(--border)"></div><span data-i18n="pm.or">o con PayPal</span><div style="flex:1;height:1px;background:var(--border)"></div></div>
+    
+    <div style="background:var(--accent-dim);border:1px solid var(--accent-border);border-radius:12px;padding:20px;margin-bottom:24px">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:12px" data-i18n="pm.paypalTitle">PayPal (activación manual en 24 h)</div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text2)"><span style="background:var(--accent);color:#000;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px">1</span><span data-i18n="pm.s1">Haz el pago por PayPal con el botón de abajo</span></div>
+        <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text2)"><span style="background:var(--accent);color:#000;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px">2</span><span data-i18n-html="pm.s2">Vuelve aquí y haz clic en <b>"Ya pagué"</b> para darnos tu email</span></div>
+        <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--text2)"><span style="background:var(--accent);color:#000;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;margin-top:1px">3</span><span data-i18n="pm.s3">Activamos tu plan Pro en menos de 24 horas</span></div>
       </div>
     </div>
+    
     <div style="display:flex;flex-direction:column;gap:10px">
-      <a id="pay-paypal-btn" href="#" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:10px;background:#0070ba;color:#fff;border-radius:9px;padding:14px;font-size:15px;font-weight:700;text-decoration:none;text-align:center">
-        <img src="https://www.paypalobjects.com/webstatic/icon/pp258.png" alt="PayPal" style="width:22px;height:22px;border-radius:4px">
+      <a id="pay-paypal-btn" href="#" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:10px;background:#0070ba;color:#fff;border-radius:8px;padding:14px;font-size:14.5px;font-weight:700;text-decoration:none;text-align:center;transition:opacity 0.2s ease">
+        <img src="https://www.paypalobjects.com/webstatic/icon/pp258.png" alt="PayPal" style="width:20px;height:20px;border-radius:4px">
         <span data-i18n="pm.pp1">Paso 1 — Pagar con PayPal</span>
       </a>
-      <a href="https://brami3d.app/gracias.html" style="display:flex;align-items:center;justify-content:center;gap:8px;background:var(--gr-d);border:1.5px solid rgba(34,197,94,.25);color:#4ade80;border-radius:9px;padding:13px;font-size:14px;font-weight:700;text-decoration:none;text-align:center" data-i18n="pm.pp2">
+      <a href="https://brami3d.app/gracias.html" style="display:flex;align-items:center;justify-content:center;gap:8px;background:var(--gr-d);border:1px solid rgba(74,222,128,0.2);color:#4ade80;border-radius:8px;padding:13px;font-size:14px;font-weight:700;text-decoration:none;text-align:center;transition:background 0.2s ease" data-i18n="pm.pp2">
         ✅ Paso 2 — Ya pagué, activar mi plan
       </a>
     </div>
-    <p style="font-size:11px;color:var(--text4);text-align:center;margin-top:16px" data-i18n="pm.noSub">Sin suscripción automática · Cancela cuando quieras</p>
+    <p style="font-size:11px;color:var(--text3);text-align:center;margin-top:16px" data-i18n="pm.noSub">Sin suscripción automática · Cancela cuando quieras</p>
   </div>
 </div>
 
@@ -591,60 +1335,46 @@ const FLAG_GB = '<svg viewBox="0 0 60 30" width="22" height="14" style="display:
 const FLAG_ES = '<svg viewBox="0 0 3 2" width="22" height="14" style="display:block;border-radius:3px"><rect width="3" height="2" fill="#c60b1e"/><rect width="3" height="1" y="0.5" fill="#ffc400"/></svg>';
 
 const I18N = { es:{}, en:{
-  'nav.features':'Features','nav.pricing':'Pricing','nav.calc':'Calculator','nav.cta':'Open the app →',
-  'hero.tag':'3D printing management',
-  'hero.h1':'Your workshop deserves<br>better than<br><em>a spreadsheet.</em>',
-  'hero.sub':'Orders, legal invoices, filament stock and customers. All in one app that fits in your pocket and runs from your phone.',
-  'hero.start':'Start free →','hero.see':'See features',
-  'ph.revenue':'Revenue','ph.profit':'Profit','ph.recent':'Recent orders',
-  'ph.o1':'Bolts x3','ph.o2':'GoPro mount','ph.o3':'Motor part',
-  'ph.paid':'paid','ph.printing':'printing','ph.pending':'pending','ph.warn':'⚠ PLA Smartfil — 180g left',
-  'st.1l':'To create an invoice','st.2l':'Built-in modules','st.3l':'From your phone','st.4l':'To get started',
-  'feat.lbl':'Features','feat.title':'Everything you need<br>for your workshop','feat.sub':'Built specifically for 3D printing businesses.',
-  'f1.t':'Order management','f1.p':'Create professional quotes and generate legal invoices in one tap.',
-  'f2.t':'Filament tracking','f2.p':'Log every spool with its price and stock. Alerts when less than 250g remain.',
-  'f3.t':'Real cost calculation','f3.p':'Filament, electricity, design and post-processing calculated automatically.',
-  'f4.t':'Customers & history','f4.p':'Database with tax ID, purchase history and Excel export.',
-  'f5.t':'Printer tracking','f5.p':'Power consumption, hours of use and wear level of each machine.',
-  'f6.t':'Monthly reports','f6.p':'Monthly PDF with revenue, costs, profit and filament usage.',
-  'intl.lbl':'International','intl.title':'Works in any country','intl.sub':"Set your currency, the name and rate of your taxes. Brami3D doesn't assume you're in Spain.",
-  'intl.c1':'Custom currency — €, $, £, R$, MXN and any other',
-  'intl.c2':'Free tax name — VAT, GST, Sales Tax, IGIC...',
-  'intl.c3':'Two simultaneous tax rates',
-  'intl.c4':'Available in Spanish and English — switch language in one tap',
-  'intl.c5':'Invoices adapted to your country from the first order',
-  'intl.more':'+ any other',
-  'mk.lbl':'Built for mobile','mk.title':'Manage from anywhere','mk.p':'Works on phone, tablet and computer. Install it on your home screen and use it like a native app.',
-  'mk.c1':'Touch bottom navigation','mk.c2':'Light and dark mode','mk.c3':'Data synced across all your devices','mk.c4':'Works from any browser',
-  'ts.lbl':'Testimonials','ts.title':'What users say',
-  'ts.1':'I used to use Excel and wasted time pricing every order. With Brami3D the price comes out by itself and the invoice in 10 seconds.','ts.1loc':'3D workshop in Madrid',
-  'ts.2':"Filament tracking is what I use most. It warns me when stock is low and I've never run out of material mid-order again.",'ts.2loc':'3D printing in Valencia',
-  'ts.3':'My clients ask for invoices and it used to be a mess. Now I generate a legal PDF in seconds right from my phone.','ts.3loc':'Maker & freelancer in Seville',
-  'pr.lbl':'Pricing','pr.title':'Simple, no surprises','pr.sub':'Free 30-day trial. No credit card.',
-  'pr.basic':'Basic','pr.free':'Free','pr.basicDesc':'To get started and try with no commitment.',
-  'pr.b1':'Up to 10 orders per month','pr.b2':'5 customers','pr.b3':'PDF quotes','pr.b4':'Filament tracking','pr.startFree':'Start free',
-  'pr.popular':'Most popular','pr.monthly':'Pro Monthly','pr.permo':'€/mo','pr.monthlyDesc':'Less than you charge for one part',
-  'pr.m1':'Unlimited orders and customers','pr.m2':'Legal invoices with tax ID','pr.m3':'Monthly PDF reports','pr.m4':'Export to Excel','pr.m5':'Priority support','pr.getMonthly':'Get Pro Monthly →',
-  'pr.save':'Save €29','pr.annual':'Pro Annual','pr.peryr':'€/yr','pr.annualDesc':'Equals <b style="color:var(--am)">€6.50/mo</b> — you recover the cost with the first order of the year.',
-  'pr.a1':'Everything in the monthly plan','pr.a2':'2 months free included','pr.a3':'Early access to new features','pr.a4':'Priority support','pr.getAnnual':'Get Pro Annual →',
-  'pr.note':'No lock-in &nbsp;·&nbsp; Cancel anytime &nbsp;·&nbsp; Your data is always yours',
+  'nav.features':'Experience','nav.pricing':'Pricing','nav.calc':'Calculator','nav.cta':'Open the app →',
+  'hero.tag':'3D printing orchestration',
+  'hero.h1':'Matter takes order.<br>Control becomes <em>art.</em>',
+  'hero.sub':'Brami3D orchestrates every spool, order, and invoice for your workshop. So you can focus on creation.',
+  'hero.start':'Start free →','hero.see':'Live the experience',
+  'exp.lbl':'The Experience',
+  'exp.title':'The seamless flow:<br>from idea to physical part.',
+  'exp.sub':'An interface calibrated for absolute agility. Log spools, calculate real costs, and generate invoices with a single tap.',
+  'exp.c1':'Frictionless speed — issue invoices in seconds',
+  'exp.c2':'Everything in its place — orders, customers, filament stock, and maintenance',
+  'exp.c3':'Total mobility — designed for smartphones and native PWAs',
+  'exp.c4':'Precision metrics — energy and material costs to the millimeter',
+  'ts.lbl':'Testimonials','ts.title':'Precision in words',
+  'ts.1':'Brami3D has transformed our aerospace component production line in Alicante. From quote to print in a seamless flow.','ts.1loc':'Director of Engineering at Valls Digital',
+  'ts.2':'Low volume no longer means operational chaos. The precision we demand from our printers is the same Brami3D brings to our finances.','ts.2loc':'Co-founder of Additive Atelier',
+  'pr.lbl':'Control Plans','pr.title':'Clear investment, no surprises','pr.sub':'Free 30-day trial. No credit card. Cancel anytime.',
+  'pr.basic':'Basic','pr.free':'Free','pr.basicDesc':'Essential control for small creators.',
+  'pr.b1':'Up to 10 orders per month','pr.b2':'5 active customers','pr.b3':'PDF quotes','pr.b4':'Filament stock tracking','pr.startFree':'Start free',
+  'pr.popular':'Recommended','pr.monthly':'Pro Monthly','pr.permo':'€/mo','pr.monthlyDesc':'Power and capacity without operational limits.',
+  'pr.m1':'Unlimited orders and customers','pr.m2':'Legal invoices with Tax ID','pr.m3':'Monthly PDF reports','pr.m4':'Excel export','pr.m5':'Priority technical support','pr.getMonthly':'Get Monthly Pro →',
+  'pr.save':'Save €29','pr.annual':'Pro Annual','pr.peryr':'€/yr','pr.annualDesc':'Equals <b style="color:var(--accent)">€6.50/mo</b>. Maximum annual profitability.',
+  'pr.a1':'Everything in the monthly plan','pr.a2':'2 complimentary months included','pr.a3':'Exclusive access to betas','pr.a4':'24/7 priority support','pr.getAnnual':'Get Annual Pro →',
+  'pr.note':'No lock-in · Cancel anytime · Data always exportable',
   'fq.lbl':'FAQ','fq.title':'Got questions?',
-  'fq.q1':'Do I need to install anything?','fq.a1':"No. Brami3D runs in your browser. You can add it to your phone's home screen to use it like a native app, without any app store.",
+  'fq.q1':'Do I need to install anything?','fq.a1':'No. Brami3D runs in your browser. You can add it to your phone\'s home screen to use it like a native app, without any app store.',
   'fq.q2':'Is my data safe?','fq.a2':'Yes. Data is stored in Supabase with encryption in transit and at rest. Only you can access your data — not even we can see it.',
-  'fq.q3':'Are the invoices legally valid?','fq.a3':'Yes. They include business and customer tax IDs, sequential numbering, taxable base and tax — all the requirements for a valid invoice.',
+  'fq.q3':'Are the invoices legally valid in Spain?','fq.a3':'Yes. They include business and customer tax IDs, sequential numbering, taxable base and tax — all the requirements for a valid invoice.',
   'fq.q4':'Does it work on desktop too?','fq.a4':'Perfectly. It adapts to any screen and your data syncs across all your devices in real time.',
   'fq.q5':'What happens when the free plan ends?','fq.a5':'You can keep using the app with up to 10 orders per month. Your data is never deleted. If you want unlimited, you can upgrade to Pro anytime.',
   'fq.q6':'How is Pro activated after payment?','fq.a6':'If you pay by card (Stripe), your Pro plan activates instantly. If you pay by PayPal, click "I\'ve paid" and we activate your account within 24 hours.',
   'fq.q7':'Can I cancel anytime?','fq.a7':'Yes. No lock-in. You can manage or cancel your subscription yourself anytime right from the app.',
-  'cal.lbl':'Free calculator','cal.title':'Calculate your part<br>price now','cal.sub':'No sign-up needed — and if you like it, sign up free to save calculations as orders.',
+  'cal.lbl':'Free Tool','cal.title':'Precision Estimator','cal.sub':'Calculate your part price instantly. No sign-up needed.',
   'cal.weight':'Weight (g)','cal.time':'Time (h)','cal.fil':'Filament (€/kg)','cal.power':'Power (W)','cal.elec':'Electricity (€/kWh)','cal.margin':'Margin',
-  'cal.material':'Material','cal.elecR':'Electricity','cal.sale':'Sale price','cal.save':'Save orders — Sign up free →',
-  'cta.title':'Start today, free.','cta.sub':'No credit card. No installation. In 30 seconds.','cta.create':'Create free account →','cta.reply':'I reply within 24 hours',
+  'cal.material':'Material','cal.elecR':'Electricity','cal.sale':'Sale','cal.save':'Save calculation to the app free →',
+  'cta.title':'Take control of your production.','cta.sub':'Start in 30 seconds. No credit card, no commitments.','cta.create':'Start free →','cta.reply':'I reply within 24 hours',
   'ft.copy':'© 2026 Brami3D · <a href="https://brami3d.app/brami3d_supabase.html">Open the app</a> · <a href="https://brami3d.app/privacidad.html" style="color:var(--text3)">Privacy</a> · <a href="https://brami3d.app/cookies.html" style="color:var(--text3)">Cookies</a>',
   'pm.activate':'Activate plan','pm.card':'💳 Pay by card — instant activation','pm.cardNote':'We take you to the app to create your account and pay with Stripe (secure). Your Pro plan activates automatically.',
   'pm.or':'or with PayPal','pm.paypalTitle':'PayPal (manual activation within 24 h)',
   'pm.s1':'Make the payment via PayPal with the button below','pm.s2':'Come back here and click <b>"I\'ve paid"</b> to give us your email','pm.s3':'We activate your Pro plan within 24 hours',
-  'pm.pp1':'Step 1 — Pay with PayPal','pm.pp2':"✅ Step 2 — I've paid, activate my plan","pm.noSub":'No automatic subscription · Cancel anytime',
+  'pm.pp1':'Step 1 — Pay with PayPal','pm.pp2':'✅ Step 2 — I\'ve paid, activate my plan','pm.noSub':'No automatic subscription · Cancel anytime',
   '_title':'Brami3D — Professional 3D printing management'
 }};
 
@@ -702,6 +1432,17 @@ setTimeout(()=>{
   document.querySelectorAll('.reveal:not(.visible)').forEach(el=>el.classList.add('visible'));
 }, 2000);
 
+/* FAQ Accordion Toggle */
+document.querySelectorAll('.faq-i').forEach(item => {
+  item.addEventListener('click', () => {
+    const isActive = item.classList.contains('active');
+    document.querySelectorAll('.faq-i').forEach(el => el.classList.remove('active'));
+    if (!isActive) {
+      item.classList.add('active');
+    }
+  });
+});
+
 function lcalc(){
   const p=parseFloat(document.getElementById('lc-peso')?.value)||0;
   const t=parseFloat(document.getElementById('lc-tiempo')?.value)||0;
@@ -745,6 +1486,8 @@ document.addEventListener('DOMContentLoaded', function(){
   document.getElementById('pay-modal').addEventListener('click', function(e){
     if(e.target === this) closePayModal();
   });
+  // Inicializar calculadora
+  lcalc();
 });
 
 applyLang();
