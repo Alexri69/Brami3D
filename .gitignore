@@ -6,3 +6,11 @@ marketing/
 secretos/
 .agents/
 
+# Proyectos de vídeo/anuncio — NO pertenecen al repo de la PWA
+anuncio-brami3d/
+anuncio-brami3d-instagram/
+node_modules/
+ffmpeg.zip
+*.mp4
+/music.mp3
+
