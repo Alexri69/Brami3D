@@ -14,3 +14,8 @@ ffmpeg.zip
 *.mp4
 /music.mp3
 
+# Credenciales privadas (tokens de Meta, etc.) — NUNCA al repo público
+.env
+.env.local
+.env.*.local
+
