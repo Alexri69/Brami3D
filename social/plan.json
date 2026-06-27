@@ -1,0 +1,217 @@
+[
+  {
+    "id": 1,
+    "fecha": "2026-07-01",
+    "redes": "both",
+    "tipo": "carrusel",
+    "imagenes": [
+      "https://brami3d.app/m/carrusel-01-slide-1.png",
+      "https://brami3d.app/m/carrusel-01-slide-2.png",
+      "https://brami3d.app/m/carrusel-01-slide-3.png",
+      "https://brami3d.app/m/carrusel-01-slide-4.png",
+      "https://brami3d.app/m/carrusel-01-slide-5.png",
+      "https://brami3d.app/m/carrusel-01-slide-6.png"
+    ],
+    "caption": "¿Cometiendo errores al cobrar tus piezas 3D? 🤯 Poner precio a ojo o multiplicar el coste de material por 3 es la receta perfecta para perder dinero. En este carrusel te revelamos los 5 errores más comunes al fijar tus tarifas y cómo resolverlos con Brami3D. #impresion3d #3dprinting #maker #negocio #brami3d",
+    "estado": "pendiente"
+  },
+  {
+    "id": 2,
+    "fecha": "2026-07-03",
+    "redes": "both",
+    "tipo": "imagen",
+    "imagenes": [
+      "https://brami3d.app/m/post-02-encuesta.png"
+    ],
+    "caption": "Pregunta rápida para la comunidad maker: ¿Cuánto cobras realmente por hora de máquina? 😬 ¿Cobras solo el material o tienes una tarifa por hora de impresión real? Comenta con tu respuesta y mañana analizamos cuál es la tarifa ideal para que tu taller sea rentable. #impresion3d #3dprinting #makers #encuesta #comunidad",
+    "estado": "pendiente"
+  },
+  {
+    "id": 3,
+    "fecha": "2026-07-05",
+    "redes": "both",
+    "tipo": "carrusel",
+    "imagenes": [
+      "https://brami3d.app/m/carrusel-03-slide-1.png",
+      "https://brami3d.app/m/carrusel-03-slide-2.png",
+      "https://brami3d.app/m/carrusel-03-slide-3.png",
+      "https://brami3d.app/m/carrusel-03-slide-4.png",
+      "https://brami3d.app/m/carrusel-03-slide-5.png",
+      "https://brami3d.app/m/carrusel-03-slide-6.png"
+    ],
+    "caption": "Calcular el coste real de una impresión es más complejo que pesar la pieza final. ⚖️ Además del filamento, entran en juego el consumo de electricidad, los fallos y el tiempo de postprocesado. Te explicamos paso a paso cómo calcularlo de forma exacta. #3dprinter #maker #diy #business #taller3d #brami3d",
+    "estado": "pendiente"
+  },
+  {
+    "id": 4,
+    "fecha": "2026-07-08",
+    "redes": "both",
+    "tipo": "imagen",
+    "imagenes": [
+      "https://brami3d.app/m/post-05-mi-mes.png"
+    ],
+    "caption": "¿Sabes exactamente cuánto has ingresado y gastado en tu taller este mes? 📈 Tomar decisiones de negocio a ciegas es arriesgado. Con Brami3D, obtén un desglose gráfico de tus ingresos, gastos y beneficios netos para controlar tu rentabilidad al segundo. #emprendedor #negocios #3dprint #maker #finanzas #brami3d",
+    "estado": "pendiente"
+  },
+  {
+    "id": 5,
+    "fecha": "2026-07-10",
+    "redes": "both",
+    "tipo": "carrusel",
+    "imagenes": [
+      "https://brami3d.app/m/carrusel-04-slide-1.png",
+      "https://brami3d.app/m/carrusel-04-slide-2.png",
+      "https://brami3d.app/m/carrusel-04-slide-3.png",
+      "https://brami3d.app/m/carrusel-04-slide-4.png",
+      "https://brami3d.app/m/carrusel-04-slide-5.png",
+      "https://brami3d.app/m/carrusel-04-slide-6.png"
+    ],
+    "caption": "Presupuestar piezas 3D no tiene por qué ser una tortura de horas frente a la calculadora. 🧮 Te enseñamos los 4 pasos infalibles para generar presupuestos exactos en minutos, cobrando todo el valor de tu trabajo. ¡Optimiza tu flujo hoy! #impresion3d #diseño3d #presupuesto #taller #brami3d",
+    "estado": "pendiente"
+  },
+  {
+    "id": 6,
+    "fecha": "2026-07-12",
+    "redes": "both",
+    "tipo": "carrusel",
+    "imagenes": [
+      "https://brami3d.app/m/carrusel-05-slide-1.png",
+      "https://brami3d.app/m/carrusel-05-slide-2.png",
+      "https://brami3d.app/m/carrusel-05-slide-3.png",
+      "https://brami3d.app/m/carrusel-05-slide-4.png",
+      "https://brami3d.app/m/carrusel-05-slide-5.png"
+    ],
+    "caption": "¿Tu taller es realmente rentable o solo estás cambiando dinero? 💸 Muchos makers cometen el error de no cobrar la amortización de la impresora ni su tiempo de mano de obra. Analizamos los números reales y cómo Brami3D te ayuda a facturar con beneficio. #3dprinting #negocio #rentabilidad #maker #tecnologia #brami3d",
+    "estado": "pendiente"
+  },
+  {
+    "id": 7,
+    "fecha": "2026-07-15",
+    "redes": "both",
+    "tipo": "carrusel",
+    "imagenes": [
+      "https://brami3d.app/m/carrusel-06-mantenimiento-slide-1.png",
+      "https://brami3d.app/m/carrusel-06-mantenimiento-slide-2.png",
+      "https://brami3d.app/m/carrusel-06-mantenimiento-slide-3.png",
+      "https://brami3d.app/m/carrusel-06-mantenimiento-slide-4.png",
+      "https://brami3d.app/m/carrusel-06-mantenimiento-slide-5.png"
+    ],
+    "caption": "El mantenimiento preventivo es la mejor inversión para tu taller 3D. 🛠️ Limpiar boquillas, lubricar varillas y revisar conexiones te ahorrará cientos de euros en piezas fallidas y reparaciones costosas. ¡Configura tus alertas automáticas en Brami3D y mantén tus máquinas al 100%! #3dprinter #mantenimiento #diy #taller3d #productividad #brami3d",
+    "estado": "pendiente"
+  },
+  {
+    "id": 8,
+    "fecha": "2026-07-17",
+    "redes": "both",
+    "tipo": "imagen",
+    "imagenes": [
+      "https://brami3d.app/m/post-05-mis-meses.png"
+    ],
+    "caption": "¿Tu negocio de impresión 3D está creciendo o te has estancado? 📊 Compara de forma visual tu facturación, gastos y margen de beneficio neto mes a mes. Brami3D te muestra la evolución histórica de tu taller para que sepas exactamente hacia dónde vas. #negocios #crecimiento #3dprinting #maker #finanzas #brami3d",
+    "estado": "pendiente"
+  },
+  {
+    "id": 9,
+    "fecha": "2026-07-19",
+    "redes": "both",
+    "tipo": "carrusel",
+    "imagenes": [
+      "https://brami3d.app/m/carrusel-07-fiscalidad-slide-1.png",
+      "https://brami3d.app/m/carrusel-07-fiscalidad-slide-2.png",
+      "https://brami3d.app/m/carrusel-07-fiscalidad-slide-3.png",
+      "https://brami3d.app/m/carrusel-07-fiscalidad-slide-4.png",
+      "https://brami3d.app/m/carrusel-07-fiscalidad-slide-5.png"
+    ],
+    "caption": "La fiscalidad es el dolor de cabeza de todo maker que empieza a vender. 🧾 Entender el recargo de equivalencia, cómo deducir material, luz y software, y cómo facturar a empresas es crucial para evitar sustos con Hacienda. Te lo explicamos de forma sencilla. #autonomo #fiscalidad #impuestos #impresion3d #negocio #brami3d",
+    "estado": "pendiente"
+  },
+  {
+    "id": 10,
+    "fecha": "2026-07-21",
+    "redes": "both",
+    "tipo": "imagen",
+    "imagenes": [
+      "https://brami3d.app/m/post-08-presupuesto-publico.png"
+    ],
+    "caption": "¿Cansado de enviar presupuestos en PDF que quedan en el limbo? 💬 Con Brami3D, envía un enlace interactivo donde el cliente ve el desglose formal y puede aceptarlo con un solo clic en su pantalla. Recibe alertas al instante y empieza a imprimir sobre seguro. #ventas #productividad #presupuestos #impresion3d #brami3d",
+    "estado": "pendiente"
+  },
+  {
+    "id": 11,
+    "fecha": "2026-07-23",
+    "redes": "both",
+    "tipo": "carrusel",
+    "imagenes": [
+      "https://brami3d.app/m/carrusel-09-multitaller-slide-1.png",
+      "https://brami3d.app/m/carrusel-09-multitaller-slide-2.png",
+      "https://brami3d.app/m/carrusel-09-multitaller-slide-3.png",
+      "https://brami3d.app/m/carrusel-09-multitaller-slide-4.png",
+      "https://brami3d.app/m/carrusel-09-multitaller-slide-5.png"
+    ],
+    "caption": "¿Gestionas varias impresoras, almacenes o trabajas con colaboradores? 🏢 Escalar tu granja 3D requiere separar inventarios, organizar colas de trabajo y sincronizar tareas en tiempo real. Brami3D Pro te permite gestionar múltiples talleres en un panel unificado. #3dprinting #granja3d #organizacion #saas #pro #brami3d",
+    "estado": "pendiente"
+  },
+  {
+    "id": 12,
+    "fecha": "2026-07-25",
+    "redes": "both",
+    "tipo": "imagen",
+    "imagenes": [
+      "https://brami3d.app/m/post-10-calibrar-filamento.png"
+    ],
+    "caption": "Tip para ahorrar material: No ignores las pérdidas por purgas, faldas y fallos de impresión. 💡 Una bobina de 1kg y 20 € rinde realmente unos 950g, subiendo tu coste neto real a 21 €/kg. En Brami3D puedes añadir el factor de desperdicio y cobrar lo justo. #ahorro #filamento #impresion3d #tip #brami3d",
+    "estado": "pendiente"
+  },
+  {
+    "id": 13,
+    "fecha": "2026-07-27",
+    "redes": "both",
+    "tipo": "carrusel",
+    "imagenes": [
+      "https://brami3d.app/m/carrusel-11-consumo-luz-slide-1.png",
+      "https://brami3d.app/m/carrusel-11-consumo-luz-slide-2.png",
+      "https://brami3d.app/m/carrusel-11-consumo-luz-slide-3.png",
+      "https://brami3d.app/m/carrusel-11-consumo-luz-slide-4.png",
+      "https://brami3d.app/m/carrusel-11-consumo-luz-slide-5.png"
+    ],
+    "caption": "La factura de la luz puede comerse tu beneficio. ⚡ Sigue estos 5 consejos para reducir el consumo eléctrico de tu taller: mantas térmicas, agrupación térmica de impresiones e impresión en horas valle. Configura el precio del kWh en Brami3D para presupuestar con precisión. #luz #ahorro #eficiencia #granja3d #brami3d",
+    "estado": "pendiente"
+  },
+  {
+    "id": 14,
+    "fecha": "2026-07-29",
+    "redes": "both",
+    "tipo": "imagen",
+    "imagenes": [
+      "https://brami3d.app/m/post-12-notificaciones-push.png"
+    ],
+    "caption": "No pierdas tiempo mirando tu impresora cada poco. 📱 Activa las notificaciones push en Brami3D y recibe alertas al instante cuando una impresión termine, cuando requiera mantenimiento, o cuando un cliente acepte un presupuesto. ¡Trabaja de forma inteligente! #productividad #tecnologia #notificaciones #3dprinter #brami3d",
+    "estado": "pendiente"
+  },
+  {
+    "id": 15,
+    "fecha": "2026-07-30",
+    "redes": "both",
+    "tipo": "imagen",
+    "imagenes": [
+      "https://brami3d.app/m/post-13-encuesta-whatsapp.png"
+    ],
+    "caption": "Encuesta rápida: ¿Cómo envías los presupuestos a tus clientes? 🤔 💬 ¿Captura de pantalla por WhatsApp? 📄 ¿PDF formal? 🔗 ¿O enlace interactivo de Brami3D? Vota en los comentarios y te contamos por qué el formato web interactivo convierte un 60% más. #encuesta #ventas #presupuesto #makers #impresion3d #brami3d",
+    "estado": "pendiente"
+  },
+  {
+    "id": 16,
+    "fecha": "2026-07-31",
+    "redes": "both",
+    "tipo": "carrusel",
+    "imagenes": [
+      "https://brami3d.app/m/carrusel-14-pwa-slide-1.png",
+      "https://brami3d.app/m/carrusel-14-pwa-slide-2.png",
+      "https://brami3d.app/m/carrusel-14-pwa-slide-3.png",
+      "https://brami3d.app/m/carrusel-14-pwa-slide-4.png",
+      "https://brami3d.app/m/carrusel-14-pwa-slide-5.png"
+    ],
+    "caption": "¿Sabías que puedes instalar Brami3D en tu móvil u ordenador sin pasar por la App Store? 🌐 Brami3D es una Progressive Web App (PWA), lo que significa que tienes acceso directo, rendimiento rápido y soporte sin conexión a internet completo. Te explicamos las ventajas. #pwa #tecnologia #aplicacion #offline #3dprinting #brami3d",
+    "estado": "pendiente"
+  }
+]

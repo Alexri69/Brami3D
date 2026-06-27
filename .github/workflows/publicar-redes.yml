@@ -1,0 +1,56 @@
+name: Publicar en redes (Brami3D)
+
+# Publica automaticamente los posts de social/plan.json cuya fecha sea hoy.
+# - Cron: cada dia a las 17:00 UTC (~19:00 hora de Espana en verano).
+# - Manual: pestana Actions -> "Run workflow" (opcional: un id concreto para probar).
+
+on:
+  schedule:
+    - cron: "0 17 * * *"
+  workflow_dispatch:
+    inputs:
+      id:
+        description: "ID de post concreto a publicar (vacio = los de hoy)"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publicar-redes
+  cancel-in-progress: false
+
+jobs:
+  publicar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Publicar posts del dia
+        env:
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+          META_PAGE_ID: "1153412231189064"
+          META_IG_USER_ID: "17841442053876570"
+        run: |
+          if [ -n "${{ github.event.inputs.id }}" ]; then
+            python scripts/publicar_hoy.py --id "${{ github.event.inputs.id }}"
+          else
+            python scripts/publicar_hoy.py
+          fi
+
+      - name: Guardar estado (posts publicados)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add social/plan.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(social): marcar posts publicados [skip ci]"
+            git push
+          else
+            echo "Sin cambios que guardar."
+          fi

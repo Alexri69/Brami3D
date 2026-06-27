@@ -12,19 +12,27 @@ Uso:
 
 Una sola imagen = post simple. Varias = carrusel (IG) / post multi-foto (FB).
 """
-import os, sys, json, argparse, urllib.parse, urllib.request
+import os, json, argparse, urllib.parse, urllib.request
 
 API = "https://graph.facebook.com/v25.0"
 
 def load_env():
+    """Carga credenciales desde ../.env (local) y/o variables de entorno (CI).
+    Las variables de entorno tienen prioridad (asi funciona en GitHub Actions)."""
     here = os.path.dirname(os.path.abspath(__file__))
     env = {}
-    with open(os.path.join(here, "..", ".env"), "r", encoding="utf-8", errors="ignore") as f:
-        for line in f:
-            line = line.strip()
-            if line and not line.startswith("#") and "=" in line:
-                k, v = line.split("=", 1)
-                env[k.strip()] = v.strip()
+    env_path = os.path.join(here, "..", ".env")
+    if os.path.exists(env_path):
+        with open(env_path, "r", encoding="utf-8", errors="ignore") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    env[k.strip()] = v.strip()
+    for k in ("META_ACCESS_TOKEN", "META_APP_ID", "META_APP_SECRET",
+              "META_AD_ACCOUNT_ID", "META_PAGE_ID", "META_IG_USER_ID"):
+        if os.environ.get(k):
+            env[k] = os.environ[k]
     return env
 
 def post(path, data):
