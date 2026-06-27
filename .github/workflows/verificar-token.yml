@@ -1,0 +1,26 @@
+name: Verificar token de Meta (Brami3D)
+
+# Chequeo de salud semanal del token de Meta. El token no caduca, pero podria
+# invalidarse por causas externas (cambio de contrasena de FB, permisos
+# revocados, etc.). Si falla, GitHub te avisa por email automaticamente.
+
+on:
+  schedule:
+    - cron: "0 7 * * 1"   # cada lunes 07:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Comprobar que el token sigue valido
+        env:
+          META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
+        run: python scripts/verificar_token.py
