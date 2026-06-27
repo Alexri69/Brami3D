@@ -12,6 +12,7 @@ anuncio-brami3d-instagram/
 node_modules/
 ffmpeg.zip
 *.mp4
+!m/*.mp4
 /music.mp3
 
 # Credenciales privadas (tokens de Meta, etc.) — NUNCA al repo público
