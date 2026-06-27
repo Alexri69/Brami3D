@@ -90,6 +90,13 @@ Hay **CI** (`.github/workflows/validate.yml`) que ejecuta esto en cada push/PR �
 - **RLS** activo y correcto en las 12 tablas: cada política filtra por `(auth.uid() = user_id)`, ninguna permisiva. `user_plans` solo SELECT (writes vía webhook/admin RPC). Tablas VeriFactu append-only (solo INSERT+SELECT). Script de comprobación: `sql/012_audit_rls.sql`.
 - **XSS**: `esc()` aplicado en todo el HTML con datos de usuario (incluido `p.html`, que ve el cliente). `esc()` escapa también `'`.
 
+## Integración Meta (Facebook / Instagram / Ads)
+Conexión **vía directa** a la Graph API (sin servidor MCP de terceros; se descartó `meta-ads-mcp`/Pipeboard por privacidad y fricción). Credenciales en **`.env` local** (gitignoreado, NUNCA al repo): `META_ACCESS_TOKEN` (token de larga duración ~60 días, renovable con `oauth/access_token?grant_type=fb_exchange_token`), `META_APP_ID`, `META_APP_SECRET`, `META_AD_ACCOUNT_ID=act_365965302`, `META_PAGE_ID=1153412231189064` (Página "Brami3D"), `META_IG_USER_ID` (pendiente). Plantilla en `.env.example`.
+- App de Meta: **"Brami3D"** (App ID `1218738721315597`), creada en developers.facebook.com.
+- Helper: **`scripts/meta.ps1 <endpoint> [query] [-Method] [-Body]`** — lee el token del `.env` (no lo imprime) y llama a `graph.facebook.com/v25.0`. Ej: `powershell -File scripts/meta.ps1 act_365965302/campaigns "fields=name,status"`.
+- **Permisos del token actual**: `ads_management`, `ads_read`, `business_management`, `pages_show_list`, `pages_read_engagement` → gestionar/leer **anuncios** y **leer** la Página.
+- **Pendiente para más alcance**: publicar en FB (`pages_manage_posts`); **Instagram** (publicar/insights/DMs) requiere añadir el *producto Instagram* a la App + regenerar token con `instagram_*`; los DMs además exigen **App Review** de Meta.
+
 ## Pendiente / ideas futuras
 - **Landing en inglés** (selector ES/EN + traducir todo el marketing) — no hecho; la app sí está bilingüe
 - Cancelar/reembolsar la suscripción de **prueba** de Stripe (pago test de 9 € real) — ya se puede desde el propio portal (`irAPortal`) ahora que Cancelaciones está activo
