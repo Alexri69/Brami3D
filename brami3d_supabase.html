@@ -1698,6 +1698,7 @@ async function bootApp(){
 
   $('auth-screen').className='hidden';
   $('app').className='';
+  closeLoginModal();   // cerrar el modal de login si quedó abierto tras entrar
   if(window.innerWidth<=768) $('mob-nav').className='';
   applyStaticI18n();
   buildNav();
