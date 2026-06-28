@@ -20,3 +20,9 @@ ffmpeg.zip
 .env.local
 .env.*.local
 
+# Binarios y cache (re-descargables, jamás al repo)
+scripts/ffmpeg.exe
+scripts/ffprobe.exe
+__pycache__/
+*.pyc
+
