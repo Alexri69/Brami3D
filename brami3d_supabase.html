@@ -36,6 +36,14 @@
     document.getElementById('rgpd-reject').addEventListener('click',function(){B3D_CONSENT.reject();});
     if(!B3D_CONSENT.state) show();
   });
+  // Helper de eventos: solo dispara si el usuario aceptó cookies y GA está cargado. Nunca lanza.
+  window.b3dTrack=function(name, params){
+    try{
+      if(B3D_CONSENT.state==='accepted' && typeof window.gtag==='function'){
+        window.gtag('event', name, params||{});
+      }
+    }catch(_){}
+  };
 })();
 </script>
 <meta name="application-name" content="B3D Print Studio">
@@ -612,10 +620,12 @@ function showUpgradeModal(reason){
       </div>
     </div>`;
   openModal(msh(t('plan.limitTitle'), html));
+  b3dTrack('view_upgrade_modal',{ reason: reason||'limit' });
 }
 
 // Inicia el pago: pide a la Edge Function la URL de Stripe Checkout y redirige.
 async function irACheckout(plan){
+  b3dTrack('begin_checkout',{ plan });
   showToast(t('plan.redirecting'),'ok',5000);
   let userToken='';
   try { const { data:{ session } } = await sb.auth.getSession(); userToken = session?.access_token||''; } catch(_){}
@@ -1162,12 +1172,14 @@ window.addEventListener('appinstalled', () => {
   const banner = $('install-banner');
   if(banner) banner.style.display = 'none';
   _installPrompt = null;
+  b3dTrack('pwa_installed');
 });
 
 async function installPWA(){
   if(!_installPrompt) return;
   _installPrompt.prompt();
   const {outcome} = await _installPrompt.userChoice;
+  b3dTrack('pwa_install_prompt',{ outcome });
   if(outcome === 'accepted'){
     const banner = $('install-banner');
     if(banner) banner.style.display = 'none';
@@ -2624,6 +2636,8 @@ function goTo(page){
   document.querySelectorAll('#mob-nav button').forEach(e=>e.classList.remove('active'));
   const mb=$('mn-'+page);if(mb)mb.classList.add('active');
   render();
+  // Vista de sección como page_view virtual (la app es una SPA: sin esto GA ve una sola página).
+  b3dTrack('page_view',{ page_title:'B3D · '+page, page_path:'/'+page, page_location:location.origin+location.pathname+'#'+page });
 }
 
 function goToEstado(e){ _pFilt=e;_pSearch=''; goTo('pedidos'); }
