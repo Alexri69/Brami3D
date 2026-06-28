@@ -11,9 +11,19 @@ Credenciales: cuenta de servicio JSON en  secretos/ga-service-account.json
               (o ruta en la variable GA_CREDENTIALS del .env)
 Property ID numerico de GA4 en  GA_PROPERTY_ID  (.env).  NO es el G-XXXX.
 
-Uso:  python scripts/ga_informe.py [--dias 30]
+Uso:  python scripts/ga_informe.py [--dias 30] [--email destino@correo.com]
+      Con --email envia el informe por Resend (necesita RESEND_API_KEY en el
+      entorno). Pensado para el workflow .github/workflows/informe-ga.yml.
 """
-import os, sys, json, argparse, datetime
+import os, sys, argparse, datetime
+
+# Buffer del informe: cada linea se imprime y se guarda (para poder enviarla por email).
+LINES = []
+
+
+def out(s=""):
+    LINES.append(s)
+    print(s)
 
 API = "https://analyticsdata.googleapis.com/v1beta"
 SCOPE = "https://www.googleapis.com/auth/analytics.readonly"
@@ -89,9 +99,30 @@ def bar(val, mx, width=24):
     return "#" * n + "." * (width - n)
 
 
+def send_email(to_addr, subject, body):
+    """Envia el informe en texto plano via Resend (RESEND_API_KEY en el entorno)."""
+    import requests
+    key = env("RESEND_API_KEY")
+    if not key:
+        _die("Falta RESEND_API_KEY para enviar el email.")
+    html = ("<pre style=\"font-family:ui-monospace,Menlo,Consolas,monospace;"
+            "font-size:13px;line-height:1.45;color:#0f172a\">"
+            + body.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            + "</pre>")
+    r = requests.post("https://api.resend.com/emails",
+                      headers={"Authorization": "Bearer " + key},
+                      json={"from": "Brami3D <hola@brami3d.app>", "to": [to_addr],
+                            "subject": subject, "text": body, "html": html},
+                      timeout=30)
+    if r.status_code >= 300:
+        _die(f"Resend {r.status_code}: {r.text}")
+    print(f"\n[email enviado a {to_addr}]")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dias", type=int, default=30, help="ventana de dias (default 30)")
+    ap.add_argument("--email", help="enviar el informe a esta direccion (via Resend)")
     a = ap.parse_args()
 
     prop = env("GA_PROPERTY_ID")
@@ -109,21 +140,23 @@ def main():
         "metrics": [{"name": m} for m in
                     ["activeUsers", "newUsers", "sessions", "screenPageViews", "averageSessionDuration"]],
     })
-    print("\n" + H)
-    print(f"  INFORME DE VISITAS - Brami3D PWA   (ultimos {a.dias} dias)")
-    print(f"  {datetime.date.today().isoformat()}")
-    print(H)
+    out("\n" + H)
+    out(f"  INFORME DE VISITAS - Brami3D PWA   (ultimos {a.dias} dias)")
+    out(f"  {datetime.date.today().isoformat()}")
+    out(H)
     if rep.get("rows"):
         _, m = rows(rep)[0]
         dur = float(m[4] or 0)
-        print(f"  Usuarios activos .......... {fnum(m[0])}")
-        print(f"  Usuarios nuevos ........... {fnum(m[1])}")
-        print(f"  Sesiones .................. {fnum(m[2])}")
-        print(f"  Paginas/pantallas vistas .. {fnum(m[3])}")
-        print(f"  Duracion media sesion ..... {int(dur // 60)}m {int(dur % 60)}s")
+        out(f"  Usuarios activos .......... {fnum(m[0])}")
+        out(f"  Usuarios nuevos ........... {fnum(m[1])}")
+        out(f"  Sesiones .................. {fnum(m[2])}")
+        out(f"  Paginas/pantallas vistas .. {fnum(m[3])}")
+        out(f"  Duracion media sesion ..... {int(dur // 60)}m {int(dur % 60)}s")
     else:
-        print("  Sin datos en el periodo (¿nadie ha aceptado cookies todavia?).")
-        print(H)
+        out("  Sin datos en el periodo (nadie ha aceptado cookies todavia).")
+        out(H)
+        if a.email:
+            send_email(a.email, "Brami3D - Informe de visitas", "\n".join(LINES))
         return
 
     # --- 2) Evolucion por dia ---
@@ -136,12 +169,12 @@ def main():
     rr = rows(rep)
     if rr:
         mx = max((float(m[0] or 0) for _, m in rr), default=0)
-        print("\n  USUARIOS POR DIA")
-        print("  " + "-" * 56)
+        out("\n  USUARIOS POR DIA")
+        out("  " + "-" * 56)
         for d, m in rr[-21:]:  # ultimas ~3 semanas para no saturar
             fecha = f"{d[0][6:8]}/{d[0][4:6]}"
             u = float(m[0] or 0)
-            print(f"  {fecha}  {bar(u, mx)} {fnum(m[0]):>5}  ({fnum(m[1])} vistas)")
+            out(f"  {fecha}  {bar(u, mx)} {fnum(m[0]):>5}  ({fnum(m[1])} vistas)")
 
     # --- 3) Secciones / paginas top ---
     rep = run_report(prop, token, {
@@ -153,11 +186,11 @@ def main():
     })
     rr = rows(rep)
     if rr:
-        print("\n  SECCIONES / PAGINAS MAS VISTAS")
-        print(f"  {'ruta':<30} {'vistas':>8} {'usuarios':>9}")
-        print("  " + "-" * 50)
+        out("\n  SECCIONES / PAGINAS MAS VISTAS")
+        out(f"  {'ruta':<30} {'vistas':>8} {'usuarios':>9}")
+        out("  " + "-" * 50)
         for d, m in rr:
-            print(f"  {d[0][:30]:<30} {fnum(m[0]):>8} {fnum(m[1]):>9}")
+            out(f"  {d[0][:30]:<30} {fnum(m[0]):>8} {fnum(m[1]):>9}")
 
     # --- 4) Dispositivos ---
     rep = run_report(prop, token, {
@@ -168,9 +201,9 @@ def main():
     })
     rr = rows(rep)
     if rr:
-        print("\n  DISPOSITIVOS")
+        out("\n  DISPOSITIVOS")
         for d, m in rr:
-            print(f"  {d[0]:<12} {fnum(m[0]):>6}")
+            out(f"  {d[0]:<12} {fnum(m[0]):>6}")
 
     # --- 5) Paises ---
     rep = run_report(prop, token, {
@@ -182,9 +215,9 @@ def main():
     })
     rr = rows(rep)
     if rr:
-        print("\n  PAISES (top)")
+        out("\n  PAISES (top)")
         for d, m in rr:
-            print(f"  {d[0]:<18} {fnum(m[0]):>6}")
+            out(f"  {d[0]:<18} {fnum(m[0]):>6}")
 
     # --- 6) Eventos clave (embudo) ---
     rep = run_report(prop, token, {
@@ -199,11 +232,14 @@ def main():
                "view_upgrade_modal": "Vio modal Pro",
                "begin_checkout": "Inicio checkout"}
     rr = {d[0]: m[0] for d, m in rows(rep)}
-    print("\n  EMBUDO / EVENTOS CLAVE")
-    print("  " + "-" * 40)
+    out("\n  EMBUDO / EVENTOS CLAVE")
+    out("  " + "-" * 40)
     for ev, label in interes.items():
-        print(f"  {label:<24} {fnum(rr.get(ev, '0')):>6}")
-    print(H + "\n")
+        out(f"  {label:<24} {fnum(rr.get(ev, '0')):>6}")
+    out(H + "\n")
+
+    if a.email:
+        send_email(a.email, f"Brami3D - Informe de visitas ({a.dias}d)", "\n".join(LINES))
 
 
 if __name__ == "__main__":

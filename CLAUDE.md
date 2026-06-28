@@ -106,6 +106,16 @@ Conexión **vía directa** a la Graph API (sin servidor MCP de terceros; se desc
 - **Automático**: workflow `.github/workflows/publicar-redes.yml` (cron diario 17:00 UTC ≈ 19:00 ES + `workflow_dispatch` manual con input `id`). Requiere el **secret `META_ACCESS_TOKEN`** en GitHub (Settings → Secrets → Actions). `PAGE_ID`/`IG_USER_ID` van en el yaml (no son secretos). El Action commitea `social/plan.json` con el estado.
 - **Salud del token**: el token **no caduca**, pero puede invalidarse por causas externas (cambio de contraseña FB, permisos revocados). `scripts/verificar_token.py` + workflow `verificar-token.yml` (cron lunes 07:00 UTC) lo comprueban; si se rompe, el workflow falla y GitHub avisa por email. Se descartó la auto-renovación con PAT (innecesaria + riesgo de PAT con `secrets:write` en repo público).
 
+## Analítica (Google Analytics 4)
+- **GA4 conectado**: Measurement ID **`G-C5P6F52QE3`**, propiedad **ID numérico `531047655`**. El snippet `gtag` está en `brami3d_supabase.html`, `landing.html`, `cookies.html` y `privacidad.html`, **consent-gated** (solo carga si el usuario acepta el banner de cookies RGPD; flag `localStorage b3d_rgpd` = `accepted`/`rejected`).
+- **Eventos de la app** (helper `window.b3dTrack(name, params)` en el IIFE de consentimiento de `brami3d_supabase.html`: solo dispara si hay consentimiento y `gtag` cargado, nunca lanza):
+  - `page_view` virtual por sección en `goTo()` (la app es SPA: sin esto GA ve una sola página)
+  - `pwa_install_prompt` (con `outcome`) y `pwa_installed`
+  - `view_upgrade_modal` y `begin_checkout` (con `plan`) → embudo hacia Pro
+- **Informe de visitas**: `scripts/ga_informe.py [--dias 30] [--email destino]` consulta la **GA4 Data API** con una **cuenta de servicio** de solo lectura (`brami3d-informes@mindful-accord-500814-t1.iam.gserviceaccount.com`, proyecto Google Cloud "Brami3D" `mindful-accord-500814-t1`). Muestra usuarios/sesiones/vistas, evolución por día, secciones top, dispositivos, países y embudo. Con `--email` lo envía vía **Resend** (`from: hola@brami3d.app`).
+  - Credenciales: JSON de la cuenta de servicio en **`secretos/ga-service-account.json`** (carpeta gitignored, NUNCA al repo). `GA_PROPERTY_ID` en `.env`. Deps: `pip install google-auth requests`. La cuenta de servicio debe estar añadida como **Lector** en GA4 (Administrar → Gestión de accesos a la propiedad), si no → error 403.
+- **Email semanal**: workflow `.github/workflows/informe-ga.yml` (cron **lunes 08:00 UTC** + `workflow_dispatch` con input `dias`). Secrets en GitHub: **`GA_SERVICE_ACCOUNT_JSON`** (contenido completo del JSON) y **`RESEND_API_KEY`**. `GA_PROPERTY_ID` y email destino van en el yaml (no son secretos). El job restaura el JSON desde el secret a `secretos/` antes de ejecutar.
+
 ## Pendiente / ideas futuras
 - **Landing en inglés** (selector ES/EN + traducir todo el marketing) — no hecho; la app sí está bilingüe
 - Cancelar/reembolsar la suscripción de **prueba** de Stripe (pago test de 9 € real) — ya se puede desde el propio portal (`irAPortal`) ahora que Cancelaciones está activo

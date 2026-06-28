@@ -1,0 +1,48 @@
+name: Informe de visitas (GA4) por email
+
+# Envia cada lunes un email-resumen con las visitas de la PWA (Google Analytics 4):
+# usuarios, sesiones, vistas, evolucion por dia, secciones top, dispositivos,
+# paises y embudo. Tambien se puede lanzar a mano (workflow_dispatch).
+#
+# Secrets necesarios (Settings -> Secrets and variables -> Actions):
+#   GA_SERVICE_ACCOUNT_JSON  -> contenido COMPLETO del JSON de la cuenta de servicio
+#   RESEND_API_KEY           -> API key de Resend (la misma del dominio brami3d.app)
+# El Property ID y el email de destino NO son secretos: van aqui debajo.
+
+on:
+  schedule:
+    - cron: "0 8 * * 1"   # cada lunes 08:00 UTC (~10:00 ES)
+  workflow_dispatch:
+    inputs:
+      dias:
+        description: "Ventana de dias del informe"
+        required: false
+        default: "30"
+
+permissions:
+  contents: read
+
+env:
+  GA_PROPERTY_ID: "531047655"
+  EMAIL_DESTINO: "alexri69@gmail.com"
+
+jobs:
+  informe:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Instalar dependencias
+        run: pip install --quiet google-auth requests
+      - name: Restaurar credenciales de la cuenta de servicio
+        env:
+          GA_SERVICE_ACCOUNT_JSON: ${{ secrets.GA_SERVICE_ACCOUNT_JSON }}
+        run: |
+          mkdir -p secretos
+          printf '%s' "$GA_SERVICE_ACCOUNT_JSON" > secretos/ga-service-account.json
+      - name: Generar y enviar el informe
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+        run: python scripts/ga_informe.py --dias "${{ github.event.inputs.dias || '30' }}" --email "$EMAIL_DESTINO"
