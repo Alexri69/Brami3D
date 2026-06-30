@@ -19,7 +19,7 @@ Brami3D — app de gestión para negocio de impresión 3D. Static site **sin bui
 - RLS por `user_id`; RPCs `SECURITY DEFINER` para la parte pública
 
 ### Edge Functions
-Se crean/despliegan desde el **panel web** (Edge Functions → *Via Editor*). Secretos en *Settings → Edge Functions*. **"Verify JWT" = OFF** en todas (el gateway de la clave nueva rechaza el JWT de usuario; se valida a mano).
+Se despliegan desde el **panel web** (Edge Functions → *Via Editor*) **o por CLI**: `npm run deploy:functions` (necesita `SUPABASE_ACCESS_TOKEN` en el entorno o `npx supabase login`; despliega todas las funciones de `supabase/functions/` con `--no-verify-jwt`). Para una sola: `npx supabase functions deploy <nombre> --project-ref uzgzfxizpoigzcnlunpr --no-verify-jwt`. Secretos en *Settings → Edge Functions*. **"Verify JWT" = OFF** en todas (el gateway de la clave nueva rechaza el JWT de usuario; se valida a mano) — por eso el `--no-verify-jwt` al desplegar por CLI.
 - `enviar-doc` — email vía **Resend**, auth por header `x-user-token` (validado contra `/auth/v1/user`), `from: hola@brami3d.app` (dominio `brami3d.app` verificado: DKIM/SPF `v=spf1 include:amazonses.com ~all`/MX/DMARC en Namecheap).
 - `crear-checkout` — crea sesión de **Stripe Checkout** (suscripción). Auth `x-user-token`. Secreto `STRIPE_SECRET_KEY`. PRICES **live**: mensual `price_1TdvFePrM5C0gGgh2I0Gr6LC`, anual `price_1TdvFePrM5C0gGgh4liis6Os`. `success_url=?pago=ok`.
 - `stripe-webhook` — verifica firma (`constructEventAsync` + `createSubtleCryptoProvider`), y en `checkout.session.completed` / `customer.subscription.*` hace upsert en `user_plans` con la **service role**. Secretos `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`.

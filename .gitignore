@@ -26,3 +26,6 @@ scripts/ffprobe.exe
 __pycache__/
 *.pyc
 
+# Temporales de la Supabase CLI
+supabase/.temp/
+

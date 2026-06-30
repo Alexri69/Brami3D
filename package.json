@@ -1,0 +1,12 @@
+{
+  "name": "brami3d",
+  "private": true,
+  "description": "Brami3D — app de gestión para impresión 3D (static site, sin build).",
+  "scripts": {
+    "validate": "node scripts/validate.js",
+    "deploy:functions": "supabase functions deploy --project-ref uzgzfxizpoigzcnlunpr --no-verify-jwt"
+  },
+  "devDependencies": {
+    "supabase": "^2.108.0"
+  }
+}
