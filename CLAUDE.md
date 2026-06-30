@@ -1,134 +1,69 @@
 # CLAUDE.md
 
-Brami3D — app de gestión para negocio de impresión 3D. Static site **sin build**, desplegado en `brami3d.app` vía GitHub Pages (**push a `main` = producción**). Pensada para venderse como **SaaS multi-taller** (varios clientes).
+Brami3D — gestión para negocio de impresión 3D. Static site **sin build**, en `brami3d.app` vía GitHub Pages (**push a `main` = producción**). Pensada como **SaaS multi-taller**. Tras cada cambio: **commit + push** (despliega solo). Responder siempre en español.
 
 ## Archivos
-- `landing.html` — página de marketing (precios, modal de pago)
 - `brami3d_supabase.html` — SPA completa (~2700 líneas), la app de verdad
-- `index.html` — redirección a landing
-- `p.html` — página pública de aceptación de presupuestos (sin login)
-- `gracias.html` — destino tras pago PayPal manual
+- `landing.html` — marketing (precios, modal de pago) · `index.html` — redirige a landing
+- `p.html` — aceptación pública de presupuestos (sin login) · `gracias.html` — post-pago PayPal
 - `cookies.html` · `privacidad.html` · `promo_instagram.html`
-- `supabase/functions/*` — Edge Functions (Deno)
-- `sql/*.sql` — migraciones (ejecutar a mano en SQL Editor)
+- `supabase/functions/*` — Edge Functions (Deno) · `sql/*.sql` — migraciones (a mano en SQL Editor)
+- `scripts/*` — utilidades (marketing, email, informes) · `m/` — imágenes públicas para redes
 
 ## Backend (Supabase)
-- Proyecto ref: **`uzgzfxizpoigzcnlunpr`**
-- Claves **nuevo formato** `sb_publishable_…` (la antigua anon/JWT ya no se usa en el gateway)
-- Tablas: `clientes`, `pedidos`, `impresoras`, `filamentos`, `piezas`, `archivos`, `gastos`, `config`, `user_plans`, `push_subscriptions`, `error_logs`, `reenganche_enviado`
-- RLS por `user_id`; RPCs `SECURITY DEFINER` para la parte pública
+- Ref: **`uzgzfxizpoigzcnlunpr`**. Claves **nuevo formato** `sb_publishable_…` (la anon/JWT antigua ya no vale en el gateway).
+- Tablas (RLS por `user_id`): `clientes`, `pedidos`, `impresoras`, `filamentos`, `piezas`, `archivos`, `gastos`, `config`, `user_plans`, `push_subscriptions`, `error_logs`, `reenganche_enviado`, `referidos`, tablas VeriFactu. RPCs `SECURITY DEFINER` para lo público.
 
 ### Edge Functions
-Se despliegan desde el **panel web** (Edge Functions → *Via Editor*) **o por CLI**: `npm run deploy:functions` (necesita `SUPABASE_ACCESS_TOKEN` en el entorno o `npx supabase login`; despliega todas las funciones de `supabase/functions/` con `--no-verify-jwt`). Para una sola: `npx supabase functions deploy <nombre> --project-ref uzgzfxizpoigzcnlunpr --no-verify-jwt`. Secretos en *Settings → Edge Functions*. **"Verify JWT" = OFF** en todas (el gateway de la clave nueva rechaza el JWT de usuario; se valida a mano) — por eso el `--no-verify-jwt` al desplegar por CLI.
-- `enviar-doc` — email vía **Resend**, auth por header `x-user-token` (validado contra `/auth/v1/user`), `from: hola@brami3d.app` (dominio `brami3d.app` verificado: DKIM/SPF `v=spf1 include:amazonses.com ~all`/MX/DMARC en Namecheap).
-- `crear-checkout` — crea sesión de **Stripe Checkout** (suscripción). Auth `x-user-token`. Secreto `STRIPE_SECRET_KEY`. PRICES **live**: mensual `price_1TdvFePrM5C0gGgh2I0Gr6LC`, anual `price_1TdvFePrM5C0gGgh4liis6Os`. `success_url=?pago=ok`.
-- `stripe-webhook` — verifica firma (`constructEventAsync` + `createSubtleCryptoProvider`), y en `checkout.session.completed` / `customer.subscription.*` hace upsert en `user_plans` con la **service role**. Secretos `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`.
-- `portal-cliente` — abre el **Customer Portal** de Stripe (cancelar/cambiar tarjeta/descargar facturas). Auth `x-user-token`; busca `stripe_customer_id` en `user_plans` con la service role; `billingPortal.sessions.create`. App: `irAPortal()` + botón "⚙️ Gestionar suscripción" en `showPlanInfo()` cuando `_plan.hasStripe`. Requiere activar el portal una vez en Stripe → Facturación → Portal de clientes (con Cancelaciones ON, cancelar al fin del periodo).
-- `borrar-cuenta` — **RGPD / derecho al olvido**. Auth `x-user-token`; con service role borra las filas del usuario en todas las tablas (lista `TABLES`) y elimina la cuenta de auth (`DELETE /auth/v1/admin/users/{id}`). App: `confirmarEliminarCuenta()`/`eliminarCuenta()` (botón "Zona de peligro" en Config; pide escribir ELIMINAR/DELETE). Claves `del.*`/`cfg.dangerZone`.
-- `enviar-push` — **Web Push** (notificaciones aunque la app esté cerrada). `npm:web-push` + VAPID (secretos `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`). Auth: `x-user-token` (manda al propio usuario, p. ej. botón "probar") o `x-cron-secret` (manda a `body.user_id`, para servidor/cron). Lee de `push_subscriptions` (service role), borra las caducadas (404/410). App: `suscribirPush()` (al activar notificaciones, `pushManager.subscribe` con la VAPID pública → upsert en `push_subscriptions`), `probarPush()` (botón en Config), listener `push` en `sw.js`. Tabla: `sql/015_push_subscriptions.sql`. ⚠️ iOS: solo si la PWA está instalada en inicio (iOS 16.4+).
-- `recordatorios` — **programada (cron)**, sin token de usuario. Con la service role agrupa por taller los presupuestos compartidos sin aceptar (>3 días) y los pedidos terminados/entregados sin cobrar (>7 días, misma regla que `checkAndNotify`) y envía un **email-resumen** vía Resend al email de login. Protegida con header `x-cron-secret` (secreto `CRON_SECRET`, **obligatorio**: sin él devuelve 403 y no envía nada). Se programa con `sql/013_cron_recordatorios.sql` (pg_cron, lunes 08:00 UTC) o el Cron UI del dashboard.
-- `reenganche` — **programada (cron)**, sin token de usuario. Con la service role detecta usuarios registrados hace ≥7 días **sin ningún pedido** (excluye admins y `demo@brami3d.app`) y que **no hayan sido contactados antes**, y les envía **una sola vez** el email de bienvenida/ayuda (mismo copy que `scripts/reenganche.py`) con la **guía PDF adjunta** (la descarga de `brami3d.app/guia-brami3d.pdf`). Registra cada envío en la tabla `reenganche_enviado` para no repetir. Protegida con `x-cron-secret` (`CRON_SECRET`, **obligatorio**, mismo valor que `recordatorios`). Tabla + cron en `sql/019_reenganche.sql`. **YA DESPLEGADA y el cron `brami3d-reenganche-semanal` está ACTIVO** (pg_cron, lunes 09:00 UTC). Probada en vivo (HTTP 200). Los 3 usuarios inactivos del lanzamiento se pre-cargaron en `reenganche_enviado` para que no recibieran duplicado. El envío **manual/puntual** se sigue pudiendo hacer con `scripts/reenganche.py --to …`.
+Desplegar: panel web (Edge Functions → *Via Editor*) **o** `npm run deploy:functions` (todas) / `npx supabase functions deploy <n> --project-ref uzgzfxizpoigzcnlunpr --no-verify-jwt`. **"Verify JWT" = OFF en todas** (se valida a mano por eso el `--no-verify-jwt`). Secretos en *Settings → Edge Functions*. Operar Supabase desde aquí: ver memoria `project_supabase_ops`.
+- `enviar-doc` — email (PDF adjunto) vía **Resend**. Auth `x-user-token`. `from: hola@brami3d.app` (dominio verificado DKIM/SPF/DMARC en Namecheap). Valida destinatario/Reply-To y limita tamaños (anti-spam).
+- `crear-checkout` — **Stripe Checkout** (suscripción). Auth `x-user-token`. `STRIPE_SECRET_KEY`. Prices live: mensual `price_1TdvFePrM5C0gGgh2I0Gr6LC`, anual `price_1TdvFePrM5C0gGgh4liis6Os`. `success_url=?pago=ok`.
+- `stripe-webhook` — verifica firma; en `checkout.session.completed`/`customer.subscription.*` hace upsert en `user_plans` (service role). `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`.
+- `portal-cliente` — Customer Portal de Stripe. Auth `x-user-token`. App: `irAPortal()` (botón en `showPlanInfo()` si `_plan.hasStripe`). Activar portal una vez en Stripe.
+- `borrar-cuenta` — **RGPD**. Auth `x-user-token`; service role borra filas del usuario en todas las tablas (lista `TABLES`, incluye `reenganche_enviado`) + cuenta auth. App: `confirmarEliminarCuenta()`/`eliminarCuenta()` (Config → Zona de peligro).
+- `enviar-push` — **Web Push** (`npm:web-push` + VAPID, secretos `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`). Auth `x-user-token` (propio) o `x-cron-secret` (`body.user_id`). Lee `push_subscriptions`, borra caducadas (404/410). App: `suscribirPush()`, `probarPush()`, listener `push` en `sw.js`. ⚠️ iOS: solo PWA instalada (16.4+).
+- `recordatorios` — **cron** (lunes 08:00 UTC, `sql/013`). Service role: presupuestos sin aceptar (>3d) + pedidos sin cobrar (>7d) → email-resumen Resend. `x-cron-secret` (`CRON_SECRET`, **obligatorio**).
+- `reenganche` — **cron ACTIVO** (`brami3d-reenganche-semanal`, lunes 09:00 UTC, `sql/019`). Service role: usuarios registrados ≥7d **sin pedidos**, no admins/demo, **no contactados** → email bienvenida con **guía PDF adjunta** (de `brami3d.app/guia-brami3d.pdf`); registra en `reenganche_enviado` para no repetir. `x-cron-secret` (`CRON_SECRET`). Manual: `scripts/reenganche.py --to … [--dry]`.
 
-> ⚠️ Nunca pegar en chat secretos `sk_live_` / `whsec_` → van directos a Supabase secrets. La publishable sí puede ir embebida.
+> ⚠️ Nunca pegar en chat `sk_live_`/`whsec_`/tokens → van directos a Supabase secrets. La publishable sí puede ir embebida.
 
 ## App (`brami3d_supabase.html`)
-- `sb = createClient(SUPA_URL, SUPA_KEY)` (publishable)
-- Estado global: `CU` (usuario), `PAGE`, `_cache`, `_lineas`
-- Boot: `bootApp()` → `loadAll()` → `goTo('dashboard')`. En bootApp se llaman además `handleShortcut(); _checkPagoReturn(); _checkSuscribirIntent();`
-- Navegación: `goTo(page)` → `render()` reconstruye `#content`
-- CRUD: `dbSave(table,data)` upsert, `dbDel(table,id)` — actualizan `_cache` y re-renderizan
-- **Caché local** en `localStorage` por `user_id` (funciona offline) + **cola de escritura offline** (outbox en localStorage que se vacía al recuperar conexión)
-- Detección de columnas opcionales en runtime: `_hasAnticipo`, `_hasShare`
-- Tema: dark por defecto, `body.light` para claro, guardado en `b3d_theme`. Botón `#theme-btn` (🌙)
-- **Dashboard con métricas** de negocio (ingresos, costes, beneficio, consumo)
-- **Onboarding**: `maybeShowOnboarding()` (en bootApp) muestra un asistente de 3 pasos solo en cuentas vacías y no descartadas (flag `b3d_onboarded_<uid>`). Forzar para probar: `showOnboarding()` en consola.
-- **Accesibilidad**: `a11yIcons()` da `aria-label` a los `.btn-icon` tras cada render/modal (por `title` o emoji). Claves `a11y.*`.
-- **Errores globales**: `window.onerror`/`unhandledrejection` → `_logError()` muestra un toast (`err.generic`, sin spam, ignora ruido de red) y registra en la tabla `error_logs` (best-effort). Migración `sql/014_error_logs.sql` (RLS: insert propio, select solo admin). Ver: `select ... from error_logs order by created_at desc`.
-- **Mantenimiento impresoras**: columnas opcionales `mantenimiento_cada`/`ultimo_mant_h` (detección `_hasMant`, `sql/018`). En la tarjeta: barra + "Toca mantenimiento" cuando `horasUso - ultimoMantH ≥ cada`; botón `marcarMantenimiento()` reinicia el contador. Aviso en `checkAndNotify`. Default `MANT_DEFAULT=250`.
-- **Referidos**: enlace `?ref=CODE` → `localStorage b3d_ref` → `_aplicarReferido()` (en bootApp) llama RPC `aplicar_referido` (+30 días Pro a ambos, vía `_sumar_trial`). UI `mostrarReferidos()` (card en Config) usa RPC `mi_ref_code()` y cuenta `referidos`. SQL: `sql/017_referidos.sql` (tabla `referidos`, columna `user_plans.ref_code`, RPCs SECURITY DEFINER). Sin Edge Functions ni Stripe.
-- **Nudge de trial**: `trialBannerHTML()` (en render) muestra un banner en los últimos ≤7 días de prueba (`_plan.source==='trial'`) con CTA a `showPlanInfo()`. Descartable en sesión (`_dismissTrial`). Claves `trial.*`.
+- `sb = createClient(SUPA_URL, SUPA_KEY)` (publishable). Estado: `CU`, `PAGE`, `_cache`, `_lineas`.
+- Boot: `bootApp()` → `loadAll()` → `goTo('dashboard')` (+ `handleShortcut/_checkPagoReturn/_checkSuscribirIntent/_aplicarReferido/maybeShowOnboarding`). Nav: `goTo(page)` → `render()` reconstruye `#content`. CRUD: `dbSave(table,data)`/`dbDel(table,id)` (actualizan `_cache` + re-render).
+- **Offline**: caché en `localStorage` por `user_id` + **outbox** (cola de escritura que se vacía al volver la red). Detección de columnas opcionales: `_hasAnticipo`, `_hasShare`, `_hasMant`.
+- Tema dark por defecto (`body.light`, `b3d_theme`, `#theme-btn`). Dashboard con métricas (ingresos/costes/beneficio/consumo).
+- **Onboarding** `maybeShowOnboarding()` (cuentas vacías, flag `b3d_onboarded_<uid>`; forzar: `showOnboarding()`). **A11y** `a11yIcons()`. **Errores globales** → `_logError()` (toast + tabla `error_logs`, `sql/014`).
+- **Mantenimiento impresoras** (`sql/018`, `MANT_DEFAULT=250`, `marcarMantenimiento()`). **Referidos** `?ref=CODE` → RPC `aplicar_referido` (+30d Pro a ambos), UI `mostrarReferidos()`, `sql/017`. **Nudge trial** `trialBannerHTML()` (≤7d de prueba).
 
 ### i18n (ES / EN)
-- `LANG` global (localStorage `b3d_lang`, **default `es`**; inglés es opt-in)
-- `I18N = { es:{…}, en:{…} }`, helper `t(key, vars)`
-- `applyStaticI18n()` traduce el DOM estático; `setLang(l)` / `toggleLang()`
-- **Botón de idioma = bandera** (`#lang-btn`): muestra 🇬🇧 en español (clic→inglés) y 🇪🇸 en inglés (clic→español); su `title` también se adapta
-- En **inglés se oculta el módulo fiscal** (solo aplica a España)
-- PDFs también traducidos
-- ⚠️ Cuidado con apóstrofes en strings (rompen comillas simples JS) y con `€` (€) al editar
+`LANG` (localStorage `b3d_lang`, **default `es`**; EN opt-in). `I18N={es,en}`, helper `t(key,vars)`, `applyStaticI18n()`, `setLang()/toggleLang()`. Botón bandera `#lang-btn` (🇬🇧 en ES / 🇪🇸 en EN). En **EN se oculta el módulo fiscal** (solo España). PDFs traducidos. ⚠️ Cuidado con apóstrofes y `€` al editar strings.
 
-### Planes y límites (el "candado" del SaaS)
-- Tabla `user_plans` (free/pro/admin) + columnas Stripe (`stripe_customer_id`, `stripe_subscription_id`, `expires_at`, `trial_until`), índice único por `user_id`
-- `resolvePlan()` resuelve el plan efectivo; `FREE_LIMITS` = **10 pedidos/mes, 5 clientes**; `checkPlanLimit()` los aplica
-- `ADMIN_EMAILS` = `alexri69@gmail.com`, `brami3d@gmail.com` (acceso admin total)
-- Trial 30 días (`trial_until`); panel **Admin** (`pgAdmin`) para marcar plan/expiry/blocked a mano
-- `showUpgradeModal()` enlaza a `landing.html#precios`
+### Planes y candado SaaS
+- `user_plans` (free/pro/admin) + columnas Stripe (`stripe_customer_id`, `stripe_subscription_id`, `expires_at`, `trial_until`), índice único `user_id`.
+- `resolvePlan()` → `_plan`; `FREE_LIMITS` = **10 pedidos/mes, 5 clientes**; `checkPlanLimit()`. `ADMIN_EMAILS` = `alexri69@gmail.com`, `brami3d@gmail.com`. Trial 30d. Panel **Admin** (`pgAdmin`). `showUpgradeModal()` → `landing.html#precios`.
 
-### Pago / suscripción (Stripe + PayPal)
-- Precios: Básico **Gratis** · **Pro Mensual 9 €/mes** · **Pro Anual 79 €/año**
-- `irACheckout(plan)` → fetch a `crear-checkout` (headers `apikey`+`Authorization` = publishable, `x-user-token`) → redirige a Stripe
-- `_checkPagoReturn()` — al volver con `?pago=ok` avisa y refresca el plan (el webhook ya lo activó)
-- `_checkSuscribirIntent()` — si se entra con `?suscribir=mensual|anual` (desde el landing), abre el checkout automáticamente tras login
-- **Landing**: `openPayModal(plan)` muestra botón **"Pagar con tarjeta"** (`#pay-card-btn` → `brami3d_supabase.html?suscribir=<plan>`, activación instantánea) **+** caja PayPal como alternativa **manual** (24 h, el owner marca Pro a mano)
+### Pago (Stripe + PayPal)
+Precios: Gratis · Pro Mensual **9 €** · Pro Anual **79 €**. `irACheckout(plan)` → `crear-checkout` → Stripe. `_checkPagoReturn()` (`?pago=ok`), `_checkSuscribirIntent()` (`?suscribir=mensual|anual` desde landing). Landing `openPayModal(plan)`: botón tarjeta (`?suscribir=`) + PayPal manual (`paypal.me/Brami3D/9EUR`, el owner marca Pro a mano).
 
 ### Presupuestos públicos
-- `p.html` consume RPCs `get_presupuesto_publico` y `aceptar_presupuesto` (deben existir como FUNCTION, no solo el ALTER TABLE)
-- La app genera el enlace público para que el cliente acepte sin cuenta
+`p.html` usa RPCs `get_presupuesto_publico` y `aceptar_presupuesto` (deben existir como FUNCTION). La app genera el enlace para aceptar sin cuenta.
 
-## Migraciones SQL (a mano en SQL Editor)
-- `009_pedidos_anticipo.sql` — anticipos en pedidos
-- `010_presupuesto_publico.sql` — RPCs de aceptación pública
-- `011_stripe.sql` — columnas Stripe + índice único en `user_plans`
+## Validar y seguridad
+- **Validar antes de commit**: `node scripts/validate.js` (compila los `<script>` inline + JSON; ignora carpetas no desplegadas). CI: `.github/workflows/validate.yml`.
+- **RLS** (auditado): cada política filtra por `(auth.uid() = user_id)`; `user_plans` solo SELECT (writes vía webhook/admin); VeriFactu append-only. Script: `sql/012_audit_rls.sql`. **XSS**: `esc()` en todo HTML con datos de usuario (incl. `p.html`), escapa también `'`.
 
-## Validar JS antes de commitear
-```bash
-cd /c/Users/alexr/Brami3D
-node scripts/validate.js   # valida los <script> inline de todos los .html + JSON
-```
-Hay **CI** (`.github/workflows/validate.yml`) que ejecuta esto en cada push/PR — como push a main = producción, sirve de red de seguridad. Tras cada cambio: **commit + push** (despliega solo).
+## Marketing — Meta (FB / IG / Ads)
+**Vía directa** a Graph API (sin MCP de terceros). Credenciales en **`.env` local** (gitignored): `META_ACCESS_TOKEN` (sin caducidad), `META_APP_ID`, `META_APP_SECRET`, `META_AD_ACCOUNT_ID=act_365965302`, `META_PAGE_ID=1153412231189064`, `META_IG_USER_ID=17841442053876570`. App Meta "Brami3D" (App ID `1218738721315597`). IG = **@brami3d.app** (vía *API setup with Facebook login*; publicar = 2 pasos `/{ig}/media` → `/{ig}/media_publish`).
+- Helper: `scripts/meta.ps1 <endpoint> [query] [-Method] [-Body]` (lee token del `.env`, Graph v25.0).
+- `scripts/metricas.py [--n N]` — métricas IG (reach; reels ~10x carruseles).
+- **Publicar**: `scripts/publicar.py --target fb|ig|both --caption … --images URL… | --video URL --formato reel|story|feed` (URLs públicas desde `m/`). Flujo del mes: `marketing/plan-mes.json` (gitignored) → `scripts/preparar.py` → `social/plan.json` (versionado) → `scripts/publicar_hoy.py`.
+- **Workflows**: `publicar-redes.yml` (cron 17:00 UTC + dispatch; secret `META_ACCESS_TOKEN`), `verificar-token.yml` (`scripts/verificar_token.py`, lunes 07:00; avisa si el token se invalida).
 
-## Seguridad (auditado 2026-06-03)
-- **RLS** activo y correcto en las 12 tablas: cada política filtra por `(auth.uid() = user_id)`, ninguna permisiva. `user_plans` solo SELECT (writes vía webhook/admin RPC). Tablas VeriFactu append-only (solo INSERT+SELECT). Script de comprobación: `sql/012_audit_rls.sql`.
-- **XSS**: `esc()` aplicado en todo el HTML con datos de usuario (incluido `p.html`, que ve el cliente). `esc()` escapa también `'`.
+## Analítica (GA4)
+Measurement ID **`G-C5P6F52QE3`**, propiedad **`531047655`**. `gtag` en `brami3d_supabase.html`/`landing.html`/`cookies.html`/`privacidad.html`, **consent-gated** (`localStorage b3d_rgpd`). Eventos vía `window.b3dTrack(name,params)`: `page_view` por sección (SPA), `pwa_install_prompt`/`pwa_installed`, `view_upgrade_modal`/`begin_checkout`.
+- **Informe**: `scripts/ga_informe.py [--dias 30] [--email destino]` (GA4 Data API, cuenta de servicio `brami3d-informes@mindful-accord-500814-t1.iam.gserviceaccount.com`, JSON en `secretos/ga-service-account.json` gitignored, `GA_PROPERTY_ID` en `.env`; debe ser Lector en GA4). Con `--email` → Resend.
+- **Email semanal**: `informe-ga.yml` (lunes 08:00 UTC). Secrets GitHub: `GA_SERVICE_ACCOUNT_JSON`, `RESEND_API_KEY`.
 
-## Integración Meta (Facebook / Instagram / Ads)
-Conexión **vía directa** a la Graph API (sin servidor MCP de terceros; se descartó `meta-ads-mcp`/Pipeboard por privacidad y fricción). Credenciales en **`.env` local** (gitignoreado, NUNCA al repo): `META_ACCESS_TOKEN` (token de usuario **sin caducidad** — verificado con `debug_token`: `expires_at=0`, por ser admin de la app en modo desarrollo), `META_APP_ID`, `META_APP_SECRET`, `META_AD_ACCOUNT_ID=act_365965302`, `META_PAGE_ID=1153412231189064` (Página "Brami3D"), `META_IG_USER_ID=17841442053876570`. Plantilla en `.env.example`.
-- App de Meta: **"Brami3D"** (App ID `1218738721315597`), creada en developers.facebook.com.
-- Helper: **`scripts/meta.ps1 <endpoint> [query] [-Method] [-Body]`** — lee el token del `.env` (no lo imprime) y llama a `graph.facebook.com/v25.0`. Ej: `powershell -File scripts/meta.ps1 act_365965302/campaigns "fields=name,status"`.
-- **Permisos del token actual**: `ads_management`, `ads_read`, `business_management`, `pages_show_list`, `pages_read_engagement`, `pages_manage_posts`, `instagram_basic`, `instagram_content_publish`, `instagram_manage_comments`, `instagram_manage_messages`, `instagram_manage_insights` → gestionar/leer **anuncios**, leer/**publicar** en la Página, y **publicar/comentar/DMs/métricas en Instagram**.
-- **Métricas IG**: `scripts/metricas.py [--n N]` → panel con seguidores y, por post, likes/comentarios/engagement/**reach**. Hallazgo inicial: los reels alcanzan ~10x más que los carruseles.
-- **Instagram conectado**: cuenta **@brami3d.app** (`META_IG_USER_ID=17841442053876570`), vinculada a la Página vía caso de uso "Administrar mensajes y contenido en Instagram" → **API setup with Facebook login** (NO Instagram login; esa no da insights). Publicar = flujo 2 pasos: `POST /{ig_user_id}/media` (crea contenedor con `image_url`/`video_url`+`caption`) → `POST /{ig_user_id}/media_publish` (`creation_id`).
-- **Pendiente para más alcance**: en producción los DMs/insights pueden requerir **App Review** (modo desarrollo funciona para el propio dueño).
-
-### Publicación en redes (manual y automática)
-- **`scripts/publicar.py`** `--target fb|ig|both --caption "…" --images URL1 URL2…` (o `--job JSON`): publica post simple o carrusel en FB (multi-foto) e IG (carrusel). Imágenes deben ser **URLs públicas** (IG lo exige) → se alojan en **`m/`** (servida por GitHub Pages, `brami3d.app/m/*`). Lee credenciales del `.env` o de variables de entorno (CI).
-- **Vídeo**: `--video URL --formato reel|story|feed` (mp4 H.264 en URL pública). IG: `reel` (REELS, sale en feed) o `story` (STORIES, 24 h) — procesado asíncrono, el script espera a `status_code=FINISHED` antes de `media_publish`. FB: el vídeo se sube siempre al feed de la Página (`/{page}/videos`); reels/historias nativos de FB vía API requieren otro flujo.
-- **Flujo del mes**: Antigravity genera imágenes en `marketing/` (gitignored) + `marketing/plan-mes.json` (16 posts julio: `id,fecha,redes,tipo,archivos,caption,estado`). `scripts/preparar.py` copia las imágenes a `m/` y genera **`social/plan.json`** (versionado, con URLs públicas). `scripts/publicar_hoy.py` publica los posts de hoy pendientes y marca estado.
-- **Automático**: workflow `.github/workflows/publicar-redes.yml` (cron diario 17:00 UTC ≈ 19:00 ES + `workflow_dispatch` manual con input `id`). Requiere el **secret `META_ACCESS_TOKEN`** en GitHub (Settings → Secrets → Actions). `PAGE_ID`/`IG_USER_ID` van en el yaml (no son secretos). El Action commitea `social/plan.json` con el estado.
-- **Salud del token**: el token **no caduca**, pero puede invalidarse por causas externas (cambio de contraseña FB, permisos revocados). `scripts/verificar_token.py` + workflow `verificar-token.yml` (cron lunes 07:00 UTC) lo comprueban; si se rompe, el workflow falla y GitHub avisa por email. Se descartó la auto-renovación con PAT (innecesaria + riesgo de PAT con `secrets:write` en repo público).
-
-## Analítica (Google Analytics 4)
-- **GA4 conectado**: Measurement ID **`G-C5P6F52QE3`**, propiedad **ID numérico `531047655`**. El snippet `gtag` está en `brami3d_supabase.html`, `landing.html`, `cookies.html` y `privacidad.html`, **consent-gated** (solo carga si el usuario acepta el banner de cookies RGPD; flag `localStorage b3d_rgpd` = `accepted`/`rejected`).
-- **Eventos de la app** (helper `window.b3dTrack(name, params)` en el IIFE de consentimiento de `brami3d_supabase.html`: solo dispara si hay consentimiento y `gtag` cargado, nunca lanza):
-  - `page_view` virtual por sección en `goTo()` (la app es SPA: sin esto GA ve una sola página)
-  - `pwa_install_prompt` (con `outcome`) y `pwa_installed`
-  - `view_upgrade_modal` y `begin_checkout` (con `plan`) → embudo hacia Pro
-- **Informe de visitas**: `scripts/ga_informe.py [--dias 30] [--email destino]` consulta la **GA4 Data API** con una **cuenta de servicio** de solo lectura (`brami3d-informes@mindful-accord-500814-t1.iam.gserviceaccount.com`, proyecto Google Cloud "Brami3D" `mindful-accord-500814-t1`). Muestra usuarios/sesiones/vistas, evolución por día, secciones top, dispositivos, países y embudo. Con `--email` lo envía vía **Resend** (`from: hola@brami3d.app`).
-  - Credenciales: JSON de la cuenta de servicio en **`secretos/ga-service-account.json`** (carpeta gitignored, NUNCA al repo). `GA_PROPERTY_ID` en `.env`. Deps: `pip install google-auth requests`. La cuenta de servicio debe estar añadida como **Lector** en GA4 (Administrar → Gestión de accesos a la propiedad), si no → error 403.
-- **Email semanal**: workflow `.github/workflows/informe-ga.yml` (cron **lunes 08:00 UTC** + `workflow_dispatch` con input `dias`). Secrets en GitHub: **`GA_SERVICE_ACCOUNT_JSON`** (contenido completo del JSON) y **`RESEND_API_KEY`**. `GA_PROPERTY_ID` y email destino van en el yaml (no son secretos). El job restaura el JSON desde el secret a `secretos/` antes de ejecutar.
-
-## Pendiente / ideas futuras
-- **Landing en inglés** (selector ES/EN + traducir todo el marketing) — no hecho; la app sí está bilingüe
-- Cancelar/reembolsar la suscripción de **prueba** de Stripe (pago test de 9 € real) — ya se puede desde el propio portal (`irAPortal`) ahora que Cancelaciones está activo
-- (Opcional) i18n del botón "Gestionar suscripción" y limpieza de políticas RLS duplicadas (cosmético, sin riesgo de seguridad)
-- (Opcional, bajo riesgo) **Rotar `CRON_SECRET`**: se vio en una sesión de mantenimiento. Solo permite disparar los crons (no datos ni cuenta). Si se rota: generar nuevo, `secrets set`, y actualizar los crons `recordatorios` y `reenganche`.
-
-## Bitácora — auditoría y mejoras (2026-06-30)
-Auditoría completa de la PWA + endurecimiento. Cambios desplegados:
-- **PWA cold-start offline**: `sw.js` ahora precachea el app shell (`brami3d_supabase.html` + iconos/manifest) y lo sirve como fallback sin red (antes solo cacheaba los CDN → no arrancaba offline). Caché `b3d-cdn-v6`.
-- **`recordatorios`**: `CRON_SECRET` pasó a ser **obligatorio** (sin él → 403; antes, sin el secreto quedaba pública).
-- **`enviar-doc`**: validación server-side del destinatario/Reply-To (formato email, 1 solo) + límites de tamaño de asunto/texto/adjunto (evita relay de spam).
-- **`scripts/validate.js`**: ignora carpetas no desplegadas (`.agents`, `marketing`, `secretos`, `supabase`, `.github`) → sin falsos positivos; el comando local vuelve a ser fiable.
-- **Tooling**: añadida la **Supabase CLI** como devDependency + `npm run deploy:functions` (despliega todas las funciones con `--no-verify-jwt`). Ver `project_supabase_ops` en memoria para el flujo (token, Management API, Cloudflare UA, recuperar CRON_SECRET de `cron.job`).
-- **Email/CRM**: `scripts/reenganche.py` ahora **adjunta** la guía PDF (antes la enlazaba). Probado el envío real con adjunto. Campaña enviada a los 3 usuarios inactivos. Reenganche **automatizado** (Edge Function `reenganche` + tabla `reenganche_enviado` + cron semanal, ver arriba).
-- No requería cambios: RLS, secretos (nada filtrado al repo), Stripe webhook, XSS/`esc()`, auth.
+## Pendiente / ideas
+- **Landing en inglés** (la app ya es bilingüe). i18n del botón "Gestionar suscripción" y limpiar políticas RLS duplicadas (cosmético).
+- (Bajo riesgo) **Rotar `CRON_SECRET`** (se vio en mantenimiento; solo dispara crons). Si se rota: `secrets set` + actualizar crons `recordatorios` y `reenganche`.
