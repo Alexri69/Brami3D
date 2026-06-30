@@ -15,7 +15,7 @@ Brami3D — app de gestión para negocio de impresión 3D. Static site **sin bui
 ## Backend (Supabase)
 - Proyecto ref: **`uzgzfxizpoigzcnlunpr`**
 - Claves **nuevo formato** `sb_publishable_…` (la antigua anon/JWT ya no se usa en el gateway)
-- Tablas: `clientes`, `pedidos`, `impresoras`, `filamentos`, `piezas`, `archivos`, `gastos`, `config`, `user_plans`
+- Tablas: `clientes`, `pedidos`, `impresoras`, `filamentos`, `piezas`, `archivos`, `gastos`, `config`, `user_plans`, `push_subscriptions`, `error_logs`, `reenganche_enviado`
 - RLS por `user_id`; RPCs `SECURITY DEFINER` para la parte pública
 
 ### Edge Functions
@@ -27,7 +27,7 @@ Se despliegan desde el **panel web** (Edge Functions → *Via Editor*) **o por C
 - `borrar-cuenta` — **RGPD / derecho al olvido**. Auth `x-user-token`; con service role borra las filas del usuario en todas las tablas (lista `TABLES`) y elimina la cuenta de auth (`DELETE /auth/v1/admin/users/{id}`). App: `confirmarEliminarCuenta()`/`eliminarCuenta()` (botón "Zona de peligro" en Config; pide escribir ELIMINAR/DELETE). Claves `del.*`/`cfg.dangerZone`.
 - `enviar-push` — **Web Push** (notificaciones aunque la app esté cerrada). `npm:web-push` + VAPID (secretos `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`). Auth: `x-user-token` (manda al propio usuario, p. ej. botón "probar") o `x-cron-secret` (manda a `body.user_id`, para servidor/cron). Lee de `push_subscriptions` (service role), borra las caducadas (404/410). App: `suscribirPush()` (al activar notificaciones, `pushManager.subscribe` con la VAPID pública → upsert en `push_subscriptions`), `probarPush()` (botón en Config), listener `push` en `sw.js`. Tabla: `sql/015_push_subscriptions.sql`. ⚠️ iOS: solo si la PWA está instalada en inicio (iOS 16.4+).
 - `recordatorios` — **programada (cron)**, sin token de usuario. Con la service role agrupa por taller los presupuestos compartidos sin aceptar (>3 días) y los pedidos terminados/entregados sin cobrar (>7 días, misma regla que `checkAndNotify`) y envía un **email-resumen** vía Resend al email de login. Protegida con header `x-cron-secret` (secreto `CRON_SECRET`, **obligatorio**: sin él devuelve 403 y no envía nada). Se programa con `sql/013_cron_recordatorios.sql` (pg_cron, lunes 08:00 UTC) o el Cron UI del dashboard.
-- `reenganche` — **programada (cron)**, sin token de usuario. Con la service role detecta usuarios registrados hace ≥7 días **sin ningún pedido** (excluye admins y `demo@brami3d.app`) y que **no hayan sido contactados antes**, y les envía **una sola vez** el email de bienvenida/ayuda (mismo copy que `scripts/reenganche.py`) con la **guía PDF adjunta** (la descarga de `brami3d.app/guia-brami3d.pdf`). Registra cada envío en la tabla `reenganche_enviado` para no repetir. Protegida con `x-cron-secret` (`CRON_SECRET`, **obligatorio**). Tabla + cron en `sql/019_reenganche.sql` (pg_cron, lunes 09:00 UTC). El envío **manual/puntual** se sigue pudiendo hacer con `scripts/reenganche.py --to …`.
+- `reenganche` — **programada (cron)**, sin token de usuario. Con la service role detecta usuarios registrados hace ≥7 días **sin ningún pedido** (excluye admins y `demo@brami3d.app`) y que **no hayan sido contactados antes**, y les envía **una sola vez** el email de bienvenida/ayuda (mismo copy que `scripts/reenganche.py`) con la **guía PDF adjunta** (la descarga de `brami3d.app/guia-brami3d.pdf`). Registra cada envío en la tabla `reenganche_enviado` para no repetir. Protegida con `x-cron-secret` (`CRON_SECRET`, **obligatorio**, mismo valor que `recordatorios`). Tabla + cron en `sql/019_reenganche.sql`. **YA DESPLEGADA y el cron `brami3d-reenganche-semanal` está ACTIVO** (pg_cron, lunes 09:00 UTC). Probada en vivo (HTTP 200). Los 3 usuarios inactivos del lanzamiento se pre-cargaron en `reenganche_enviado` para que no recibieran duplicado. El envío **manual/puntual** se sigue pudiendo hacer con `scripts/reenganche.py --to …`.
 
 > ⚠️ Nunca pegar en chat secretos `sk_live_` / `whsec_` → van directos a Supabase secrets. La publishable sí puede ir embebida.
 
@@ -121,3 +121,14 @@ Conexión **vía directa** a la Graph API (sin servidor MCP de terceros; se desc
 - **Landing en inglés** (selector ES/EN + traducir todo el marketing) — no hecho; la app sí está bilingüe
 - Cancelar/reembolsar la suscripción de **prueba** de Stripe (pago test de 9 € real) — ya se puede desde el propio portal (`irAPortal`) ahora que Cancelaciones está activo
 - (Opcional) i18n del botón "Gestionar suscripción" y limpieza de políticas RLS duplicadas (cosmético, sin riesgo de seguridad)
+- (Opcional, bajo riesgo) **Rotar `CRON_SECRET`**: se vio en una sesión de mantenimiento. Solo permite disparar los crons (no datos ni cuenta). Si se rota: generar nuevo, `secrets set`, y actualizar los crons `recordatorios` y `reenganche`.
+
+## Bitácora — auditoría y mejoras (2026-06-30)
+Auditoría completa de la PWA + endurecimiento. Cambios desplegados:
+- **PWA cold-start offline**: `sw.js` ahora precachea el app shell (`brami3d_supabase.html` + iconos/manifest) y lo sirve como fallback sin red (antes solo cacheaba los CDN → no arrancaba offline). Caché `b3d-cdn-v6`.
+- **`recordatorios`**: `CRON_SECRET` pasó a ser **obligatorio** (sin él → 403; antes, sin el secreto quedaba pública).
+- **`enviar-doc`**: validación server-side del destinatario/Reply-To (formato email, 1 solo) + límites de tamaño de asunto/texto/adjunto (evita relay de spam).
+- **`scripts/validate.js`**: ignora carpetas no desplegadas (`.agents`, `marketing`, `secretos`, `supabase`, `.github`) → sin falsos positivos; el comando local vuelve a ser fiable.
+- **Tooling**: añadida la **Supabase CLI** como devDependency + `npm run deploy:functions` (despliega todas las funciones con `--no-verify-jwt`). Ver `project_supabase_ops` en memoria para el flujo (token, Management API, Cloudflare UA, recuperar CRON_SECRET de `cron.job`).
+- **Email/CRM**: `scripts/reenganche.py` ahora **adjunta** la guía PDF (antes la enlazaba). Probado el envío real con adjunto. Campaña enviada a los 3 usuarios inactivos. Reenganche **automatizado** (Edge Function `reenganche` + tabla `reenganche_enviado` + cron semanal, ver arriba).
+- No requería cambios: RLS, secretos (nada filtrado al repo), Stripe webhook, XSS/`esc()`, auth.
