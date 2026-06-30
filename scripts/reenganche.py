@@ -20,11 +20,18 @@ Query para detectar usuarios sin pedidos (ejecutar en Supabase):
   WHERE u.email NOT IN ('alexri69@gmail.com','brami3d@gmail.com','demo@brami3d.app')
     AND NOT EXISTS (SELECT 1 FROM public.pedidos p WHERE p.user_id = u.id);
 """
-import os, json, argparse, urllib.request, urllib.error
+import os, sys, json, base64, argparse, urllib.request, urllib.error
+
+# La consola de Windows (cp1252) revienta al imprimir emojis; forzamos UTF-8.
+try:
+    sys.stdout.reconfigure(encoding="utf-8")
+except Exception:
+    pass
 
 SUPA_URL = "https://uzgzfxizpoigzcnlunpr.supabase.co"
 PUB = "sb_publishable_4gEjOV3kyfh8_I0f861iow__6b1ueIi"
 REPLY_TO = "brami3d@gmail.com"
+GUIA_PDF = "guia-brami3d.pdf"   # se adjunta al correo (está en la raíz del repo)
 
 ASUNTO = "¿Te echamos una mano para empezar con Brami3D? \U0001f5a8️"
 TEXTO = (
@@ -34,8 +41,7 @@ TEXTO = (
     "y facturas)— pero que todavía no has tenido ocasión de estrenarla.\n\n"
     "¿Hubo algo que no te encajó o que no viste cómo hacer? Me encantaría ayudarte: "
     "responde a este correo y te echo una mano personalmente, sin compromiso.\n\n"
-    "Para ponértelo fácil, aquí tienes una guía rápida para sacarle partido en 5 minutos:\n"
-    "\U0001f449 https://brami3d.app/guia-brami3d.pdf\n\n"
+    "Para ponértelo fácil, te adjunto una guía rápida para sacarle partido en 5 minutos.\n\n"
     "Y recuerda que tienes Pro gratis durante 30 días para probarlo todo sin límites.\n\n"
     "Un saludo,\nAlexander — Brami3D\nbrami3d.app"
 )
@@ -47,6 +53,11 @@ def env(k):
             if line.startswith(k + "="):
                 return line.split("=", 1)[1].strip()
     return None
+
+def guia_base64():
+    here = os.path.dirname(os.path.abspath(__file__))
+    with open(os.path.join(here, "..", GUIA_PDF), "rb") as f:
+        return base64.b64encode(f.read()).decode()
 
 def post(url, headers, body):
     req = urllib.request.Request(url, data=json.dumps(body).encode(), method="POST")
@@ -77,12 +88,15 @@ def main():
     if not access:
         raise SystemExit(f"No se pudo iniciar sesión: {tok}")
 
+    pdf_b64 = guia_base64()   # la guía se adjunta a cada correo
+
     for to in a.to:
         st, res = post(f"{SUPA_URL}/functions/v1/enviar-doc",
                        {"apikey": PUB, "Authorization": f"Bearer {PUB}",
                         "x-user-token": access, "Content-Type": "application/json"},
                        {"to": to, "subject": ASUNTO, "text": TEXTO,
-                        "fromName": "Brami3D", "replyTo": REPLY_TO})
+                        "fromName": "Brami3D", "replyTo": REPLY_TO,
+                        "filename": GUIA_PDF, "pdfBase64": pdf_b64})
         print(f"  {'ENVIADO' if res.get('ok') else 'FALLO  '} -> {to}"
               + (f"  (id {res['id']})" if res.get("ok") else f"  : {res.get('error')}"))
 
