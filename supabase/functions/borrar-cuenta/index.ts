@@ -15,8 +15,8 @@ const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 // Tablas con columna user_id que hay que vaciar para este usuario.
 const TABLES = [
   "facturas_eventos", "facturas_registro", "error_logs", "push_subscriptions",
-  "gastos", "archivos", "piezas", "pedidos", "filamentos", "impresoras",
-  "clientes", "contadores", "config", "user_plans",
+  "reenganche_enviado", "gastos", "archivos", "piezas", "pedidos", "filamentos",
+  "impresoras", "clientes", "contadores", "config", "user_plans",
 ];
 
 Deno.serve(async (req) => {
