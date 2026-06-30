@@ -1,6 +1,6 @@
-const CACHE_NAME = 'b3d-cdn-v5';
+const CACHE_NAME = 'b3d-cdn-v6';
 
-// Solo cacheamos recursos CDN externos (no cambian)
+// Recursos CDN externos (no cambian).
 const CDN_SHELL = [
   'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
@@ -8,11 +8,27 @@ const CDN_SHELL = [
   'https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js'
 ];
 
+// Shell propio de la app: hay que precachearlo para que la PWA instalada ARRANQUE
+// sin conexión (cold-start offline). Sin esto, abrir la app sin red da error del
+// navegador aunque haya datos en localStorage.
+const APP_SHELL = [
+  '/brami3d_supabase.html',
+  '/manifest.webmanifest',
+  '/icon-192.png',
+  '/icon-512.png'
+];
+
 self.addEventListener('install', e => {
   // Ya NO hacemos skipWaiting automático: el SW nuevo queda "waiting" hasta que
   // el usuario acepta actualizar (la app muestra un aviso y envía SKIP_WAITING).
   e.waitUntil(
-    caches.open(CACHE_NAME).then(c => c.addAll(CDN_SHELL))
+    caches.open(CACHE_NAME).then(c =>
+      // addAll es atómico (si uno falla, falla todo). Cacheamos cada uno por
+      // separado para que un CDN caído no rompa la instalación del SW.
+      Promise.all([...CDN_SHELL, ...APP_SHELL].map(u =>
+        c.add(u).catch(() => {})
+      ))
+    )
   );
 });
 
@@ -38,11 +54,26 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // HTML de la app → network-first (siempre versión actualizada)
-  // Solo usa caché si no hay red
+  // HTML de la app → network-first (siempre versión actualizada).
+  // Sin red: servimos la copia cacheada de esta página y, si no la hay (p. ej.
+  // start_url con query ?source=pwa), caemos al shell precacheado para que la
+  // PWA arranque igualmente offline.
   if (url.pathname.endsWith('.html') || url.pathname === '/') {
     e.respondWith(
-      fetch(e.request).catch(() => caches.match(e.request))
+      fetch(e.request)
+        .then(res => {
+          // Refrescamos la copia cacheada del shell para el próximo cold-start.
+          if (res && res.status === 200) {
+            const clone = res.clone();
+            caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
+          }
+          return res;
+        })
+        .catch(() =>
+          caches.match(e.request).then(hit =>
+            hit || caches.match('/brami3d_supabase.html')
+          )
+        )
     );
     return;
   }

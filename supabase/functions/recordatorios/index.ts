@@ -3,9 +3,10 @@
 // y sus PEDIDOS pendientes de cobro. Pensada para ejecutarse por Cron (semanal).
 //
 // Auth: NO lleva token de usuario (es un cron). "Verify JWT" debe estar OFF.
-// Protección: si defines el secreto CRON_SECRET, hay que llamarla con la cabecera
-//   x-cron-secret: <ese valor>  (recomendado, para que nadie la dispare a mano).
-// Secretos: RESEND_API_KEY (ya existe de enviar-doc), CRON_SECRET (opcional).
+// Protección OBLIGATORIA: hay que definir el secreto CRON_SECRET y llamarla con la
+//   cabecera x-cron-secret: <ese valor>. Sin el secreto la función devuelve 403 y
+//   no hace nada (así nadie puede dispararla por URL y spamear a los talleres).
+// Secretos: RESEND_API_KEY (ya existe de enviar-doc), CRON_SECRET (obligatorio).
 // (SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY los inyecta Supabase solos.)
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -23,7 +24,10 @@ const esc = (s: unknown) =>
 const isoDaysAgo = (d: number) => new Date(Date.now() - d * 864e5).toISOString().slice(0, 10);
 
 Deno.serve(async (req) => {
-  if (CRON_SECRET && req.headers.get("x-cron-secret") !== CRON_SECRET) {
+  // Protección OBLIGATORIA: sin el secreto configurado la función no se ejecuta,
+  // para que nadie pueda dispararla por URL y reventar el envío de emails a todos
+  // los talleres (coste Resend + reputación del dominio).
+  if (!CRON_SECRET || req.headers.get("x-cron-secret") !== CRON_SECRET) {
     return new Response("forbidden", { status: 403 });
   }
   const json = (o: unknown, s = 200) =>

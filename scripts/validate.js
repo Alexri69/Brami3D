@@ -15,10 +15,18 @@ let errors = 0;
 let filesChecked = 0;
 let blocksChecked = 0;
 
-// Lista los ficheros del repo con una extensión dada (ignora node_modules y .git).
+// Carpetas que NO se despliegan (gitignoreadas o internas): no tiene sentido
+// validarlas y meten ruido (p. ej. plantillas de skills de terceros con sintaxis
+// que no es JS plano). Lo que importa es lo que llega a producción vía Pages.
+const SKIP_DIRS = new Set([
+  'node_modules', '.git', '.agents', '.claude', '.github',
+  'marketing', 'secretos', 'supabase',
+]);
+
+// Lista los ficheros del repo con una extensión dada (ignora SKIP_DIRS).
 function listFiles(dir, exts, acc = []) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (entry.name === 'node_modules' || entry.name === '.git') continue;
+    if (SKIP_DIRS.has(entry.name)) continue;
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) listFiles(full, exts, acc);
     else if (exts.includes(path.extname(entry.name).toLowerCase())) acc.push(full);

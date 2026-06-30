@@ -32,12 +32,27 @@ Deno.serve(async (req) => {
     const { to, subject, text, fromName, replyTo, filename, pdfBase64 } = await req.json();
     if (!to || !subject) return json({ error: "Faltan datos" }, 400);
 
+    // ── Saneamiento de entrada (evita usar el dominio brami3d.app como relay de
+    //    spam: un solo destinatario, con formato de email válido) ──
+    const EMAIL_RE = /^[^\s@<>,;]+@[^\s@<>,;]+\.[^\s@<>,;]+$/;
+    const toClean = String(to).trim();
+    if (!EMAIL_RE.test(toClean)) return json({ error: "Destinatario no válido" }, 400);
+    if (replyTo && !EMAIL_RE.test(String(replyTo).trim())) {
+      return json({ error: "Reply-To no válido" }, 400);
+    }
+    if (String(subject).length > 300) return json({ error: "Asunto demasiado largo" }, 400);
+    if (text && String(text).length > 20000) return json({ error: "Mensaje demasiado largo" }, 400);
+    // Límite del adjunto (~7 MB en base64 ≈ 5 MB de PDF) para no abusar de Resend.
+    if (pdfBase64 && String(pdfBase64).length > 7_000_000) {
+      return json({ error: "Adjunto demasiado grande" }, 400);
+    }
+
     const key = Deno.env.get("RESEND_API_KEY");
     if (!key) return json({ error: "Falta el secreto RESEND_API_KEY" }, 500);
 
     const from = `${(fromName || "Brami3D").replace(/[<>]/g, "")} <hola@brami3d.app>`;
-    const payload = { from, to: [to], subject, text: text || "" };
-    if (replyTo) payload.reply_to = replyTo;
+    const payload = { from, to: [toClean], subject, text: text || "" };
+    if (replyTo) payload.reply_to = String(replyTo).trim();
     if (pdfBase64) payload.attachments = [{ filename: filename || "documento.pdf", content: pdfBase64 }];
 
     const r = await fetch("https://api.resend.com/emails", {
