@@ -23,6 +23,31 @@ const esc = (s: unknown) =>
   String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 const isoDaysAgo = (d: number) => new Date(Date.now() - d * 864e5).toISOString().slice(0, 10);
 
+// Latido: registra que el cron terminó bien (lo vigila verificar-crons.yml).
+async function latido(resultado: unknown) {
+  await fetch(`${SUPABASE_URL}/rest/v1/cron_heartbeat?on_conflict=nombre`, {
+    method: "POST",
+    headers: {
+      apikey: SERVICE, Authorization: `Bearer ${SERVICE}`, "Content-Type": "application/json",
+      Prefer: "resolution=merge-duplicates,return=minimal",
+    },
+    body: JSON.stringify({ nombre: "recordatorios", ultimo: new Date().toISOString(), resultado }),
+  }).catch(() => {});
+}
+
+// Aviso al owner si el cron revienta (best-effort; sin esto el fallo era mudo).
+async function avisarOwner(texto: string) {
+  if (!RESEND) return;
+  await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${RESEND}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: FROM, to: "brami3d@gmail.com",
+      subject: "⚠️ Brami3D — fallo en el cron recordatorios", text: texto,
+    }),
+  }).catch(() => {});
+}
+
 Deno.serve(async (req) => {
   // Protección OBLIGATORIA: sin el secreto configurado la función no se ejecuta,
   // para que nadie pueda dispararla por URL y reventar el envío de emails a todos
@@ -126,8 +151,11 @@ Deno.serve(async (req) => {
       } catch (_) { /* el push es best-effort; el email es lo principal */ }
     }
 
+    await latido({ candidatos: users.length, enviados: sent });
     return json({ ok: true, candidatos: users.length, enviados: sent });
   } catch (e) {
-    return json({ error: String((e as Error)?.message || e) }, 500);
+    const msg = String((e as Error)?.message || e);
+    await avisarOwner(`El cron semanal de recordatorios ha fallado:\n\n${msg}\n\nRevisa los logs de la función en Supabase.`);
+    return json({ error: msg }, 500);
   }
 });

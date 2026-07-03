@@ -23,6 +23,31 @@ const DIAS = 7;                 // antigüedad mínima de la cuenta para contact
 const MAX_POR_EJECUCION = 200;  // tope de seguridad (rate limit de Resend)
 const EXCLUDE = ["alexri69@gmail.com", "brami3d@gmail.com", "demo@brami3d.app"];
 
+// Latido: registra que el cron terminó bien (lo vigila verificar-crons.yml).
+async function latido(resultado: unknown) {
+  await fetch(`${SUPABASE_URL}/rest/v1/cron_heartbeat?on_conflict=nombre`, {
+    method: "POST",
+    headers: {
+      apikey: SERVICE, Authorization: `Bearer ${SERVICE}`, "Content-Type": "application/json",
+      Prefer: "resolution=merge-duplicates,return=minimal",
+    },
+    body: JSON.stringify({ nombre: "reenganche", ultimo: new Date().toISOString(), resultado }),
+  }).catch(() => {});
+}
+
+// Aviso al owner si el cron revienta (best-effort; sin esto el fallo era mudo).
+async function avisarOwner(texto: string) {
+  if (!RESEND) return;
+  await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${RESEND}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: FROM, to: "brami3d@gmail.com",
+      subject: "⚠️ Brami3D — fallo en el cron reenganche", text: texto,
+    }),
+  }).catch(() => {});
+}
+
 const ASUNTO = "¿Te echamos una mano para empezar con Brami3D? \u{1F5A8}️";
 const TEXTO =
   "Hola \u{1F44B}\n\n" +
@@ -79,7 +104,10 @@ Deno.serve(async (req) => {
       if (users.length < 200) break; // última página
     }
 
-    if (!candidatos.length) return json({ ok: true, candidatos: 0, enviados: 0 });
+    if (!candidatos.length) {
+      await latido({ candidatos: 0, enviados: 0 });
+      return json({ ok: true, candidatos: 0, enviados: 0 });
+    }
 
     // 4) Descargar la guía una sola vez y adjuntarla en base64.
     let pdfB64 = "";
@@ -111,8 +139,11 @@ Deno.serve(async (req) => {
       }).catch(() => {});
     }
 
+    await latido({ candidatos: candidatos.length, enviados });
     return json({ ok: true, candidatos: candidatos.length, enviados });
   } catch (e) {
-    return json({ error: String((e as Error)?.message || e) }, 500);
+    const msg = String((e as Error)?.message || e);
+    await avisarOwner(`El cron semanal de reenganche ha fallado:\n\n${msg}\n\nRevisa los logs de la función en Supabase.`);
+    return json({ error: msg }, 500);
   }
 });

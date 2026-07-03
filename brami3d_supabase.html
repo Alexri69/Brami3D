@@ -2140,7 +2140,7 @@ async function flushOutbox(){
   const queue=_outboxGet();
   if(!queue.length) return;
   _flushing=true;
-  const rest=[]; let stop=false;
+  const rest=[]; const descartadas=[]; let stop=false;
   for(const e of queue){
     if(stop){ rest.push(e); continue; }
     try {
@@ -2149,13 +2149,19 @@ async function flushOutbox(){
       else { ({error}=await sb.from(e.table).upsert(e.payload,{onConflict:'id'})); }
       if(error){
         if(_isNetErr(error)){ rest.push(e); stop=true; }      // sigue sin red → parar y conservar
-        else { console.warn('outbox: descartada op con error de servidor', e.table, error.message); }
+        else { descartadas.push(e.table+': '+error.message); console.warn('outbox: descartada op con error de servidor', e.table, error.message); }
       }
     } catch(err){ rest.push(e); stop=true; }                  // promesa rechazada (red) → parar
   }
   _outboxSet(rest);
   _flushing=false;
   _updatePendingBadge();
+  // Avisar SIEMPRE de lo descartado: antes se tiraba con un console.warn y el
+  // usuario creía que su cambio offline se había guardado.
+  if(descartadas.length){
+    showToast('⚠️ '+descartadas.length+' cambio(s) offline no se pudieron sincronizar y se han descartado ('+descartadas[0]+')','err',9000);
+    try { _logError('outbox descartada: '+descartadas.join(' | ')); } catch(_){}
+  }
   if(rest.length===0){
     showToast('✅ Cambios sincronizados','success');
     try { await loadAll(true); saveLocalCache(); render(); refreshAlerts(); } catch(_){}

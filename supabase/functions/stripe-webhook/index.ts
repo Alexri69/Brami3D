@@ -10,6 +10,21 @@ const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, { httpClient: Stri
 const cryptoProvider = Stripe.createSubtleCryptoProvider();
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+const RESEND = Deno.env.get("RESEND_API_KEY") || "";
+
+// Aviso al owner: un fallo aquí es un pago cobrado sin plan activado.
+// Best-effort (Stripe ya reintenta gracias al 500; esto es para enterarse YA).
+async function avisarOwner(texto: string) {
+  if (!RESEND) return;
+  await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${RESEND}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from: "Brami3D <hola@brami3d.app>", to: "brami3d@gmail.com",
+      subject: "🚨 Brami3D — fallo en stripe-webhook (pago sin activar)", text: texto,
+    }),
+  }).catch(() => {});
+}
 
 async function setPlan(userId: string, fields: Record<string, unknown>) {
   const r = await fetch(`${SUPABASE_URL}/rest/v1/user_plans?on_conflict=user_id`, {
@@ -61,7 +76,9 @@ Deno.serve(async (req) => {
     // devolvía 200 tragándose el error: pago cobrado sin plan activado y sin
     // rastro. El error queda también en los logs de la función.
     console.error("webhook handler error", event.type, e);
-    return new Response(JSON.stringify({ error: String((e as Error)?.message || e) }), {
+    const msg = String((e as Error)?.message || e);
+    await avisarOwner(`Evento ${event.type} (id ${event.id}) fallo al procesarse:\n\n${msg}\n\nStripe reintentara solo; si persiste, revisa user_plans y los logs de la funcion.`);
+    return new Response(JSON.stringify({ error: msg }), {
       status: 500, headers: { "Content-Type": "application/json" },
     });
   }

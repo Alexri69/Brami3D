@@ -1,0 +1,24 @@
+name: Verificar crons de Supabase
+
+# Los crons (recordatorios, reenganche) corren los lunes y dejan un latido en
+# cron_heartbeat (sql/022). Este workflow comprueba los martes que los latidos
+# son recientes; si un cron lleva >8 dias sin correr, el job falla y GitHub
+# envia email al owner. Mismo patron que verificar-token.yml (token de Meta).
+
+on:
+  schedule:
+    - cron: "0 12 * * 2"   # martes 12:00 UTC (los crons corren lunes 08-09h)
+  workflow_dispatch:
+
+jobs:
+  verificar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Comprobar latidos de los crons
+        run: python scripts/verificar_crons.py
