@@ -42,7 +42,40 @@ Deno.serve(async (req) => {
         .catch(() => {});   // si una tabla no existe, se ignora
     }
 
-    // 2) Borrar la cuenta de autenticación (admin API).
+    // 2) Borrar los ficheros de Storage del usuario (bucket `archivos`, prefijo
+    //    {uid}/…). Sin esto, STL y fotos quedaban huérfanos para siempre — el
+    //    derecho al olvido incluye los binarios, no solo las filas.
+    const listar = async (prefix: string, depth = 0): Promise<string[]> => {
+      if (depth > 4) return [];
+      const files: string[] = [];
+      for (let offset = 0; ; offset += 1000) {
+        const r = await fetch(`${SUPABASE_URL}/storage/v1/object/list/archivos`, {
+          method: "POST",
+          headers: { apikey: SERVICE, Authorization: `Bearer ${SERVICE}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ prefix, limit: 1000, offset }),
+        });
+        if (!r.ok) return files;
+        const items: { id?: string; name: string }[] = await r.json();
+        for (const it of items) {
+          if (it.id) files.push(`${prefix}/${it.name}`);                 // fichero
+          else files.push(...await listar(`${prefix}/${it.name}`, depth + 1)); // carpeta
+        }
+        if (items.length < 1000) break;
+      }
+      return files;
+    };
+    try {
+      const ficheros = await listar(uid);
+      for (let i = 0; i < ficheros.length; i += 100) {
+        await fetch(`${SUPABASE_URL}/storage/v1/object/archivos`, {
+          method: "DELETE",
+          headers: { apikey: SERVICE, Authorization: `Bearer ${SERVICE}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ prefixes: ficheros.slice(i, i + 100) }),
+        });
+      }
+    } catch (_) { /* best-effort: no bloquea el borrado de la cuenta */ }
+
+    // 3) Borrar la cuenta de autenticación (admin API).
     const del = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${uid}`, {
       method: "DELETE",
       headers: { apikey: SERVICE, Authorization: `Bearer ${SERVICE}` },

@@ -76,8 +76,9 @@ async function load(){
 function render(p){
   const mon=p.moneda||'€';
   const t1=Number(p.tipo_iva||0);
+  const t2=Number(p.tipo_iva2||0); // 0 si la RPC antigua (sql/010) aún no lo devuelve
   const base=Number(p.precio||0);
-  const total=base*(1+t1/100);
+  const total=base*(1+(t1+t2)/100);
   const lineas=Array.isArray(p.lineas)?p.lineas:[];
   const logoHtml=p.logo&&String(p.logo).startsWith('data:image')
     ? `<img src="${esc(p.logo)}" alt="logo">`
@@ -88,7 +89,10 @@ function render(p){
     ? lineas.map(l=>`<tr><td><b style="color:#cbd9ee">${esc(l.nombre||'—')}</b></td><td class="tc">${esc(String(l.qty||1))}</td><td class="tr">${l.peso?esc(String(l.peso))+'g':'—'}</td></tr>`).join('')
     : `<tr><td><b style="color:#cbd9ee">${esc(p.proyecto||'—')}</b></td><td class="tc">1</td><td class="tr">${p.peso?esc(String(p.peso))+'g':'—'}</td></tr>`;
 
-  const taxLine = t1>0 ? `${esc(p.nombre_impuesto||'IVA')} (${t1}%) incluido` : 'Impuestos no incluidos';
+  const taxes=[];
+  if(t1>0) taxes.push(`${esc(p.nombre_impuesto||'IVA')} (${t1}%)`);
+  if(t2>0) taxes.push(`${esc(p.nombre_impuesto2||'Impuesto')} (${t2}%)`);
+  const taxLine = taxes.length ? taxes.join(' + ')+' incluido' : 'Impuestos no incluidos';
 
   const aceptadoHtml = p.aceptado
     ? `<div class="accepted">✅ Presupuesto aceptado${p.aceptado_fecha?' el '+new Date(p.aceptado_fecha).toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'}):''}</div>`

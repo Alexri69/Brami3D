@@ -940,7 +940,10 @@ function toggleLang(){ setLang(LANG==='es'?'en':'es'); }
 //  UTILS
 // ═══════════════════════════════════════════════
 const uid  = () => crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2)+Date.now().toString(36);
-const today= () => new Date().toISOString().split('T')[0];
+// Fecha local YYYY-MM-DD. Nada de toISOString(): es UTC y entre las 00:00 y la
+// 01:00/02:00 (hora española) devolvía el día anterior.
+const isoDate = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const today= () => isoDate(new Date());
 
 function fmtNum(val, cfg){
   const s=parseFloat(val||0).toFixed(2);
@@ -1147,7 +1150,7 @@ function checkAndNotify(){
   // Entregas próximas o vencidas (pedidos no cobrados con fecha de entrega ≤ 2 días).
   const hoyISO = today();
   const limite = new Date(); limite.setDate(limite.getDate()+2);
-  const limISO = limite.toISOString().split('T')[0];
+  const limISO = isoDate(limite);
   const entregas = (_cache.pedidos||[]).filter(o => o.fechaEntrega && !o.cobrado && o.estado!=='entregado' && o.fechaEntrega <= limISO);
   if(entregas.length){
     const vencidas = entregas.filter(o => o.fechaEntrega < hoyISO).length;
@@ -1481,16 +1484,28 @@ function _unmapForDb(table, r){
   const base = {...r, user_id: CU.id};
   delete base.created_at;
   switch(table){
-    case 'pedidos': return {
-      id:r.id, user_id:CU.id, cliente_id:r.clienteId??r.cliente_id??null, proyecto:r.proyecto, material:r.material,
-      peso:r.peso, tiempo_impresion:r.tiempoImpresion??r.tiempo_impresion, estado:r.estado, notas:r.notas, fecha:r.fecha,
-      ganancia_manual:r.gananciaManual??r.ganancia_manual, coste_postprocesado:r.costePostprocesado??r.coste_postprocesado,
-      coste_diseno:r.costeDiseno??r.coste_diseno??0, precio_final:r.precioFinal??r.precio_final??null,
-      pres_num:r.presNum??r.pres_num??null, factura_num:r.facturaNum??r.factura_num??null, factura_fecha:r.facturaFecha??r.factura_fecha??null,
-      lineas:r.lineas||[], foto_url:r.fotoUrl??r.foto_url??null, foto_path:r.fotoPath??r.foto_path??null,
-      impresora_id:r.impresoraId??r.impresora_id??null, cobrado:!!r.cobrado, fecha_cobrado:r.fechaCobrado??r.fecha_cobrado??null,
-      fecha_entrega:r.fechaEntrega??r.fecha_entrega??null
-    };
+    case 'pedidos': {
+      const o={
+        id:r.id, user_id:CU.id, cliente_id:r.clienteId??r.cliente_id??null, proyecto:r.proyecto, material:r.material,
+        peso:r.peso, tiempo_impresion:r.tiempoImpresion??r.tiempo_impresion, estado:r.estado, notas:r.notas, fecha:r.fecha,
+        ganancia_manual:r.gananciaManual??r.ganancia_manual, coste_postprocesado:r.costePostprocesado??r.coste_postprocesado,
+        coste_diseno:r.costeDiseno??r.coste_diseno??0, precio_final:r.precioFinal??r.precio_final??null,
+        pres_num:r.presNum??r.pres_num??null, factura_num:r.facturaNum??r.factura_num??null, factura_fecha:r.facturaFecha??r.factura_fecha??null,
+        lineas:r.lineas||[], foto_url:r.fotoUrl??r.foto_url??null, foto_path:r.fotoPath??r.foto_path??null,
+        impresora_id:r.impresoraId??r.impresora_id??null, cobrado:!!r.cobrado, fecha_cobrado:r.fechaCobrado??r.fecha_cobrado??null,
+        fecha_entrega:r.fechaEntrega??r.fecha_entrega??null
+      };
+      // Columnas opcionales (solo si la migración correspondiente está aplicada);
+      // antes el backup las exportaba pero la restauración las tiraba.
+      if(_hasAnticipo) o.anticipo=r.anticipo??0;
+      if(_hasShare){
+        o.share_token=r.shareToken??r.share_token??null;
+        o.precio_publico=r.precioPublico??r.precio_publico??null;
+        o.aceptado=!!r.aceptado;
+        o.aceptado_fecha=r.aceptadoFecha??r.aceptado_fecha??null;
+      }
+      return o;
+    }
     case 'impresoras': {
       const o={id:r.id,user_id:CU.id,nombre:r.nombre,modelo:r.modelo,estado:r.estado,horas_uso:r.horasUso??r.horas_uso,desgaste:r.desgaste,consumo_w:r.consumoW??r.consumo_w??0};
       if(_hasMant){ o.mantenimiento_cada=r.mantenimientoCada??r.mantenimiento_cada??MANT_DEFAULT; o.ultimo_mant_h=r.ultimoMantH??r.ultimo_mant_h??0; }
@@ -2075,7 +2090,7 @@ const NON_NEG_FIELDS = {
   pedidos:    ['peso','tiempo_impresion','precio_final','coste_postprocesado','coste_diseno','anticipo','precio_publico'],
   impresoras: ['horas_uso','desgaste','consumo_w'],
   filamentos: ['peso_restante','precio_por_kg'],
-  piezas:     ['peso','tiempo_impresion','precio_por_kg'],
+  piezas:     ['peso','tiempo_impresion','precio_sugerido'],
   gastos:     ['importe'],
   config:     ['coste_por_gramo','coste_por_hora','margen']
 };
@@ -2189,33 +2204,25 @@ async function dbDel(table, id){
 // ═══════════════════════════════════════════════
 //  PRESUPUESTO / FACTURA NUMBERS
 // ═══════════════════════════════════════════════
-async function nextPresNum(){
+// Numeración correlativa. Camino principal: RPC atómica `siguiente_contador`
+// (sql/020) — un solo UPDATE valor=valor+1 en el servidor, sin carrera entre
+// dispositivos. Fallback: el viejo leer+escribir (si la RPC aún no está
+// desplegada) y, en último extremo (sin red), un sufijo de Date.now().
+async function _nextNum(tipo, pfx){
   const year=new Date().getFullYear();
   try {
-    const {data:row}=await sb.from('contadores').select('valor').eq('user_id',CU.id).eq('tipo','presnum').eq('anio',year).maybeSingle();
+    const {data,error}=await sb.rpc('siguiente_contador',{p_tipo:tipo,p_anio:year});
+    if(!error && data!=null) return `${pfx}-${year}-${String(data).padStart(3,'0')}`;
+    const {data:row}=await sb.from('contadores').select('valor').eq('user_id',CU.id).eq('tipo',tipo).eq('anio',year).maybeSingle();
     const n=(row?.valor||0)+1;
-    await sb.from('contadores').upsert({user_id:CU.id,tipo:'presnum',anio:year,valor:n},{onConflict:'user_id,tipo,anio'});
-    const pfx=_cache.cfg?.prefijoPres||'B3D';
+    await sb.from('contadores').upsert({user_id:CU.id,tipo,anio:year,valor:n},{onConflict:'user_id,tipo,anio'});
     return `${pfx}-${year}-${String(n).padStart(3,'0')}`;
   } catch(e) {
-    const pfx=_cache.cfg?.prefijoPres||'B3D';
     return `${pfx}-${year}-${String(Date.now()).slice(-3)}`;
   }
 }
-
-async function nextFacturaNum(){
-  const year=new Date().getFullYear();
-  try {
-    const {data:row}=await sb.from('contadores').select('valor').eq('user_id',CU.id).eq('tipo','factnum').eq('anio',year).maybeSingle();
-    const n=(row?.valor||0)+1;
-    await sb.from('contadores').upsert({user_id:CU.id,tipo:'factnum',anio:year,valor:n},{onConflict:'user_id,tipo,anio'});
-    const pfx=_cache.cfg?.prefijoFact||'B3D-F';
-    return `${pfx}-${year}-${String(n).padStart(3,'0')}`;
-  } catch(e) {
-    const pfx=_cache.cfg?.prefijoFact||'B3D-F';
-    return `${pfx}-${year}-${String(Date.now()).slice(-3)}`;
-  }
-}
+async function nextPresNum(){ return _nextNum('presnum', _cache.cfg?.prefijoPres||'B3D'); }
+async function nextFacturaNum(){ return _nextNum('factnum', _cache.cfg?.prefijoFact||'B3D-F'); }
 
 // ═══════════════════════════════════════════════
 //  REGISTRO FISCAL (RD 1007/2023 — modo No-Verifactu)
@@ -2314,7 +2321,10 @@ async function registrarFactura(pedido,cliente,cfg,{tipo='emision',rectifica_id=
     const c=calcOrderCosts(pedido,cfg);
     const base=Number(c.fp||0);
     const tipoIva=Number(cfg.tipoIva||0);
-    const cuotaIva=parseFloat((base * tipoIva / 100).toFixed(2));
+    // CuotaTotal e ImporteTotal deben cuadrar con la factura emitida: el PDF y el
+    // email suman AMBOS impuestos (tipoIva + tipoIva2), así que el registro también.
+    const tipoIva2=Number(cfg.tipoIva2||0);
+    const cuotaIva=parseFloat((base * (tipoIva + tipoIva2) / 100).toFixed(2));
     const total=parseFloat((base+cuotaIva).toFixed(2));
 
     const registro={
@@ -2333,7 +2343,7 @@ async function registrarFactura(pedido,cliente,cfg,{tipo='emision',rectifica_id=
       cuota_iva:cuotaIva,
       importe_total:total,
       lineas:pedido.lineas||[],
-      datos_json:{pedido,cliente,cfg_snapshot:{empresa:cfg.empresa,nif:cfg.nif,direccion:cfg.direccion,email:cfg.email,telefono:cfg.telefono}},
+      datos_json:{pedido,cliente,cfg_snapshot:{empresa:cfg.empresa,nif:cfg.nif,direccion:cfg.direccion,email:cfg.email,telefono:cfg.telefono,tipo_iva:tipoIva,tipo_iva2:tipoIva2,nombre_impuesto:cfg.nombreImpuesto||'IVA',nombre_impuesto2:cfg.nombreImpuesto2||''}},
       hash_anterior:await fetchUltimoHashFactura(),
       modalidad:MODALIDAD_FACTURACION,
       sif_nombre:'Brami3D',
@@ -5130,14 +5140,26 @@ async function bulkChangeEstado(estado){
   for(const id of ids){
     const o=_cache.pedidos.find(x=>x.id===id);
     if(!o) continue;
+    // Cambiar el estado NO toca el flag de cobro: antes, mover un pedido ya
+    // cobrado a "entregado" borraba cobrado/fecha_cobrado sin avisar. Desmarcar
+    // un cobro se hace pedido a pedido desde el editor.
     const upd={id, estado: esCobrado?o.estado:estado};
-    if(esCobrado && !o.cobrado){ upd.cobrado=true; upd.fecha_cobrado=new Date().toISOString().split('T')[0]; }
-    else if(!esCobrado){ upd.cobrado=false; upd.fecha_cobrado=null; }
-    await dbSave('pedidos',upd);
+    if(esCobrado && !o.cobrado){ upd.cobrado=true; upd.fecha_cobrado=today(); }
+    const ok=await dbSave('pedidos',upd);
+    if(ok){
+      _cache.pedidos=_cache.pedidos.map(x=>{
+        if(x.id!==id) return x;
+        const n={...x,estado:upd.estado};
+        if(upd.cobrado){ n.cobrado=true; n.fechaCobrado=upd.fecha_cobrado; }
+        return n;
+      });
+      if(upd.cobrado) descontarFilamento(_cache.pedidos.find(x=>x.id===id));
+    }
   }
   showToast(`✅ ${ids.length} ${t('ped.ordersWord')} ${t('save.bulkUpdated')} "${t('st.'+estado)}"`,'ok');
   _pSelected.clear();
   render();
+  refreshAlerts();
 }
 
 // ─── MULTI-PIEZA ───────────────────────────────
@@ -5513,6 +5535,7 @@ async function saveO(id){
 
   // Descontar filamento del stock — SOLO en pedidos nuevos (no al editar)
   if(!id){
+    let desconto=false;
     for(const linea of _lineas){
       const qty=parseInt(linea.qty)||1;
       const fils=linea.filamentos&&linea.filamentos.length>0
@@ -5527,6 +5550,7 @@ async function saveO(id){
             const nv=Math.max(0,parseFloat(f.pesoRestante)-peso);
             await dbSave('filamentos',{id:f.id,peso_restante:nv});
             _cache.filamentos=_cache.filamentos.map(x=>x.id===f.id?{...x,pesoRestante:nv}:x);
+            desconto=true;
           }
         } else {
           // Fallback: buscar por tipo de material
@@ -5536,10 +5560,14 @@ async function saveO(id){
             const nv=Math.max(0,parseFloat(f.pesoRestante)-peso);
             await dbSave('filamentos',{id:f.id,peso_restante:nv});
             _cache.filamentos=_cache.filamentos.map(x=>x.id===f.id?{...x,pesoRestante:nv}:x);
+            desconto=true;
           }
         }
       }
     }
+    // Registrar en la guarda: si ya se restó aquí, descontarFilamento() (al
+    // cobrar) no debe volver a restar los mismos gramos.
+    if(desconto) _filDescAdd(rowId);
   }
 
   // Sumar horas de impresión a la impresora — SOLO en pedidos nuevos
@@ -5585,7 +5613,10 @@ async function saveO(id){
   row.id = rowId;
   const ok=await dbSave('pedidos',row);
   if(ok){
-    const mapped={id:row.id,clienteId:d.clienteId,proyecto:d.proyecto,material:mainMat,peso:pesoTotal,tiempoImpresion:tiempoTotal,estado:d.estado,notas:d.notas,fecha:d.fecha,gananciaManual:d.gananciaManual,precioFinal:d.precioFinal!==''?parseFloat(d.precioFinal):null,costePostprocesado:d.costePostprocesado,costeDiseno:d.costeDiseno||0,presNum:presNum,facturaNum:prevOrder?.facturaNum||null,facturaFecha:prevOrder?.facturaFecha||null,lineas:_lineas,fotoUrl:fotoUrl||null,fotoPath:_fotoPath||null,impresoraId:d.impresoraId||null,cobrado:nuevoCobrado,fechaCobrado:fechaCobradoFinal,fechaEntrega:d.fechaEntrega||null,anticipo:(_hasAnticipo&&d.anticipo!==''&&d.anticipo!=null)?(parseFloat(d.anticipo)||0):(prevOrder?.anticipo||0)};
+    // shareToken/precioPublico/aceptado se conservan del pedido previo: la BD no
+    // los toca en este upsert, y si la caché los perdiera, el botón 🔗 generaría
+    // un token nuevo que invalidaría el enlace que ya tiene el cliente.
+    const mapped={id:row.id,clienteId:d.clienteId,proyecto:d.proyecto,material:mainMat,peso:pesoTotal,tiempoImpresion:tiempoTotal,estado:d.estado,notas:d.notas,fecha:d.fecha,gananciaManual:d.gananciaManual,precioFinal:d.precioFinal!==''?parseFloat(d.precioFinal):null,costePostprocesado:d.costePostprocesado,costeDiseno:d.costeDiseno||0,presNum:presNum,facturaNum:prevOrder?.facturaNum||null,facturaFecha:prevOrder?.facturaFecha||null,lineas:_lineas,fotoUrl:fotoUrl||null,fotoPath:_fotoPath||null,impresoraId:d.impresoraId||null,cobrado:nuevoCobrado,fechaCobrado:fechaCobradoFinal,fechaEntrega:d.fechaEntrega||null,anticipo:(_hasAnticipo&&d.anticipo!==''&&d.anticipo!=null)?(parseFloat(d.anticipo)||0):(prevOrder?.anticipo||0),shareToken:prevOrder?.shareToken||null,precioPublico:prevOrder?.precioPublico??null,aceptado:prevOrder?.aceptado||false,aceptadoFecha:prevOrder?.aceptadoFecha||null};
     if(id)_cache.pedidos=_cache.pedidos.map(o=>o.id===id?mapped:o);else _cache.pedidos.unshift(mapped);
     render();refreshAlerts();
     // Si se acaba de marcar como cobrado: descontar filamento y generar factura.
@@ -5611,10 +5642,18 @@ async function saveO(id){
 }
 
 function delO(id){ confirmDel('¿Eliminar este pedido?',`doDelO('${id}')`); }
-async function doDelO(id){ if(await dbDel('pedidos',id)){_cache.pedidos=_cache.pedidos.filter(x=>x.id!==id);render();showToast(t('common.deleted'),'ok');} }
+async function doDelO(id){
+  const o=_cache.pedidos.find(x=>x.id===id);
+  if(await dbDel('pedidos',id)){
+    // La foto vive en Storage: si no se borra aquí queda huérfana para siempre.
+    if(o?.fotoPath){ try{ sb.storage.from('archivos').remove([o.fotoPath]); }catch(_){} }
+    _cache.pedidos=_cache.pedidos.filter(x=>x.id!==id);render();showToast(t('common.deleted'),'ok');
+  }
+}
 
 // Duplica un pedido como borrador nuevo (sin nº de presupuesto/factura, no cobrado).
 async function cloneO(id){
+  if(!checkPlanLimit('nuevoPedido')) return;  // duplicar también cuenta como pedido nuevo
   const o=_cache.pedidos.find(x=>x.id===id); if(!o) return;
   const newId=uid();
   const row={
@@ -5636,14 +5675,19 @@ async function cloneO(id){
   }
 }
 
+// Guarda anti-doble-descuento: pedidos cuyo stock ya se restó (al crearlos en
+// saveO o al cobrarlos en descontarFilamento). Sin esto, un pedido creado con
+// filamento asignado descontaba otra vez al marcarse como cobrado.
+function _filDescK(){ return 'b3d_filDesc_'+CU.id; }
+function _filDescHas(id){ try{ return JSON.parse(localStorage.getItem(_filDescK())||'[]').includes(id); }catch(_){ return false; } }
+function _filDescAdd(id){ try{ const a=JSON.parse(localStorage.getItem(_filDescK())||'[]'); if(!a.includes(id)){ a.push(id); localStorage.setItem(_filDescK(), JSON.stringify(a)); } }catch(_){} }
+
 // Descuenta del stock de filamento el peso consumido por un pedido. Idempotente:
 // guarda en localStorage los pedidos ya descontados para no restar dos veces si se
 // re-marca como cobrado. Solo afecta a líneas con filamento asignado.
 async function descontarFilamento(o){
   if(!o || !CU || !o.lineas || !o.lineas.length) return;
-  const guardKey='b3d_filDesc_'+CU.id;
-  let done=[]; try{ done=JSON.parse(localStorage.getItem(guardKey)||'[]'); }catch(_){}
-  if(done.includes(o.id)) return;
+  if(_filDescHas(o.id)) return;
   const consumo={};
   o.lineas.forEach(l=>{
     if(l.filamentoId && l.filamentoId!=='__manual__'){
@@ -5662,7 +5706,7 @@ async function descontarFilamento(o){
     if(ok){ f.pesoRestante=nuevo; resumen.push(`${Math.round(consumo[fid])}g de ${f.tipo||'filamento'}`); }
   }
   if(resumen.length){
-    done.push(o.id); try{ localStorage.setItem(guardKey, JSON.stringify(done)); }catch(_){}
+    _filDescAdd(o.id);
     showToast('🧵 Stock actualizado: -'+resumen.join(', '), 'ok', 4000);
     render();
   }
@@ -6236,7 +6280,9 @@ function adminOpenPlanModal(userId){
     </div>
     <div class="field">
       <label>Plan</label>
-      <select id="adm-plan" style="width:100%">
+      <!-- onchange inline: un <script> inyectado con innerHTML no se ejecuta,
+           así que el listener de antes nunca llegaba a existir. -->
+      <select id="adm-plan" style="width:100%" onchange="document.getElementById('adm-pro-options').style.display=this.value==='pro'?'':'none'">
         <option value="free"${u.plan==='free'?' selected':''}>Free</option>
         <option value="pro"${u.plan==='pro'?' selected':''}>Pro</option>
       </select>
@@ -6257,11 +6303,7 @@ function adminOpenPlanModal(userId){
       <button class="btn-primary" id="adm-save-plan" onclick="adminSavePlan('${esc(userId)}')">Guardar</button>
       <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
     </div>
-    <script>
-      document.getElementById('adm-plan').addEventListener('change', function(){
-        document.getElementById('adm-pro-options').style.display = this.value==='pro' ? '' : 'none';
-      });
-    <\/script>`;
+    `;
   openModal(msh('Cambiar plan', html));
 }
 
@@ -6270,7 +6312,7 @@ function adminAddDuration(days){
   if(!inp) return;
   const base = inp.value ? new Date(inp.value+'T00:00:00') : new Date();
   const t = base.getTime() + days*86400000;
-  inp.value = new Date(t).toISOString().slice(0,10);
+  inp.value = isoDate(new Date(t));
 }
 
 function adminClearExpiration(){
@@ -6282,13 +6324,16 @@ async function adminSavePlan(userId){
   const plan = $('adm-plan').value;
   const expDate = $('adm-expires') ? $('adm-expires').value : '';
   const expiresAt = (plan==='pro' && expDate) ? new Date(expDate+'T23:59:59').toISOString() : null;
+  // Conservar el trial existente: admin_set_plan sobrescribe trial_until, y antes
+  // se mandaba null siempre — tocar el plan de alguien en trial le borraba el trial.
+  const u = _adminUsers.find(x=>x.user_id===userId);
   setLoading('adm-save-plan', true);
   try {
     const {error} = await sb.rpc('admin_set_plan', {
       target_user: userId,
       new_plan: plan,
       new_expires_at: expiresAt,
-      new_trial_until: null
+      new_trial_until: u?.trial_until || null
     });
     if(error) throw error;
     showToast(t('toast.planUpdated'),'ok');

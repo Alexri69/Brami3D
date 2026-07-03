@@ -20,7 +20,7 @@ Desplegar: panel web (Edge Functions → *Via Editor*) **o** `npm run deploy:fun
 - `crear-checkout` — **Stripe Checkout** (suscripción). Auth `x-user-token`. `STRIPE_SECRET_KEY`. Prices live: mensual `price_1TdvFePrM5C0gGgh2I0Gr6LC`, anual `price_1TdvFePrM5C0gGgh4liis6Os`. `success_url=?pago=ok`.
 - `stripe-webhook` — verifica firma; en `checkout.session.completed`/`customer.subscription.*` hace upsert en `user_plans` (service role). `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`.
 - `portal-cliente` — Customer Portal de Stripe. Auth `x-user-token`. App: `irAPortal()` (botón en `showPlanInfo()` si `_plan.hasStripe`). Activar portal una vez en Stripe.
-- `borrar-cuenta` — **RGPD**. Auth `x-user-token`; service role borra filas del usuario en todas las tablas (lista `TABLES`, incluye `reenganche_enviado`) + cuenta auth. App: `confirmarEliminarCuenta()`/`eliminarCuenta()` (Config → Zona de peligro).
+- `borrar-cuenta` — **RGPD**. Auth `x-user-token`; service role borra filas del usuario en todas las tablas (lista `TABLES`, incluye `reenganche_enviado`) + ficheros de Storage (`archivos/{uid}/…`) + cuenta auth. App: `confirmarEliminarCuenta()`/`eliminarCuenta()` (Config → Zona de peligro).
 - `enviar-push` — **Web Push** (`npm:web-push` + VAPID, secretos `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`). Auth `x-user-token` (propio) o `x-cron-secret` (`body.user_id`). Lee `push_subscriptions`, borra caducadas (404/410). App: `suscribirPush()`, `probarPush()`, listener `push` en `sw.js`. ⚠️ iOS: solo PWA instalada (16.4+).
 - `recordatorios` — **cron** (lunes 08:00 UTC, `sql/013`). Service role: presupuestos sin aceptar (>3d) + pedidos sin cobrar (>7d) → email-resumen Resend. `x-cron-secret` (`CRON_SECRET`, **obligatorio**).
 - `reenganche` — **cron ACTIVO** (`brami3d-reenganche-semanal`, lunes 09:00 UTC, `sql/019`). Service role: usuarios registrados ≥7d **sin pedidos**, no admins/demo, **no contactados** → email bienvenida con **guía PDF adjunta** (de `brami3d.app/guia-brami3d.pdf`); registra en `reenganche_enviado` para no repetir. `x-cron-secret` (`CRON_SECRET`). Manual: `scripts/reenganche.py --to … [--dry]`.
@@ -40,7 +40,7 @@ Desplegar: panel web (Edge Functions → *Via Editor*) **o** `npm run deploy:fun
 
 ### Planes y candado SaaS
 - `user_plans` (free/pro/admin) + columnas Stripe (`stripe_customer_id`, `stripe_subscription_id`, `expires_at`, `trial_until`), índice único `user_id`.
-- `resolvePlan()` → `_plan`; `FREE_LIMITS` = **10 pedidos/mes, 5 clientes**; `checkPlanLimit()`. `ADMIN_EMAILS` = `alexri69@gmail.com`, `brami3d@gmail.com`. Trial 30d. Panel **Admin** (`pgAdmin`). `showUpgradeModal()` → `landing.html#precios`.
+- `resolvePlan()` → `_plan`; `FREE_LIMITS` = **10 pedidos/mes, 5 clientes**; `checkPlanLimit()` en cliente **y triggers en servidor** (`sql/020`: `check_limites_free`; bloqueo real con `banned_until`). `ADMIN_EMAILS` = `alexri69@gmail.com`, `brami3d@gmail.com`. Trial 30d. Panel **Admin** (`pgAdmin`). `showUpgradeModal()` → `landing.html#precios`. Numeración pres/factura: RPC atómica `siguiente_contador` (`sql/020`).
 
 ### Pago (Stripe + PayPal)
 Precios: Gratis · Pro Mensual **9 €** · Pro Anual **79 €**. `irACheckout(plan)` → `crear-checkout` → Stripe. `_checkPagoReturn()` (`?pago=ok`), `_checkSuscribirIntent()` (`?suscribir=mensual|anual` desde landing). Landing `openPayModal(plan)`: botón tarjeta (`?suscribir=`) + PayPal manual (`paypal.me/Brami3D/9EUR`, el owner marca Pro a mano).
