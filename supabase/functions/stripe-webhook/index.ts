@@ -12,7 +12,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 async function setPlan(userId: string, fields: Record<string, unknown>) {
-  await fetch(`${SUPABASE_URL}/rest/v1/user_plans?on_conflict=user_id`, {
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/user_plans?on_conflict=user_id`, {
     method: "POST",
     headers: {
       apikey: SERVICE,
@@ -22,6 +22,12 @@ async function setPlan(userId: string, fields: Record<string, unknown>) {
     },
     body: JSON.stringify({ user_id: userId, ...fields }),
   });
+  // Si el upsert falla hay que ENTERARSE: alguien ha pagado y no tendría Pro.
+  // Lanzamos para que el handler devuelva 500 y Stripe reintente el evento.
+  if (!r.ok) {
+    const body = await r.text().catch(() => "");
+    throw new Error(`user_plans upsert fallo (HTTP ${r.status}): ${body.slice(0, 300)}`);
+  }
 }
 
 Deno.serve(async (req) => {
@@ -51,7 +57,13 @@ Deno.serve(async (req) => {
       if (userId) await setPlan(userId, { plan: "free", expires_at: null });
     }
   } catch (e) {
-    console.error("webhook handler error", e);
+    // 500 → Stripe reintenta el evento con backoff (hasta 3 días). Antes se
+    // devolvía 200 tragándose el error: pago cobrado sin plan activado y sin
+    // rastro. El error queda también en los logs de la función.
+    console.error("webhook handler error", event.type, e);
+    return new Response(JSON.stringify({ error: String((e as Error)?.message || e) }), {
+      status: 500, headers: { "Content-Type": "application/json" },
+    });
   }
 
   return new Response(JSON.stringify({ received: true }), { status: 200, headers: { "Content-Type": "application/json" } });

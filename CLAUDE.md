@@ -49,7 +49,7 @@ Precios: Gratis · Pro Mensual **9 €** · Pro Anual **79 €**. `irACheckout(p
 `p.html` usa RPCs `get_presupuesto_publico` y `aceptar_presupuesto` (deben existir como FUNCTION). La app genera el enlace para aceptar sin cuenta.
 
 ## Validar y seguridad
-- **Validar antes de commit**: `node scripts/validate.js` (compila los `<script>` inline + JSON; ignora carpetas no desplegadas). CI: `.github/workflows/validate.yml`.
+- **Validar antes de commit**: `node scripts/validate.js` (compila los `<script>` inline + JSON; ignora carpetas no desplegadas) **y `node scripts/test.js`** (tests de lógica de negocio: costes, hash VeriFactu, planes — extrae las funciones reales del HTML). CI: `.github/workflows/validate.yml` (corre ambos).
 - **RLS** (auditado): cada política filtra por `(auth.uid() = user_id)`; `user_plans` solo SELECT (writes vía webhook/admin); VeriFactu append-only. Script: `sql/012_audit_rls.sql`. **XSS**: `esc()` en todo HTML con datos de usuario (incl. `p.html`), escapa también `'`.
 
 ## Marketing — Meta (FB / IG / Ads)

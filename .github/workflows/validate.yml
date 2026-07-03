@@ -23,3 +23,6 @@ jobs:
 
       - name: Validar sintaxis JS y JSON
         run: node scripts/validate.js
+
+      - name: Tests de lógica de negocio
+        run: node scripts/test.js
