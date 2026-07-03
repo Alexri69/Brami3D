@@ -27,6 +27,24 @@ Deno.serve(async (req) => {
       headers: { Authorization: `Bearer ${userToken}`, apikey: PUBLISHABLE },
     });
     if (!uResp.ok) return json({ error: "Sesión no válida" }, 401);
+    const user = await uResp.json();
+
+    // ── Rate limit: 50 emails/día por usuario (email_envio_check, sql/021) ──
+    // Frena que una cuenta cualquiera use hola@brami3d.app como cañón de spam.
+    // Si la RPC aún no existe o falla, no bloquea el envío (best-effort).
+    const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+    if (SERVICE && user?.id) {
+      try {
+        const rl = await fetch(`${Deno.env.get("SUPABASE_URL")}/rest/v1/rpc/email_envio_check`, {
+          method: "POST",
+          headers: { apikey: SERVICE, Authorization: `Bearer ${SERVICE}`, "Content-Type": "application/json" },
+          body: JSON.stringify({ p_uid: user.id }),
+        });
+        if (rl.ok && (await rl.json()) === false) {
+          return json({ error: "Límite diario de envíos alcanzado (50). Inténtalo mañana." }, 429);
+        }
+      } catch (_) { /* sin rate limit no se cae el servicio */ }
+    }
 
     // ── Datos del email ──
     const { to, subject, text, fromName, replyTo, filename, pdfBase64 } = await req.json();

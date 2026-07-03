@@ -517,6 +517,7 @@ let _lastSyncAt = 0;     // timestamp del último loadAll OK (throttle de resume
 let _hasAnticipo = false; // ¿existe la columna pedidos.anticipo? (migración sql/009)
 let _hasShare = false;    // ¿existen las columnas de aceptación pública? (migración sql/010)
 let _hasMant = false;     // ¿existen las columnas de mantenimiento de impresoras? (migración sql/018)
+let _hasStockDesc = false; // ¿existe pedidos.stock_descontado? (migración sql/021)
 const MANT_DEFAULT = 250; // horas por defecto entre mantenimientos
 
 // In-memory cache (reloaded on every page navigation)
@@ -1504,6 +1505,9 @@ function _unmapForDb(table, r){
         o.aceptado=!!r.aceptado;
         o.aceptado_fecha=r.aceptadoFecha??r.aceptado_fecha??null;
       }
+      // Por defecto true: un pedido restaurado de backup ya descontó su stock
+      // en su día; si no viene la marca, mejor no volver a restar al cobrarlo.
+      if(_hasStockDesc) o.stock_descontado=(r.stockDescontado??r.stock_descontado)!==false;
       return o;
     }
     case 'impresoras': {
@@ -1855,10 +1859,11 @@ async function loadAll(silent=false){
 
   // Detectar si la columna `anticipo` existe (migración sql/009 aplicada).
   // Con filas la deducimos sin coste; sin filas hacemos una sonda mínima.
-  if(p.data && p.data.length){ _hasAnticipo = ('anticipo' in p.data[0]); _hasShare = ('share_token' in p.data[0]); }
+  if(p.data && p.data.length){ _hasAnticipo = ('anticipo' in p.data[0]); _hasShare = ('share_token' in p.data[0]); _hasStockDesc = ('stock_descontado' in p.data[0]); }
   else {
     try { const {error}=await sb.from('pedidos').select('anticipo').limit(1); _hasAnticipo=!error; } catch(_){ _hasAnticipo=false; }
     try { const {error}=await sb.from('pedidos').select('share_token').limit(1); _hasShare=!error; } catch(_){ _hasShare=false; }
+    try { const {error}=await sb.from('pedidos').select('stock_descontado').limit(1); _hasStockDesc=!error; } catch(_){ _hasStockDesc=false; }
   }
 
   _cache.impresoras = mapImpresoras(im.data||[]);
@@ -1922,7 +1927,8 @@ function mapPedidos(rows){ return rows.map(r=>({
   fechaEntrega:r.fecha_entrega||null,
   anticipo:r.anticipo!=null?parseFloat(r.anticipo):0,
   shareToken:r.share_token||null, precioPublico:r.precio_publico!=null?parseFloat(r.precio_publico):null,
-  aceptado:r.aceptado||false, aceptadoFecha:r.aceptado_fecha||null
+  aceptado:r.aceptado||false, aceptadoFecha:r.aceptado_fecha||null,
+  stockDescontado:r.stock_descontado||false
 }));}
 
 function mapImpresoras(rows){ return rows.map(r=>({
@@ -5534,6 +5540,7 @@ async function saveO(id){
   const fotoUrl = await uploadFotoIfNeeded(rowId);
 
   // Descontar filamento del stock — SOLO en pedidos nuevos (no al editar)
+  let stockDesc = prevOrder?.stockDescontado || false;
   if(!id){
     let desconto=false;
     for(const linea of _lineas){
@@ -5566,8 +5573,10 @@ async function saveO(id){
       }
     }
     // Registrar en la guarda: si ya se restó aquí, descontarFilamento() (al
-    // cobrar) no debe volver a restar los mismos gramos.
-    if(desconto) _filDescAdd(rowId);
+    // cobrar) no debe volver a restar los mismos gramos. La marca persistente
+    // (stock_descontado, sql/021) viaja en la propia fila; la de localStorage
+    // queda como fallback si la migración no está aplicada.
+    if(desconto){ _filDescAdd(rowId); stockDesc=true; }
   }
 
   // Sumar horas de impresión a la impresora — SOLO en pedidos nuevos
@@ -5610,13 +5619,14 @@ async function saveO(id){
   };
   // anticipo solo si la columna existe (migración sql/009 aplicada).
   if(_hasAnticipo) row.anticipo = (d.anticipo!==''&&d.anticipo!=null)?parseFloat(d.anticipo)||0:0;
+  if(_hasStockDesc) row.stock_descontado = stockDesc;
   row.id = rowId;
   const ok=await dbSave('pedidos',row);
   if(ok){
     // shareToken/precioPublico/aceptado se conservan del pedido previo: la BD no
     // los toca en este upsert, y si la caché los perdiera, el botón 🔗 generaría
     // un token nuevo que invalidaría el enlace que ya tiene el cliente.
-    const mapped={id:row.id,clienteId:d.clienteId,proyecto:d.proyecto,material:mainMat,peso:pesoTotal,tiempoImpresion:tiempoTotal,estado:d.estado,notas:d.notas,fecha:d.fecha,gananciaManual:d.gananciaManual,precioFinal:d.precioFinal!==''?parseFloat(d.precioFinal):null,costePostprocesado:d.costePostprocesado,costeDiseno:d.costeDiseno||0,presNum:presNum,facturaNum:prevOrder?.facturaNum||null,facturaFecha:prevOrder?.facturaFecha||null,lineas:_lineas,fotoUrl:fotoUrl||null,fotoPath:_fotoPath||null,impresoraId:d.impresoraId||null,cobrado:nuevoCobrado,fechaCobrado:fechaCobradoFinal,fechaEntrega:d.fechaEntrega||null,anticipo:(_hasAnticipo&&d.anticipo!==''&&d.anticipo!=null)?(parseFloat(d.anticipo)||0):(prevOrder?.anticipo||0),shareToken:prevOrder?.shareToken||null,precioPublico:prevOrder?.precioPublico??null,aceptado:prevOrder?.aceptado||false,aceptadoFecha:prevOrder?.aceptadoFecha||null};
+    const mapped={id:row.id,clienteId:d.clienteId,proyecto:d.proyecto,material:mainMat,peso:pesoTotal,tiempoImpresion:tiempoTotal,estado:d.estado,notas:d.notas,fecha:d.fecha,gananciaManual:d.gananciaManual,precioFinal:d.precioFinal!==''?parseFloat(d.precioFinal):null,costePostprocesado:d.costePostprocesado,costeDiseno:d.costeDiseno||0,presNum:presNum,facturaNum:prevOrder?.facturaNum||null,facturaFecha:prevOrder?.facturaFecha||null,lineas:_lineas,fotoUrl:fotoUrl||null,fotoPath:_fotoPath||null,impresoraId:d.impresoraId||null,cobrado:nuevoCobrado,fechaCobrado:fechaCobradoFinal,fechaEntrega:d.fechaEntrega||null,anticipo:(_hasAnticipo&&d.anticipo!==''&&d.anticipo!=null)?(parseFloat(d.anticipo)||0):(prevOrder?.anticipo||0),shareToken:prevOrder?.shareToken||null,precioPublico:prevOrder?.precioPublico??null,aceptado:prevOrder?.aceptado||false,aceptadoFecha:prevOrder?.aceptadoFecha||null,stockDescontado:stockDesc};
     if(id)_cache.pedidos=_cache.pedidos.map(o=>o.id===id?mapped:o);else _cache.pedidos.unshift(mapped);
     render();refreshAlerts();
     // Si se acaba de marcar como cobrado: descontar filamento y generar factura.
@@ -5669,7 +5679,7 @@ async function cloneO(id){
   };
   const ok=await dbSave('pedidos',row);
   if(ok){
-    const mapped={id:newId,clienteId:o.clienteId,proyecto:row.proyecto,material:o.material,peso:o.peso,tiempoImpresion:o.tiempoImpresion,estado:'pendiente',notas:o.notas,fecha:row.fecha,gananciaManual:o.gananciaManual,precioFinal:o.precioFinal??null,costePostprocesado:o.costePostprocesado,costeDiseno:o.costeDiseno||0,presNum:null,facturaNum:null,facturaFecha:null,lineas:o.lineas||[],fotoUrl:null,fotoPath:null,impresoraId:o.impresoraId||null,cobrado:false,fechaCobrado:null,fechaEntrega:null};
+    const mapped={id:newId,clienteId:o.clienteId,proyecto:row.proyecto,material:o.material,peso:o.peso,tiempoImpresion:o.tiempoImpresion,estado:'pendiente',notas:o.notas,fecha:row.fecha,gananciaManual:o.gananciaManual,precioFinal:o.precioFinal??null,costePostprocesado:o.costePostprocesado,costeDiseno:o.costeDiseno||0,presNum:null,facturaNum:null,facturaFecha:null,lineas:o.lineas||[],fotoUrl:null,fotoPath:null,impresoraId:o.impresoraId||null,cobrado:false,fechaCobrado:null,fechaEntrega:null,stockDescontado:false};
     _cache.pedidos.unshift(mapped); render(); refreshAlerts();
     showToast('📋 Pedido duplicado','ok');
   }
@@ -5687,7 +5697,8 @@ function _filDescAdd(id){ try{ const a=JSON.parse(localStorage.getItem(_filDescK
 // re-marca como cobrado. Solo afecta a líneas con filamento asignado.
 async function descontarFilamento(o){
   if(!o || !CU || !o.lineas || !o.lineas.length) return;
-  if(_filDescHas(o.id)) return;
+  if(o.stockDescontado) return;   // marca persistente en BD (sql/021): vale entre dispositivos
+  if(_filDescHas(o.id)) return;   // fallback local si la columna aún no está migrada
   const consumo={};
   o.lineas.forEach(l=>{
     if(l.filamentoId && l.filamentoId!=='__manual__'){
@@ -5707,6 +5718,11 @@ async function descontarFilamento(o){
   }
   if(resumen.length){
     _filDescAdd(o.id);
+    if(_hasStockDesc){
+      dbSave('pedidos',{id:o.id,stock_descontado:true});
+      o.stockDescontado=true;
+      _cache.pedidos=_cache.pedidos.map(x=>x.id===o.id?{...x,stockDescontado:true}:x);
+    }
     showToast('🧵 Stock actualizado: -'+resumen.join(', '), 'ok', 4000);
     render();
   }

@@ -16,7 +16,7 @@ Brami3D — gestión para negocio de impresión 3D. Static site **sin build**, e
 
 ### Edge Functions
 Desplegar: panel web (Edge Functions → *Via Editor*) **o** `npm run deploy:functions` (todas) / `npx supabase functions deploy <n> --project-ref uzgzfxizpoigzcnlunpr --no-verify-jwt`. **"Verify JWT" = OFF en todas** (se valida a mano por eso el `--no-verify-jwt`). Secretos en *Settings → Edge Functions*. Operar Supabase desde aquí: ver memoria `project_supabase_ops`.
-- `enviar-doc` — email (PDF adjunto) vía **Resend**. Auth `x-user-token`. `from: hola@brami3d.app` (dominio verificado DKIM/SPF/DMARC en Namecheap). Valida destinatario/Reply-To y limita tamaños (anti-spam).
+- `enviar-doc` — email (PDF adjunto) vía **Resend**. Auth `x-user-token`. `from: hola@brami3d.app` (dominio verificado DKIM/SPF/DMARC en Namecheap). Valida destinatario/Reply-To, limita tamaños y **50 emails/día por usuario** (RPC `email_envio_check`, `sql/021`).
 - `crear-checkout` — **Stripe Checkout** (suscripción). Auth `x-user-token`. `STRIPE_SECRET_KEY`. Prices live: mensual `price_1TdvFePrM5C0gGgh2I0Gr6LC`, anual `price_1TdvFePrM5C0gGgh4liis6Os`. `success_url=?pago=ok`.
 - `stripe-webhook` — verifica firma; en `checkout.session.completed`/`customer.subscription.*` hace upsert en `user_plans` (service role). `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`.
 - `portal-cliente` — Customer Portal de Stripe. Auth `x-user-token`. App: `irAPortal()` (botón en `showPlanInfo()` si `_plan.hasStripe`). Activar portal una vez en Stripe.
@@ -30,7 +30,7 @@ Desplegar: panel web (Edge Functions → *Via Editor*) **o** `npm run deploy:fun
 ## App (`brami3d_supabase.html`)
 - `sb = createClient(SUPA_URL, SUPA_KEY)` (publishable). Estado: `CU`, `PAGE`, `_cache`, `_lineas`.
 - Boot: `bootApp()` → `loadAll()` → `goTo('dashboard')` (+ `handleShortcut/_checkPagoReturn/_checkSuscribirIntent/_aplicarReferido/maybeShowOnboarding`). Nav: `goTo(page)` → `render()` reconstruye `#content`. CRUD: `dbSave(table,data)`/`dbDel(table,id)` (actualizan `_cache` + re-render).
-- **Offline**: caché en `localStorage` por `user_id` + **outbox** (cola de escritura que se vacía al volver la red). Detección de columnas opcionales: `_hasAnticipo`, `_hasShare`, `_hasMant`.
+- **Offline**: caché en `localStorage` por `user_id` + **outbox** (cola de escritura que se vacía al volver la red). Detección de columnas opcionales: `_hasAnticipo`, `_hasShare`, `_hasMant`, `_hasStockDesc` (`pedidos.stock_descontado`, `sql/021`: evita doble descuento de filamento entre dispositivos).
 - Tema dark por defecto (`body.light`, `b3d_theme`, `#theme-btn`). Dashboard con métricas (ingresos/costes/beneficio/consumo).
 - **Onboarding** `maybeShowOnboarding()` (cuentas vacías, flag `b3d_onboarded_<uid>`; forzar: `showOnboarding()`). **A11y** `a11yIcons()`. **Errores globales** → `_logError()` (toast + tabla `error_logs`, `sql/014`).
 - **Mantenimiento impresoras** (`sql/018`, `MANT_DEFAULT=250`, `marcarMantenimiento()`). **Referidos** `?ref=CODE` → RPC `aplicar_referido` (+30d Pro a ambos), UI `mostrarReferidos()`, `sql/017`. **Nudge trial** `trialBannerHTML()` (≤7d de prueba).
