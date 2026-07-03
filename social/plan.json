@@ -29,7 +29,12 @@
       "https://brami3d.app/m/post-02-encuesta.png"
     ],
     "caption": "Pregunta rápida para la comunidad maker: ¿Cuánto cobras realmente por hora de máquina? 😬 ¿Cobras solo el material o tienes una tarifa por hora de impresión real? Comenta con tu respuesta y mañana analizamos cuál es la tarifa ideal para que tu taller sea rentable. #impresion3d #3dprinting #makers #encuesta #comunidad",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/DaV2pFwDgoo/",
+      "fb": "1153412231189064_122113191573360682"
+    },
+    "publicado_at": "2026-07-03T18:52:41.832522Z"
   },
   {
     "id": 3,
