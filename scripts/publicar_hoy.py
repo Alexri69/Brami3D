@@ -10,7 +10,7 @@ Zona horaria de referencia: Europe/Madrid.
 Uso:  python scripts/publicar_hoy.py            (publica los de hoy)
       python scripts/publicar_hoy.py --id 6     (fuerza un post concreto, para probar)
 """
-import os, json, argparse, datetime
+import os, json, time, argparse, datetime
 import publicar  # reutiliza load_env / publish_ig / publish_fb
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -20,6 +20,21 @@ def hoy_madrid():
     # Europe/Madrid = UTC+1 (invierno) / UTC+2 (verano). Aproximamos con offset
     # de verano para julio (CEST, UTC+2); suficiente para una publicacion diaria.
     return (datetime.datetime.utcnow() + datetime.timedelta(hours=2)).date()
+
+def guardar(plan):
+    json.dump(plan, open(PLAN, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+
+def con_reintentos(fn, etiqueta, intentos=3, espera=20):
+    """Reintenta ante errores transitorios de la API de Meta (backoff 20s/40s)."""
+    for i in range(1, intentos + 1):
+        try:
+            return fn()
+        except Exception as e:
+            if i == intentos:
+                raise
+            print(f"   {etiqueta}: intento {i} fallo ({e}); reintento en {espera}s...")
+            time.sleep(espera)
+            espera *= 2
 
 def main():
     ap = argparse.ArgumentParser()
@@ -46,25 +61,36 @@ def main():
     fallo = False
     for p in pend:
         cap, imgs = p["caption"], p["imagenes"]
+        # Estado parcial por red: si en un intento anterior IG salio bien y FB
+        # fallo, aqui solo se reintenta FB (antes se re-publicaba IG duplicado).
+        res = p.get("publicado_en") or {}
         print(f"-> Post {p['id']} ({p['fecha']}, {p['redes']}, {p['tipo']}, {len(imgs)} img)")
-        try:
-            res = {}
-            if p["redes"] in ("ig", "both"):
-                mid, link = publicar.publish_ig(env, cap, imgs)
+        ok = True
+        if p["redes"] in ("ig", "both") and not res.get("ig"):
+            try:
+                mid, link = con_reintentos(lambda: publicar.publish_ig(env, cap, imgs), "IG")
                 res["ig"] = link or mid
+                p["publicado_en"] = res
+                guardar(plan)  # persistir en cuanto sale bien, por si lo siguiente falla
                 print(f"   IG OK  {link or mid}")
-            if p["redes"] in ("fb", "both"):
-                pid, _ = publicar.publish_fb(env, cap, imgs)
+            except Exception as e:
+                ok = False; fallo = True
+                print(f"   ERROR post {p['id']} IG: {e}")
+        if p["redes"] in ("fb", "both") and not res.get("fb"):
+            try:
+                pid, _ = con_reintentos(lambda: publicar.publish_fb(env, cap, imgs), "FB")
                 res["fb"] = pid
+                p["publicado_en"] = res
+                guardar(plan)
                 print(f"   FB OK  {pid}")
+            except Exception as e:
+                ok = False; fallo = True
+                print(f"   ERROR post {p['id']} FB: {e}")
+        if ok:
             p["estado"] = "publicado"
-            p["publicado_en"] = res
             p["publicado_at"] = datetime.datetime.utcnow().isoformat() + "Z"
-        except Exception as e:
-            fallo = True
-            print(f"   ERROR post {p['id']}: {e}")
 
-    json.dump(plan, open(PLAN, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+    guardar(plan)
     if fallo:
         raise SystemExit("Hubo errores al publicar (ver arriba).")
 

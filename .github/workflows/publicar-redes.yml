@@ -44,6 +44,10 @@ jobs:
           fi
 
       - name: Guardar estado (posts publicados)
+        # always(): si la publicacion falla a medias (p. ej. IG bien y FB no),
+        # el estado parcial por red debe commitearse igual para no duplicar
+        # lo ya publicado en el siguiente intento.
+        if: always()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
