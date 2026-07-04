@@ -1524,11 +1524,13 @@ function _unmapForDb(table, r){
 }
 
 function _unmapCfgForDb(c){
+  // Acepta la config en forma de app (backup manual: costePorGramo…) y en
+  // forma de BD (backup automático mensual: coste_por_gramo…).
   return {
-    user_id:CU.id, coste_por_gramo:c.costePorGramo, coste_por_hora:c.costePorHora, margen:c.margen,
+    user_id:CU.id, coste_por_gramo:c.costePorGramo??c.coste_por_gramo, coste_por_hora:c.costePorHora??c.coste_por_hora, margen:c.margen,
     moneda:c.moneda, empresa:c.empresa, telefono:c.telefono, email:c.email, nif:c.nif, direccion:c.direccion, logo:c.logo,
-    tipo_iva:c.tipoIva, nombre_impuesto:c.nombreImpuesto, tipo_iva2:c.tipoIva2, nombre_impuesto2:c.nombreImpuesto2,
-    formato_fecha:c.formatoFecha, separador_decimal:c.separadorDecimal, prefijo_presupuesto:c.prefijoPres, prefijo_factura:c.prefijoFact
+    tipo_iva:c.tipoIva??c.tipo_iva, nombre_impuesto:c.nombreImpuesto??c.nombre_impuesto, tipo_iva2:c.tipoIva2??c.tipo_iva2, nombre_impuesto2:c.nombreImpuesto2??c.nombre_impuesto2,
+    formato_fecha:c.formatoFecha??c.formato_fecha, separador_decimal:c.separadorDecimal??c.separador_decimal, prefijo_presupuesto:c.prefijoPres??c.prefijo_presupuesto, prefijo_factura:c.prefijoFact??c.prefijo_factura
   };
 }
 

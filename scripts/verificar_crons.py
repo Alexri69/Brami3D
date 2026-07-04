@@ -21,8 +21,9 @@ import urllib.request
 SUPA_URL = "https://uzgzfxizpoigzcnlunpr.supabase.co"
 SUPA_KEY = "sb_publishable_4gEjOV3kyfh8_I0f861iow__6b1ueIi"
 
-# Cron -> maximo de dias entre latidos (ambos corren los lunes; margen de 8).
-ESPERADOS = {"recordatorios": 8, "reenganche": 8}
+# Cron -> maximo de dias entre latidos.
+# recordatorios/reenganche corren los lunes (margen 8); backup-mensual el dia 1 (margen 35).
+ESPERADOS = {"recordatorios": 8, "reenganche": 8, "backup-mensual": 35}
 
 
 def main():

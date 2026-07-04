@@ -23,6 +23,7 @@ Desplegar: panel web (Edge Functions → *Via Editor*) **o** `npm run deploy:fun
 - `borrar-cuenta` — **RGPD**. Auth `x-user-token`; service role borra filas del usuario en todas las tablas (lista `TABLES`, incluye `reenganche_enviado`) + ficheros de Storage (`archivos/{uid}/…`) + cuenta auth. App: `confirmarEliminarCuenta()`/`eliminarCuenta()` (Config → Zona de peligro).
 - `enviar-push` — **Web Push** (`npm:web-push` + VAPID, secretos `VAPID_PUBLIC_KEY`/`VAPID_PRIVATE_KEY`). Auth `x-user-token` (propio) o `x-cron-secret` (`body.user_id`). Lee `push_subscriptions`, borra caducadas (404/410). App: `suscribirPush()`, `probarPush()`, listener `push` en `sw.js`. ⚠️ iOS: solo PWA instalada (16.4+).
 - `recordatorios` — **cron** (lunes 08:00 UTC, `sql/013`). Service role: presupuestos sin aceptar (>3d) + pedidos sin cobrar (>7d) → email-resumen Resend. `x-cron-secret` (`CRON_SECRET`, **obligatorio**). **Vigilancia de crons**: recordatorios/reenganche dejan latido en `cron_heartbeat` (`sql/022`) y avisan por email al owner si fallan; `verificar-crons.yml` (martes) comprueba latidos frescos. `stripe-webhook` también avisa al owner en error.
+- `backup-mensual` — **cron ACTIVO** (`brami3d-backup-mensual`, día 1 a las 06:00 UTC, `sql/024`). Service role: JSON de negocio por usuario (formato restaurable desde Config → Restaurar) en Storage `archivos/{uid}/backups/backup-YYYY-MM.json`, conserva 3. `x-cron-secret`. Latido en `cron_heartbeat`.
 - `reenganche` — **cron ACTIVO** (`brami3d-reenganche-semanal`, lunes 09:00 UTC, `sql/019`). Service role: usuarios registrados ≥7d **sin pedidos**, no admins/demo, **no contactados** → email bienvenida con **guía PDF adjunta** (de `brami3d.app/guia-brami3d.pdf`); registra en `reenganche_enviado` para no repetir. `x-cron-secret` (`CRON_SECRET`). Manual: `scripts/reenganche.py --to … [--dry]`.
 
 > ⚠️ Nunca pegar en chat `sk_live_`/`whsec_`/tokens → van directos a Supabase secrets. La publishable sí puede ir embebida.
@@ -48,7 +49,7 @@ Desplegar: panel web (Edge Functions → *Via Editor*) **o** `npm run deploy:fun
 Precios: Gratis · Pro Mensual **9 €** · Pro Anual **79 €**. `irACheckout(plan)` → `crear-checkout` → Stripe. `_checkPagoReturn()` (`?pago=ok`), `_checkSuscribirIntent()` (`?suscribir=mensual|anual` desde landing). Landing `openPayModal(plan)`: botón tarjeta (`?suscribir=`) + PayPal manual (`paypal.me/Brami3D/9EUR`, el owner marca Pro a mano).
 
 ### Presupuestos públicos
-`p.html` usa RPCs `get_presupuesto_publico` y `aceptar_presupuesto` (deben existir como FUNCTION). La app genera el enlace para aceptar sin cuenta.
+`p.html` usa RPCs `get_presupuesto_publico` y `aceptar_presupuesto` (deben existir como FUNCTION). La app genera el enlace para aceptar sin cuenta. Tras aceptar, el mismo enlace muestra el **tracker "sigue tu pedido"** (En cola → Imprimiendo → Terminado → Entregado + entrega prevista; `estado`/`fecha_entrega` en la RPC, `sql/024`).
 
 ## Validar y seguridad
 - **Validar antes de commit**: `node scripts/validate.js` (compila los `<script>` inline + JSON; ignora carpetas no desplegadas) **y `node scripts/test.js`** (tests de lógica de negocio: costes, hash VeriFactu, planes — extrae las funciones reales del HTML). CI: `.github/workflows/validate.yml` (corre ambos).
