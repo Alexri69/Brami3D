@@ -69,4 +69,4 @@ Measurement ID **`G-C5P6F52QE3`**, propiedad **`531047655`**. `gtag` en `brami3d
 
 ## Pendiente / ideas
 - **Landing en inglés** (la app ya es bilingüe). i18n del botón "Gestionar suscripción" y limpiar políticas RLS duplicadas (cosmético). Si se añaden claves i18n o funciones fiscales, van en `js/i18n.js` / `js/verifactu.js` (no en el HTML).
-- (Bajo riesgo) **Rotar `CRON_SECRET`** (se vio en mantenimiento; solo dispara crons). Si se rota: `secrets set` + actualizar crons `recordatorios` y `reenganche`.
+- ~~Rotar `CRON_SECRET`~~ **hecho el 2026-07-04** (estaba hardcodeado en `sql/016`, repo público). Si vuelve a rotarse: `secrets set` + actualizar los 3 crons (`recordatorios`, `reenganche`, `backup-mensual`) + el trigger `notificar_presupuesto_aceptado`. ⚠️ Nunca commitear el secreto en `sql/*`.

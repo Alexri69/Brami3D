@@ -3,6 +3,9 @@
 -- este trigger llama a la Edge Function "enviar-push" (con pg_net, asíncrono) y
 -- el owner recibe una notificación al instante.
 -- Requiere: pg_net activo (ya lo está por el cron) y la función enviar-push desplegada.
+-- ⚠️ Sustituye <CRON_SECRET> por el valor real ANTES de ejecutar y NUNCA
+--    commitees el secreto: este repo es público (aquí estuvo hardcodeado y
+--    hubo que rotarlo el 2026-07-04).
 -- Ejecutar en Supabase SQL Editor una sola vez.
 
 create or replace function public.notificar_presupuesto_aceptado()
@@ -24,7 +27,7 @@ begin
       url     := 'https://uzgzfxizpoigzcnlunpr.supabase.co/functions/v1/enviar-push',
       headers := jsonb_build_object(
         'Content-Type',  'application/json',
-        'x-cron-secret', 'b3d-cron-Kq7mZ2pX9vT4wL8nR3sB6yH1'
+        'x-cron-secret', '<CRON_SECRET>'
       ),
       body    := jsonb_build_object(
         'user_id', NEW.user_id,
