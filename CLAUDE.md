@@ -3,7 +3,7 @@
 Brami3D — gestión para negocio de impresión 3D. Static site **sin build**, en `brami3d.app` vía GitHub Pages (**push a `main` = producción**). Pensada como **SaaS multi-taller**. Tras cada cambio: **commit + push** (despliega solo). Responder siempre en español.
 
 ## Archivos
-- `brami3d_supabase.html` — SPA completa (~2700 líneas), la app de verdad
+- `brami3d_supabase.html` — SPA completa, la app de verdad. Módulos propios en `js/` (scripts clásicos, **sin build**, cargan antes del script principal y están en el APP_SHELL de `sw.js`): `js/i18n.js` (LANG/I18N/`t()`) y `js/verifactu.js` (registro fiscal). `scripts/test.js` concatena HTML+módulos para extraer funciones.
 - `landing.html` — marketing (precios, modal de pago) · `index.html` — redirige a landing
 - `p.html` — aceptación pública de presupuestos (sin login) · `gracias.html` — post-pago PayPal
 - `cookies.html` · `privacidad.html` · `promo_instagram.html`
@@ -68,5 +68,5 @@ Measurement ID **`G-C5P6F52QE3`**, propiedad **`531047655`**. `gtag` en `brami3d
 - **Email semanal**: `informe-ga.yml` (lunes 08:00 UTC). Secrets GitHub: `GA_SERVICE_ACCOUNT_JSON`, `RESEND_API_KEY`.
 
 ## Pendiente / ideas
-- **Landing en inglés** (la app ya es bilingüe). i18n del botón "Gestionar suscripción" y limpiar políticas RLS duplicadas (cosmético).
+- **Landing en inglés** (la app ya es bilingüe). i18n del botón "Gestionar suscripción" y limpiar políticas RLS duplicadas (cosmético). Si se añaden claves i18n o funciones fiscales, van en `js/i18n.js` / `js/verifactu.js` (no en el HTML).
 - (Bajo riesgo) **Rotar `CRON_SECRET`** (se vio en mantenimiento; solo dispara crons). Si se rota: `secrets set` + actualizar crons `recordatorios` y `reenganche`.

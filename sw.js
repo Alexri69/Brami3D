@@ -1,4 +1,4 @@
-const CACHE_NAME = 'b3d-cdn-v6';
+const CACHE_NAME = 'b3d-cdn-v7';
 
 // Recursos CDN externos (no cambian).
 const CDN_SHELL = [
@@ -13,6 +13,8 @@ const CDN_SHELL = [
 // navegador aunque haya datos en localStorage.
 const APP_SHELL = [
   '/brami3d_supabase.html',
+  '/js/i18n.js',
+  '/js/verifactu.js',
   '/manifest.webmanifest',
   '/icon-192.png',
   '/icon-512.png'
@@ -54,11 +56,13 @@ self.addEventListener('fetch', e => {
     return;
   }
 
-  // HTML de la app → network-first (siempre versión actualizada).
-  // Sin red: servimos la copia cacheada de esta página y, si no la hay (p. ej.
-  // start_url con query ?source=pwa), caemos al shell precacheado para que la
-  // PWA arranque igualmente offline.
-  if (url.pathname.endsWith('.html') || url.pathname === '/') {
+  // HTML de la app y JS PROPIO → network-first (siempre versión actualizada).
+  // Los /js/*.js van a la par del HTML: si fueran stale-while-revalidate, tras
+  // un deploy podrían servirse una versión por detrás del HTML (skew).
+  // Sin red: servimos la copia cacheada y, para navegaciones sin copia (p. ej.
+  // start_url con query ?source=pwa), caemos al shell precacheado.
+  const esPropio = url.origin === location.origin;
+  if (url.pathname.endsWith('.html') || url.pathname === '/' || (esPropio && url.pathname.endsWith('.js'))) {
     e.respondWith(
       fetch(e.request)
         .then(res => {
@@ -71,7 +75,7 @@ self.addEventListener('fetch', e => {
         })
         .catch(() =>
           caches.match(e.request).then(hit =>
-            hit || caches.match('/brami3d_supabase.html')
+            hit || (url.pathname.endsWith('.js') ? undefined : caches.match('/brami3d_supabase.html'))
           )
         )
     );

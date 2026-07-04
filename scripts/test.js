@@ -20,8 +20,14 @@ const vm = require('vm');
 const test = require('node:test');
 const assert = require('node:assert/strict');
 
-const HTML = path.join(__dirname, '..', 'brami3d_supabase.html');
-const src = fs.readFileSync(HTML, 'utf8');
+// La app vive en el HTML + los módulos de /js (i18n, verifactu). Se concatena
+// todo para que extractFunction encuentre las funciones vivan donde vivan.
+const ROOT = path.join(__dirname, '..');
+const src = [
+  path.join(ROOT, 'brami3d_supabase.html'),
+  path.join(ROOT, 'js', 'i18n.js'),
+  path.join(ROOT, 'js', 'verifactu.js'),
+].filter(fs.existsSync).map((f) => fs.readFileSync(f, 'utf8')).join('\n\n');
 
 // ── Extractores ─────────────────────────────────────────────────────────────
 function extractFunction(name) {

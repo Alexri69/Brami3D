@@ -56,6 +56,18 @@ for (const file of listFiles(ROOT, ['.html'])) {
   if (fileErrs === 0) console.log(`✅ ${rel(file)} (${i} bloque(s))`);
 }
 
+// ── 1b) JS suelto (js/*.js, sw.js, scripts/*.js): compilar como los inline ──
+for (const file of listFiles(ROOT, ['.js'])) {
+  blocksChecked++;
+  try {
+    new vm.Script(fs.readFileSync(file, 'utf8'));
+    console.log(`✅ ${rel(file)}`);
+  } catch (e) {
+    errors++;
+    console.error(`❌ ${rel(file)} — ${e.message}`);
+  }
+}
+
 // ── 2) JSON / webmanifest: validar que parsea ──────────────────────────────
 for (const file of listFiles(ROOT, ['.json', '.webmanifest'])) {
   try {
