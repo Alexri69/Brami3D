@@ -743,7 +743,7 @@ const I18N = {
     'ped.overdue':'vencido','ped.delivery':'entrega','ped.paidBadge':'cobrado','ped.deposit':'Anticipo','ped.balance':'pendiente',
     'share.title':'Compartir presupuesto','share.linkReady':'Enlace de aceptación listo. Cópialo o envíalo al cliente — podrá verlo y aceptarlo online:','share.copy':'📋 Copiar enlace','share.copied':'Enlace copiado','share.openWa':'💬 Enviar por WhatsApp','share.waMsg':'¡Hola! Aquí tienes tu presupuesto para "{p}". Puedes verlo y aceptarlo aquí: {url}','share.needSql':'Función no disponible todavía: ejecuta la migración sql/010 en Supabase.','share.accepted':'Aceptado','share.tShare':'Compartir enlace de aceptación',
     'plan.limitTitle':'Límite del plan alcanzado','plan.proMonthly':'💳 Pro Mensual — 9€/mes','plan.proAnnual':'💳 Pro Anual — 79€/año','plan.payPaypal':'Pagar con PayPal','plan.notNow':'Ahora no','plan.redirecting':'Abriendo pago seguro…','plan.checkoutErr':'No se pudo iniciar el pago','plan.thanks':'✅ ¡Pago recibido! Activando tu plan Pro…',
-    'email.title':'Enviar por email','email.recipient':'Email del destinatario:','email.testNote':'El correo se enviará desde tu dominio (brami3d.app) con el nombre de tu empresa; las respuestas llegarán a tu email de contacto.','email.send':'Enviar','email.invalidTo':'Introduce un email válido','email.sent':'✅ Email enviado','email.errPrefix':'No se pudo enviar','email.hi':'Hola','email.regards':'Un saludo,','email.subjQuote':'Presupuesto {n}','email.subjInvoice':'Factura {n}','email.quoteIntro':'Te envío el presupuesto para "{p}".','email.invoiceIntro':'Adjunto la factura {n} correspondiente a "{p}".','email.priceLine':'Precio total: {v}.','email.totalLine':'Total: {v}.',
+    'email.title':'Enviar por email','email.recipient':'Email del destinatario:','email.testNote':'El correo se enviará desde tu dominio (brami3d.app) con el nombre de tu empresa; las respuestas llegarán a tu email de contacto.','email.send':'Enviar','email.invalidTo':'Introduce un email válido','email.sent':'✅ Email enviado','email.errPrefix':'No se pudo enviar','email.hi':'Hola','email.regards':'Un saludo,','email.subjQuote':'Presupuesto {n}','email.subjInvoice':'Factura {n}','email.quoteIntro':'Te envío el presupuesto para "{p}".','email.invoiceIntro':'Adjunto la factura {n} correspondiente a "{p}".','email.priceLine':'Precio total: {v}.','email.totalLine':'Total: {v}.','email.subjReminder':'Recordatorio — Presupuesto {n}','email.reminderIntro':'Hace unos días te envié el presupuesto para "{p}" y no quería que se te pasara. Te lo adjunto de nuevo.','email.reminderLink':'Puedes verlo y aceptarlo online aquí: {url}','ped.tRecordar':'Recordar presupuesto al cliente',
     'frm.editOrder':'Editar pedido','frm.newOrder':'Nuevo pedido','frm.saveOrder':'💾 Guardar pedido','frm.noClient':'Sin cliente',
     'frm.projectName':'Nombre del proyecto *','frm.orderDate':'Fecha pedido','frm.deliveryDate':'Fecha de entrega (opcional)',
     'frm.printer':'Impresora','frm.noPrinter':'Sin impresora (200W por defecto)',
@@ -840,7 +840,7 @@ const I18N = {
     'ped.overdue':'overdue','ped.delivery':'delivery','ped.paidBadge':'paid','ped.deposit':'Deposit','ped.balance':'balance',
     'share.title':'Share quote','share.linkReady':'Acceptance link ready. Copy it or send it to the client — they can view and accept it online:','share.copy':'📋 Copy link','share.copied':'Link copied','share.openWa':'💬 Send via WhatsApp','share.waMsg':'Hi! Here is your quote for "{p}". You can view and accept it here: {url}','share.needSql':'Feature not available yet: run migration sql/010 in Supabase.','share.accepted':'Accepted','share.tShare':'Share acceptance link',
     'plan.limitTitle':'Plan limit reached','plan.proMonthly':'💳 Pro Monthly — €9/mo','plan.proAnnual':'💳 Pro Annual — €79/yr','plan.payPaypal':'Pay with PayPal','plan.notNow':'Not now','plan.redirecting':'Opening secure checkout…','plan.checkoutErr':'Could not start checkout','plan.thanks':'✅ Payment received! Activating your Pro plan…',
-    'email.title':'Send by email','email.recipient':'Recipient email:','email.testNote':'The email will be sent from your domain (brami3d.app) with your business name; replies go to your contact email.','email.send':'Send','email.invalidTo':'Enter a valid email','email.sent':'✅ Email sent','email.errPrefix':'Could not send','email.hi':'Hi','email.regards':'Best regards,','email.subjQuote':'Quote {n}','email.subjInvoice':'Invoice {n}','email.quoteIntro':'Here is the quote for "{p}".','email.invoiceIntro':'Attached is invoice {n} for "{p}".','email.priceLine':'Total price: {v}.','email.totalLine':'Total: {v}.',
+    'email.title':'Send by email','email.recipient':'Recipient email:','email.testNote':'The email will be sent from your domain (brami3d.app) with your business name; replies go to your contact email.','email.send':'Send','email.invalidTo':'Enter a valid email','email.sent':'✅ Email sent','email.errPrefix':'Could not send','email.hi':'Hi','email.regards':'Best regards,','email.subjQuote':'Quote {n}','email.subjInvoice':'Invoice {n}','email.quoteIntro':'Here is the quote for "{p}".','email.invoiceIntro':'Attached is invoice {n} for "{p}".','email.priceLine':'Total price: {v}.','email.totalLine':'Total: {v}.','email.subjReminder':'Reminder — Quote {n}','email.reminderIntro':'I sent you the quote for "{p}" a few days ago and did not want it to slip by. Attached again.','email.reminderLink':'You can view and accept it online here: {url}','ped.tRecordar':'Remind client about this quote',
     'frm.editOrder':'Edit order','frm.newOrder':'New order','frm.saveOrder':'💾 Save order','frm.noClient':'No customer',
     'frm.projectName':'Project name *','frm.orderDate':'Order date','frm.deliveryDate':'Delivery date (optional)',
     'frm.printer':'Printer','frm.noPrinter':'No printer (200W default)',
@@ -3716,6 +3716,20 @@ async function sendPresupuestoEmail(id){
   emailDocModal(built, cl.email, subject, body);
 }
 
+// Recordatorio de presupuesto en 1 clic: mismo modal de email, con texto de
+// seguimiento y el enlace público de aceptación si ya existe. No automatiza
+// nada: el taller decide cuándo y a quién insistir.
+async function recordarPresupuesto(id){
+  const o=await ensurePresNum(id); if(!o) return;
+  const cfg=_cache.cfg; const cl=_cache.clientes.find(x=>x.id===o.clienteId)||{}; const c=calcOrderCosts(o,cfg); const mon=cfg.moneda||'€';
+  let built; try{ built=buildPresupuestoPdf(id); }catch(e){ showToast(e.message,'err',5000); return; } if(!built) return;
+  const subject=t('email.subjReminder',{n:o.presNum||o.proyecto});
+  const saludo=t('email.hi')+(cl.nombre?' '+cl.nombre:'');
+  const linkLine=(o.shareToken&&_hasShare)?'\n'+t('email.reminderLink',{url:location.origin+'/p.html?t='+o.shareToken}):'';
+  const body=`${saludo},\n\n${t('email.reminderIntro',{p:o.proyecto})}\n${t('email.priceLine',{v:c.fp.toFixed(2)+' '+mon})}${linkLine}\n\n${t('email.regards')}\n${brandFooterName(cfg)}`;
+  emailDocModal(built, cl.email, subject, body);
+}
+
 // Genera/recupera el enlace público de aceptación del presupuesto y lo ofrece para
 // copiar o enviar por WhatsApp. El cliente lo abre en p.html (sin login).
 async function sharePresupuestoLink(id){
@@ -5078,6 +5092,7 @@ function pgPedidos(){
           +'<button class="btn-icon" title="'+t('ped.tWhatsApp')+'" onclick="sendWA(\''+o.id+'\')">💬</button>'
           +(_hasShare?'<button class="btn-icon" title="'+t('share.tShare')+'" onclick="sharePresupuestoLink(\''+o.id+'\')">🔗</button>':'')
           +'<button class="btn-icon" title="'+t('email.title')+'" onclick="sendPresupuestoEmail(\''+o.id+'\')">✉️</button>'
+          +(!o.aceptado?'<button class="btn-icon" title="'+t('ped.tRecordar')+'" onclick="recordarPresupuesto(\''+o.id+'\')">🔔</button>':'')
           +cobrarBtn)
         +factBtn
         +'<button class="btn-icon" title="'+t('ped.tDuplicar')+'" onclick="cloneO(\''+o.id+'\')">📋</button>'
@@ -5118,7 +5133,8 @@ function pgPedidos(){
         ${cerrado?'':`<button onclick="genPDF('${o.id}')" style="flex:1;padding:10px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:13px">📄 PDF</button>
         <button onclick="sendWA('${o.id}')" style="flex:1;padding:10px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:13px">💬 WA</button>
         ${_hasShare?`<button onclick="sharePresupuestoLink('${o.id}')" title="${t('share.tShare')}" style="padding:10px 14px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:16px">🔗</button>`:''}
-        <button onclick="sendPresupuestoEmail('${o.id}')" title="${t('email.title')}" style="padding:10px 14px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:16px">✉️</button>`}
+        <button onclick="sendPresupuestoEmail('${o.id}')" title="${t('email.title')}" style="padding:10px 14px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:16px">✉️</button>
+        ${!o.aceptado?`<button onclick="recordarPresupuesto('${o.id}')" title="${t('ped.tRecordar')}" style="padding:10px 14px;background:var(--bg4);border:1px solid var(--border);border-radius:10px;color:var(--text3);font-size:16px">🔔</button>`:''}`}
         ${!o.cobrado
           ?`<button onclick="marcarCobrado('${o.id}')" style="flex:1;padding:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;color:#4ade80;font-size:12px;font-weight:700">💰 ${t('dash.collect')}</button>`
           :`<button onclick="genFactura('${o.id}')" style="flex:1;padding:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;color:#4ade80;font-size:13px">🧾</button><button onclick="sendFacturaWA('${o.id}')" title="Enviar factura" style="flex:1;padding:10px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:10px;color:#4ade80;font-size:13px">📤</button>`
@@ -6077,6 +6093,7 @@ function pgRegistro(){
   <span style="background:#1e3a8a;color:#bfdbfe;border-radius:99px;padding:3px 10px;font-size:11px;font-weight:700;letter-spacing:.3px">MODO NO-VERIFACTU</span>
   <span style="color:var(--text4);font-size:12px">RD 1007/2023 · Orden HAC/1177/2024 · SIF Brami3D v${esc(SIF_VERSION)}</span>
   <span style="flex:1"></span>
+  <button class="btn-secondary" onclick="abrirExportTrimestral()">📦 Export trimestral (gestor)</button>
   <button class="btn-primary" onclick="exportarRegistrosXML()">📄 Exportar XML AEAT</button>
 </div>
 <div class="card" style="margin-bottom:16px">
@@ -6340,6 +6357,86 @@ async function buildRectificativaPdf(reg,orig){
   doc.text('Registro de facturación conservado conforme al RD 1007/2023 (modalidad no VERI*FACTU) — '+brandFooterName(cfg),M,287,{maxWidth:W-2*M});
 
   return {doc,filename:'rectificativa_'+String(reg.factura_num||'').replace(/[^a-zA-Z0-9_-]/g,'_')+'.pdf'};
+}
+
+// ═══════════════════════════════════════════════
+//  EXPORT TRIMESTRAL (para la asesoría/gestor)
+// ═══════════════════════════════════════════════
+// CSV de facturas emitidas del trimestre (desde el registro fiscal, con las
+// rectificativas en negativo) + CSV de gastos del periodo, con fila de TOTAL.
+// Es lo que pide el gestor cada trimestre para el IVA (modelo 303).
+function abrirExportTrimestral(){
+  const now=new Date();
+  const triActual=Math.floor(now.getMonth()/3)+1;
+  // Por defecto, el último trimestre CERRADO (lo que toca presentar).
+  const tri=triActual===1?4:triActual-1;
+  const anio=triActual===1?now.getFullYear()-1:now.getFullYear();
+  openModal(msh('Export trimestral para tu gestor',`
+    <p style="color:var(--text4);font-size:13px;line-height:1.6;margin:0 0 14px">
+      Genera los CSV que suele pedir la asesoría: <b>facturas emitidas</b> del trimestre
+      (desde el registro fiscal, rectificativas en negativo) y <b>gastos</b> del periodo,
+      con totales al final de cada archivo.</p>
+    <div style="display:flex;gap:10px">
+      <div class="field" style="flex:1"><label for="ext-anio">Año</label>
+        <input id="ext-anio" type="number" value="${anio}" min="2020" max="2100"></div>
+      <div class="field" style="flex:1"><label for="ext-tri">Trimestre</label>
+        <select id="ext-tri">${[1,2,3,4].map(q=>`<option value="${q}"${q===tri?' selected':''}>T${q} (${['ene-mar','abr-jun','jul-sep','oct-dic'][q-1]})</option>`).join('')}</select></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:6px">
+      <button class="btn-primary" id="ext-go" onclick="generarExportTrimestral()">📦 Generar CSV</button>
+      <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+    </div>`));
+}
+
+async function generarExportTrimestral(){
+  const anio=parseInt($('ext-anio')?.value)||new Date().getFullYear();
+  const tri=Math.min(4,Math.max(1,parseInt($('ext-tri')?.value)||1));
+  const d1=`${anio}-${String((tri-1)*3+1).padStart(2,'0')}-01`;
+  const mesFin=tri*3;
+  const d2=`${anio}-${String(mesFin).padStart(2,'0')}-${String(new Date(anio,mesFin,0).getDate()).padStart(2,'0')}`;
+  setLoading('ext-go',true);
+  try {
+    const {data:regs,error}=await sb.from('facturas_registro')
+      .select('factura_num,factura_fecha,tipo,receptor_nombre,receptor_nif,base_imponible,tipo_iva,cuota_iva,importe_total,motivo_rectificacion')
+      .eq('user_id',CU.id).gte('factura_fecha',d1).lte('factura_fecha',d2)
+      .order('factura_fecha',{ascending:true});
+    if(error) throw error;
+    const R=regs||[];
+    const gastos=(_cache.gastos||[]).filter(g=>g.fecha&&g.fecha>=d1&&g.fecha<=d2);
+    if(!R.length&&!gastos.length){ showToast(`Sin facturas ni gastos en T${tri} ${anio}`,'warn',4000); return; }
+
+    const cel=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+    if(R.length){
+      const cols=['Nº Factura','Fecha','Tipo','Cliente','NIF','Base imponible','% IVA','Cuota IVA','Total','Motivo rectificación'];
+      const rows=R.map(r=>[cel(r.factura_num),cel(r.factura_fecha),cel(r.tipo==='emision'?'F1':(r.tipo==='rectificativa'?'R1':'F2')),cel(r.receptor_nombre||''),cel(r.receptor_nif||''),Number(r.base_imponible||0).toFixed(2),Number(r.tipo_iva||0),Number(r.cuota_iva||0).toFixed(2),Number(r.importe_total||0).toFixed(2),cel(r.motivo_rectificacion||'')].join(';'));
+      const tb=R.reduce((s,r)=>s+Number(r.base_imponible||0),0);
+      const tq=R.reduce((s,r)=>s+Number(r.cuota_iva||0),0);
+      const tt=R.reduce((s,r)=>s+Number(r.importe_total||0),0);
+      rows.push([cel('TOTAL'),'','','','',tb.toFixed(2),'',tq.toFixed(2),tt.toFixed(2),''].join(';'));
+      _dlCSV(cols,rows,`Facturas_${anio}-T${tri}.csv`);
+    }
+    if(gastos.length){
+      const cols=['Concepto','Categoría','Importe','Fecha','Notas'];
+      const rows=gastos.map(g=>[cel(g.concepto||''),cel(g.categoria||''),(parseFloat(g.importe)||0).toFixed(2),cel(g.fecha||''),cel(g.notas||'')].join(';'));
+      rows.push([cel('TOTAL'),'',gastos.reduce((s,g)=>s+(parseFloat(g.importe)||0),0).toFixed(2),'',''].join(';'));
+      _dlCSV(cols,rows,`Gastos_${anio}-T${tri}.csv`);
+    }
+    closeModal();
+    showToast(`✅ T${tri} ${anio} exportado: ${R.length} facturas · ${gastos.length} gastos`,'ok',5000);
+  } catch(e){
+    showToast('Error al exportar: '+(e.message||e),'err',6000);
+  } finally {
+    setLoading('ext-go',false,'📦 Generar CSV');
+  }
+}
+
+function _dlCSV(cols,rows,filename){
+  const csv='\uFEFF'+cols.map(c=>'"'+c+'"').join(';')+'\n'+rows.join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
 }
 
 // ═══════════════════════════════════════════════
