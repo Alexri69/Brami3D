@@ -878,12 +878,31 @@ function notifEnabled(){
 
 function showNotif(title, body){
   if(!notifEnabled()) return;
-  const n = new Notification(title, { body, icon: '/icon-192.png', badge: '/icon-192.png' });
-  n.onclick = () => { window.focus(); n.close(); };
+  const opts = { body, icon: '/icon-192.png', badge: '/icon-192.png' };
+  // En Android/iOS el constructor Notification() NO existe en páginas (lanza
+  // "Illegal constructor"): hay que mostrarla a través del Service Worker.
+  // El constructor queda como fallback de escritorio sin SW. Nunca lanza:
+  // antes una excepción aquí rompía la cadena de arranque de bootApp().
+  try {
+    if('serviceWorker' in navigator && navigator.serviceWorker.controller){
+      navigator.serviceWorker.ready
+        .then(reg => reg.showNotification(title, opts))
+        .catch(e => console.warn('showNotif (sw):', e));
+      return;
+    }
+  } catch(_){}
+  try {
+    const n = new Notification(title, opts);
+    n.onclick = () => { window.focus(); n.close(); };
+  } catch(e){ console.warn('showNotif:', e); }
 }
 
 function checkAndNotify(){
   if(!notifEnabled()) return;
+  // Renovar la suscripción push en cada arranque: los endpoints caducan o el
+  // navegador los rota, y hasta ahora solo se re-registraba al pulsar "probar".
+  // Si el dispositivo dejó de recibir pushes, esto lo revive solo.
+  try { suscribirPush(); } catch(_){}
   const last = parseInt(localStorage.getItem(NOTIF_KEY)||'0');
   const now = Date.now();
   if(now - last < 60*60*1000) return;
