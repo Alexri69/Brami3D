@@ -34,6 +34,7 @@ Desplegar: panel web (Edge Functions → *Via Editor*) **o** `npm run deploy:fun
 - Tema dark por defecto (`body.light`, `b3d_theme`, `#theme-btn`). Dashboard con métricas (ingresos/costes/beneficio/consumo).
 - **Onboarding** `maybeShowOnboarding()` (cuentas vacías, flag `b3d_onboarded_<uid>`; forzar: `showOnboarding()`). **A11y** `a11yIcons()`. **Errores globales** → `_logError()` (toast + tabla `error_logs`, `sql/014`).
 - **Mantenimiento impresoras** (`sql/018`, `MANT_DEFAULT=250`, `marcarMantenimiento()`). **Referidos** `?ref=CODE` → RPC `aplicar_referido` (+30d Pro a ambos), UI `mostrarReferidos()`, `sql/017`. **Nudge trial** `trialBannerHTML()` (≤7d de prueba).
+- **Rectificativas** (R1 por diferencias): botón "Rectificar" en Registro fiscal → `abrirRectificativa()`/`emitirRectificativa()` — importes en negativo, serie propia `rectnum` (`sql/023`), mismo hash-chain, PDF propio (`buildRectificativaPdf`), opción de liberar el pedido para refacturar.
 
 ### i18n (ES / EN)
 `LANG` (localStorage `b3d_lang`, **default `es`**; EN opt-in). `I18N={es,en}`, helper `t(key,vars)`, `applyStaticI18n()`, `setLang()/toggleLang()`. Botón bandera `#lang-btn` (🇬🇧 en ES / 🇪🇸 en EN). En **EN se oculta el módulo fiscal** (solo España). PDFs traducidos. ⚠️ Cuidado con apóstrofes y `€` al editar strings.

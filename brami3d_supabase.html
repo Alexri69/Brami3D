@@ -2235,6 +2235,8 @@ async function _nextNum(tipo, pfx){
 }
 async function nextPresNum(){ return _nextNum('presnum', _cache.cfg?.prefijoPres||'B3D'); }
 async function nextFacturaNum(){ return _nextNum('factnum', _cache.cfg?.prefijoFact||'B3D-F'); }
+// Las rectificativas llevan serie PROPIA (requisito normativo): <prefijo>-R-año-nnn.
+async function nextRectNum(){ return _nextNum('rectnum', (_cache.cfg?.prefijoFact||'B3D-F')+'-R'); }
 
 // ═══════════════════════════════════════════════
 //  REGISTRO FISCAL (RD 1007/2023 — modo No-Verifactu)
@@ -6090,12 +6092,13 @@ function pgRegistro(){
 async function cargarRegistroFiscal(){
   try {
     const [{data:regs,error:e1},{data:evts,error:e2}]=await Promise.all([
-      sb.from('facturas_registro').select('id,factura_num,factura_fecha,tipo,receptor_nombre,receptor_nif,base_imponible,importe_total,hash,hash_anterior,ts_emision,modalidad').eq('user_id',CU.id).order('ts_emision',{ascending:false}).limit(500),
+      sb.from('facturas_registro').select('id,factura_num,factura_fecha,tipo,rectifica_id,motivo_rectificacion,emisor_nif,emisor_nombre,receptor_nombre,receptor_nif,base_imponible,tipo_iva,cuota_iva,importe_total,pedido_id,hash,hash_anterior,ts_emision,modalidad').eq('user_id',CU.id).order('ts_emision',{ascending:false}).limit(500),
       sb.from('facturas_eventos').select('id,tipo,descripcion,ts,hash,hash_anterior,registro_id').eq('user_id',CU.id).order('ts',{ascending:false}).limit(500)
     ]);
     if(e1) throw e1;
     if(e2) throw e2;
     const R=regs||[], E=evts||[];
+    _regRows=R;   // para abrirRectificativa/emitirRectificativa
 
     // Facturas
     const regEl=$('regf-list'); const regCount=$('regf-count');
@@ -6110,10 +6113,21 @@ async function cargarRegistroFiscal(){
         ? '<div style="background:#064e3b;color:#a7f3d0;border-radius:8px;padding:8px 12px;font-size:12px;margin-bottom:10px">✓ Cadena íntegra — ningún hash previo ha sido alterado</div>'
         : '<div style="background:#7f1d1d;color:#fecaca;border-radius:8px;padding:8px 12px;font-size:12px;margin-bottom:10px">⚠ Cadena rota — hay un registro cuyo hash_anterior no coincide</div>';
       regEl.innerHTML=statusBar+'<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:var(--bg)">'
-        +['Nº Factura','Fecha','Tipo','Receptor','Base','Total','Huella (SHA-256)'].map(h=>`<th style="text-align:left;padding:8px 10px;color:var(--text3);font-weight:600">${h}</th>`).join('')
+        +['Nº Factura','Fecha','Tipo','Receptor','Base','Total','Huella (SHA-256)',''].map(h=>`<th style="text-align:left;padding:8px 10px;color:var(--text3);font-weight:600">${h}</th>`).join('')
         +'</tr></thead><tbody>'
         +R.map(r=>{
           const tipoTag=r.tipo==='rectificativa'?'<span style="background:#78350f;color:#fde68a;border-radius:4px;padding:1px 6px;font-size:10px">R1</span>':(r.tipo==='anulacion'?'<span style="background:#7f1d1d;color:#fecaca;border-radius:4px;padding:1px 6px;font-size:10px">F2</span>':'<span style="background:#064e3b;color:#a7f3d0;border-radius:4px;padding:1px 6px;font-size:10px">F1</span>');
+          // Acciones: una emisión solo se puede rectificar UNA vez (el registro
+          // es append-only; la rectificativa anula el total con importes negativos).
+          const rectificadaPor=R.find(x=>x.rectifica_id===r.id);
+          let accion='';
+          if(r.tipo==='emision'){
+            accion=rectificadaPor
+              ?`<span style="color:var(--text4);font-size:10px" title="Rectificada por ${esc(rectificadaPor.factura_num)}">↩ ${esc(rectificadaPor.factura_num)}</span>`
+              :`<button class="btn-secondary" style="padding:4px 10px;font-size:11px" onclick="abrirRectificativa('${esc(r.id)}')">Rectificar</button>`;
+          } else if(r.tipo==='rectificativa'){
+            accion=`<button class="btn-secondary" style="padding:4px 10px;font-size:11px" onclick="pdfRectificativa('${esc(r.id)}')">📄 PDF</button>`;
+          }
           return `<tr style="border-top:1px solid var(--border)">
             <td style="padding:8px 10px;color:var(--text2);font-weight:600">${esc(r.factura_num)}</td>
             <td style="padding:8px 10px">${esc(r.factura_fecha||'')}</td>
@@ -6122,6 +6136,7 @@ async function cargarRegistroFiscal(){
             <td style="padding:8px 10px;text-align:right">${Number(r.base_imponible||0).toFixed(2)} €</td>
             <td style="padding:8px 10px;text-align:right;color:var(--text2);font-weight:600">${Number(r.importe_total||0).toFixed(2)} €</td>
             <td style="padding:8px 10px;font-family:monospace;font-size:10px;color:var(--text4);cursor:copy" title="Click para copiar" onclick="navigator.clipboard.writeText('${esc(r.hash)}');showToast('Huella copiada','ok',1500)">${esc((r.hash||'').slice(0,16))}…</td>
+            <td style="padding:8px 10px;text-align:right;white-space:nowrap">${accion}</td>
           </tr>`;
         }).join('')
         +'</tbody></table></div>';
@@ -6148,6 +6163,183 @@ async function cargarRegistroFiscal(){
     console.error('cargarRegistroFiscal',e);
     $('regf-list').innerHTML=`<div style="background:#7f1d1d;color:#fecaca;border-radius:8px;padding:10px 14px">Error cargando registros: ${esc(e.message||e)}</div>`;
   }
+}
+
+// ═══════════════════════════════════════════════
+//  FACTURAS RECTIFICATIVAS (R1, por diferencias)
+// ═══════════════════════════════════════════════
+// El registro es append-only: una factura mal emitida NO se borra ni se edita;
+// se emite una rectificativa con los importes en NEGATIVO que la anula, con su
+// propia serie (nextRectNum) y encadenada en el mismo hash-chain. Si hay que
+// refacturar, se libera el pedido y se genera una factura nueva normal.
+// (Solo módulo fiscal español → textos en castellano, como el resto de pgRegistro.)
+let _regRows=[];
+
+function abrirRectificativa(regId){
+  const orig=_regRows.find(r=>r.id===regId);
+  if(!orig || orig.tipo!=='emision'){ showToast('Registro no rectificable','err'); return; }
+  if(_regRows.some(r=>r.rectifica_id===orig.id)){ showToast('Esta factura ya tiene rectificativa','warn'); return; }
+  openModal(msh('Rectificar factura '+(orig.factura_num||''),`
+    <div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:12px;font-size:12.5px;color:#fcd34d;line-height:1.6;margin-bottom:14px">
+      Se emitirá una <b>factura rectificativa</b> (importes en negativo) que anula la
+      factura <b>${esc(orig.factura_num||'')}</b> de ${Number(orig.importe_total||0).toFixed(2)} €.
+      La original queda en el registro (es inmutable por ley); la rectificativa se
+      encadena a continuación. Entrega el PDF resultante a tu cliente.
+    </div>
+    <div class="field"><label for="rect-motivo">Motivo de la rectificación (obligatorio)</label>
+      <textarea id="rect-motivo" rows="3" placeholder="Ej.: error en el importe / pedido anulado / datos del cliente incorrectos"></textarea></div>
+    ${orig.pedido_id?`<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text3);margin:2px 0 14px;cursor:pointer">
+      <input type="checkbox" id="rect-liberar" checked style="width:16px;height:16px;accent-color:#3b82f6">
+      Liberar el pedido para poder emitir una factura nueva corregida
+    </label>`:''}
+    <div style="display:flex;gap:10px">
+      <button class="btn-danger" id="rect-go" onclick="emitirRectificativa('${esc(regId)}')">Emitir rectificativa</button>
+      <button class="btn-secondary" onclick="closeModal()">Cancelar</button>
+    </div>`));
+}
+
+async function emitirRectificativa(regId){
+  const orig=_regRows.find(r=>r.id===regId);
+  if(!orig) return;
+  const motivo=($('rect-motivo')?.value||'').trim();
+  if(!motivo){ showToast('Escribe el motivo de la rectificación','err'); return; }
+  const liberar=$('rect-liberar')?.checked||false;
+  setLoading('rect-go',true);
+  try {
+    const num=await nextRectNum();
+    const registro={
+      user_id:CU.id,
+      factura_num:num,
+      factura_fecha:today(),
+      pedido_id:orig.pedido_id||null,
+      tipo:'rectificativa',
+      rectifica_id:orig.id,
+      motivo_rectificacion:motivo,
+      emisor_nif:orig.emisor_nif||'',
+      emisor_nombre:orig.emisor_nombre||'',
+      receptor_nif:orig.receptor_nif||null,
+      receptor_nombre:orig.receptor_nombre||null,
+      base_imponible:-Number(orig.base_imponible||0),
+      tipo_iva:Number(orig.tipo_iva||0),
+      cuota_iva:-Number(orig.cuota_iva||0),
+      importe_total:-Number(orig.importe_total||0),
+      lineas:[],
+      datos_json:{rectifica_num:orig.factura_num,rectifica_fecha:orig.factura_fecha,motivo},
+      hash_anterior:await fetchUltimoHashFactura(),
+      modalidad:MODALIDAD_FACTURACION,
+      sif_nombre:'Brami3D',
+      sif_version:SIF_VERSION,
+      sif_id:CU.id,
+      ts_emision:new Date().toISOString()
+    };
+    registro.hash=await sha256Hex(canonicalRegistroString(registro));
+
+    const {data,error}=await sb.from('facturas_registro').insert(registro).select().maybeSingle();
+    if(error){
+      showToast('No se pudo registrar la rectificativa: '+error.message,'err',7000);
+      registrarEvento('anomalia',{descripcion:`Fallo al emitir rectificativa de ${orig.factura_num}: ${error.message}`,datos:{motivo}});
+      return;
+    }
+    await registrarEvento('rectificacion',{
+      descripcion:`Rectificativa ${num} anula la factura ${orig.factura_num}`,
+      registro_id:data.id,
+      datos:{rectifica:orig.factura_num,importe:registro.importe_total,motivo}
+    });
+
+    // Liberar el pedido: sin nº de factura puede refacturarse correctamente.
+    if(liberar && orig.pedido_id){
+      const ok=await dbSave('pedidos',{id:orig.pedido_id,factura_num:null,factura_fecha:null});
+      if(ok) _cache.pedidos=_cache.pedidos.map(x=>x.id===orig.pedido_id?{...x,facturaNum:null,facturaFecha:null}:x);
+    }
+
+    closeModal();
+    showToast('✅ Rectificativa '+num+' emitida','ok',5000);
+    try { const built=await buildRectificativaPdf(registro,orig); _openPdf(built.doc,built.filename); } catch(e){ console.warn('PDF rectificativa',e); }
+    cargarRegistroFiscal();
+  } catch(e){
+    showToast('Error al emitir la rectificativa: '+(e.message||e),'err',7000);
+  } finally {
+    setLoading('rect-go',false,'Emitir rectificativa');
+  }
+}
+
+// Re-descarga el PDF de una rectificativa ya emitida (desde la tabla del registro).
+async function pdfRectificativa(regId){
+  const reg=_regRows.find(r=>r.id===regId);
+  if(!reg || reg.tipo!=='rectificativa') return;
+  const orig=_regRows.find(r=>r.id===reg.rectifica_id)||null;
+  try { const built=await buildRectificativaPdf(reg,orig); _openPdf(built.doc,built.filename); }
+  catch(e){ showToast(e.message||'No se pudo generar el PDF','err'); }
+}
+
+// PDF compacto de la rectificativa: referencia a la original, motivo, importes
+// en negativo, QR tributario (HAC/1177/2024) y huella SHA-256 del registro.
+async function buildRectificativaPdf(reg,orig){
+  const C=_pdfCtor();
+  if(!C) throw new Error('jsPDF aún no está cargado. Espera un momento y reintenta.');
+  const cfg=_cache.cfg||{};
+  const doc=new C({unit:'mm',format:'a4'});
+  const W=210,M=16; let y=22;
+
+  doc.setFont('helvetica','bold'); doc.setFontSize(16); doc.setTextColor(15,23,42);
+  doc.text('FACTURA RECTIFICATIVA',M,y);
+  doc.setFontSize(11); doc.setTextColor(220,38,38);
+  doc.text(String(reg.factura_num||''),W-M,y,{align:'right'});
+  y+=6;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(100,116,139);
+  doc.text('Fecha de expedición: '+(reg.factura_fecha||''),W-M,y,{align:'right'});
+  y+=6; doc.setDrawColor(226,232,240); doc.line(M,y,W-M,y); y+=9;
+
+  doc.setFontSize(8); doc.setTextColor(148,163,184);
+  doc.text('EMISOR',M,y); doc.text('CLIENTE',W/2+4,y); y+=5;
+  doc.setFontSize(10); doc.setTextColor(15,23,42); doc.setFont('helvetica','bold');
+  doc.text(String(reg.emisor_nombre||brandFooterName(cfg)).slice(0,45),M,y);
+  doc.text(String(reg.receptor_nombre||'—').slice(0,45),W/2+4,y); y+=5;
+  doc.setFont('helvetica','normal'); doc.setFontSize(9); doc.setTextColor(71,85,105);
+  if(reg.emisor_nif) doc.text('NIF: '+reg.emisor_nif,M,y);
+  if(reg.receptor_nif) doc.text('NIF: '+reg.receptor_nif,W/2+4,y);
+  y+=5;
+  if(cfg.direccion){ doc.text(String(cfg.direccion).slice(0,70),M,y); y+=5; }
+  y+=5;
+
+  const motivoLines=doc.splitTextToSize('Motivo: '+(reg.motivo_rectificacion||''),W-2*M-12);
+  const boxH=13+motivoLines.length*4.5;
+  doc.setFillColor(254,242,242); doc.setDrawColor(252,165,165);
+  doc.roundedRect(M,y,W-2*M,boxH,2,2,'FD');
+  doc.setFontSize(9); doc.setTextColor(153,27,27); doc.setFont('helvetica','bold');
+  doc.text(`Rectifica (anula por diferencias) la factura ${orig?orig.factura_num:(reg.datos_json?.rectifica_num||'')} de fecha ${orig?(orig.factura_fecha||''):(reg.datos_json?.rectifica_fecha||'')}`,M+6,y+7);
+  doc.setFont('helvetica','normal'); doc.setTextColor(127,29,29);
+  doc.text(motivoLines,M+6,y+13);
+  y+=boxH+12;
+
+  const fila=(lbl,val,bold)=>{
+    doc.setFont('helvetica',bold?'bold':'normal');
+    doc.setFontSize(bold?12:10);
+    doc.setTextColor(bold?220:71,bold?38:85,bold?38:105);
+    doc.text(lbl,W-M-70,y);
+    doc.text(Number(val||0).toFixed(2)+' '+(cfg.moneda||'€'),W-M,y,{align:'right'});
+    y+=bold?8:6;
+  };
+  fila('Base imponible',reg.base_imponible,false);
+  fila(`${cfg.nombreImpuesto||'IVA'} (${Number(reg.tipo_iva||0)}%)`,reg.cuota_iva,false);
+  doc.setDrawColor(226,232,240); doc.line(W-M-72,y-3,W-M,y-3); y+=1;
+  fila('TOTAL',reg.importe_total,true);
+  y+=6;
+
+  try {
+    const qr=await qrDataUrl(qrAEATUrl({emisorNif:reg.emisor_nif,numSerie:reg.factura_num,fecha:reg.factura_fecha,importe:reg.importe_total}));
+    if(qr){
+      doc.addImage(qr,'PNG',M,y,24,24);
+      doc.setFontSize(7); doc.setTextColor(148,163,184);
+      doc.text('QR tributario (AEAT)',M,y+27);
+    }
+  } catch(_){}
+
+  doc.setFontSize(7); doc.setTextColor(148,163,184);
+  doc.text('Huella (SHA-256): '+(reg.hash||''),M,282,{maxWidth:W-2*M});
+  doc.text('Registro de facturación conservado conforme al RD 1007/2023 (modalidad no VERI*FACTU) — '+brandFooterName(cfg),M,287,{maxWidth:W-2*M});
+
+  return {doc,filename:'rectificativa_'+String(reg.factura_num||'').replace(/[^a-zA-Z0-9_-]/g,'_')+'.pdf'};
 }
 
 // ═══════════════════════════════════════════════

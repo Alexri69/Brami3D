@@ -147,6 +147,15 @@ test('canonicalRegistroString: códigos de tipo R1/F2 y campos vacíos', () => {
   assert.match(ctx.canonicalRegistroString({ ts_emision: 'T' }), /FechaExpedicionFactura=&/);
 });
 
+test('canonicalRegistroString: rectificativa con importes negativos (2 decimales con signo)', () => {
+  const s = ctx.canonicalRegistroString({
+    tipo: 'rectificativa', cuota_iva: -4.2, importe_total: -24.2, ts_emision: 'T',
+  });
+  assert.match(s, /TipoFactura=R1/);
+  assert.match(s, /CuotaTotal=-4\.20/);
+  assert.match(s, /ImporteTotal=-24\.20/);
+});
+
 // ── resolvePlan ─────────────────────────────────────────────────────────────
 const FUTURO = new Date(Date.now() + 30 * 864e5).toISOString();
 const PASADO = new Date(Date.now() - 30 * 864e5).toISOString();
