@@ -50,7 +50,12 @@
       "https://brami3d.app/m/carrusel-03-slide-6.png"
     ],
     "caption": "Calcular el coste real de una impresión es más complejo que pesar la pieza final. ⚖️ Además del filamento, entran en juego el consumo de electricidad, los fallos y el tiempo de postprocesado. Te explicamos paso a paso cómo calcularlo de forma exacta. #3dprinter #maker #diy #business #taller3d #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/DabCRvMjxwB/",
+      "fb": "1153412231189064_122114016531360682"
+    },
+    "publicado_at": "2026-07-05T19:10:52.381525Z"
   },
   {
     "id": 4,
