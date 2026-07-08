@@ -66,7 +66,12 @@
       "https://brami3d.app/m/post-05-mi-mes.png"
     ],
     "caption": "¿Sabes exactamente cuánto has ingresado y gastado en tu taller este mes? 📈 Tomar decisiones de negocio a ciegas es arriesgado. Con Brami3D, obtén un desglose gráfico de tus ingresos, gastos y beneficios netos para controlar tu rentabilidad al segundo. #emprendedor #negocios #3dprint #maker #finanzas #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/Daiq98zoF5V/",
+      "fb": "1153412231189064_122115340185360682"
+    },
+    "publicado_at": "2026-07-08T18:20:49.902797Z"
   },
   {
     "id": 5,
