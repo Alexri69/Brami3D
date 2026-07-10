@@ -87,7 +87,12 @@
       "https://brami3d.app/m/carrusel-04-slide-6.png"
     ],
     "caption": "Presupuestar piezas 3D no tiene por qué ser una tortura de horas frente a la calculadora. 🧮 Te enseñamos los 4 pasos infalibles para generar presupuestos exactos en minutos, cobrando todo el valor de tu trabajo. ¡Optimiza tu flujo hoy! #impresion3d #diseño3d #presupuesto #taller #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/Dan1KAVkjvi/",
+      "fb": "1153412231189064_122116133229360682"
+    },
+    "publicado_at": "2026-07-10T18:26:16.934925Z"
   },
   {
     "id": 6,
