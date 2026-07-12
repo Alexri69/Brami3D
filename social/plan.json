@@ -107,7 +107,12 @@
       "https://brami3d.app/m/carrusel-05-slide-5.png"
     ],
     "caption": "¿Tu taller es realmente rentable o solo estás cambiando dinero? 💸 Muchos makers cometen el error de no cobrar la amortización de la impresora ni su tiempo de mano de obra. Analizamos los números reales y cómo Brami3D te ayuda a facturar con beneficio. #3dprinting #negocio #rentabilidad #maker #tecnologia #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/Das74CSmDJY/",
+      "fb": "1153412231189064_122116803651360682"
+    },
+    "publicado_at": "2026-07-12T18:01:07.370064Z"
   },
   {
     "id": 7,
