@@ -60,32 +60,57 @@ def main():
 
     fallo = False
     for p in pend:
-        cap, imgs = p["caption"], p["imagenes"]
+        cap = p["caption"]
         # Estado parcial por red: si en un intento anterior IG salio bien y FB
         # fallo, aqui solo se reintenta FB (antes se re-publicaba IG duplicado).
         res = p.get("publicado_en") or {}
-        print(f"-> Post {p['id']} ({p['fecha']}, {p['redes']}, {p['tipo']}, {len(imgs)} img)")
+        video = p.get("video")  # si existe -> reel/video; si no -> imagenes
         ok = True
-        if p["redes"] in ("ig", "both") and not res.get("ig"):
-            try:
-                mid, link = con_reintentos(lambda: publicar.publish_ig(env, cap, imgs), "IG")
-                res["ig"] = link or mid
-                p["publicado_en"] = res
-                guardar(plan)  # persistir en cuanto sale bien, por si lo siguiente falla
-                print(f"   IG OK  {link or mid}")
-            except Exception as e:
-                ok = False; fallo = True
-                print(f"   ERROR post {p['id']} IG: {e}")
-        if p["redes"] in ("fb", "both") and not res.get("fb"):
-            try:
-                pid, _ = con_reintentos(lambda: publicar.publish_fb(env, cap, imgs), "FB")
-                res["fb"] = pid
-                p["publicado_en"] = res
-                guardar(plan)
-                print(f"   FB OK  {pid}")
-            except Exception as e:
-                ok = False; fallo = True
-                print(f"   ERROR post {p['id']} FB: {e}")
+        if video:
+            print(f"-> Post {p['id']} ({p['fecha']}, {p['redes']}, reel/video)")
+            if p["redes"] in ("ig", "both") and not res.get("ig"):
+                try:
+                    mid, link = con_reintentos(lambda: publicar.publish_ig_video(env, cap, video, "REELS"), "IG-reel")
+                    res["ig"] = link or mid
+                    p["publicado_en"] = res
+                    guardar(plan)  # persistir en cuanto sale bien, por si lo siguiente falla
+                    print(f"   IG reel OK  {link or mid}")
+                except Exception as e:
+                    ok = False; fallo = True
+                    print(f"   ERROR post {p['id']} IG reel: {e}")
+            if p["redes"] in ("fb", "both") and not res.get("fb"):
+                try:
+                    vid = con_reintentos(lambda: publicar.publish_fb_video(env, cap, video), "FB-video")
+                    res["fb"] = vid
+                    p["publicado_en"] = res
+                    guardar(plan)
+                    print(f"   FB video OK  {vid}")
+                except Exception as e:
+                    ok = False; fallo = True
+                    print(f"   ERROR post {p['id']} FB video: {e}")
+        else:
+            imgs = p["imagenes"]
+            print(f"-> Post {p['id']} ({p['fecha']}, {p['redes']}, {p['tipo']}, {len(imgs)} img)")
+            if p["redes"] in ("ig", "both") and not res.get("ig"):
+                try:
+                    mid, link = con_reintentos(lambda: publicar.publish_ig(env, cap, imgs), "IG")
+                    res["ig"] = link or mid
+                    p["publicado_en"] = res
+                    guardar(plan)  # persistir en cuanto sale bien, por si lo siguiente falla
+                    print(f"   IG OK  {link or mid}")
+                except Exception as e:
+                    ok = False; fallo = True
+                    print(f"   ERROR post {p['id']} IG: {e}")
+            if p["redes"] in ("fb", "both") and not res.get("fb"):
+                try:
+                    pid, _ = con_reintentos(lambda: publicar.publish_fb(env, cap, imgs), "FB")
+                    res["fb"] = pid
+                    p["publicado_en"] = res
+                    guardar(plan)
+                    print(f"   FB OK  {pid}")
+                except Exception as e:
+                    ok = False; fallo = True
+                    print(f"   ERROR post {p['id']} FB: {e}")
         if ok:
             p["estado"] = "publicado"
             p["publicado_at"] = datetime.datetime.utcnow().isoformat() + "Z"

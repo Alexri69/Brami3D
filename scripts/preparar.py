@@ -23,7 +23,7 @@ def main():
     copiadas, out = 0, []
     for p in plan:
         urls = []
-        for a in p["archivos"]:
+        for a in p.get("archivos", []):
             src = os.path.join(ROOT, a)
             if not os.path.exists(src):
                 raise SystemExit(f"FALTA imagen: {a}")
@@ -31,13 +31,24 @@ def main():
             shutil.copy2(src, os.path.join(MDIR, name))
             copiadas += 1
             urls.append(BASE + name)
-        out.append({
+        entry = {
             "id": p["id"], "fecha": p["fecha"], "redes": p["redes"],
             "tipo": p["tipo"], "imagenes": urls, "caption": p["caption"],
             "estado": p.get("estado", "pendiente"),
-        })
+        }
+        # Reels/video: copiamos el mp4 a m/ (IG exige URL publica; la sirve GitHub Pages)
+        video = p.get("video")
+        if video:
+            vsrc = os.path.join(ROOT, video)
+            if not os.path.exists(vsrc):
+                raise SystemExit(f"FALTA video: {video}")
+            vname = os.path.basename(video)
+            shutil.copy2(vsrc, os.path.join(MDIR, vname))
+            copiadas += 1
+            entry["video"] = BASE + vname
+        out.append(entry)
     json.dump(out, open(PLAN_OUT, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
-    print(f"{copiadas} imagenes copiadas a m/  |  {len(out)} posts en social/plan.json")
+    print(f"{copiadas} archivos copiados a m/  |  {len(out)} posts en social/plan.json")
 
 if __name__ == "__main__":
     main()
