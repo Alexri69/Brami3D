@@ -61,6 +61,8 @@ Precios: Gratis · Pro Mensual **9 €** · Pro Anual **79 €**. `irACheckout(p
 - Helper: `scripts/meta.ps1 <endpoint> [query] [-Method] [-Body]` (lee token del `.env`, Graph v25.0).
 - `scripts/metricas.py [--n N]` — métricas IG (reach; reels ~10x carruseles).
 - **Publicar**: `scripts/publicar.py --target fb|ig|both --caption … --images URL… | --video URL --formato reel|story|feed` (URLs públicas desde `m/`). Flujo del mes: `marketing/plan-mes.json` (gitignored) → `scripts/preparar.py` → `social/plan.json` (versionado) → `scripts/publicar_hoy.py`.
+  - Cada post en `plan-mes.json`: `{id, fecha, redes, tipo, archivos[], caption, estado}`; **reels/vídeo** llevan además `"video": "ruta/al.mp4"` (con `archivos: []`). `preparar.py` copia imágenes **y** el mp4 a `m/` (URL pública que IG exige) y vuelca a `plan.json`. `publicar_hoy.py` publica los de HOY: si el post tiene `video` → reel en IG (`publish_ig_video`) + vídeo de feed en FB (`publish_fb_video`); si no, imagen/carrusel. Marca `estado=publicado` + `publicado_en/at` (idempotente por red).
+  - ⚠️ **`preparar.py` REESCRIBE `social/plan.json` entero** (no fusiona). Ejecutarlo **solo al cambiar de mes**, cuando el mes en curso ya se publicó: si se lanza antes, borra los posts pendientes del mes actual. Copia del mes anterior en `marketing/plan-<mes>.json`. Recuperar con `git restore social/plan.json` si se ejecuta por error.
 - **Workflows**: `publicar-redes.yml` (cron 17:00 UTC + dispatch; secret `META_ACCESS_TOKEN`), `verificar-token.yml` (`scripts/verificar_token.py`, lunes 07:00; avisa si el token se invalida).
 
 ## Analítica (GA4)
