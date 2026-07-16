@@ -80,6 +80,10 @@ def publish_ig(env, caption, images):
         cont = post(f"{ig}/media", {"media_type": "CAROUSEL", "children": ",".join(child_ids),
                                     "caption": caption, "access_token": tok})
         creation = cont["id"]
+    # Meta procesa el contenedor de forma asincrona tambien con imagenes:
+    # publicar sin esperar da error 9007 "Media ID is not available" (paso con
+    # el carrusel del 15-jul-2026). Esperamos a FINISHED igual que con video.
+    _esperar_procesado(creation, tok, timeout=180)
     pub = post(f"{ig}/media_publish", {"creation_id": creation, "access_token": tok})
     media_id = pub["id"]
     info = get(f"{media_id}", {"fields": "permalink", "access_token": tok})
@@ -100,8 +104,8 @@ def publish_fb(env, caption, images):
     r = post(f"{page}/feed", data)
     return r.get("id"), ""
 
-def _esperar_video(creation_id, tok, timeout=480):
-    """IG procesa el video de forma asincrona: esperamos a status FINISHED."""
+def _esperar_procesado(creation_id, tok, timeout=480):
+    """IG procesa los contenedores de forma asincrona: esperamos a FINISHED."""
     for _ in range(max(1, timeout // 8)):
         st = get(creation_id, {"fields": "status_code", "access_token": tok})
         code = st.get("status_code")
@@ -120,7 +124,7 @@ def publish_ig_video(env, caption, video_url, kind="REELS"):
         params["caption"] = caption
         params["share_to_feed"] = "true"
     cont = post(f"{ig}/media", params)
-    _esperar_video(cont["id"], tok)
+    _esperar_procesado(cont["id"], tok)
     pub = post(f"{ig}/media_publish", {"creation_id": cont["id"], "access_token": tok})
     mid = pub["id"]
     link = ""
