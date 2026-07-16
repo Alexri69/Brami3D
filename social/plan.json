@@ -127,7 +127,12 @@
       "https://brami3d.app/m/carrusel-06-mantenimiento-slide-5.png"
     ],
     "caption": "El mantenimiento preventivo es la mejor inversión para tu taller 3D. 🛠️ Limpiar boquillas, lubricar varillas y revisar conexiones te ahorrará cientos de euros en piezas fallidas y reparaciones costosas. ¡Configura tus alertas automáticas en Brami3D y mantén tus máquinas al 100%! #3dprinter #mantenimiento #diy #taller3d #productividad #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/Da2v53kmpsh/",
+      "fb": "1153412231189064_122118089541360682"
+    },
+    "publicado_at": "2026-07-16T13:29:03.479248Z"
   },
   {
     "id": 8,
