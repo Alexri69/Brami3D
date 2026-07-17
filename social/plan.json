@@ -143,7 +143,12 @@
       "https://brami3d.app/m/post-05-mis-meses.png"
     ],
     "caption": "¿Tu negocio de impresión 3D está creciendo o te has estancado? 📊 Compara de forma visual tu facturación, gastos y margen de beneficio neto mes a mes. Brami3D te muestra la evolución histórica de tu taller para que sepas exactamente hacia dónde vas. #negocios #crecimiento #3dprinting #maker #finanzas #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/Da50l0FIHFh/",
+      "fb": "1153412231189064_122118383553360682"
+    },
+    "publicado_at": "2026-07-17T18:07:35.582590Z"
   },
   {
     "id": 9,
