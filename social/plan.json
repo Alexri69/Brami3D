@@ -163,7 +163,12 @@
       "https://brami3d.app/m/carrusel-07-fiscalidad-slide-5.png"
     ],
     "caption": "La fiscalidad es el dolor de cabeza de todo maker que empieza a vender. 🧾 Entender el recargo de equivalencia, cómo deducir material, luz y software, y cómo facturar a empresas es crucial para evitar sustos con Hacienda. Te lo explicamos de forma sencilla. #autonomo #fiscalidad #impuestos #impresion3d #negocio #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/Da-9TdVE1U8/",
+      "fb": "1153412231189064_122118871425360682"
+    },
+    "publicado_at": "2026-07-19T18:00:03.892059Z"
   },
   {
     "id": 10,
