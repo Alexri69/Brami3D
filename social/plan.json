@@ -179,7 +179,12 @@
       "https://brami3d.app/m/post-08-presupuesto-publico.png"
     ],
     "caption": "¿Cansado de enviar presupuestos en PDF que quedan en el limbo? 💬 Con Brami3D, envía un enlace interactivo donde el cliente ve el desglose formal y puede aceptarlo con un solo clic en su pantalla. Recibe alertas al instante y empieza a imprimir sobre seguro. #ventas #productividad #presupuestos #impresion3d #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/DbEI3JrD1zX/",
+      "fb": "1153412231189064_122119303635360682"
+    },
+    "publicado_at": "2026-07-21T18:17:19.488685Z"
   },
   {
     "id": 11,
