@@ -215,7 +215,12 @@
       "https://brami3d.app/m/post-10-calibrar-filamento.png"
     ],
     "caption": "Tip para ahorrar material: No ignores las pérdidas por purgas, faldas y fallos de impresión. 💡 Una bobina de 1kg y 20 € rinde realmente unos 950g, subiendo tu coste neto real a 21 €/kg. En Brami3D puedes añadir el factor de desperdicio y cobrar lo justo. #ahorro #filamento #impresion3d #tip #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/DbOaCg-AIOi/",
+      "fb": "1153412231189064_122120230887360682"
+    },
+    "publicado_at": "2026-07-25T17:59:42.254005Z"
   },
   {
     "id": 13,
