@@ -235,7 +235,12 @@
       "https://brami3d.app/m/carrusel-11-consumo-luz-slide-5.png"
     ],
     "caption": "La factura de la luz puede comerse tu beneficio. ⚡ Sigue estos 5 consejos para reducir el consumo eléctrico de tu taller: mantas térmicas, agrupación térmica de impresiones e impresión en horas valle. Configura el precio del kWh en Brami3D para presupuestar con precisión. #luz #ahorro #eficiencia #granja3d #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/DbTmp2qgXgF/",
+      "fb": "1153412231189064_122120711937360682"
+    },
+    "publicado_at": "2026-07-27T18:26:12.470748Z"
   },
   {
     "id": 14,
