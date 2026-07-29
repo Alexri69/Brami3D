@@ -251,7 +251,12 @@
       "https://brami3d.app/m/post-12-notificaciones-push.png"
     ],
     "caption": "No pierdas tiempo mirando tu impresora cada poco. 📱 Activa las notificaciones push en Brami3D y recibe alertas al instante cuando una impresión termine, cuando requiera mantenimiento, o cuando un cliente acepte un presupuesto. ¡Trabaja de forma inteligente! #productividad #tecnologia #notificaciones #3dprinter #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/DbYuTxqD28N/",
+      "fb": "1153412231189064_122121261789360682"
+    },
+    "publicado_at": "2026-07-29T18:09:00.378635Z"
   },
   {
     "id": 15,
