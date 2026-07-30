@@ -267,7 +267,12 @@
       "https://brami3d.app/m/post-13-encuesta-whatsapp.png"
     ],
     "caption": "Encuesta rápida: ¿Cómo envías los presupuestos a tus clientes? 🤔 💬 ¿Captura de pantalla por WhatsApp? 📄 ¿PDF formal? 🔗 ¿O enlace interactivo de Brami3D? Vota en los comentarios y te contamos por qué el formato web interactivo convierte un 60% más. #encuesta #ventas #presupuesto #makers #impresion3d #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/DbbUNEOoPrV/",
+      "fb": "1153412231189064_122121493365360682"
+    },
+    "publicado_at": "2026-07-30T18:18:45.944535Z"
   },
   {
     "id": 16,
