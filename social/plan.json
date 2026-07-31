@@ -287,6 +287,11 @@
       "https://brami3d.app/m/carrusel-14-pwa-slide-5.png"
     ],
     "caption": "¿Sabías que puedes instalar Brami3D en tu móvil u ordenador sin pasar por la App Store? 🌐 Brami3D es una Progressive Web App (PWA), lo que significa que tienes acceso directo, rendimiento rápido y soporte sin conexión a internet completo. Te explicamos las ventajas. #pwa #tecnologia #aplicacion #offline #3dprinting #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/Dbd5fnYncAU/",
+      "fb": "1153412231189064_122121815517360682"
+    },
+    "publicado_at": "2026-07-31T18:23:02.966340Z"
   }
 ]
