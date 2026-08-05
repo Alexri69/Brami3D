@@ -156,8 +156,13 @@
     "tipo": "reel",
     "imagenes": [],
     "caption": "Ponerle precio a una pieza 3D no debería llevarte 20 minutos. ⏱️ Mira cómo calculo el precio REAL (material + luz + tiempo + margen) en 30 segundos. #impresion3d #3dprinting #maker #brami3d",
-    "estado": "pendiente",
-    "video": "https://brami3d.app/m/ago-reel-01-calculadora.mp4"
+    "estado": "publicado",
+    "video": "https://brami3d.app/m/ago-reel-01-calculadora.mp4",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/reel/Dbp1OKlDM10/",
+      "fb": "4483148188623816"
+    },
+    "publicado_at": "2026-08-05T09:36:45.493607Z"
   },
   {
     "id": 13,
