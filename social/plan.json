@@ -29,7 +29,12 @@
       "https://brami3d.app/m/ago-post-02-encuesta.png"
     ],
     "caption": "Pregunta honesta 👇 ¿En qué llevas las cuentas de tu taller 3D? 📊 Excel · 📒 Libreta · 🧠 De cabeza · 📱 Una app. Comenta con tu opción y te digo cómo pasar al siguiente nivel sin liarte. #impresion3d #makers #encuesta #comunidad #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/Db0_CIaG9MO/",
+      "fb": "1153412231189064_122124415767360682"
+    },
+    "publicado_at": "2026-08-09T17:33:52.056345Z"
   },
   {
     "id": 3,
