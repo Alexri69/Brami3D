@@ -65,7 +65,12 @@
       "https://brami3d.app/m/ago-post-04-filamento.png"
     ],
     "caption": "El precio del carrete NO es tu coste. 🧵 Si cobras solo el material, estás regalando tu trabajo. Coste real = material + luz + desgaste + tu hora. Brami3D lo suma por ti. #impresion3d #3dprinting #maker #costes #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/Db_VB7Lm94r/",
+      "fb": "1153412231189064_122125414515360682"
+    },
+    "publicado_at": "2026-08-13T17:58:38.691225Z"
   },
   {
     "id": 5,
