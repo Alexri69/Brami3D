@@ -86,7 +86,12 @@
       "https://brami3d.app/m/ago-carrusel-05-slide-6.png"
     ],
     "caption": "¿Ese pedido te dejó beneficio… o solo la sensación de estar ocupado? 🤔 Te enseño a desglosar un pedido de verdad para saber si ganas o pierdes. #impresion3d #negocio3d #rentabilidad #maker #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/DcEailVAW14/",
+      "fb": "1153412231189064_122125927419360682"
+    },
+    "publicado_at": "2026-08-15T17:23:06.659156Z"
   },
   {
     "id": 6,
