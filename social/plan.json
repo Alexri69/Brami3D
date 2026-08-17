@@ -196,8 +196,13 @@
     "tipo": "reel",
     "imagenes": [],
     "caption": "Tu taller cabe en tu bolsillo. 📱 Brami3D se instala como app en el móvil: consultas pedidos, marcas cobros y te llegan avisos push. Sin ordenador. #impresion3d #pwa #maker #brami3d",
-    "estado": "pendiente",
-    "video": "https://brami3d.app/m/ago-reel-02-movil.mp4"
+    "estado": "publicado",
+    "video": "https://brami3d.app/m/ago-reel-02-movil.mp4",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/reel/DcJk2LMCNB1/",
+      "fb": "2629606084176022"
+    },
+    "publicado_at": "2026-08-17T17:29:39.488936Z"
   },
   {
     "id": 14,
