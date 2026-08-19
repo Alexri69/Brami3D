@@ -102,7 +102,12 @@
       "https://brami3d.app/m/ago-post-06-dolor.png"
     ],
     "caption": "Cuéntame 👇 ¿Cuál es tu MAYOR dolor de cabeza gestionando tu taller 3D? 😩 ¿Poner precios? ¿El stock? ¿Las facturas? ¿Perseguir cobros? Comenta y lo resolvemos juntos. #impresion3d #makers #comunidad #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/DcOuYH1mQyG/",
+      "fb": "1153412231189064_122127045945360682"
+    },
+    "publicado_at": "2026-08-19T17:28:37.816376Z"
   },
   {
     "id": 7,
