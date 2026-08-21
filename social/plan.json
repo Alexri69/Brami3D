@@ -123,7 +123,12 @@
       "https://brami3d.app/m/ago-carrusel-07-slide-6.png"
     ],
     "caption": "La palabra \"factura\" no debería darte ansiedad. 🧾 Si facturas en España, VeriFactu ya está aquí — y Brami3D lo cumple por ti sin que toques nada. Desliza. #impresion3d #autonomo #verifactu #fiscalidad #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/DcT4SgqFGZ8/",
+      "fb": "1153412231189064_122127572571360682"
+    },
+    "publicado_at": "2026-08-21T17:31:33.105625Z"
   },
   {
     "id": 8,
