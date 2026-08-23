@@ -139,7 +139,12 @@
       "https://brami3d.app/m/ago-post-08-stock.png"
     ],
     "caption": "Nada peor que quedarte sin filamento a mitad de impresión. 🧵😱 Lleva el stock de tus bobinas y que Brami3D te avise antes de que te pille. #impresion3d #3dprinting #filamento #maker #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/DcZA08Impyi/",
+      "fb": "1153412231189064_122128196847360682"
+    },
+    "publicado_at": "2026-08-23T17:22:23.330626Z"
   },
   {
     "id": 9,
