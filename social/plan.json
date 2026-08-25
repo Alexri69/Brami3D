@@ -161,7 +161,12 @@
       "https://brami3d.app/m/ago-carrusel-09-slide-7.png"
     ],
     "caption": "Tu Excel te ha servido… hasta ahora. 📊 Estas 5 señales dicen que tu taller ya se te quedó grande para las hojas de cálculo. ¿Te suena alguna? 👇 #impresion3d #negocio3d #maker #productividad #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/DceLxo1FHYs/",
+      "fb": "1153412231189064_122128641105360682"
+    },
+    "publicado_at": "2026-08-25T17:34:15.157687Z"
   },
   {
     "id": 10,
