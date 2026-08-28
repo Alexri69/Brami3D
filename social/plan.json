@@ -231,7 +231,12 @@
     "tipo": "reel",
     "imagenes": [],
     "caption": "Antes: libreta, cabeza y cruzar los dedos. Después: todo controlado. 📒➡️📲 Así cambia gestionar un taller 3D con Brami3D. ¿Tú en cuál estás? #impresion3d #3dprinting #antesydespues #maker #brami3d",
-    "estado": "pendiente",
-    "video": "https://brami3d.app/m/ago-reel-03-antes-despues.mp4"
+    "estado": "publicado",
+    "video": "https://brami3d.app/m/ago-reel-03-antes-despues.mp4",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/reel/DckKw_tlSSh/",
+      "fb": "38863481959905441"
+    },
+    "publicado_at": "2026-08-28T01:21:08.139405Z"
   }
 ]
