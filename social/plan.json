@@ -177,7 +177,12 @@
       "https://brami3d.app/m/ago-post-10-descuento.png"
     ],
     "caption": "Hacer descuento por volumen está bien… si no te comes tu margen. 📉 Baja el precio unitario, pero nunca por debajo de tu coste real. Brami3D te marca el límite. #impresion3d #negocio3d #precios #maker #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/DcmsapJGF5x/",
+      "fb": "1153412231189064_122129395125360682"
+    },
+    "publicado_at": "2026-08-29T00:53:14.372228Z"
   },
   {
     "id": 11,
