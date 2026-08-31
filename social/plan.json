@@ -197,7 +197,12 @@
       "https://brami3d.app/m/ago-carrusel-11-slide-5.png"
     ],
     "caption": "¿Y si septiembre fuera el mes en que por fin controlas tu taller? 🚀 Prueba Brami3D Pro GRATIS 30 días: pedidos, costes, presupuestos y facturas en un sitio. Sin tarjeta. Link en la bio. #impresion3d #3dprinting #emprendimiento #maker #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/DcuFhgXmsLE/",
+      "fb": "1153412231189064_122130250407360682"
+    },
+    "publicado_at": "2026-08-31T21:47:23.512915Z"
   },
   {
     "id": 12,
