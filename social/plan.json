@@ -1,252 +1,82 @@
 [
   {
     "id": 1,
-    "fecha": "2026-08-07",
+    "fecha": "2026-09-02",
     "redes": "both",
-    "tipo": "carrusel",
-    "imagenes": [
-      "https://brami3d.app/m/ago-carrusel-01-slide-1.png",
-      "https://brami3d.app/m/ago-carrusel-01-slide-2.png",
-      "https://brami3d.app/m/ago-carrusel-01-slide-3.png",
-      "https://brami3d.app/m/ago-carrusel-01-slide-4.png",
-      "https://brami3d.app/m/ago-carrusel-01-slide-5.png",
-      "https://brami3d.app/m/ago-carrusel-01-slide-6.png"
-    ],
-    "caption": "Crees que ganas dinero con cada pieza… pero hay costes que no ves. 💸 Estos 5 gastos ocultos se comen tu margen sin que te des cuenta. Desliza y descubre cuáles te están costando dinero (y cómo controlarlos con Brami3D). #impresion3d #3dprinting #maker #negocio #brami3d",
-    "estado": "publicado",
-    "publicado_en": {
-      "ig": "https://www.instagram.com/p/Dbv3bLdjzBJ/",
-      "fb": "1153412231189064_122123911293360682"
-    },
-    "publicado_at": "2026-08-07T17:51:35.772653Z"
+    "tipo": "reel",
+    "imagenes": [],
+    "caption": "\"¿Cuánto me costaría?\" 💬 La pregunta que te come la tarde… si la contestas a mano. Mira cómo sale un presupuesto profesional en 2 minutos y el cliente lo acepta desde el móvil, sin registrarse en nada. #impresion3d #3dprinting #presupuesto #maker #brami3d",
+    "estado": "pendiente",
+    "video": "https://brami3d.app/m/sep-reel-01-presupuesto.mp4"
   },
   {
     "id": 2,
-    "fecha": "2026-08-09",
+    "fecha": "2026-09-06",
     "redes": "both",
-    "tipo": "imagen",
-    "imagenes": [
-      "https://brami3d.app/m/ago-post-02-encuesta.png"
-    ],
-    "caption": "Pregunta honesta 👇 ¿En qué llevas las cuentas de tu taller 3D? 📊 Excel · 📒 Libreta · 🧠 De cabeza · 📱 Una app. Comenta con tu opción y te digo cómo pasar al siguiente nivel sin liarte. #impresion3d #makers #encuesta #comunidad #brami3d",
-    "estado": "publicado",
-    "publicado_en": {
-      "ig": "https://www.instagram.com/p/Db0_CIaG9MO/",
-      "fb": "1153412231189064_122124415767360682"
-    },
-    "publicado_at": "2026-08-09T17:33:52.056345Z"
+    "tipo": "reel",
+    "imagenes": [],
+    "caption": "Facturar en España ya no es como antes. 🧾 VeriFactu obliga a que cada factura quede registrada y encadenada — y si imprimes en 3D como negocio, te toca. Brami3D lo hace por ti: tú facturas, la ley cumplida. #impresion3d #autonomo #verifactu #fiscalidad #brami3d",
+    "estado": "pendiente",
+    "video": "https://brami3d.app/m/sep-reel-02-verifactu.mp4"
   },
   {
     "id": 3,
-    "fecha": "2026-08-11",
+    "fecha": "2026-09-10",
     "redes": "both",
-    "tipo": "carrusel",
-    "imagenes": [
-      "https://brami3d.app/m/ago-carrusel-03-slide-1.png",
-      "https://brami3d.app/m/ago-carrusel-03-slide-2.png",
-      "https://brami3d.app/m/ago-carrusel-03-slide-3.png",
-      "https://brami3d.app/m/ago-carrusel-03-slide-4.png",
-      "https://brami3d.app/m/ago-carrusel-03-slide-5.png"
-    ],
-    "caption": "Un presupuesto bonito y rápido vende más. ✅ Con Brami3D pasas de \"te lo calculo y te digo\" a enviar un presupuesto profesional en 2 minutos, con enlace para que el cliente lo acepte solo. Te enseño cómo 👇 #impresion3d #3dprinting #presupuesto #freelance #brami3d",
-    "estado": "publicado",
-    "publicado_en": {
-      "ig": "https://www.instagram.com/p/Db6LgRSjFfy/",
-      "fb": "1153412231189064_122124943737360682"
-    },
-    "publicado_at": "2026-08-11T17:59:21.121159Z"
+    "tipo": "reel",
+    "imagenes": [],
+    "caption": "Esto es Brami3D en un minuto. 🎬 Panel del mes, pedidos, presupuestos con enlace, stock de filamento, mantenimiento de impresoras y facturación VeriFactu. Todo tu taller 3D en una sola app — y funciona en el móvil hasta sin conexión. #impresion3d #3dprinting #software #maker #brami3d",
+    "estado": "pendiente",
+    "video": "https://brami3d.app/m/sep-video-01-tour.mp4"
   },
   {
     "id": 4,
-    "fecha": "2026-08-13",
+    "fecha": "2026-09-14",
     "redes": "both",
-    "tipo": "imagen",
-    "imagenes": [
-      "https://brami3d.app/m/ago-post-04-filamento.png"
-    ],
-    "caption": "El precio del carrete NO es tu coste. 🧵 Si cobras solo el material, estás regalando tu trabajo. Coste real = material + luz + desgaste + tu hora. Brami3D lo suma por ti. #impresion3d #3dprinting #maker #costes #brami3d",
-    "estado": "publicado",
-    "publicado_en": {
-      "ig": "https://www.instagram.com/p/Db_VB7Lm94r/",
-      "fb": "1153412231189064_122125414515360682"
-    },
-    "publicado_at": "2026-08-13T17:58:38.691225Z"
+    "tipo": "reel",
+    "imagenes": [],
+    "caption": "Hora 14 de impresión. Se acabó el filamento. 🧵😱 Y la pieza era para mañana. Lleva el stock de tus bobinas al día: Brami3D descuenta los gramos solo al cerrar el pedido y te avisa antes de que te pille en seco. #impresion3d #3dprinting #filamento #maker #brami3d",
+    "estado": "pendiente",
+    "video": "https://brami3d.app/m/sep-reel-03-filamento.mp4"
   },
   {
     "id": 5,
-    "fecha": "2026-08-15",
+    "fecha": "2026-09-18",
     "redes": "both",
-    "tipo": "carrusel",
-    "imagenes": [
-      "https://brami3d.app/m/ago-carrusel-05-slide-1.png",
-      "https://brami3d.app/m/ago-carrusel-05-slide-2.png",
-      "https://brami3d.app/m/ago-carrusel-05-slide-3.png",
-      "https://brami3d.app/m/ago-carrusel-05-slide-4.png",
-      "https://brami3d.app/m/ago-carrusel-05-slide-5.png",
-      "https://brami3d.app/m/ago-carrusel-05-slide-6.png"
-    ],
-    "caption": "¿Ese pedido te dejó beneficio… o solo la sensación de estar ocupado? 🤔 Te enseño a desglosar un pedido de verdad para saber si ganas o pierdes. #impresion3d #negocio3d #rentabilidad #maker #brami3d",
-    "estado": "publicado",
-    "publicado_en": {
-      "ig": "https://www.instagram.com/p/DcEailVAW14/",
-      "fb": "1153412231189064_122125927419360682"
-    },
-    "publicado_at": "2026-08-15T17:23:06.659156Z"
+    "tipo": "reel",
+    "imagenes": [],
+    "caption": "\"¿Cómo va lo mío?\" 📱 Tres veces al día, cada cliente. Mándale un enlace y que lo mire él: en cola → imprimiendo → terminado → entregado, con fecha prevista. Un enlace, cero WhatsApps. #impresion3d #3dprinting #clientes #maker #brami3d",
+    "estado": "pendiente",
+    "video": "https://brami3d.app/m/sep-reel-04-tracker.mp4"
   },
   {
     "id": 6,
-    "fecha": "2026-08-19",
+    "fecha": "2026-09-22",
     "redes": "both",
-    "tipo": "imagen",
-    "imagenes": [
-      "https://brami3d.app/m/ago-post-06-dolor.png"
-    ],
-    "caption": "Cuéntame 👇 ¿Cuál es tu MAYOR dolor de cabeza gestionando tu taller 3D? 😩 ¿Poner precios? ¿El stock? ¿Las facturas? ¿Perseguir cobros? Comenta y lo resolvemos juntos. #impresion3d #makers #comunidad #brami3d",
-    "estado": "publicado",
-    "publicado_en": {
-      "ig": "https://www.instagram.com/p/DcOuYH1mQyG/",
-      "fb": "1153412231189064_122127045945360682"
-    },
-    "publicado_at": "2026-08-19T17:28:37.816376Z"
+    "tipo": "reel",
+    "imagenes": [],
+    "caption": "¿Cuántas horas lleva tu impresora sin una revisión? 🔧 Si no lo sabes, ya vas tarde. Brami3D cuenta las horas de cada máquina y te avisa cuando toca — porque una pieza fallada cuesta más que un mantenimiento. #impresion3d #3dprinting #impresoras #mantenimiento #brami3d",
+    "estado": "pendiente",
+    "video": "https://brami3d.app/m/sep-reel-05-mantenimiento.mp4"
   },
   {
     "id": 7,
-    "fecha": "2026-08-21",
+    "fecha": "2026-09-26",
     "redes": "both",
-    "tipo": "carrusel",
-    "imagenes": [
-      "https://brami3d.app/m/ago-carrusel-07-slide-1.png",
-      "https://brami3d.app/m/ago-carrusel-07-slide-2.png",
-      "https://brami3d.app/m/ago-carrusel-07-slide-3.png",
-      "https://brami3d.app/m/ago-carrusel-07-slide-4.png",
-      "https://brami3d.app/m/ago-carrusel-07-slide-5.png",
-      "https://brami3d.app/m/ago-carrusel-07-slide-6.png"
-    ],
-    "caption": "La palabra \"factura\" no debería darte ansiedad. 🧾 Si facturas en España, VeriFactu ya está aquí — y Brami3D lo cumple por ti sin que toques nada. Desliza. #impresion3d #autonomo #verifactu #fiscalidad #brami3d",
-    "estado": "publicado",
-    "publicado_en": {
-      "ig": "https://www.instagram.com/p/DcT4SgqFGZ8/",
-      "fb": "1153412231189064_122127572571360682"
-    },
-    "publicado_at": "2026-08-21T17:31:33.105625Z"
+    "tipo": "reel",
+    "imagenes": [],
+    "caption": "De un \"hola\" a una factura. 🚀 El recorrido completo de un pedido real en 6 pasos: la petición, el coste real (material + luz + desgaste + tu tiempo), el presupuesto que acepta solo, la producción, la factura VeriFactu… y el beneficio de verdad. #impresion3d #negocio3d #rentabilidad #maker #brami3d",
+    "estado": "pendiente",
+    "video": "https://brami3d.app/m/sep-video-02-pedido-factura.mp4"
   },
   {
     "id": 8,
-    "fecha": "2026-08-23",
-    "redes": "both",
-    "tipo": "imagen",
-    "imagenes": [
-      "https://brami3d.app/m/ago-post-08-stock.png"
-    ],
-    "caption": "Nada peor que quedarte sin filamento a mitad de impresión. 🧵😱 Lleva el stock de tus bobinas y que Brami3D te avise antes de que te pille. #impresion3d #3dprinting #filamento #maker #brami3d",
-    "estado": "publicado",
-    "publicado_en": {
-      "ig": "https://www.instagram.com/p/DcZA08Impyi/",
-      "fb": "1153412231189064_122128196847360682"
-    },
-    "publicado_at": "2026-08-23T17:22:23.330626Z"
-  },
-  {
-    "id": 9,
-    "fecha": "2026-08-25",
-    "redes": "both",
-    "tipo": "carrusel",
-    "imagenes": [
-      "https://brami3d.app/m/ago-carrusel-09-slide-1.png",
-      "https://brami3d.app/m/ago-carrusel-09-slide-2.png",
-      "https://brami3d.app/m/ago-carrusel-09-slide-3.png",
-      "https://brami3d.app/m/ago-carrusel-09-slide-4.png",
-      "https://brami3d.app/m/ago-carrusel-09-slide-5.png",
-      "https://brami3d.app/m/ago-carrusel-09-slide-6.png",
-      "https://brami3d.app/m/ago-carrusel-09-slide-7.png"
-    ],
-    "caption": "Tu Excel te ha servido… hasta ahora. 📊 Estas 5 señales dicen que tu taller ya se te quedó grande para las hojas de cálculo. ¿Te suena alguna? 👇 #impresion3d #negocio3d #maker #productividad #brami3d",
-    "estado": "publicado",
-    "publicado_en": {
-      "ig": "https://www.instagram.com/p/DceLxo1FHYs/",
-      "fb": "1153412231189064_122128641105360682"
-    },
-    "publicado_at": "2026-08-25T17:34:15.157687Z"
-  },
-  {
-    "id": 10,
-    "fecha": "2026-08-29",
-    "redes": "both",
-    "tipo": "imagen",
-    "imagenes": [
-      "https://brami3d.app/m/ago-post-10-descuento.png"
-    ],
-    "caption": "Hacer descuento por volumen está bien… si no te comes tu margen. 📉 Baja el precio unitario, pero nunca por debajo de tu coste real. Brami3D te marca el límite. #impresion3d #negocio3d #precios #maker #brami3d",
-    "estado": "publicado",
-    "publicado_en": {
-      "ig": "https://www.instagram.com/p/DcmsapJGF5x/",
-      "fb": "1153412231189064_122129395125360682"
-    },
-    "publicado_at": "2026-08-29T00:53:14.372228Z"
-  },
-  {
-    "id": 11,
-    "fecha": "2026-08-31",
-    "redes": "both",
-    "tipo": "carrusel",
-    "imagenes": [
-      "https://brami3d.app/m/ago-carrusel-11-slide-1.png",
-      "https://brami3d.app/m/ago-carrusel-11-slide-2.png",
-      "https://brami3d.app/m/ago-carrusel-11-slide-3.png",
-      "https://brami3d.app/m/ago-carrusel-11-slide-4.png",
-      "https://brami3d.app/m/ago-carrusel-11-slide-5.png"
-    ],
-    "caption": "¿Y si septiembre fuera el mes en que por fin controlas tu taller? 🚀 Prueba Brami3D Pro GRATIS 30 días: pedidos, costes, presupuestos y facturas en un sitio. Sin tarjeta. Link en la bio. #impresion3d #3dprinting #emprendimiento #maker #brami3d",
-    "estado": "publicado",
-    "publicado_en": {
-      "ig": "https://www.instagram.com/p/DcuFhgXmsLE/",
-      "fb": "1153412231189064_122130250407360682"
-    },
-    "publicado_at": "2026-08-31T21:47:23.512915Z"
-  },
-  {
-    "id": 12,
-    "fecha": "2026-08-05",
+    "fecha": "2026-09-30",
     "redes": "both",
     "tipo": "reel",
     "imagenes": [],
-    "caption": "Ponerle precio a una pieza 3D no debería llevarte 20 minutos. ⏱️ Mira cómo calculo el precio REAL (material + luz + tiempo + margen) en 30 segundos. #impresion3d #3dprinting #maker #brami3d",
-    "estado": "publicado",
-    "video": "https://brami3d.app/m/ago-reel-01-calculadora.mp4",
-    "publicado_en": {
-      "ig": "https://www.instagram.com/reel/Dbp1OKlDM10/",
-      "fb": "4483148188623816"
-    },
-    "publicado_at": "2026-08-05T09:36:45.493607Z"
-  },
-  {
-    "id": 13,
-    "fecha": "2026-08-17",
-    "redes": "both",
-    "tipo": "reel",
-    "imagenes": [],
-    "caption": "Tu taller cabe en tu bolsillo. 📱 Brami3D se instala como app en el móvil: consultas pedidos, marcas cobros y te llegan avisos push. Sin ordenador. #impresion3d #pwa #maker #brami3d",
-    "estado": "publicado",
-    "video": "https://brami3d.app/m/ago-reel-02-movil.mp4",
-    "publicado_en": {
-      "ig": "https://www.instagram.com/reel/DcJk2LMCNB1/",
-      "fb": "2629606084176022"
-    },
-    "publicado_at": "2026-08-17T17:29:39.488936Z"
-  },
-  {
-    "id": 14,
-    "fecha": "2026-08-27",
-    "redes": "both",
-    "tipo": "reel",
-    "imagenes": [],
-    "caption": "Antes: libreta, cabeza y cruzar los dedos. Después: todo controlado. 📒➡️📲 Así cambia gestionar un taller 3D con Brami3D. ¿Tú en cuál estás? #impresion3d #3dprinting #antesydespues #maker #brami3d",
-    "estado": "publicado",
-    "video": "https://brami3d.app/m/ago-reel-03-antes-despues.mp4",
-    "publicado_en": {
-      "ig": "https://www.instagram.com/reel/DckKw_tlSSh/",
-      "fb": "38863481959905441"
-    },
-    "publicado_at": "2026-08-28T01:21:08.139405Z"
+    "caption": "Se acaba septiembre. ¿Cuánto has ganado? 📊 Y no vale \"creo que bien\". Ingresos, costes, filamento y beneficio del mes en un vistazo, sin Excel y sin sumar de cabeza. Que octubre sea distinto: prueba Brami3D Pro gratis 30 días, sin tarjeta. #impresion3d #negocio3d #emprendimiento #maker #brami3d",
+    "estado": "pendiente",
+    "video": "https://brami3d.app/m/sep-reel-06-cierre.mp4"
   }
 ]
