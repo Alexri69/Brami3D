@@ -6,8 +6,13 @@
     "tipo": "reel",
     "imagenes": [],
     "caption": "\"¿Cuánto me costaría?\" 💬 La pregunta que te come la tarde… si la contestas a mano. Mira cómo sale un presupuesto profesional en 2 minutos y el cliente lo acepta desde el móvil, sin registrarse en nada. #impresion3d #3dprinting #presupuesto #maker #brami3d",
-    "estado": "pendiente",
-    "video": "https://brami3d.app/m/sep-reel-01-presupuesto.mp4"
+    "estado": "publicado",
+    "video": "https://brami3d.app/m/sep-reel-01-presupuesto.mp4",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/reel/Dc6m9OMj_RY/",
+      "fb": "1060742400267685"
+    },
+    "publicado_at": "2026-09-05T18:32:31.318114Z"
   },
   {
     "id": 2,
@@ -17,7 +22,7 @@
     "imagenes": [],
     "caption": "Facturar en España ya no es como antes. 🧾 VeriFactu obliga a que cada factura quede registrada y encadenada — y si imprimes en 3D como negocio, te toca. Brami3D lo hace por ti: tú facturas, la ley cumplida. #impresion3d #autonomo #verifactu #fiscalidad #brami3d",
     "estado": "pendiente",
-    "video": "https://brami3d.app/m/sep-reel-02-verifactu.mp4"
+    "video": "https://uzgzfxizpoigzcnlunpr.supabase.co/storage/v1/object/sign/archivos/493b3d17-47f9-4d37-b704-f7058f2a29e5/marketing/sep-reel-02-verifactu.mp4?token=eyJraWQiOiIzYmFiOTgyYi1iNmEyLTQ2ZWEtOWNmNS04ZmRjZjY2NTZlMGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhcmNoaXZvcy80OTNiM2QxNy00N2Y5LTRkMzctYjcwNC1mNzA1OGYyYTI5ZTUvbWFya2V0aW5nL3NlcC1yZWVsLTAyLXZlcmlmYWN0dS5tcDQiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg4NjMzMDgwLCJleHAiOjE3OTM4MTcwODB9.kZr4E8m55vpezm4zVT2RCkwcPgelBTilkofWDSSMbcM"
   },
   {
     "id": 3,
@@ -27,7 +32,7 @@
     "imagenes": [],
     "caption": "Esto es Brami3D en un minuto. 🎬 Panel del mes, pedidos, presupuestos con enlace, stock de filamento, mantenimiento de impresoras y facturación VeriFactu. Todo tu taller 3D en una sola app — y funciona en el móvil hasta sin conexión. #impresion3d #3dprinting #software #maker #brami3d",
     "estado": "pendiente",
-    "video": "https://brami3d.app/m/sep-video-01-tour.mp4"
+    "video": "https://uzgzfxizpoigzcnlunpr.supabase.co/storage/v1/object/sign/archivos/493b3d17-47f9-4d37-b704-f7058f2a29e5/marketing/sep-video-01-tour.mp4?token=eyJraWQiOiIzYmFiOTgyYi1iNmEyLTQ2ZWEtOWNmNS04ZmRjZjY2NTZlMGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhcmNoaXZvcy80OTNiM2QxNy00N2Y5LTRkMzctYjcwNC1mNzA1OGYyYTI5ZTUvbWFya2V0aW5nL3NlcC12aWRlby0wMS10b3VyLm1wNCIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODg2MzMxMTUsImV4cCI6MTc5MzgxNzExNX0.9Gq_5xF0SdS_23YC8CC8viokpvJoRVvvRSYJkjky6bI"
   },
   {
     "id": 4,
@@ -37,7 +42,7 @@
     "imagenes": [],
     "caption": "Hora 14 de impresión. Se acabó el filamento. 🧵😱 Y la pieza era para mañana. Lleva el stock de tus bobinas al día: Brami3D descuenta los gramos solo al cerrar el pedido y te avisa antes de que te pille en seco. #impresion3d #3dprinting #filamento #maker #brami3d",
     "estado": "pendiente",
-    "video": "https://brami3d.app/m/sep-reel-03-filamento.mp4"
+    "video": "https://uzgzfxizpoigzcnlunpr.supabase.co/storage/v1/object/sign/archivos/493b3d17-47f9-4d37-b704-f7058f2a29e5/marketing/sep-reel-03-filamento.mp4?token=eyJraWQiOiIzYmFiOTgyYi1iNmEyLTQ2ZWEtOWNmNS04ZmRjZjY2NTZlMGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhcmNoaXZvcy80OTNiM2QxNy00N2Y5LTRkMzctYjcwNC1mNzA1OGYyYTI5ZTUvbWFya2V0aW5nL3NlcC1yZWVsLTAzLWZpbGFtZW50by5tcDQiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg4NjMzMDg1LCJleHAiOjE3OTM4MTcwODV9.9BSt9SUZtILhjL0drmV5KfByFAMnDJNpNumvkRGXQaQ"
   },
   {
     "id": 5,
@@ -47,7 +52,7 @@
     "imagenes": [],
     "caption": "\"¿Cómo va lo mío?\" 📱 Tres veces al día, cada cliente. Mándale un enlace y que lo mire él: en cola → imprimiendo → terminado → entregado, con fecha prevista. Un enlace, cero WhatsApps. #impresion3d #3dprinting #clientes #maker #brami3d",
     "estado": "pendiente",
-    "video": "https://brami3d.app/m/sep-reel-04-tracker.mp4"
+    "video": "https://uzgzfxizpoigzcnlunpr.supabase.co/storage/v1/object/sign/archivos/493b3d17-47f9-4d37-b704-f7058f2a29e5/marketing/sep-reel-04-tracker.mp4?token=eyJraWQiOiIzYmFiOTgyYi1iNmEyLTQ2ZWEtOWNmNS04ZmRjZjY2NTZlMGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhcmNoaXZvcy80OTNiM2QxNy00N2Y5LTRkMzctYjcwNC1mNzA1OGYyYTI5ZTUvbWFya2V0aW5nL3NlcC1yZWVsLTA0LXRyYWNrZXIubXA0Iiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4ODYzMzA5MiwiZXhwIjoxNzkzODE3MDkyfQ.oBvM4A9kG3NMvzMkUNAEWIDjfxPTvcZfeT9nsbyPyfY"
   },
   {
     "id": 6,
@@ -57,7 +62,7 @@
     "imagenes": [],
     "caption": "¿Cuántas horas lleva tu impresora sin una revisión? 🔧 Si no lo sabes, ya vas tarde. Brami3D cuenta las horas de cada máquina y te avisa cuando toca — porque una pieza fallada cuesta más que un mantenimiento. #impresion3d #3dprinting #impresoras #mantenimiento #brami3d",
     "estado": "pendiente",
-    "video": "https://brami3d.app/m/sep-reel-05-mantenimiento.mp4"
+    "video": "https://uzgzfxizpoigzcnlunpr.supabase.co/storage/v1/object/sign/archivos/493b3d17-47f9-4d37-b704-f7058f2a29e5/marketing/sep-reel-05-mantenimiento.mp4?token=eyJraWQiOiIzYmFiOTgyYi1iNmEyLTQ2ZWEtOWNmNS04ZmRjZjY2NTZlMGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhcmNoaXZvcy80OTNiM2QxNy00N2Y5LTRkMzctYjcwNC1mNzA1OGYyYTI5ZTUvbWFya2V0aW5nL3NlcC1yZWVsLTA1LW1hbnRlbmltaWVudG8ubXA0Iiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4ODYzMzA5OCwiZXhwIjoxNzkzODE3MDk4fQ.4-ZJfZPdKLS1GQ2Hl8FVTt0yvJBXdWkDcWksgdvnM7k"
   },
   {
     "id": 7,
@@ -67,7 +72,7 @@
     "imagenes": [],
     "caption": "De un \"hola\" a una factura. 🚀 El recorrido completo de un pedido real en 6 pasos: la petición, el coste real (material + luz + desgaste + tu tiempo), el presupuesto que acepta solo, la producción, la factura VeriFactu… y el beneficio de verdad. #impresion3d #negocio3d #rentabilidad #maker #brami3d",
     "estado": "pendiente",
-    "video": "https://brami3d.app/m/sep-video-02-pedido-factura.mp4"
+    "video": "https://uzgzfxizpoigzcnlunpr.supabase.co/storage/v1/object/sign/archivos/493b3d17-47f9-4d37-b704-f7058f2a29e5/marketing/sep-video-02-pedido-factura.mp4?token=eyJraWQiOiIzYmFiOTgyYi1iNmEyLTQ2ZWEtOWNmNS04ZmRjZjY2NTZlMGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhcmNoaXZvcy80OTNiM2QxNy00N2Y5LTRkMzctYjcwNC1mNzA1OGYyYTI5ZTUvbWFya2V0aW5nL3NlcC12aWRlby0wMi1wZWRpZG8tZmFjdHVyYS5tcDQiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg4NjMzMTI3LCJleHAiOjE3OTM4MTcxMjd9.TTa9hNvGmeDG2oSR_7PnZ_MoPXFl2dvh86ppydhp8mM"
   },
   {
     "id": 8,
@@ -77,6 +82,6 @@
     "imagenes": [],
     "caption": "Se acaba septiembre. ¿Cuánto has ganado? 📊 Y no vale \"creo que bien\". Ingresos, costes, filamento y beneficio del mes en un vistazo, sin Excel y sin sumar de cabeza. Que octubre sea distinto: prueba Brami3D Pro gratis 30 días, sin tarjeta. #impresion3d #negocio3d #emprendimiento #maker #brami3d",
     "estado": "pendiente",
-    "video": "https://brami3d.app/m/sep-reel-06-cierre.mp4"
+    "video": "https://uzgzfxizpoigzcnlunpr.supabase.co/storage/v1/object/sign/archivos/493b3d17-47f9-4d37-b704-f7058f2a29e5/marketing/sep-reel-06-cierre.mp4?token=eyJraWQiOiIzYmFiOTgyYi1iNmEyLTQ2ZWEtOWNmNS04ZmRjZjY2NTZlMGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhcmNoaXZvcy80OTNiM2QxNy00N2Y5LTRkMzctYjcwNC1mNzA1OGYyYTI5ZTUvbWFya2V0aW5nL3NlcC1yZWVsLTA2LWNpZXJyZS5tcDQiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg4NjMzMTA0LCJleHAiOjE3OTM4MTcxMDR9.QgwyxHH_OkHxRMkFZcHiLnQscSN5iruLq2CnQns6i70"
   }
 ]
