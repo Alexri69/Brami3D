@@ -21,8 +21,13 @@
     "tipo": "reel",
     "imagenes": [],
     "caption": "Facturar en España ya no es como antes. 🧾 VeriFactu obliga a que cada factura quede registrada y encadenada — y si imprimes en 3D como negocio, te toca. Brami3D lo hace por ti: tú facturas, la ley cumplida. #impresion3d #autonomo #verifactu #fiscalidad #brami3d",
-    "estado": "pendiente",
-    "video": "https://uzgzfxizpoigzcnlunpr.supabase.co/storage/v1/object/sign/archivos/493b3d17-47f9-4d37-b704-f7058f2a29e5/marketing/sep-reel-02-verifactu.mp4?token=eyJraWQiOiIzYmFiOTgyYi1iNmEyLTQ2ZWEtOWNmNS04ZmRjZjY2NTZlMGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhcmNoaXZvcy80OTNiM2QxNy00N2Y5LTRkMzctYjcwNC1mNzA1OGYyYTI5ZTUvbWFya2V0aW5nL3NlcC1yZWVsLTAyLXZlcmlmYWN0dS5tcDQiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg4NjMzMDgwLCJleHAiOjE3OTM4MTcwODB9.kZr4E8m55vpezm4zVT2RCkwcPgelBTilkofWDSSMbcM"
+    "estado": "publicado",
+    "video": "https://uzgzfxizpoigzcnlunpr.supabase.co/storage/v1/object/sign/archivos/493b3d17-47f9-4d37-b704-f7058f2a29e5/marketing/sep-reel-02-verifactu.mp4?token=eyJraWQiOiIzYmFiOTgyYi1iNmEyLTQ2ZWEtOWNmNS04ZmRjZjY2NTZlMGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhcmNoaXZvcy80OTNiM2QxNy00N2Y5LTRkMzctYjcwNC1mNzA1OGYyYTI5ZTUvbWFya2V0aW5nL3NlcC1yZWVsLTAyLXZlcmlmYWN0dS5tcDQiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg4NjMzMDgwLCJleHAiOjE3OTM4MTcwODB9.kZr4E8m55vpezm4zVT2RCkwcPgelBTilkofWDSSMbcM",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/reel/Dc9Ory_jWeb/",
+      "fb": "1330697192245606"
+    },
+    "publicado_at": "2026-09-06T18:56:17.322030Z"
   },
   {
     "id": 3,
