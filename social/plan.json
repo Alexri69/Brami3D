@@ -36,8 +36,13 @@
     "tipo": "reel",
     "imagenes": [],
     "caption": "Esto es Brami3D en un minuto. 🎬 Panel del mes, pedidos, presupuestos con enlace, stock de filamento, mantenimiento de impresoras y facturación VeriFactu. Todo tu taller 3D en una sola app — y funciona en el móvil hasta sin conexión. #impresion3d #3dprinting #software #maker #brami3d",
-    "estado": "pendiente",
-    "video": "https://uzgzfxizpoigzcnlunpr.supabase.co/storage/v1/object/sign/archivos/493b3d17-47f9-4d37-b704-f7058f2a29e5/marketing/sep-video-01-tour.mp4?token=eyJraWQiOiIzYmFiOTgyYi1iNmEyLTQ2ZWEtOWNmNS04ZmRjZjY2NTZlMGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhcmNoaXZvcy80OTNiM2QxNy00N2Y5LTRkMzctYjcwNC1mNzA1OGYyYTI5ZTUvbWFya2V0aW5nL3NlcC12aWRlby0wMS10b3VyLm1wNCIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODg2MzMxMTUsImV4cCI6MTc5MzgxNzExNX0.9Gq_5xF0SdS_23YC8CC8viokpvJoRVvvRSYJkjky6bI"
+    "estado": "publicado",
+    "video": "https://uzgzfxizpoigzcnlunpr.supabase.co/storage/v1/object/sign/archivos/493b3d17-47f9-4d37-b704-f7058f2a29e5/marketing/sep-video-01-tour.mp4?token=eyJraWQiOiIzYmFiOTgyYi1iNmEyLTQ2ZWEtOWNmNS04ZmRjZjY2NTZlMGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhcmNoaXZvcy80OTNiM2QxNy00N2Y5LTRkMzctYjcwNC1mNzA1OGYyYTI5ZTUvbWFya2V0aW5nL3NlcC12aWRlby0wMS10b3VyLm1wNCIsInNjb3BlIjoiZG93bmxvYWQiLCJpYXQiOjE3ODg2MzMxMTUsImV4cCI6MTc5MzgxNzExNX0.9Gq_5xF0SdS_23YC8CC8viokpvJoRVvvRSYJkjky6bI",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/reel/DdHlr6wD5Lf/",
+      "fb": "1642899184073854"
+    },
+    "publicado_at": "2026-09-10T19:29:41.866830Z"
   },
   {
     "id": 4,
