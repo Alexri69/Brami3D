@@ -51,8 +51,13 @@
     "tipo": "reel",
     "imagenes": [],
     "caption": "Hora 14 de impresión. Se acabó el filamento. 🧵😱 Y la pieza era para mañana. Lleva el stock de tus bobinas al día: Brami3D descuenta los gramos solo al cerrar el pedido y te avisa antes de que te pille en seco. #impresion3d #3dprinting #filamento #maker #brami3d",
-    "estado": "pendiente",
-    "video": "https://uzgzfxizpoigzcnlunpr.supabase.co/storage/v1/object/sign/archivos/493b3d17-47f9-4d37-b704-f7058f2a29e5/marketing/sep-reel-03-filamento.mp4?token=eyJraWQiOiIzYmFiOTgyYi1iNmEyLTQ2ZWEtOWNmNS04ZmRjZjY2NTZlMGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhcmNoaXZvcy80OTNiM2QxNy00N2Y5LTRkMzctYjcwNC1mNzA1OGYyYTI5ZTUvbWFya2V0aW5nL3NlcC1yZWVsLTAzLWZpbGFtZW50by5tcDQiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg4NjMzMDg1LCJleHAiOjE3OTM4MTcwODV9.9BSt9SUZtILhjL0drmV5KfByFAMnDJNpNumvkRGXQaQ"
+    "estado": "publicado",
+    "video": "https://uzgzfxizpoigzcnlunpr.supabase.co/storage/v1/object/sign/archivos/493b3d17-47f9-4d37-b704-f7058f2a29e5/marketing/sep-reel-03-filamento.mp4?token=eyJraWQiOiIzYmFiOTgyYi1iNmEyLTQ2ZWEtOWNmNS04ZmRjZjY2NTZlMGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhcmNoaXZvcy80OTNiM2QxNy00N2Y5LTRkMzctYjcwNC1mNzA1OGYyYTI5ZTUvbWFya2V0aW5nL3NlcC1yZWVsLTAzLWZpbGFtZW50by5tcDQiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg4NjMzMDg1LCJleHAiOjE3OTM4MTcwODV9.9BSt9SUZtILhjL0drmV5KfByFAMnDJNpNumvkRGXQaQ",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/reel/DdSBqvvADxX/",
+      "fb": "1244052392132174"
+    },
+    "publicado_at": "2026-09-14T20:46:41.074232Z"
   },
   {
     "id": 5,
