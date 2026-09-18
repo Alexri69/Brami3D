@@ -66,8 +66,13 @@
     "tipo": "reel",
     "imagenes": [],
     "caption": "\"¿Cómo va lo mío?\" 📱 Tres veces al día, cada cliente. Mándale un enlace y que lo mire él: en cola → imprimiendo → terminado → entregado, con fecha prevista. Un enlace, cero WhatsApps. #impresion3d #3dprinting #clientes #maker #brami3d",
-    "estado": "pendiente",
-    "video": "https://uzgzfxizpoigzcnlunpr.supabase.co/storage/v1/object/sign/archivos/493b3d17-47f9-4d37-b704-f7058f2a29e5/marketing/sep-reel-04-tracker.mp4?token=eyJraWQiOiIzYmFiOTgyYi1iNmEyLTQ2ZWEtOWNmNS04ZmRjZjY2NTZlMGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhcmNoaXZvcy80OTNiM2QxNy00N2Y5LTRkMzctYjcwNC1mNzA1OGYyYTI5ZTUvbWFya2V0aW5nL3NlcC1yZWVsLTA0LXRyYWNrZXIubXA0Iiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4ODYzMzA5MiwiZXhwIjoxNzkzODE3MDkyfQ.oBvM4A9kG3NMvzMkUNAEWIDjfxPTvcZfeT9nsbyPyfY"
+    "estado": "publicado",
+    "video": "https://uzgzfxizpoigzcnlunpr.supabase.co/storage/v1/object/sign/archivos/493b3d17-47f9-4d37-b704-f7058f2a29e5/marketing/sep-reel-04-tracker.mp4?token=eyJraWQiOiIzYmFiOTgyYi1iNmEyLTQ2ZWEtOWNmNS04ZmRjZjY2NTZlMGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhcmNoaXZvcy80OTNiM2QxNy00N2Y5LTRkMzctYjcwNC1mNzA1OGYyYTI5ZTUvbWFya2V0aW5nL3NlcC1yZWVsLTA0LXRyYWNrZXIubXA0Iiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4ODYzMzA5MiwiZXhwIjoxNzkzODE3MDkyfQ.oBvM4A9kG3NMvzMkUNAEWIDjfxPTvcZfeT9nsbyPyfY",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/reel/DdcL7bECRkz/",
+      "fb": "1070834378869364"
+    },
+    "publicado_at": "2026-09-18T19:28:39.131567Z"
   },
   {
     "id": 6,
