@@ -81,8 +81,13 @@
     "tipo": "reel",
     "imagenes": [],
     "caption": "¿Cuántas horas lleva tu impresora sin una revisión? 🔧 Si no lo sabes, ya vas tarde. Brami3D cuenta las horas de cada máquina y te avisa cuando toca — porque una pieza fallada cuesta más que un mantenimiento. #impresion3d #3dprinting #impresoras #mantenimiento #brami3d",
-    "estado": "pendiente",
-    "video": "https://uzgzfxizpoigzcnlunpr.supabase.co/storage/v1/object/sign/archivos/493b3d17-47f9-4d37-b704-f7058f2a29e5/marketing/sep-reel-05-mantenimiento.mp4?token=eyJraWQiOiIzYmFiOTgyYi1iNmEyLTQ2ZWEtOWNmNS04ZmRjZjY2NTZlMGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhcmNoaXZvcy80OTNiM2QxNy00N2Y5LTRkMzctYjcwNC1mNzA1OGYyYTI5ZTUvbWFya2V0aW5nL3NlcC1yZWVsLTA1LW1hbnRlbmltaWVudG8ubXA0Iiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4ODYzMzA5OCwiZXhwIjoxNzkzODE3MDk4fQ.4-ZJfZPdKLS1GQ2Hl8FVTt0yvJBXdWkDcWksgdvnM7k"
+    "estado": "publicado",
+    "video": "https://uzgzfxizpoigzcnlunpr.supabase.co/storage/v1/object/sign/archivos/493b3d17-47f9-4d37-b704-f7058f2a29e5/marketing/sep-reel-05-mantenimiento.mp4?token=eyJraWQiOiIzYmFiOTgyYi1iNmEyLTQ2ZWEtOWNmNS04ZmRjZjY2NTZlMGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhcmNoaXZvcy80OTNiM2QxNy00N2Y5LTRkMzctYjcwNC1mNzA1OGYyYTI5ZTUvbWFya2V0aW5nL3NlcC1yZWVsLTA1LW1hbnRlbmltaWVudG8ubXA0Iiwic2NvcGUiOiJkb3dubG9hZCIsImlhdCI6MTc4ODYzMzA5OCwiZXhwIjoxNzkzODE3MDk4fQ.4-ZJfZPdKLS1GQ2Hl8FVTt0yvJBXdWkDcWksgdvnM7k",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/reel/DdmjBnGicyE/",
+      "fb": "1713156219740943"
+    },
+    "publicado_at": "2026-09-22T20:02:56.396356Z"
   },
   {
     "id": 7,
