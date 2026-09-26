@@ -96,8 +96,13 @@
     "tipo": "reel",
     "imagenes": [],
     "caption": "De un \"hola\" a una factura. 🚀 El recorrido completo de un pedido real en 6 pasos: la petición, el coste real (material + luz + desgaste + tu tiempo), el presupuesto que acepta solo, la producción, la factura VeriFactu… y el beneficio de verdad. #impresion3d #negocio3d #rentabilidad #maker #brami3d",
-    "estado": "pendiente",
-    "video": "https://uzgzfxizpoigzcnlunpr.supabase.co/storage/v1/object/sign/archivos/493b3d17-47f9-4d37-b704-f7058f2a29e5/marketing/sep-video-02-pedido-factura.mp4?token=eyJraWQiOiIzYmFiOTgyYi1iNmEyLTQ2ZWEtOWNmNS04ZmRjZjY2NTZlMGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhcmNoaXZvcy80OTNiM2QxNy00N2Y5LTRkMzctYjcwNC1mNzA1OGYyYTI5ZTUvbWFya2V0aW5nL3NlcC12aWRlby0wMi1wZWRpZG8tZmFjdHVyYS5tcDQiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg4NjMzMTI3LCJleHAiOjE3OTM4MTcxMjd9.TTa9hNvGmeDG2oSR_7PnZ_MoPXFl2dvh86ppydhp8mM"
+    "estado": "publicado",
+    "video": "https://uzgzfxizpoigzcnlunpr.supabase.co/storage/v1/object/sign/archivos/493b3d17-47f9-4d37-b704-f7058f2a29e5/marketing/sep-video-02-pedido-factura.mp4?token=eyJraWQiOiIzYmFiOTgyYi1iNmEyLTQ2ZWEtOWNmNS04ZmRjZjY2NTZlMGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhcmNoaXZvcy80OTNiM2QxNy00N2Y5LTRkMzctYjcwNC1mNzA1OGYyYTI5ZTUvbWFya2V0aW5nL3NlcC12aWRlby0wMi1wZWRpZG8tZmFjdHVyYS5tcDQiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg4NjMzMTI3LCJleHAiOjE3OTM4MTcxMjd9.TTa9hNvGmeDG2oSR_7PnZ_MoPXFl2dvh86ppydhp8mM",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/reel/DdwzIUODfLt/",
+      "fb": "1103383282082767"
+    },
+    "publicado_at": "2026-09-26T19:36:06.319172Z"
   },
   {
     "id": 8,
