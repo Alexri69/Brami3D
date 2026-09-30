@@ -111,7 +111,12 @@
     "tipo": "reel",
     "imagenes": [],
     "caption": "Se acaba septiembre. ¿Cuánto has ganado? 📊 Y no vale \"creo que bien\". Ingresos, costes, filamento y beneficio del mes en un vistazo, sin Excel y sin sumar de cabeza. Que octubre sea distinto: prueba Brami3D Pro gratis 30 días, sin tarjeta. #impresion3d #negocio3d #emprendimiento #maker #brami3d",
-    "estado": "pendiente",
-    "video": "https://uzgzfxizpoigzcnlunpr.supabase.co/storage/v1/object/sign/archivos/493b3d17-47f9-4d37-b704-f7058f2a29e5/marketing/sep-reel-06-cierre.mp4?token=eyJraWQiOiIzYmFiOTgyYi1iNmEyLTQ2ZWEtOWNmNS04ZmRjZjY2NTZlMGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhcmNoaXZvcy80OTNiM2QxNy00N2Y5LTRkMzctYjcwNC1mNzA1OGYyYTI5ZTUvbWFya2V0aW5nL3NlcC1yZWVsLTA2LWNpZXJyZS5tcDQiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg4NjMzMTA0LCJleHAiOjE3OTM4MTcxMDR9.QgwyxHH_OkHxRMkFZcHiLnQscSN5iruLq2CnQns6i70"
+    "estado": "publicado",
+    "video": "https://uzgzfxizpoigzcnlunpr.supabase.co/storage/v1/object/sign/archivos/493b3d17-47f9-4d37-b704-f7058f2a29e5/marketing/sep-reel-06-cierre.mp4?token=eyJraWQiOiIzYmFiOTgyYi1iNmEyLTQ2ZWEtOWNmNS04ZmRjZjY2NTZlMGIiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJhcmNoaXZvcy80OTNiM2QxNy00N2Y5LTRkMzctYjcwNC1mNzA1OGYyYTI5ZTUvbWFya2V0aW5nL3NlcC1yZWVsLTA2LWNpZXJyZS5tcDQiLCJzY29wZSI6ImRvd25sb2FkIiwiaWF0IjoxNzg4NjMzMTA0LCJleHAiOjE3OTM4MTcxMDR9.QgwyxHH_OkHxRMkFZcHiLnQscSN5iruLq2CnQns6i70",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/reel/Dd7SFNgCYnx/",
+      "fb": "2185871985309621"
+    },
+    "publicado_at": "2026-09-30T21:18:56.541161Z"
   }
 ]
