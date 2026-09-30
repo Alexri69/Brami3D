@@ -67,6 +67,8 @@ const code = [
   extractConstLine('ADMIN_EMAILS'),
   extractConstLine('isoDate'),
   extractFunction('calcLineasTotals'),
+  extractFunction('costeGramoFil'),
+  extractFunction('congelarPreciosLineas'),
   extractFunction('calcOrderCosts'),
   extractFunction('canonicalRegistroString'),
   extractFunction('resolvePlan'),
@@ -126,6 +128,15 @@ test('calcOrderCosts: filamento asignado usa su precio/kg, no el cfg', () => {
   ctx._cache.filamentos = [{ id: 'f1', precioPorKg: 30 }];
   const c = ctx.calcOrderCosts({ lineas: [{ qty: 1, peso: '100', filamentoId: 'f1' }], tiempoImpresion: 0 }, CFG);
   approx(c.mc, 3);            // 100 g × 30 €/kg / 1000
+});
+
+test('calcOrderCosts: precio congelado manda aunque cambie el rollo', () => {
+  ctx._cache.filamentos = [{ id: 'f1', precioPorKg: 30 }];
+  const lineas = ctx.congelarPreciosLineas([{ qty: 1, filamentos: [{ filamentoId: 'f1', peso: '100' }] }], CFG);
+  ctx._cache.filamentos = [{ id: 'f1', precioPorKg: 60 }];      // sube el precio del rollo
+  approx(ctx.calcOrderCosts({ lineas, tiempoImpresion: 0 }, CFG).mc, 3);
+  ctx._cache.filamentos = [];                                      // rollo borrado
+  approx(ctx.calcOrderCosts({ lineas, tiempoImpresion: 0 }, CFG).mc, 3);
 });
 
 test('calcOrderCosts: coste eléctrico usa el consumo de la impresora asignada', () => {
