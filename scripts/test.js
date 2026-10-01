@@ -75,6 +75,8 @@ const code = [
   extractFunction('numVal'),
   extractFunction('validateNum'),
   extractFunction('qrAEATUrl'),
+  extractFunction('desgloseImpuestos'),
+  extractFunction('precioCongelado'),
   // isoDate es const (léxico): exponerla al exterior del script.
   'var __isoDate = isoDate;',
 ].join('\n\n');
@@ -254,4 +256,38 @@ test('qrAEATUrl: NIF sin espacios, fecha DD-MM-YYYY, importe con 2 decimales', (
 test('isoDate: fecha local YYYY-MM-DD con padding', () => {
   assert.equal(ctx.__isoDate(new Date(2026, 0, 5)), '2026-01-05');
   assert.equal(ctx.__isoDate(new Date(2026, 11, 31)), '2026-12-31');
+});
+
+// ── desgloseImpuestos (XML AEAT, CSV gestor, PDFs) ──────────────────────────
+test('desgloseImpuestos: solo IVA → un detalle con la cuota registrada', () => {
+  const d = ctx.desgloseImpuestos({ base_imponible: 100, tipo_iva: 21, cuota_iva: 21, datos_json: {} });
+  assert.strictEqual(d.length, 1);
+  approx(d[0].tipo, 21); approx(d[0].cuota, 21);
+});
+
+test('desgloseImpuestos: IVA + recargo → dos detalles que suman la cuota exacta', () => {
+  const r = { base_imponible: 33.33, tipo_iva: 21, cuota_iva: 8.55,
+    datos_json: { cfg_snapshot: { tipo_iva2: 5.2, nombre_impuesto: 'IVA', nombre_impuesto2: 'Recargo' } } };
+  const [a, b] = ctx.desgloseImpuestos(r);
+  approx(a.cuota, 7.0);        // 33.33 × 21 % = 6.9993 → 7.00
+  approx(b.cuota, 1.55);       // resto: 8.55 − 7.00
+  approx(a.cuota + b.cuota, 8.55, 1e-9);
+  assert.strictEqual(b.nombre, 'Recargo');
+});
+
+test('desgloseImpuestos: rectificativa en negativo conserva el signo', () => {
+  const [a] = ctx.desgloseImpuestos({ base_imponible: -50, tipo_iva: 21, cuota_iva: -10.5, datos_json: {} });
+  approx(a.cuota, -10.5);
+});
+
+// ── precioCongelado ─────────────────────────────────────────────────────────
+test('precioCongelado: respeta precioFinal guardado aunque cambie el margen', () => {
+  ctx._cache.cfg = { costePorGramo: 0.05, costePorHora: 0.2, margen: 200 };
+  ctx._cache.filamentos = []; ctx._cache.impresoras = [];
+  approx(ctx.precioCongelado({ peso: 100, tiempoImpresion: 10, precioFinal: 8.1 }), 8.1);
+});
+
+test('precioCongelado: sin precioFinal calcula con la config actual', () => {
+  ctx._cache.cfg = { costePorGramo: 0.05, costePorHora: 0.2, margen: 50 };
+  approx(ctx.precioCongelado({ peso: 100, tiempoImpresion: 10, precioFinal: null }), 8.1);
 });

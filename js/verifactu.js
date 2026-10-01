@@ -35,14 +35,17 @@ function canonicalRegistroString(r){
   ].join('&');
 }
 
+// Devuelve el hash del último registro ('' si es el primero) o null si la
+// consulta falla. Antes un fallo devolvía '' y el registro nuevo arrancaba una
+// cadena nueva en silencio (cadena rota ante una inspección).
 async function fetchUltimoHashFactura(){
   try {
     const {data,error}=await sb.from('facturas_registro')
       .select('hash').eq('user_id',CU.id)
       .order('ts_emision',{ascending:false}).limit(1);
-    if(error){ console.warn('fetchUltimoHashFactura',error); return ''; }
+    if(error){ console.warn('fetchUltimoHashFactura',error); return null; }
     return data&&data[0]?data[0].hash:'';
-  } catch(e){ console.warn(e); return ''; }
+  } catch(e){ console.warn(e); return null; }
 }
 
 async function fetchUltimoHashEvento(){
@@ -50,9 +53,30 @@ async function fetchUltimoHashEvento(){
     const {data,error}=await sb.from('facturas_eventos')
       .select('hash').eq('user_id',CU.id)
       .order('ts',{ascending:false}).limit(1);
-    if(error){ console.warn('fetchUltimoHashEvento',error); return ''; }
+    if(error){ console.warn('fetchUltimoHashEvento',error); return null; }
     return data&&data[0]?data[0].hash:'';
-  } catch(e){ console.warn(e); return ''; }
+  } catch(e){ console.warn(e); return null; }
+}
+
+// Inserta un registro de facturación encadenado (emisión o rectificativa).
+// Calcula hash_anterior/ts/hash justo antes de insertar y, si otro dispositivo
+// se adelantó con el mismo eslabón (índice único user_id+hash_anterior,
+// sql/026), reintenta con el hash nuevo. Devuelve {data, registro} o {error}.
+async function insertarRegistroEncadenado(base){
+  let lastErr=null;
+  for(let intento=0; intento<3; intento++){
+    const hashAnterior=await fetchUltimoHashFactura();
+    if(hashAnterior===null) return {error:{message:'No se pudo leer el último registro fiscal (¿sin conexión?). No se ha emitido nada.'}};
+    const registro={...base, hash_anterior:hashAnterior, ts_emision:new Date().toISOString()};
+    registro.hash=await sha256Hex(canonicalRegistroString(registro));
+    const {data,error}=await sb.from('facturas_registro').insert(registro).select().maybeSingle();
+    if(!error) return {data,registro};
+    lastErr=error;
+    // Carrera en la cadena → reintentar con el eslabón actualizado.
+    if(error.code==='23505' && /prev_uidx|hash_anterior/i.test((error.message||'')+(error.details||''))) continue;
+    break;
+  }
+  return {error:lastErr};
 }
 
 // Registra un evento 'inicio' del SIF si han pasado >24h desde el último.
@@ -76,6 +100,7 @@ async function registrarInicioSIF(){
 async function registrarEvento(tipo,{descripcion='',registro_id=null,datos={}}={}){
   try {
     const hashAnterior=await fetchUltimoHashEvento();
+    if(hashAnterior===null) return false;   // sin el eslabón anterior no se encadena
     const ts=new Date().toISOString();
     const canonical=`tipo=${tipo}&registro_id=${registro_id||''}&descripcion=${descripcion}&datos=${JSON.stringify(datos)}&Huella=${hashAnterior}&ts=${ts}`;
     const hash=await sha256Hex(canonical);
@@ -91,12 +116,26 @@ async function registrarEvento(tipo,{descripcion='',registro_id=null,datos={}}={
 // Crea el registro inmutable de una factura. Si ya existe (por factura_num)
 // devuelve el existente. Devuelve {hash, ts_emision, hash_anterior, registro_id, yaExistia}
 // o null si falla.
+// Resultado común: además del hash devuelve los importes y el snapshot tal y
+// como quedaron REGISTRADOS, para que el PDF de una factura ya emitida salga
+// siempre con los mismos datos aunque luego cambie la configuración.
+function _regResultado(r,yaExistia){
+  return {
+    hash:r.hash, ts_emision:r.ts_emision, hash_anterior:r.hash_anterior, registro_id:r.id, yaExistia,
+    base_imponible:Number(r.base_imponible||0), tipo_iva:Number(r.tipo_iva||0),
+    cuota_iva:Number(r.cuota_iva||0), importe_total:Number(r.importe_total||0),
+    datos:r.datos_json||{}
+  };
+}
+const _REG_COLS='id,hash,ts_emision,hash_anterior,base_imponible,tipo_iva,cuota_iva,importe_total,datos_json';
+
 async function registrarFactura(pedido,cliente,cfg,{tipo='emision',rectifica_id=null,motivo=''}={}){
   try {
-    const {data:existe}=await sb.from('facturas_registro')
-      .select('id,hash,ts_emision,hash_anterior')
+    const {data:existe,error:eEx}=await sb.from('facturas_registro')
+      .select(_REG_COLS)
       .eq('user_id',CU.id).eq('factura_num',pedido.facturaNum).maybeSingle();
-    if(existe) return {hash:existe.hash,ts_emision:existe.ts_emision,hash_anterior:existe.hash_anterior,registro_id:existe.id,yaExistia:true};
+    if(eEx){ showToast('⚠️ No se pudo consultar el registro fiscal: '+eEx.message,'err'); return null; }
+    if(existe) return _regResultado(existe,true);
 
     const c=calcOrderCosts(pedido,cfg);
     const base=Number(c.fp||0);
@@ -107,7 +146,7 @@ async function registrarFactura(pedido,cliente,cfg,{tipo='emision',rectifica_id=
     const cuotaIva=parseFloat((base * (tipoIva + tipoIva2) / 100).toFixed(2));
     const total=parseFloat((base+cuotaIva).toFixed(2));
 
-    const registro={
+    const base0={
       user_id:CU.id,
       factura_num:pedido.facturaNum,
       factura_fecha:pedido.facturaFecha,
@@ -124,18 +163,20 @@ async function registrarFactura(pedido,cliente,cfg,{tipo='emision',rectifica_id=
       importe_total:total,
       lineas:pedido.lineas||[],
       datos_json:{pedido,cliente,cfg_snapshot:{empresa:cfg.empresa,nif:cfg.nif,direccion:cfg.direccion,email:cfg.email,telefono:cfg.telefono,tipo_iva:tipoIva,tipo_iva2:tipoIva2,nombre_impuesto:cfg.nombreImpuesto||'IVA',nombre_impuesto2:cfg.nombreImpuesto2||''}},
-      hash_anterior:await fetchUltimoHashFactura(),
       modalidad:MODALIDAD_FACTURACION,
       sif_nombre:'Brami3D',
       sif_version:SIF_VERSION,
-      sif_id:CU.id,
-      ts_emision:new Date().toISOString()
+      sif_id:CU.id
     };
 
-    registro.hash=await sha256Hex(canonicalRegistroString(registro));
-
-    const {data,error}=await sb.from('facturas_registro').insert(registro).select().maybeSingle();
+    const {data,registro,error}=await insertarRegistroEncadenado(base0);
     if(error){
+      // Mismo nº ya registrado desde otro dispositivo → devolver ese registro.
+      if(error.code==='23505'){
+        const {data:ya}=await sb.from('facturas_registro').select(_REG_COLS)
+          .eq('user_id',CU.id).eq('factura_num',pedido.facturaNum).maybeSingle();
+        if(ya) return _regResultado(ya,true);
+      }
       console.error('registrarFactura',error);
       showToast('⚠️ No se pudo registrar la factura: '+error.message,'err');
       registrarEvento('anomalia',{
@@ -151,7 +192,7 @@ async function registrarFactura(pedido,cliente,cfg,{tipo='emision',rectifica_id=
       datos:{factura_num:pedido.facturaNum,importe_total:total,hash:registro.hash}
     });
 
-    return {hash:registro.hash,ts_emision:registro.ts_emision,hash_anterior:registro.hash_anterior,registro_id:data.id,yaExistia:false};
+    return _regResultado({...registro,id:data.id},false);
   } catch(e){
     console.error('registrarFactura exception',e);
     showToast('⚠️ Error al registrar factura','err');
@@ -197,6 +238,21 @@ function xmlEsc(s){
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
     .replace(/"/g,'&quot;').replace(/'/g,'&apos;');
 }
+// Reparte la cuota registrada entre el impuesto principal y el 2º (si lo hay,
+// según el snapshot de config guardado al emitir). El 2º se queda el resto para
+// que la suma sea exactamente la cuota registrada.
+function desgloseImpuestos(r){
+  const snap=(r.datos_json&&r.datos_json.cfg_snapshot)||{};
+  const base=Number(r.base_imponible||0), cuota=Number(r.cuota_iva||0);
+  const t1=Number(r.tipo_iva||0), t2=Number(snap.tipo_iva2||0);
+  if(!(t2>0)) return [{nombre:snap.nombre_impuesto||'IVA',tipo:t1,cuota}];
+  const q1=Math.round(base*t1)/100;
+  return [
+    {nombre:snap.nombre_impuesto||'IVA',tipo:t1,cuota:q1},
+    {nombre:snap.nombre_impuesto2||'Impuesto 2',tipo:t2,cuota:Math.round((cuota-q1)*100)/100}
+  ];
+}
+
 function fechaAEAT(iso){
   // yyyy-mm-dd → dd-mm-yyyy (formato AEAT para FechaExpedicionFactura)
   if(!iso) return '';
@@ -259,10 +315,17 @@ async function exportarRegistrosXML(){
         if(r.receptor_nif) xml+=`        <sf:NIF>${xmlEsc(r.receptor_nif)}</sf:NIF>\n`;
         xml+=`      </sf:Destinatario>\n`;
       }
+      // Un detalle por impuesto: la cuota registrada suma IVA + 2º impuesto
+      // (recargo…), así que se reparte para que base × tipo cuadre en cada línea.
       xml+=`      <sf:Desglose>\n`;
-      xml+=`        <sf:BaseImponibleOimporteNoSujeto>${Number(r.base_imponible||0).toFixed(2)}</sf:BaseImponibleOimporteNoSujeto>\n`;
-      xml+=`        <sf:TipoImpositivo>${Number(r.tipo_iva||0).toFixed(2)}</sf:TipoImpositivo>\n`;
-      xml+=`        <sf:CuotaRepercutida>${Number(r.cuota_iva||0).toFixed(2)}</sf:CuotaRepercutida>\n`;
+      desgloseImpuestos(r).forEach(d=>{
+        xml+=`        <sf:DetalleDesglose>\n`;
+        xml+=`          <sf:Impuesto>${xmlEsc(d.nombre)}</sf:Impuesto>\n`;
+        xml+=`          <sf:BaseImponibleOimporteNoSujeto>${Number(r.base_imponible||0).toFixed(2)}</sf:BaseImponibleOimporteNoSujeto>\n`;
+        xml+=`          <sf:TipoImpositivo>${d.tipo.toFixed(2)}</sf:TipoImpositivo>\n`;
+        xml+=`          <sf:CuotaRepercutida>${d.cuota.toFixed(2)}</sf:CuotaRepercutida>\n`;
+        xml+=`        </sf:DetalleDesglose>\n`;
+      });
       xml+=`      </sf:Desglose>\n`;
       xml+=`      <sf:CuotaTotal>${Number(r.cuota_iva||0).toFixed(2)}</sf:CuotaTotal>\n`;
       xml+=`      <sf:ImporteTotal>${Number(r.importe_total||0).toFixed(2)}</sf:ImporteTotal>\n`;

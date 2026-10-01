@@ -504,6 +504,10 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
 // ═══════════════════════════════════════════════
 const SUPA_URL = 'https://uzgzfxizpoigzcnlunpr.supabase.co';
 const SUPA_KEY = 'sb_publishable_4gEjOV3kyfh8_I0f861iow__6b1ueIi';
+// ¿Se llega desde el enlace de "olvidé mi contraseña"? Se mira ANTES de crear el
+// cliente: supabase-js limpia el hash de la URL al procesar la sesión.
+const _recoveryLink = /type=recovery/.test(location.hash||'');
+let _recoveryPending = _recoveryLink;
 const { createClient } = supabase;
 const sb = createClient(SUPA_URL, SUPA_KEY);
 
@@ -1145,7 +1149,7 @@ function showEmailNotConfirmed(email){
 async function doReset(){
   const email=$('a-email').value.trim();
   if(!email){ showAuthErr('Escribe tu email primero'); return; }
-  const {error}=await sb.auth.resetPasswordForEmail(email);
+  const {error}=await sb.auth.resetPasswordForEmail(email,{ redirectTo: location.origin + '/brami3d_supabase.html' });
   if(error) showAuthErr(error.message);
   else showToast('Email de recuperación enviado','ok',4000);
 }
@@ -1175,11 +1179,45 @@ sb.auth.onAuthStateChange(async (event, session)=>{
     return;
   }
   CU=session.user;
-  if(event === 'SIGNED_IN' || event === 'INITIAL_SESSION'){
+  if(event === 'PASSWORD_RECOVERY') _recoveryPending = true;
+  if(event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'PASSWORD_RECOVERY'){
     await bootApp();
   }
-  // TOKEN_REFRESHED, USER_UPDATED, PASSWORD_RECOVERY… → no rebootear.
+  // Enlace de recuperación: tras entrar, obligar a fijar la contraseña nueva
+  // (antes el usuario entraba y nunca podía cambiarla).
+  if(_recoveryPending){ _recoveryPending=false; setTimeout(showNewPasswordModal, 600); }
+  // TOKEN_REFRESHED, USER_UPDATED… → no rebootear.
 });
+
+function showNewPasswordModal(){
+  const en = LANG==='en';
+  openModal(msh(en?'Set a new password':'Nueva contraseña',`
+    <p style="color:var(--text4);font-size:13px;line-height:1.6;margin-bottom:14px">${en?'You opened a password reset link. Choose your new password:':'Has abierto un enlace para restablecer la contraseña. Elige la nueva:'}</p>
+    <div class="field"><label for="np-1">${en?'New password':'Nueva contraseña'}</label><input id="np-1" type="password" autocomplete="new-password" minlength="6"></div>
+    <div class="field"><label for="np-2">${en?'Repeat password':'Repite la contraseña'}</label><input id="np-2" type="password" autocomplete="new-password" minlength="6"></div>
+    <div style="display:flex;gap:10px;margin-top:6px">
+      <button class="btn-primary" id="np-go" onclick="saveNewPassword()">${en?'Save password':'Guardar contraseña'}</button>
+      <button class="btn-secondary" onclick="closeModal()">${en?'Later':'Más tarde'}</button>
+    </div>`));
+}
+async function saveNewPassword(){
+  const en = LANG==='en';
+  const p1=($('np-1')||{}).value||'', p2=($('np-2')||{}).value||'';
+  if(p1.length<6){ showToast(en?'At least 6 characters':'Mínimo 6 caracteres','err'); return; }
+  if(p1!==p2){ showToast(en?'Passwords do not match':'Las contraseñas no coinciden','err'); return; }
+  const lbl=en?'Save password':'Guardar contraseña';
+  setLoading('np-go',true);
+  try {
+    const {error}=await sb.auth.updateUser({password:p1});
+    if(error) throw error;
+    closeModal();
+    showToast(en?'✅ Password updated':'✅ Contraseña actualizada','ok',4000);
+  } catch(e){
+    showToast('Error: '+(e.message||e),'err',6000);
+  } finally {
+    setLoading('np-go',false,lbl);
+  }
+}
 
 // Also check session on load immediately (por si INITIAL_SESSION tarda).
 (async()=>{
@@ -1223,7 +1261,7 @@ async function eliminarCuenta(){
     try{ clearLocalCache(); }catch(_){}
     try{ localStorage.removeItem('b3d_notif_enabled'); }catch(_){}
     closeModal();
-    showToast(t('del.done'),'ok',5000);
+    showToast(t(j.conservadoRegistroFiscal?'del.doneFiscal':'del.done'),'ok',6000);
     _bootedFor=null;
     try{ await sb.auth.signOut(); }catch(_){}
     setTimeout(()=>location.reload(), 1500);
@@ -1544,6 +1582,7 @@ async function bootApp(){
       refreshAlerts();
       checkAndNotify();
       registrarInicioSIF();
+      congelarPreciosPagados();
       subscribeRealtime();
       _updatePendingBadge(); flushOutbox();
     }).catch(e=>{ console.warn('Refresco en segundo plano falló:', e); });
@@ -1559,6 +1598,7 @@ async function bootApp(){
       checkAndNotify();
       handleShortcut(); _checkPagoReturn(); _checkSuscribirIntent();
       registrarInicioSIF();
+      congelarPreciosPagados();
       subscribeRealtime();
       _updatePendingBadge(); flushOutbox();
     } catch(e) {
@@ -2014,8 +2054,19 @@ async function dbDel(table, id){
 // (sql/020) — un solo UPDATE valor=valor+1 en el servidor, sin carrera entre
 // dispositivos. Fallback: el viejo leer+escribir (si la RPC aún no está
 // desplegada) y, en último extremo (sin red), un sufijo de Date.now().
+// Facturas y rectificativas son numeración FISCAL (correlativa, sin huecos ni
+// duplicados): solo la RPC atómica; si falla se lanza error y no se emite nada.
+// Antes, sin red, se inventaba un número con Date.now().
 async function _nextNum(tipo, pfx){
   const year=new Date().getFullYear();
+  if(tipo!=='presnum'){
+    let res;
+    try { res=await sb.rpc('siguiente_contador',{p_tipo:tipo,p_anio:year}); } catch(_){ res={error:true}; }
+    if(res.error || res.data==null) throw new Error(LANG==='en'
+      ? 'Could not get the invoice number (offline?). Try again when you are online.'
+      : 'No se pudo obtener el número de factura (¿sin conexión?). Inténtalo de nuevo con conexión.');
+    return `${pfx}-${year}-${String(res.data).padStart(3,'0')}`;
+  }
   try {
     const {data,error}=await sb.rpc('siguiente_contador',{p_tipo:tipo,p_anio:year});
     if(!error && data!=null) return `${pfx}-${year}-${String(data).padStart(3,'0')}`;
@@ -2899,16 +2950,63 @@ _¿Tienes alguna pregunta? Estoy a tu disposición._`;
 // ═══════════════════════════════════════════════
 //  FACTURA
 // ═══════════════════════════════════════════════
+// Precio de venta efectivo de un pedido. Al cobrar/facturar se guarda en
+// precio_final: si no, el importe se recalculaba siempre con el margen y el
+// kWh ACTUALES de Configuración y cambiar el margen alteraba pedidos cobrados.
+function precioCongelado(o){
+  return (o.precioFinal!=null && o.precioFinal!=='') ? parseFloat(o.precioFinal) : calcOrderCosts(o,_cache.cfg).fp;
+}
+
+// Migración única por usuario: los pedidos YA cobrados sin precio_final se
+// congelan. Los facturados toman la base exacta del registro fiscal; el resto,
+// el precio calculado hoy (lo más fiel que queda). update() y no upsert para
+// no pasar por el trigger de límites del plan Free.
+async function congelarPreciosPagados(){
+  try {
+    if(!CU || !navigator.onLine) return;
+    const k='b3d_precios_congelados_'+CU.id;
+    if(localStorage.getItem(k)==='1') return;
+    const pend=(_cache.pedidos||[]).filter(o=>o.cobrado && (o.precioFinal==null || o.precioFinal===''));
+    if(pend.length){
+      const {data:regs,error}=await sb.from('facturas_registro')
+        .select('factura_num,base_imponible').eq('user_id',CU.id).eq('tipo','emision');
+      if(error) return;
+      const baseDe={}; (regs||[]).forEach(r=>{ baseDe[r.factura_num]=Number(r.base_imponible); });
+      let fallos=0;
+      for(const o of pend){
+        const pf=(o.facturaNum && baseDe[o.facturaNum]!=null) ? baseDe[o.facturaNum] : calcOrderCosts(o,_cache.cfg).fp;
+        const {error:e}=await sb.from('pedidos').update({precio_final:pf}).eq('id',o.id).eq('user_id',CU.id);
+        if(e){ fallos++; continue; }
+        o.precioFinal=pf;
+      }
+      saveLocalCache('pedidos');
+      if(fallos) return;   // se reintenta en el próximo arranque
+    }
+    localStorage.setItem(k,'1');
+  } catch(_){}
+}
+
+// Un solo proceso de factura a la vez por pedido: un doble clic en 🧾 (o
+// cobrar + pulsar 🧾) gastaba dos números y creaba dos eslabones en la cadena.
+const _factLocks=new Set();
+async function _conFacturaLock(id,fn){
+  if(_factLocks.has(id)){ showToast(LANG==='en'?'Generating invoice…':'Generando factura…','ok',1500); return; }
+  _factLocks.add(id);
+  try { return await fn(); } finally { _factLocks.delete(id); }
+}
+
 async function ensureFacturaNum(id){
   let o=_cache.pedidos.find(x=>x.id===id);
   if(!o) return null;
   if(!o.cobrado){ showToast(t('ped.tSoloPagados'),'err'); return null; }
   if(o.facturaNum) return o;
-  const fn=await nextFacturaNum();
+  let fn;
+  try { fn=await nextFacturaNum(); } catch(e){ showToast(e.message,'err',6000); return null; }
   const fd=today();
-  const ok=await dbSave('pedidos',{id:o.id,factura_num:fn,factura_fecha:fd,user_id:CU.id,proyecto:o.proyecto,estado:o.estado,material:o.material,peso:o.peso,tiempo_impresion:o.tiempoImpresion,cliente_id:o.clienteId,notas:o.notas,fecha:o.fecha,ganancia_manual:o.gananciaManual,coste_postprocesado:o.costePostprocesado,pres_num:o.presNum,lineas:o.lineas});
+  const pf=precioCongelado(o);
+  const ok=await dbSave('pedidos',{id:o.id,factura_num:fn,factura_fecha:fd,precio_final:pf});
   if(!ok) return null;
-  o={...o,facturaNum:fn,facturaFecha:fd};
+  o={...o,facturaNum:fn,facturaFecha:fd,precioFinal:pf};
   _cache.pedidos=_cache.pedidos.map(x=>x.id===id?o:x);
   render();
   return o;
@@ -2916,24 +3014,35 @@ async function ensureFacturaNum(id){
 
 // Construye el PDF real de la factura (jsPDF directo) con QR AEAT y huella SIF.
 // Es async: registra el evento fiscal (hash encadenado) y genera el QR como imagen.
+// Importes, emisor, cliente y líneas salen del REGISTRO fiscal (snapshot de la
+// emisión), no del estado actual: regenerar el PDF meses después da la misma factura.
 async function buildFacturaPdf(id){
-  const o=_cache.pedidos.find(x=>x.id===id); if(!o) return null;
-  const cl=_cache.clientes.find(x=>x.id===o.clienteId)||{};
-  const cfg=_cache.cfg, biz=cfg;
-  const c=calcOrderCosts(o,cfg); const mon=cfg.moneda||'€';
+  const oActual=_cache.pedidos.find(x=>x.id===id); if(!oActual) return null;
+  const clActual=_cache.clientes.find(x=>x.id===oActual.clienteId)||{};
+  const cfg=_cache.cfg;
+  const mon=cfg.moneda||'€';
+
+  // Registro fiscal inmutable (RD 1007/2023, No-Verifactu). Sin registro no hay factura.
+  const reg=await registrarFactura(oActual,clActual,cfg);
+  if(!reg) throw new Error(LANG==='en'
+    ? 'The invoice could not be recorded in the tax register, so no PDF was generated. Check your connection and try again.'
+    : 'No se pudo anotar la factura en el registro fiscal, así que no se ha generado el PDF. Revisa la conexión e inténtalo de nuevo.');
+  const snap=reg.datos.cfg_snapshot||{};
+  const o={...oActual,...(reg.datos.pedido||{}),facturaNum:oActual.facturaNum,facturaFecha:(reg.datos.pedido&&reg.datos.pedido.facturaFecha)||oActual.facturaFecha};
+  const cl=reg.datos.cliente||clActual;
+  const biz={...cfg,
+    empresa:snap.empresa??cfg.empresa, nif:snap.nif??cfg.nif, direccion:snap.direccion??cfg.direccion,
+    email:snap.email??cfg.email, telefono:snap.telefono??cfg.telefono};
   const factDateStr=fmtFecha(o.facturaFecha||today(),cfg);
 
-  // Registro fiscal inmutable (RD 1007/2023, No-Verifactu).
-  const reg=await registrarFactura(o,cl,cfg);
-  const huella=reg?.hash||'';
+  const huella=reg.hash||'';
   const huellaFmt=huella?huella.slice(0,8)+'…'+huella.slice(-8):'';
+  const base=reg.base_imponible, total=reg.importe_total;
+  const desg=desgloseImpuestos({base_imponible:base,tipo_iva:reg.tipo_iva,cuota_iva:reg.cuota_iva,datos_json:reg.datos});
   let qrImg='';
   if(huella){
-    try { qrImg=await qrDataUrl(qrAEATUrl({emisorNif:cfg.nif||'',numSerie:o.facturaNum||'',fecha:o.facturaFecha||'',importe:c.fp||0}),260); } catch(_){}
+    try { qrImg=await qrDataUrl(qrAEATUrl({emisorNif:biz.nif||'',numSerie:o.facturaNum||'',fecha:o.facturaFecha||'',importe:total}),260); } catch(_){}
   }
-
-  const t1=Number(cfg.tipoIva||0), t2=Number(cfg.tipoIva2||0), n2=cfg.nombreImpuesto2||'';
-  const total=c.fp*(1+t1/100+t2/100);
 
   const ctx=_pdfMake();
   const {doc,ML,MR,PW,W}=ctx;
@@ -3004,13 +3113,12 @@ async function buildFacturaPdf(id){
   _pdfTable(ctx, cI, rI);
 
   // ── Totales (caja a la derecha) ──
+  // Diseño y postprocesado ya van dentro de la base: antes se pintaban como
+  // filas sueltas encima y parecía que se sumaban dos veces.
   const totRows=[];
-  if(c.pd>0) totRows.push([t('pdf.design'), fmtNum(c.pd,cfg)+' '+mon]);
-  if(c.pp>0) totRows.push([t('pdf.postproc'), fmtNum(c.pp,cfg)+' '+mon]);
-  if(t1>0||t2>0){
-    totRows.push([t('pdf.taxBase'), fmtNum(c.fp,cfg)+' '+mon]);
-    if(t1>0) totRows.push([`${cfg.nombreImpuesto||'IVA'} (${t1}%)`, fmtNum(c.fp*t1/100,cfg)+' '+mon]);
-    if(t2>0&&n2) totRows.push([`${n2} (${t2}%)`, fmtNum(c.fp*t2/100,cfg)+' '+mon]);
+  if(desg.some(d=>d.tipo>0)){
+    totRows.push([t('pdf.taxBase'), fmtNum(base,cfg)+' '+mon]);
+    desg.filter(d=>d.tipo>0).forEach(d=>totRows.push([`${d.nombre} (${d.tipo}%)`, fmtNum(d.cuota,cfg)+' '+mon]));
   }
   const boxW=82, bx=ML+W-boxW;
   ctx.check(totRows.length*6+15);
@@ -3060,24 +3168,27 @@ async function buildFacturaPdf(id){
   _pdfReportFooter(ctx, `${t('pdf.invoiceWord')} ${o.facturaNum}`);
 
   const filename=`${LANG==='en'?'Invoice':'Factura'}_${String(o.facturaNum||'B3D').replace(/[^a-zA-Z0-9_-]/g,'_')}.pdf`;
-  return {doc, blob:doc.output('blob'), filename, o, c, cl, mon, total};
+  return {doc, blob:doc.output('blob'), filename, o, cl, mon, total};
 }
 
-async function genFactura(id){
+function genFactura(id){ return _conFacturaLock(id, async()=>{
   const o=await ensureFacturaNum(id); if(!o) return;
   let built;
-  try { built=await buildFacturaPdf(id); } catch(e){ showToast(e.message,'err',5000); return; }
+  try { built=await buildFacturaPdf(id); } catch(e){ showToast(e.message,'err',7000); return; }
   if(!built) return;
   _openPdf(built.doc, built.filename);
-}
+}); }
 
 // Envía la factura como PDF adjunto vía Web Share API (con fallback a descarga + WhatsApp).
-async function sendFacturaWA(id){
+function sendFacturaWA(id){ return _conFacturaLock(id, ()=>_sendFacturaWA(id)); }
+async function _sendFacturaWA(id){
   const o=await ensureFacturaNum(id); if(!o) return;
   const cfg=_cache.cfg; const cl=_cache.clientes.find(x=>x.id===o.clienteId)||{};
-  const c=calcOrderCosts(o,cfg); const mon=cfg.moneda||'€';
-  const t1=Number(cfg.tipoIva||0), t2=Number(cfg.tipoIva2||0);
-  const total=c.fp*(1+t1/100+t2/100);
+  const mon=cfg.moneda||'€';
+  let built;
+  try { built=await buildFacturaPdf(id); } catch(e){ showToast(e.message,'err',7000); return; }
+  if(!built) return;
+  const total=built.total;
 
   const msg=`¡Hola${cl.nombre?' '+cl.nombre:''}! 👋
 
@@ -3093,9 +3204,6 @@ _Gracias por tu confianza._`;
   if(ph&&!ph.startsWith('+')){ph=ph.startsWith('34')?'+'+ph:'+34'+ph;}
   const waUrl=`https://wa.me/${ph}?text=${encodeURIComponent(msg)}`;
 
-  let built;
-  try { built=await buildFacturaPdf(id); } catch(e){ showToast(e.message,'err',5000); return; }
-  if(!built) return;
   const file=new File([built.blob], built.filename, {type:'application/pdf'});
 
   if(navigator.canShare && navigator.canShare({files:[file]})){
@@ -3230,11 +3338,12 @@ async function sharePresupuestoLink(id){
     </div>`));
 }
 
-async function sendFacturaEmail(id){
+function sendFacturaEmail(id){ return _conFacturaLock(id, ()=>_sendFacturaEmail(id)); }
+async function _sendFacturaEmail(id){
   const o=await ensureFacturaNum(id); if(!o) return;
-  const cfg=_cache.cfg; const cl=_cache.clientes.find(x=>x.id===o.clienteId)||{}; const c=calcOrderCosts(o,cfg); const mon=cfg.moneda||'€';
-  const t1=Number(cfg.tipoIva||0),t2=Number(cfg.tipoIva2||0); const total=c.fp*(1+t1/100+t2/100);
-  let built; try{ built=await buildFacturaPdf(id); }catch(e){ showToast(e.message,'err',5000); return; } if(!built) return;
+  const cfg=_cache.cfg; const cl=_cache.clientes.find(x=>x.id===o.clienteId)||{}; const mon=cfg.moneda||'€';
+  let built; try{ built=await buildFacturaPdf(id); }catch(e){ showToast(e.message,'err',7000); return; } if(!built) return;
+  const total=built.total;
   const subject=t('email.subjInvoice',{n:o.facturaNum});
   const saludo=t('email.hi')+(cl.nombre?' '+cl.nombre:'');
   const body=`${saludo},\n\n${t('email.invoiceIntro',{n:o.facturaNum,p:o.proyecto})}\n${t('email.totalLine',{v:fmtNum(total,cfg)+' '+mon})}\n\n${t('email.regards')}\n${brandFooterName(cfg)}`;
@@ -3442,8 +3551,8 @@ function generarInforme(){
   const margenMedio = totIngresos>0?((beneficio/totIngresos)*100):0;
 
   // Desglose costes producción
-  const costeMat  = pagados.reduce((s,o)=>s+(calcOrderCosts(o,cfg).cm||0),0);
-  const costeElec = pagados.reduce((s,o)=>s+(calcOrderCosts(o,cfg).ce||0),0);
+  const costeMat  = pagados.reduce((s,o)=>s+(calcOrderCosts(o,cfg).mc||0),0);
+  const costeElec = pagados.reduce((s,o)=>s+(calcOrderCosts(o,cfg).ec||0),0);
   const costeDis  = pagados.reduce((s,o)=>s+(parseFloat(o.costeDiseno)||0),0);
   const costePost = pagados.reduce((s,o)=>s+(parseFloat(o.costePostprocesado)||0),0);
 
@@ -4098,8 +4207,8 @@ function exportGastosCSV(){
   const gastos=_cache.gastos||[];
   if(!gastos.length){showToast('No hay gastos para exportar','err');return;}
   const cel=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
-  const cols=['Concepto','Categoría','Importe ('+mon+')','Fecha','Notas'];
-  const rows=gastos.map(g=>[cel(g.concepto||''),cel(g.categoria||''),parseFloat(g.importe||0).toFixed(2),cel(g.fecha||''),cel(g.notas||'')].join(';'));
+  const cols=['Concepto','Categoría','Proveedor','Importe ('+mon+')','Fecha','Notas'];
+  const rows=gastos.map(g=>[cel(g.descripcion||''),cel(g.categoria||''),cel(g.proveedor||''),parseFloat(g.importe||0).toFixed(2),cel(g.fecha||''),cel(g.notas||'')].join(';'));
   const csv='\uFEFF'+cols.map(c=>'"'+c+'"').join(';')+'\n'+rows.join('\n');
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});
   const url=URL.createObjectURL(blob);
@@ -4675,13 +4784,13 @@ async function bulkChangeEstado(estado){
     // cobrado a "entregado" borraba cobrado/fecha_cobrado sin avisar. Desmarcar
     // un cobro se hace pedido a pedido desde el editor.
     const upd={id, estado: esCobrado?o.estado:estado};
-    if(esCobrado && !o.cobrado){ upd.cobrado=true; upd.fecha_cobrado=today(); }
+    if(esCobrado && !o.cobrado){ upd.cobrado=true; upd.fecha_cobrado=today(); upd.precio_final=precioCongelado(o); }
     const ok=await dbSave('pedidos',upd);
     if(ok){
       _cache.pedidos=_cache.pedidos.map(x=>{
         if(x.id!==id) return x;
         const n={...x,estado:upd.estado};
-        if(upd.cobrado){ n.cobrado=true; n.fechaCobrado=upd.fecha_cobrado; }
+        if(upd.cobrado){ n.cobrado=true; n.fechaCobrado=upd.fecha_cobrado; n.precioFinal=upd.precio_final; }
         return n;
       });
       if(upd.cobrado) descontarFilamento(_cache.pedidos.find(x=>x.id===id));
@@ -4866,7 +4975,8 @@ function pedidoFrm(x={}){
   const impPreviewTxt=impSelObj&&parseFloat(impSelObj.consumoW)>0
     ?`⚡ ${impSelObj.consumoW}W → <b style="color:#60a5fa">${((parseFloat(impSelObj.consumoW)/1000)*(parseFloat(_cache.cfg.costePorHora)||0.15)).toFixed(4)}€/h</b>`
     :'';
-  return`<div class="grid2" style="margin-bottom:4px">
+  const lockBanner=x.facturaNum?`<div style="background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:10px;padding:10px 14px;font-size:12.5px;color:#fcd34d;line-height:1.5;margin-bottom:14px">🔒 ${esc(t('frm.invoicedLock',{n:x.facturaNum}))}</div>`:'';
+  return`${lockBanner}<div class="grid2" style="margin-bottom:4px">
 ${fld(t('frm.projectName'),'proyecto',x.proyecto||'')}${fld(t('col.client'),'clienteId',x.clienteId||'','text',cliOpts)}
 ${fld(t('col.status'),'estado',x.estado||'pendiente','text',estOpts)}${fld(t('frm.orderDate'),'fecha',x.fecha||today(),'date')}
 ${fld(t('frm.deliveryDate'),'fechaEntrega',x.fechaEntrega||'','date')}
@@ -5039,6 +5149,20 @@ async function saveO(id){
       if(!vP.ok){showToast(vP.error,'err');return;}
     }
   }
+  // Pedido ya facturado: la factura está en el registro fiscal (inmutable), así
+  // que importe, piezas, cliente y cobro quedan bloqueados. Estado, fechas,
+  // notas y foto se pueden seguir cambiando. Para corregir → rectificativa.
+  if(prevOrder?.facturaNum){
+    const nuevo={...prevOrder,lineas:_lineas,impresoraId:d.impresoraId||null,
+      costePostprocesado:d.costePostprocesado,costeDiseno:d.costeDiseno,gananciaManual:d.gananciaManual,
+      precioFinal:d.precioFinal!==''?parseFloat(d.precioFinal):null};
+    const firma=o=>JSON.stringify((o.lineas||[]).map(l=>[String(l.nombre||''),parseInt(l.qty)||1]));
+    const cambia=Math.abs(precioCongelado(nuevo)-precioCongelado(prevOrder))>0.004
+      || (d.clienteId||null)!==(prevOrder.clienteId||null)
+      || firma(nuevo)!==firma(prevOrder)
+      || !cobradoCheck;
+    if(cambia){ showToast(t('save.invoicedLock',{n:prevOrder.facturaNum}),'err',9000); return; }
+  }
   setLoading('save-o-btn',true);
 
   // El importe queda fijado con los €/kg de hoy (ver costeGramoFil).
@@ -5134,6 +5258,11 @@ async function saveO(id){
     fecha_entrega:d.fechaEntrega||null,
   };
   // anticipo solo si la columna existe (migración sql/009 aplicada).
+  // Cobrado sin precio manual → se congela el precio de hoy (ver precioCongelado).
+  if(nuevoCobrado && row.precio_final==null){
+    row.precio_final=calcOrderCosts({lineas:_lineas,impresoraId:row.impresora_id,tiempoImpresion:tiempoTotal,peso:pesoTotal,
+      costePostprocesado:row.coste_postprocesado,costeDiseno:row.coste_diseno,gananciaManual:row.ganancia_manual,precioFinal:null},_cache.cfg).fp;
+  }
   if(_hasAnticipo) row.anticipo = (d.anticipo!==''&&d.anticipo!=null)?parseFloat(d.anticipo)||0:0;
   if(_hasStockDesc) row.stock_descontado = stockDesc;
   row.id = rowId;
@@ -5142,7 +5271,7 @@ async function saveO(id){
     // shareToken/precioPublico/aceptado se conservan del pedido previo: la BD no
     // los toca en este upsert, y si la caché los perdiera, el botón 🔗 generaría
     // un token nuevo que invalidaría el enlace que ya tiene el cliente.
-    const mapped={id:row.id,clienteId:d.clienteId,proyecto:d.proyecto,material:mainMat,peso:pesoTotal,tiempoImpresion:tiempoTotal,estado:d.estado,notas:d.notas,fecha:d.fecha,gananciaManual:d.gananciaManual,precioFinal:d.precioFinal!==''?parseFloat(d.precioFinal):null,costePostprocesado:d.costePostprocesado,costeDiseno:d.costeDiseno||0,presNum:presNum,facturaNum:prevOrder?.facturaNum||null,facturaFecha:prevOrder?.facturaFecha||null,lineas:_lineas,fotoUrl:fotoUrl||null,fotoPath:_fotoPath||null,impresoraId:d.impresoraId||null,cobrado:nuevoCobrado,fechaCobrado:fechaCobradoFinal,fechaEntrega:d.fechaEntrega||null,anticipo:(_hasAnticipo&&d.anticipo!==''&&d.anticipo!=null)?(parseFloat(d.anticipo)||0):(prevOrder?.anticipo||0),shareToken:prevOrder?.shareToken||null,precioPublico:prevOrder?.precioPublico??null,aceptado:prevOrder?.aceptado||false,aceptadoFecha:prevOrder?.aceptadoFecha||null,stockDescontado:stockDesc};
+    const mapped={id:row.id,clienteId:d.clienteId,proyecto:d.proyecto,material:mainMat,peso:pesoTotal,tiempoImpresion:tiempoTotal,estado:d.estado,notas:d.notas,fecha:d.fecha,gananciaManual:d.gananciaManual,precioFinal:row.precio_final,costePostprocesado:d.costePostprocesado,costeDiseno:d.costeDiseno||0,presNum:presNum,facturaNum:prevOrder?.facturaNum||null,facturaFecha:prevOrder?.facturaFecha||null,lineas:_lineas,fotoUrl:fotoUrl||null,fotoPath:_fotoPath||null,impresoraId:d.impresoraId||null,cobrado:nuevoCobrado,fechaCobrado:fechaCobradoFinal,fechaEntrega:d.fechaEntrega||null,anticipo:(_hasAnticipo&&d.anticipo!==''&&d.anticipo!=null)?(parseFloat(d.anticipo)||0):(prevOrder?.anticipo||0),shareToken:prevOrder?.shareToken||null,precioPublico:prevOrder?.precioPublico??null,aceptado:prevOrder?.aceptado||false,aceptadoFecha:prevOrder?.aceptadoFecha||null,stockDescontado:stockDesc};
     if(id)_cache.pedidos=_cache.pedidos.map(o=>o.id===id?mapped:o);else _cache.pedidos.unshift(mapped);
     render();refreshAlerts();
     // Si se acaba de marcar como cobrado: descontar filamento y generar factura.
@@ -5247,18 +5376,12 @@ async function descontarFilamento(o){
 async function marcarCobrado(id){
   const o=_cache.pedidos.find(x=>x.id===id); if(!o) return;
   const ahora=today();
-  const row={id:o.id,cobrado:true,fecha_cobrado:ahora,user_id:CU.id,
-    proyecto:o.proyecto,estado:o.estado,material:o.material,
-    peso:o.peso,tiempo_impresion:o.tiempoImpresion,
-    cliente_id:o.clienteId,notas:o.notas,fecha:o.fecha,
-    ganancia_manual:o.gananciaManual,coste_postprocesado:o.costePostprocesado,
-    pres_num:o.presNum,lineas:o.lineas,
-    factura_num:o.facturaNum,factura_fecha:o.facturaFecha,
-    impresora_id:o.impresoraId,foto_url:o.fotoUrl,foto_path:o.fotoPath
-  };
+  // Solo los campos que cambian (upsert parcial) + el precio congelado.
+  const pf=precioCongelado(o);
+  const row={id:o.id,cobrado:true,fecha_cobrado:ahora,precio_final:pf};
   const ok=await dbSave('pedidos',row);
   if(ok){
-    _cache.pedidos=_cache.pedidos.map(x=>x.id===id?{...x,cobrado:true,fechaCobrado:ahora}:x);
+    _cache.pedidos=_cache.pedidos.map(x=>x.id===id?{...x,cobrado:true,fechaCobrado:ahora,precioFinal:pf}:x);
     render();showToast('✅ Marcado como cobrado','ok');
     // Descontar el filamento consumido del stock (idempotente).
     descontarFilamento(_cache.pedidos.find(x=>x.id===id));
@@ -5601,7 +5724,7 @@ function pgRegistro(){
 async function cargarRegistroFiscal(){
   try {
     const [{data:regs,error:e1},{data:evts,error:e2}]=await Promise.all([
-      sb.from('facturas_registro').select('id,factura_num,factura_fecha,tipo,rectifica_id,motivo_rectificacion,emisor_nif,emisor_nombre,receptor_nombre,receptor_nif,base_imponible,tipo_iva,cuota_iva,importe_total,pedido_id,hash,hash_anterior,ts_emision,modalidad').eq('user_id',CU.id).order('ts_emision',{ascending:false}).limit(500),
+      sb.from('facturas_registro').select('id,factura_num,factura_fecha,tipo,rectifica_id,motivo_rectificacion,emisor_nif,emisor_nombre,receptor_nombre,receptor_nif,base_imponible,tipo_iva,cuota_iva,importe_total,pedido_id,hash,hash_anterior,ts_emision,modalidad,datos_json').eq('user_id',CU.id).order('ts_emision',{ascending:false}).limit(500),
       sb.from('facturas_eventos').select('id,tipo,descripcion,ts,hash,hash_anterior,registro_id').eq('user_id',CU.id).order('ts',{ascending:false}).limit(500)
     ]);
     if(e1) throw e1;
@@ -5716,7 +5839,7 @@ async function emitirRectificativa(regId){
   setLoading('rect-go',true);
   try {
     const num=await nextRectNum();
-    const registro={
+    const base0={
       user_id:CU.id,
       factura_num:num,
       factura_fecha:today(),
@@ -5733,17 +5856,15 @@ async function emitirRectificativa(regId){
       cuota_iva:-Number(orig.cuota_iva||0),
       importe_total:-Number(orig.importe_total||0),
       lineas:[],
-      datos_json:{rectifica_num:orig.factura_num,rectifica_fecha:orig.factura_fecha,motivo},
-      hash_anterior:await fetchUltimoHashFactura(),
+      // cfg_snapshot de la original: los impuestos de la rectificativa son los mismos.
+      datos_json:{rectifica_num:orig.factura_num,rectifica_fecha:orig.factura_fecha,motivo,cfg_snapshot:(orig.datos_json&&orig.datos_json.cfg_snapshot)||null},
       modalidad:MODALIDAD_FACTURACION,
       sif_nombre:'Brami3D',
       sif_version:SIF_VERSION,
-      sif_id:CU.id,
-      ts_emision:new Date().toISOString()
+      sif_id:CU.id
     };
-    registro.hash=await sha256Hex(canonicalRegistroString(registro));
 
-    const {data,error}=await sb.from('facturas_registro').insert(registro).select().maybeSingle();
+    const {data,registro,error}=await insertarRegistroEncadenado(base0);
     if(error){
       showToast('No se pudo registrar la rectificativa: '+error.message,'err',7000);
       registrarEvento('anomalia',{descripcion:`Fallo al emitir rectificativa de ${orig.factura_num}: ${error.message}`,datos:{motivo}});
@@ -5830,7 +5951,7 @@ async function buildRectificativaPdf(reg,orig){
     y+=bold?8:6;
   };
   fila('Base imponible',reg.base_imponible,false);
-  fila(`${cfg.nombreImpuesto||'IVA'} (${Number(reg.tipo_iva||0)}%)`,reg.cuota_iva,false);
+  desgloseImpuestos(reg).forEach(d=>fila(`${d.nombre} (${d.tipo}%)`,d.cuota,false));
   doc.setDrawColor(226,232,240); doc.line(W-M-72,y-3,W-M,y-3); y+=1;
   fila('TOTAL',reg.importe_total,true);
   y+=6;
@@ -5889,7 +6010,7 @@ async function generarExportTrimestral(){
   setLoading('ext-go',true);
   try {
     const {data:regs,error}=await sb.from('facturas_registro')
-      .select('factura_num,factura_fecha,tipo,receptor_nombre,receptor_nif,base_imponible,tipo_iva,cuota_iva,importe_total,motivo_rectificacion')
+      .select('factura_num,factura_fecha,tipo,receptor_nombre,receptor_nif,base_imponible,tipo_iva,cuota_iva,importe_total,motivo_rectificacion,datos_json')
       .eq('user_id',CU.id).gte('factura_fecha',d1).lte('factura_fecha',d2)
       .order('factura_fecha',{ascending:true});
     if(error) throw error;
@@ -5899,18 +6020,24 @@ async function generarExportTrimestral(){
 
     const cel=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
     if(R.length){
-      const cols=['Nº Factura','Fecha','Tipo','Cliente','NIF','Base imponible','% IVA','Cuota IVA','Total','Motivo rectificación'];
-      const rows=R.map(r=>[cel(r.factura_num),cel(r.factura_fecha),cel(r.tipo==='emision'?'F1':(r.tipo==='rectificativa'?'R1':'F2')),cel(r.receptor_nombre||''),cel(r.receptor_nif||''),Number(r.base_imponible||0).toFixed(2),Number(r.tipo_iva||0),Number(r.cuota_iva||0).toFixed(2),Number(r.importe_total||0).toFixed(2),cel(r.motivo_rectificacion||'')].join(';'));
+      // IVA y 2º impuesto (recargo…) en columnas separadas: la cuota registrada
+      // los suma, desgloseImpuestos() la reparte para que cada % cuadre.
+      const cols=['Nº Factura','Fecha','Tipo','Cliente','NIF','Base imponible','% IVA','Cuota IVA','% Impuesto 2','Cuota impuesto 2','Total','Motivo rectificación'];
+      let tq1=0,tq2=0;
+      const rows=R.map(r=>{
+        const [d1,d2]=desgloseImpuestos(r);
+        tq1+=d1.cuota; tq2+=d2?d2.cuota:0;
+        return [cel(r.factura_num),cel(r.factura_fecha),cel(r.tipo==='emision'?'F1':(r.tipo==='rectificativa'?'R1':'F2')),cel(r.receptor_nombre||''),cel(r.receptor_nif||''),Number(r.base_imponible||0).toFixed(2),d1.tipo,d1.cuota.toFixed(2),d2?d2.tipo:'',d2?d2.cuota.toFixed(2):'',Number(r.importe_total||0).toFixed(2),cel(r.motivo_rectificacion||'')].join(';');
+      });
       const tb=R.reduce((s,r)=>s+Number(r.base_imponible||0),0);
-      const tq=R.reduce((s,r)=>s+Number(r.cuota_iva||0),0);
       const tt=R.reduce((s,r)=>s+Number(r.importe_total||0),0);
-      rows.push([cel('TOTAL'),'','','','',tb.toFixed(2),'',tq.toFixed(2),tt.toFixed(2),''].join(';'));
+      rows.push([cel('TOTAL'),'','','','',tb.toFixed(2),'',tq1.toFixed(2),'',tq2?tq2.toFixed(2):'',tt.toFixed(2),''].join(';'));
       _dlCSV(cols,rows,`Facturas_${anio}-T${tri}.csv`);
     }
     if(gastos.length){
-      const cols=['Concepto','Categoría','Importe','Fecha','Notas'];
-      const rows=gastos.map(g=>[cel(g.concepto||''),cel(g.categoria||''),(parseFloat(g.importe)||0).toFixed(2),cel(g.fecha||''),cel(g.notas||'')].join(';'));
-      rows.push([cel('TOTAL'),'',gastos.reduce((s,g)=>s+(parseFloat(g.importe)||0),0).toFixed(2),'',''].join(';'));
+      const cols=['Concepto','Categoría','Proveedor','Importe','Fecha','Notas'];
+      const rows=gastos.map(g=>[cel(g.descripcion||''),cel(g.categoria||''),cel(g.proveedor||''),(parseFloat(g.importe)||0).toFixed(2),cel(g.fecha||''),cel(g.notas||'')].join(';'));
+      rows.push([cel('TOTAL'),'','',gastos.reduce((s,g)=>s+(parseFloat(g.importe)||0),0).toFixed(2),'',''].join(';'));
       _dlCSV(cols,rows,`Gastos_${anio}-T${tri}.csv`);
     }
     closeModal();
