@@ -45,4 +45,5 @@ jobs:
       - name: Generar y enviar el informe
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
-        run: python scripts/ga_informe.py --dias "${{ github.event.inputs.dias || '30' }}" --email "$EMAIL_DESTINO"
+          DIAS: ${{ github.event.inputs.dias || '30' }}
+        run: python scripts/ga_informe.py --dias "$DIAS" --email "$EMAIL_DESTINO"

@@ -1,8 +1,9 @@
-const CACHE_NAME = 'b3d-cdn-v7';
+const CACHE_NAME = 'b3d-cdn-v8';
 
-// Recursos CDN externos (no cambian).
+// Recursos CDN externos, con versión exacta (deben coincidir con los <script>
+// de la app, que llevan SRI).
 const CDN_SHELL = [
-  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2',
+  'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js',
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js',
   'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js',
   'https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js'

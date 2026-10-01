@@ -94,21 +94,29 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- Versiones EXACTAS + SRI: si el CDN o el paquete se comprometen, el navegador
+     se niega a ejecutar el fichero alterado (antes @2 cogía cualquier versión
+     nueva sin comprobar nada). Al actualizar: nueva URL + nuevo hash (sha384)
+     aquí, en p.html y en CDN_SHELL de sw.js. -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.min.js" integrity="sha384-WgXwGL6fUsYJWNaKJgVbrJKGRQwc1vieh2oy4kw9nXqpNDz3tdSsqEYUgeHD/NuF" crossorigin="anonymous"></script>
 <!-- Librerías pesadas fuera del camino crítico: 'defer' no bloquea el primer pintado.
      Solo se usan en el panel (Chart), al generar PDF (jsPDF) o QR (QRious), y para
      entonces ya están cargadas. supabase NO lleva defer porque se usa al instante. -->
-<script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script defer src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js" integrity="sha384-e6nUZLBkQ86NJ6TVVKAeSaK8jWa3NhkYWZFomE39AvDbQWeie9PlQqM3pmYW5d1g" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js" integrity="sha384-JcnsjUPPylna1s1fvi1u12X5qjY5OL56iySh75FdtrwhO/SWXgMjoVqcKyIIWOLk" crossorigin="anonymous"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js" integrity="sha384-Dr98ddmUw2QkdCarNQ+OL7xLty7cSxgR0T7v1tq4UErS/qLV0132sBYTolRAFuOV" crossorigin="anonymous"></script>
 <script>
-// Fallback de QRious sin document.write (que puede borrar el documento si se
-// ejecuta tras el parseo). Carga síncrona desde unpkg sólo si jsdelivr falló.
-if(!window.QRious){
+// Fallback de QRious desde unpkg solo si jsDelivr falló. Se comprueba en
+// 'load': los scripts 'defer' aún no se han ejecutado en este punto, así que
+// antes la comprobación inmediata descargaba SIEMPRE la copia de unpkg.
+window.addEventListener('load', function(){
+  if(window.QRious) return;
   var _qr=document.createElement('script');
   _qr.src='https://unpkg.com/qrious@4.0.2/dist/qrious.min.js';
+  _qr.integrity='sha384-Dr98ddmUw2QkdCarNQ+OL7xLty7cSxgR0T7v1tq4UErS/qLV0132sBYTolRAFuOV';
+  _qr.crossOrigin='anonymous';
   document.head.appendChild(_qr);
-}
+});
 </script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -1090,8 +1098,11 @@ async function doAuth(){
   }
 }
 
-// Reenvía el email de confirmación de signup.
-async function resendConfirmation(email){
+// Reenvía el email de confirmación de signup. El email se guarda aquí en vez
+// de ir incrustado en el onclick (ver nota en adminResetPassword).
+let _pendingConfirmEmail='';
+async function resendConfirmation(){
+  const email=_pendingConfirmEmail;
   if(!email) return;
   const btn = $('resend-btn');
   if(btn){ btn.disabled=true; btn.textContent='Enviando…'; }
@@ -1112,6 +1123,7 @@ async function resendConfirmation(email){
 
 // UI: banner dentro del modal de login indicando "revisa tu email".
 function showSignupSuccess(email){
+  _pendingConfirmEmail=email;
   const e=$('a-err');
   e.className='err-msg';
   e.style.background='rgba(34,197,94,.12)';
@@ -1122,7 +1134,7 @@ function showSignupSuccess(email){
     <div style="font-size:13px;line-height:1.5;color:#86efac;font-weight:400">
       Te hemos enviado un email a <b>${esc(email)}</b>. Pincha el enlace para confirmar tu cuenta antes de poder entrar.
     </div>
-    <button id="resend-btn" type="button" onclick="resendConfirmation('${esc(email)}')"
+    <button id="resend-btn" type="button" onclick="resendConfirmation()"
       style="margin-top:10px;padding:6px 14px;font-size:12px;background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.4);color:#4ade80;border-radius:8px;cursor:pointer;font-weight:600">
       Reenviar email
     </button>`;
@@ -1130,6 +1142,7 @@ function showSignupSuccess(email){
 
 // UI: login fallido por email sin confirmar.
 function showEmailNotConfirmed(email){
+  _pendingConfirmEmail=email;
   const e=$('a-err');
   e.className='err-msg';
   e.style.background='rgba(245,158,11,.12)';
@@ -1140,7 +1153,7 @@ function showEmailNotConfirmed(email){
     <div style="font-size:13px;line-height:1.5;color:#fcd34d;font-weight:400">
       Aún no has confirmado <b>${esc(email)}</b>. Revisa tu bandeja (y la carpeta de spam) o pide un email nuevo.
     </div>
-    <button id="resend-btn" type="button" onclick="resendConfirmation('${esc(email)}')"
+    <button id="resend-btn" type="button" onclick="resendConfirmation()"
       style="margin-top:10px;padding:6px 14px;font-size:12px;background:rgba(245,158,11,.15);border:1px solid rgba(245,158,11,.4);color:#fbbf24;border-radius:8px;cursor:pointer;font-weight:600">
       Reenviar email
     </button>`;
@@ -4554,7 +4567,7 @@ async function doDelPz(id){ if(await dbDel('piezas',id)){_cache.piezas=_cache.pi
 // ═══════════════════════════════════════════════
 function pgAgenda(){
   const hoy=today();
-  const d7=new Date(); d7.setDate(d7.getDate()+7); const lim7=d7.toISOString().split('T')[0];
+  const d7=new Date(); d7.setDate(d7.getDate()+7); const lim7=isoDate(d7);   // fecha local, no UTC
   // Por hacer/entregar: cualquier pedido no entregado (esté cobrado o no).
   const pend=_cache.pedidos.filter(o=>o.estado!=='entregado' && o.estado!=='cobrado');
   const conFecha=pend.filter(o=>o.fechaEntrega);
@@ -5296,7 +5309,12 @@ async function saveO(id){
   }
 }
 
-function delO(id){ confirmDel('¿Eliminar este pedido?',`doDelO('${id}')`); }
+function delO(id){
+  const o=_cache.pedidos.find(x=>x.id===id);
+  // Un pedido facturado no se borra: su factura está en el registro fiscal.
+  if(o&&o.facturaNum){ showToast(t('save.invoicedLock',{n:o.facturaNum}),'err',9000); return; }
+  confirmDel('¿Eliminar este pedido?',`doDelO('${id}')`);
+}
 async function doDelO(id){
   const o=_cache.pedidos.find(x=>x.id===id);
   if(await dbDel('pedidos',id)){
@@ -5344,12 +5362,17 @@ async function descontarFilamento(o){
   if(!o || !CU || !o.lineas || !o.lineas.length) return;
   if(o.stockDescontado) return;   // marca persistente en BD (sql/021): vale entre dispositivos
   if(_filDescHas(o.id)) return;   // fallback local si la columna aún no está migrada
+  // Cada filamento de la línea descuenta su propio peso (antes, con varios
+  // filamentos, se restaba el peso TOTAL de la línea solo al primero).
   const consumo={};
   o.lineas.forEach(l=>{
-    if(l.filamentoId && l.filamentoId!=='__manual__'){
-      const g=(parseFloat(l.peso)||0)*(parseInt(l.qty)||1);
-      if(g>0) consumo[l.filamentoId]=(consumo[l.filamentoId]||0)+g;
-    }
+    const qty=parseInt(l.qty)||1;
+    const fils=l.filamentos&&l.filamentos.length>0 ? l.filamentos : [{filamentoId:l.filamentoId,peso:l.peso}];
+    fils.forEach(f=>{
+      if(!f.filamentoId || f.filamentoId==='__manual__') return;
+      const g=(parseFloat(f.peso)||0)*qty;
+      if(g>0) consumo[f.filamentoId]=(consumo[f.filamentoId]||0)+g;
+    });
   });
   const ids=Object.keys(consumo);
   if(!ids.length) return;
@@ -6174,7 +6197,7 @@ function adminRenderTable(){
           <button class="btn-secondary" style="padding:6px 10px;font-size:11px" onclick="adminOpenPlanModal('${esc(u.user_id)}')">Plan</button>
           <button class="btn-secondary" style="padding:6px 10px;font-size:11px;${u.blocked?'background:rgba(239,68,68,.15);color:#fca5a5':''}" onclick="adminToggleBlocked('${esc(u.user_id)}',${!u.blocked})">${u.blocked?'Desbloquear':'Bloquear'}</button>
           <button class="btn-secondary" style="padding:6px 10px;font-size:11px" onclick="adminOpenNotesModal('${esc(u.user_id)}')">📝${u.notes?' •':''}</button>
-          <button class="btn-secondary" style="padding:6px 10px;font-size:11px" onclick="adminResetPassword('${esc(u.email||'')}')" ${u.email?'':'disabled'}>🔑</button>
+          <button class="btn-secondary" style="padding:6px 10px;font-size:11px" onclick="adminResetPassword('${esc(u.user_id)}')" ${u.email?'':'disabled'}>🔑</button>
         </div>
       </td>
     </tr>`;
@@ -6341,11 +6364,17 @@ async function adminSaveNotes(userId){
 }
 
 // ── Reset password ────────────────────────────────────────────────────────
-function adminResetPassword(email){
+// Se pasa el user_id (UUID) y el email se busca en la lista: meter el email en
+// un onclick no es seguro (esc() deja ' como &#39;, que el navegador decodifica
+// antes de ejecutar el JS del atributo).
+function adminResetPassword(userId){
+  const email=(_adminUsers.find(x=>x.user_id===userId)||{}).email;
   if(!email) return;
-  openModal(msh('Restablecer contraseña', `<p style="color:var(--text2);margin-bottom:20px;line-height:1.6">¿Enviar un email para restablecer la contraseña a <b style="color:var(--text)">${esc(email)}</b>?</p><div style="display:flex;gap:10px"><button class="btn-primary" onclick="closeModal();_doAdminReset('${esc(email)}')">Enviar</button><button class="btn-secondary" onclick="closeModal()">Cancelar</button></div>`));
+  openModal(msh('Restablecer contraseña', `<p style="color:var(--text2);margin-bottom:20px;line-height:1.6">¿Enviar un email para restablecer la contraseña a <b style="color:var(--text)">${esc(email)}</b>?</p><div style="display:flex;gap:10px"><button class="btn-primary" onclick="closeModal();_doAdminReset('${esc(userId)}')">Enviar</button><button class="btn-secondary" onclick="closeModal()">Cancelar</button></div>`));
 }
-async function _doAdminReset(email){
+async function _doAdminReset(userId){
+  const email=(_adminUsers.find(x=>x.user_id===userId)||{}).email;
+  if(!email) return;
   try {
     const {error} = await sb.auth.resetPasswordForEmail(email, {
       redirectTo: location.origin + '/brami3d_supabase.html'

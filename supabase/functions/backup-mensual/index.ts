@@ -21,12 +21,15 @@ const H = { apikey: SERVICE, Authorization: `Bearer ${SERVICE}` };
 
 async function fetchAll(tabla: string, uid: string) {
   const rows: unknown[] = [];
+  // Orden estable para que la paginación no salte ni repita filas; si una
+  // lectura falla se lanza (cuenta como fallo) en vez de guardar un backup cojo.
+  const orden = tabla === "config" ? "user_id" : "id";
   for (let offset = 0; ; offset += 1000) {
     const r = await fetch(
-      `${SUPABASE_URL}/rest/v1/${tabla}?user_id=eq.${uid}&select=*&limit=1000&offset=${offset}`,
+      `${SUPABASE_URL}/rest/v1/${tabla}?user_id=eq.${uid}&select=*&order=${orden}&limit=1000&offset=${offset}`,
       { headers: H },
     );
-    if (!r.ok) break;
+    if (!r.ok) throw new Error(`${tabla}: HTTP ${r.status}`);
     const data = await r.json();
     rows.push(...data);
     if (data.length < 1000) break;

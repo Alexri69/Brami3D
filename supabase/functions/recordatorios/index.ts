@@ -59,25 +59,34 @@ Deno.serve(async (req) => {
     new Response(JSON.stringify(o), { status: s, headers: { "Content-Type": "application/json" } });
 
   const H = { apikey: SERVICE, Authorization: `Bearer ${SERVICE}` };
+  // Paginado (PostgREST corta en 1000 filas) y lanza si falla: mejor un aviso
+  // al owner que un resumen incompleto.
   const get = async (q: string) => {
-    const r = await fetch(`${SUPABASE_URL}/rest/v1/${q}`, { headers: H });
-    return r.ok ? await r.json() : [];
+    const rows: any[] = [];
+    for (let offset = 0; ; offset += 1000) {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/${q}&limit=1000&offset=${offset}`, { headers: H });
+      if (!r.ok) throw new Error(`lectura ${q.split("?")[0]} falló (HTTP ${r.status})`);
+      const data = await r.json();
+      rows.push(...data);
+      if (data.length < 1000) break;
+    }
+    return rows;
   };
 
   try {
     // 1) Presupuestos compartidos, sin aceptar y sin cobrar, con cierta antigüedad
     const quotes = await get(
       `pedidos?select=user_id,proyecto,pres_num,precio_final,precio_publico,fecha` +
-      `&aceptado=eq.false&cobrado=eq.false&share_token=not.is.null&fecha=lt.${isoDaysAgo(QUOTE_DAYS)}`,
+      `&aceptado=eq.false&cobrado=eq.false&share_token=not.is.null&fecha=lt.${isoDaysAgo(QUOTE_DAYS)}&order=id`,
     );
     // 2) Pedidos terminados/entregados, sin cobrar, de hace más de 7 días
     const collect = await get(
       `pedidos?select=user_id,proyecto,pres_num,precio_final,fecha,estado` +
-      `&cobrado=eq.false&estado=in.(terminado,entregado)&fecha=lt.${isoDaysAgo(COLLECT_DAYS)}`,
+      `&cobrado=eq.false&estado=in.(terminado,entregado)&fecha=lt.${isoDaysAgo(COLLECT_DAYS)}&order=id`,
     );
 
     // Config por usuario (moneda + nombre de empresa)
-    const cfgs = await get(`config?select=user_id,moneda,empresa`);
+    const cfgs = await get(`config?select=user_id,moneda,empresa&order=user_id`);
     const cfgBy: Record<string, { moneda?: string; empresa?: string }> = {};
     for (const c of cfgs) cfgBy[c.user_id] = c;
 

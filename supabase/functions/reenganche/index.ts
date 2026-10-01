@@ -72,18 +72,29 @@ Deno.serve(async (req) => {
 
   const H = { apikey: SERVICE, Authorization: `Bearer ${SERVICE}` };
 
+  // Lectura paginada que LANZA si falla. Antes un fallo devolvía [] y el cron
+  // trataba a todo el mundo como "sin pedidos": email de "aún no has usado la
+  // app" a usuarios activos. PostgREST corta en 1000 filas → hay que paginar.
+  const fetchAll = async (q: string) => {
+    const rows: Record<string, unknown>[] = [];
+    for (let offset = 0; ; offset += 1000) {
+      const r = await fetch(`${SUPABASE_URL}/rest/v1/${q}&limit=1000&offset=${offset}`, { headers: H });
+      if (!r.ok) throw new Error(`lectura ${q.split("?")[0]} falló (HTTP ${r.status})`);
+      const data = await r.json();
+      rows.push(...data);
+      if (data.length < 1000) break;
+    }
+    return rows;
+  };
+
   try {
     // 1) Usuarios que YA tienen algún pedido (set de user_id) → no contactar.
-    const pedidos = await fetch(`${SUPABASE_URL}/rest/v1/pedidos?select=user_id`, { headers: H })
-      .then((r) => (r.ok ? r.json() : []))
-      .catch(() => []);
-    const conPedido = new Set<string>((pedidos as { user_id: string }[]).map((p) => p.user_id));
+    const pedidos = await fetchAll(`pedidos?select=user_id&order=id`);
+    const conPedido = new Set<string>(pedidos.map((p) => p.user_id as string));
 
     // 2) Usuarios ya contactados antes → no repetir.
-    const previos = await fetch(`${SUPABASE_URL}/rest/v1/reenganche_enviado?select=user_id`, { headers: H })
-      .then((r) => (r.ok ? r.json() : []))
-      .catch(() => []);
-    const yaEnviado = new Set<string>((previos as { user_id: string }[]).map((p) => p.user_id));
+    const previos = await fetchAll(`reenganche_enviado?select=user_id&order=user_id`);
+    const yaEnviado = new Set<string>(previos.map((p) => p.user_id as string));
 
     // 3) Listar usuarios (Admin API, paginado).
     const corte = Date.now() - DIAS * 864e5;
@@ -91,7 +102,7 @@ Deno.serve(async (req) => {
     const candidatos: U[] = [];
     for (let page = 1; page <= 50; page++) {
       const r = await fetch(`${SUPABASE_URL}/auth/v1/admin/users?page=${page}&per_page=200`, { headers: H });
-      if (!r.ok) break;
+      if (!r.ok) throw new Error(`listado de usuarios falló (HTTP ${r.status})`);
       const data = await r.json();
       const users: U[] = data.users || [];
       if (!users.length) break;

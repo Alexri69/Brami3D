@@ -36,9 +36,12 @@ jobs:
           META_ACCESS_TOKEN: ${{ secrets.META_ACCESS_TOKEN }}
           META_PAGE_ID: "1153412231189064"
           META_IG_USER_ID: "17841442053876570"
+          # El input va por env, no interpolado en el script: un id con comillas
+          # o $(...) no puede inyectar comandos en el runner.
+          POST_ID: ${{ github.event.inputs.id }}
         run: |
-          if [ -n "${{ github.event.inputs.id }}" ]; then
-            python scripts/publicar_hoy.py --id "${{ github.event.inputs.id }}"
+          if [ -n "$POST_ID" ]; then
+            python scripts/publicar_hoy.py --id "$POST_ID"
           else
             python scripts/publicar_hoy.py
           fi

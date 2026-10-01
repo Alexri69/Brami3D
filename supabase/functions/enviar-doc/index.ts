@@ -29,21 +29,31 @@ Deno.serve(async (req) => {
     if (!uResp.ok) return json({ error: "Sesión no válida" }, 401);
     const user = await uResp.json();
 
-    // ── Rate limit: 50 emails/día por usuario (email_envio_check, sql/021) ──
-    // Frena que una cuenta cualquiera use hola@brami3d.app como cañón de spam.
-    // Si la RPC aún no existe o falla, no bloquea el envío (best-effort).
+    // ── Rate limit por usuario y día (email_envio_check, sql/021) ──
+    // Frena que una cuenta cualquiera use hola@brami3d.app como cañón de spam o
+    // phishing (reputación del dominio). Cuentas Pro con más de 7 días: 50/día;
+    // cuentas nuevas o gratuitas: 15/día. Si la comprobación falla NO se envía
+    // (antes fallaba en abierto y el límite desaparecía).
+    if (!user?.id || !user?.email_confirmed_at) return json({ error: "Confirma tu email antes de enviar documentos" }, 403);
     const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
-    if (SERVICE && user?.id) {
-      try {
-        const rl = await fetch(`${Deno.env.get("SUPABASE_URL")}/rest/v1/rpc/email_envio_check`, {
-          method: "POST",
-          headers: { apikey: SERVICE, Authorization: `Bearer ${SERVICE}`, "Content-Type": "application/json" },
-          body: JSON.stringify({ p_uid: user.id }),
-        });
-        if (rl.ok && (await rl.json()) === false) {
-          return json({ error: "Límite diario de envíos alcanzado (50). Inténtalo mañana." }, 429);
-        }
-      } catch (_) { /* sin rate limit no se cae el servicio */ }
+    const SB = Deno.env.get("SUPABASE_URL");
+    const HS = { apikey: SERVICE, Authorization: `Bearer ${SERVICE}`, "Content-Type": "application/json" };
+    let limite = 15;
+    try {
+      const nueva = !user.created_at || Date.now() - new Date(user.created_at).getTime() < 7 * 864e5;
+      if (!nueva) {
+        const pr = await fetch(`${SB}/rest/v1/rpc/es_pro`, { method: "POST", headers: HS, body: JSON.stringify({ p_uid: user.id }) });
+        if (pr.ok && (await pr.json()) === true) limite = 50;
+      }
+      const rl = await fetch(`${SB}/rest/v1/rpc/email_envio_check`, {
+        method: "POST", headers: HS, body: JSON.stringify({ p_uid: user.id, p_limite: limite }),
+      });
+      if (!rl.ok) throw new Error("HTTP " + rl.status);
+      if ((await rl.json()) === false) {
+        return json({ error: `Límite diario de envíos alcanzado (${limite}). Inténtalo mañana.` }, 429);
+      }
+    } catch (_) {
+      return json({ error: "El servicio de email no está disponible ahora mismo. Inténtalo en unos minutos." }, 503);
     }
 
     // ── Datos del email ──
@@ -68,7 +78,8 @@ Deno.serve(async (req) => {
     const key = Deno.env.get("RESEND_API_KEY");
     if (!key) return json({ error: "Falta el secreto RESEND_API_KEY" }, 500);
 
-    const from = `${(fromName || "Brami3D").replace(/[<>]/g, "")} <hola@brami3d.app>`;
+    const nombre = String(fromName || "").replace(/[<>"\r\n]/g, "").trim().slice(0, 60) || "Brami3D";
+    const from = `${nombre} <hola@brami3d.app>`;
     const payload = { from, to: [toClean], subject, text: text || "" };
     if (replyTo) payload.reply_to = String(replyTo).trim();
     if (pdfBase64) payload.attachments = [{ filename: filename || "documento.pdf", content: pdfBase64 }];
