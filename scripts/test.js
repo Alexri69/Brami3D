@@ -124,6 +124,15 @@ test('calcOrderCosts: gananciaManual = coste total + ganancia', () => {
   approx(c.fp, 10.4);         // tc 5.4 + 5
 });
 
+test('calcOrderCosts: precio redondeado a céntimos (los totales cuadran con las filas)', () => {
+  // tc 6.664 × 1.5 = 9.996 → 10.00 ; tc 16.664 × 1.5 = 24.996 → 25.00 ; suma 35, no 34.99
+  const a = ctx.calcOrderCosts({ peso: 133.28, tiempoImpresion: 0 }, CFG);
+  const b = ctx.calcOrderCosts({ peso: 333.28, tiempoImpresion: 0 }, CFG);
+  assert.strictEqual(a.fp, 10);
+  assert.strictEqual(b.fp, 25);
+  assert.strictEqual((a.fp + b.fp).toFixed(2), '35.00');
+});
+
 test('calcOrderCosts: filamento asignado usa su precio/kg, no el cfg', () => {
   ctx._cache.filamentos = [{ id: 'f1', precioPorKg: 30 }];
   const c = ctx.calcOrderCosts({ lineas: [{ qty: 1, peso: '100', filamentoId: 'f1' }], tiempoImpresion: 0 }, CFG);
