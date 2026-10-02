@@ -2693,6 +2693,8 @@ function calcOrderCosts(order,cfg){
   const tc=mc+ec+pp+pd;
   let fp;
   if(order.precioFinal!=null&&order.precioFinal!=='') fp=parseFloat(order.precioFinal);
+  // Presupuesto aceptado por el cliente desde el enlace: manda el precio aceptado.
+  else if(order.aceptado && order.precioPublico!=null) fp=parseFloat(order.precioPublico);
   else if(order.gananciaManual!=null&&order.gananciaManual!=='') fp=tc+parseFloat(order.gananciaManual);
   else fp=tc*(1+(parseFloat(cfg.margen)||30)/100);
   // Redondear a céntimos: los totales deben cuadrar con lo que se muestra en cada fila
@@ -5192,59 +5194,10 @@ async function saveO(id){
   // Upload foto if selected
   const fotoUrl = await uploadFotoIfNeeded(rowId);
 
-  // Descontar filamento del stock — SOLO en pedidos nuevos (no al editar)
+  // Stock de filamento y horas de impresora se aplican DESPUÉS de guardar el
+  // pedido (ver más abajo): si el guardado falla (p. ej. límite Free en el
+  // servidor) no se descuenta nada y reintentar no resta dos veces.
   let stockDesc = prevOrder?.stockDescontado || false;
-  if(!id){
-    let desconto=false;
-    for(const linea of _lineas){
-      const qty=parseInt(linea.qty)||1;
-      const fils=linea.filamentos&&linea.filamentos.length>0
-        ?linea.filamentos
-        :[{filamentoId:linea.filamentoId||'__manual__',peso:linea.peso||''}];
-      for(const fil of fils){
-        const peso=(parseFloat(fil.peso)||0)*qty;
-        if(peso<=0) continue;
-        if(fil.filamentoId&&fil.filamentoId!=='__manual__'){
-          const f=_cache.filamentos.find(x=>x.id===fil.filamentoId);
-          if(f){
-            const nv=Math.max(0,parseFloat(f.pesoRestante)-peso);
-            await dbSave('filamentos',{id:f.id,peso_restante:nv});
-            _cache.filamentos=_cache.filamentos.map(x=>x.id===f.id?{...x,pesoRestante:nv}:x);
-            desconto=true;
-          }
-        } else {
-          // Fallback: buscar por tipo de material
-          const mat=linea.material||'PLA';
-          const f=_cache.filamentos.find(x=>x.tipo===mat);
-          if(f){
-            const nv=Math.max(0,parseFloat(f.pesoRestante)-peso);
-            await dbSave('filamentos',{id:f.id,peso_restante:nv});
-            _cache.filamentos=_cache.filamentos.map(x=>x.id===f.id?{...x,pesoRestante:nv}:x);
-            desconto=true;
-          }
-        }
-      }
-    }
-    // Registrar en la guarda: si ya se restó aquí, descontarFilamento() (al
-    // cobrar) no debe volver a restar los mismos gramos. La marca persistente
-    // (stock_descontado, sql/021) viaja en la propia fila; la de localStorage
-    // queda como fallback si la migración no está aplicada.
-    if(desconto){ _filDescAdd(rowId); stockDesc=true; }
-  }
-
-  // Sumar horas de impresión a la impresora — SOLO en pedidos nuevos
-  if(!id && tiempoTotal > 0 && d.impresoraId){
-    const imp=_cache.impresoras.find(x=>x.id===d.impresoraId);
-    if(imp){
-      const nuevasHoras=Math.round(((parseFloat(imp.horasUso)||0)+tiempoTotal)*100)/100;
-      await dbSave('impresoras',{id:imp.id,nombre:imp.nombre,modelo:imp.modelo,estado:imp.estado,horas_uso:nuevasHoras,desgaste:imp.desgaste,consumo_w:imp.consumoW||0});
-      _cache.impresoras=_cache.impresoras.map(x=>x.id===imp.id?{...x,horasUso:nuevasHoras}:x);
-      // Alerta si supera 500h
-      if(nuevasHoras>=500&&(parseFloat(imp.horasUso)||0)<500){
-        showToast(`⚠️ ${imp.nombre} ha superado 500h — revisa el mantenimiento`,'err',6000);
-      }
-    }
-  }
 
   const row={
     proyecto:d.proyecto,
@@ -5274,17 +5227,33 @@ async function saveO(id){
   // Cobrado sin precio manual → se congela el precio de hoy (ver precioCongelado).
   if(nuevoCobrado && row.precio_final==null){
     row.precio_final=calcOrderCosts({lineas:_lineas,impresoraId:row.impresora_id,tiempoImpresion:tiempoTotal,peso:pesoTotal,
-      costePostprocesado:row.coste_postprocesado,costeDiseno:row.coste_diseno,gananciaManual:row.ganancia_manual,precioFinal:null},_cache.cfg).fp;
+      costePostprocesado:row.coste_postprocesado,costeDiseno:row.coste_diseno,gananciaManual:row.ganancia_manual,precioFinal:null,
+      aceptado:prevOrder?.aceptado||false,precioPublico:prevOrder?.precioPublico??null},_cache.cfg).fp;
+  }
+  // Enlace público ya enviado y aún sin aceptar: el precio del enlace sigue al
+  // pedido (si no, el cliente vería piezas nuevas con el precio antiguo).
+  if(_hasShare && prevOrder?.shareToken && !prevOrder?.aceptado){
+    row.precio_publico=calcOrderCosts({lineas:_lineas,impresoraId:row.impresora_id,tiempoImpresion:tiempoTotal,peso:pesoTotal,
+      costePostprocesado:row.coste_postprocesado,costeDiseno:row.coste_diseno,gananciaManual:row.ganancia_manual,precioFinal:row.precio_final},_cache.cfg).fp;
   }
   if(_hasAnticipo) row.anticipo = (d.anticipo!==''&&d.anticipo!=null)?parseFloat(d.anticipo)||0:0;
   if(_hasStockDesc) row.stock_descontado = stockDesc;
   row.id = rowId;
   const ok=await dbSave('pedidos',row);
   if(ok){
+    // Pedido nuevo ya guardado → descontar filamento y sumar horas de impresora.
+    if(!id){
+      if(await aplicarConsumoStock(_lineas,1)){
+        // Guarda anti-doble-descuento (descontarFilamento al cobrar no vuelve a restar).
+        _filDescAdd(rowId); stockDesc=true;
+        if(_hasStockDesc) await dbSave('pedidos',{id:rowId,stock_descontado:true});
+      }
+      if(tiempoTotal>0 && d.impresoraId) await ajustarHorasImpresora(d.impresoraId,tiempoTotal);
+    }
     // shareToken/precioPublico/aceptado se conservan del pedido previo: la BD no
     // los toca en este upsert, y si la caché los perdiera, el botón 🔗 generaría
     // un token nuevo que invalidaría el enlace que ya tiene el cliente.
-    const mapped={id:row.id,clienteId:d.clienteId,proyecto:d.proyecto,material:mainMat,peso:pesoTotal,tiempoImpresion:tiempoTotal,estado:d.estado,notas:d.notas,fecha:d.fecha,gananciaManual:d.gananciaManual,precioFinal:row.precio_final,costePostprocesado:d.costePostprocesado,costeDiseno:d.costeDiseno||0,presNum:presNum,facturaNum:prevOrder?.facturaNum||null,facturaFecha:prevOrder?.facturaFecha||null,lineas:_lineas,fotoUrl:fotoUrl||null,fotoPath:_fotoPath||null,impresoraId:d.impresoraId||null,cobrado:nuevoCobrado,fechaCobrado:fechaCobradoFinal,fechaEntrega:d.fechaEntrega||null,anticipo:(_hasAnticipo&&d.anticipo!==''&&d.anticipo!=null)?(parseFloat(d.anticipo)||0):(prevOrder?.anticipo||0),shareToken:prevOrder?.shareToken||null,precioPublico:prevOrder?.precioPublico??null,aceptado:prevOrder?.aceptado||false,aceptadoFecha:prevOrder?.aceptadoFecha||null,stockDescontado:stockDesc};
+    const mapped={id:row.id,clienteId:d.clienteId,proyecto:d.proyecto,material:mainMat,peso:pesoTotal,tiempoImpresion:tiempoTotal,estado:d.estado,notas:d.notas,fecha:d.fecha,gananciaManual:d.gananciaManual,precioFinal:row.precio_final,costePostprocesado:d.costePostprocesado,costeDiseno:d.costeDiseno||0,presNum:presNum,facturaNum:prevOrder?.facturaNum||null,facturaFecha:prevOrder?.facturaFecha||null,lineas:_lineas,fotoUrl:fotoUrl||null,fotoPath:_fotoPath||null,impresoraId:d.impresoraId||null,cobrado:nuevoCobrado,fechaCobrado:fechaCobradoFinal,fechaEntrega:d.fechaEntrega||null,anticipo:(_hasAnticipo&&d.anticipo!==''&&d.anticipo!=null)?(parseFloat(d.anticipo)||0):(prevOrder?.anticipo||0),shareToken:prevOrder?.shareToken||null,precioPublico:row.precio_publico!==undefined?row.precio_publico:(prevOrder?.precioPublico??null),aceptado:prevOrder?.aceptado||false,aceptadoFecha:prevOrder?.aceptadoFecha||null,stockDescontado:stockDesc};
     if(id)_cache.pedidos=_cache.pedidos.map(o=>o.id===id?mapped:o);else _cache.pedidos.unshift(mapped);
     render();refreshAlerts();
     // Si se acaba de marcar como cobrado: descontar filamento y generar factura.
@@ -5320,7 +5289,16 @@ async function doDelO(id){
   if(await dbDel('pedidos',id)){
     // La foto vive en Storage: si no se borra aquí queda huérfana para siempre.
     if(o?.fotoPath){ try{ sb.storage.from('archivos').remove([o.fotoPath]); }catch(_){} }
-    _cache.pedidos=_cache.pedidos.filter(x=>x.id!==id);render();showToast(t('common.deleted'),'ok');
+    _cache.pedidos=_cache.pedidos.filter(x=>x.id!==id);
+    // Pedido que aún no se imprimió (p. ej. presupuesto no aceptado): se devuelve
+    // el filamento y las horas que se restaron al crearlo.
+    let devuelto=false;
+    if(o && o.estado==='pendiente' && (o.stockDescontado||_filDescHas(o.id))){
+      devuelto=await aplicarConsumoStock(o.lineas,-1);
+      const h=parseFloat(o.tiempoImpresion)||0;
+      if(o.impresoraId && h>0) await ajustarHorasImpresora(o.impresoraId,-h);
+    }
+    render();showToast(devuelto?t('common.deleted')+' · 🧵 stock devuelto':t('common.deleted'),'ok');
   }
 }
 
@@ -5345,6 +5323,53 @@ async function cloneO(id){
     const mapped={id:newId,clienteId:o.clienteId,proyecto:row.proyecto,material:o.material,peso:o.peso,tiempoImpresion:o.tiempoImpresion,estado:'pendiente',notas:o.notas,fecha:row.fecha,gananciaManual:o.gananciaManual,precioFinal:o.precioFinal??null,costePostprocesado:o.costePostprocesado,costeDiseno:o.costeDiseno||0,presNum:null,facturaNum:null,facturaFecha:null,lineas:o.lineas||[],fotoUrl:null,fotoPath:null,impresoraId:o.impresoraId||null,cobrado:false,fechaCobrado:null,fechaEntrega:null,stockDescontado:false};
     _cache.pedidos.unshift(mapped); render(); refreshAlerts();
     showToast('📋 Pedido duplicado','ok');
+  }
+}
+
+// Gramos por rollo que consume un pedido. La misma regla al descontar (crear
+// pedido) y al devolver (borrarlo sin imprimir): filamento asignado o, si la
+// línea es manual, el primer rollo del mismo material.
+function consumoStockLineas(lineas){
+  const consumo={};
+  (lineas||[]).forEach(l=>{
+    const qty=parseInt(l.qty)||1;
+    const fils=l.filamentos&&l.filamentos.length>0?l.filamentos:[{filamentoId:l.filamentoId||'__manual__',peso:l.peso||''}];
+    fils.forEach(fil=>{
+      const g=(parseFloat(fil.peso)||0)*qty;
+      if(g<=0) return;
+      const f=(fil.filamentoId&&fil.filamentoId!=='__manual__')
+        ? _cache.filamentos.find(x=>x.id===fil.filamentoId)
+        : _cache.filamentos.find(x=>x.tipo===(l.material||'PLA'));
+      if(f) consumo[f.id]=(consumo[f.id]||0)+g;
+    });
+  });
+  return consumo;
+}
+// signo 1 = descuenta del stock, -1 = lo devuelve. true si tocó algún rollo.
+async function aplicarConsumoStock(lineas,signo){
+  const consumo=consumoStockLineas(lineas);
+  let toco=false;
+  for(const fid of Object.keys(consumo)){
+    const f=_cache.filamentos.find(x=>x.id===fid); if(!f) continue;
+    const nv=Math.max(0,Math.round(((parseFloat(f.pesoRestante)||0)-signo*consumo[fid])*100)/100);
+    if(await dbSave('filamentos',{id:f.id,peso_restante:nv})){
+      _cache.filamentos=_cache.filamentos.map(x=>x.id===f.id?{...x,pesoRestante:nv}:x);
+      toco=true;
+    }
+  }
+  return toco;
+}
+// Suma (o resta, con horas negativas) horas de uso a una impresora.
+async function ajustarHorasImpresora(impId,horas){
+  const imp=_cache.impresoras.find(x=>x.id===impId);
+  if(!imp || !horas) return;
+  const antes=parseFloat(imp.horasUso)||0;
+  const nuevasHoras=Math.max(0,Math.round((antes+horas)*100)/100);
+  const ok=await dbSave('impresoras',{id:imp.id,nombre:imp.nombre,modelo:imp.modelo,estado:imp.estado,horas_uso:nuevasHoras,desgaste:imp.desgaste,consumo_w:imp.consumoW||0});
+  if(!ok) return;
+  _cache.impresoras=_cache.impresoras.map(x=>x.id===imp.id?{...x,horasUso:nuevasHoras}:x);
+  if(nuevasHoras>=500&&antes<500){
+    showToast(`⚠️ ${imp.nombre} ha superado 500h — revisa el mantenimiento`,'err',6000);
   }
 }
 

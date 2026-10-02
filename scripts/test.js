@@ -121,6 +121,16 @@ test('calcOrderCosts: precioFinal manda sobre margen y ganancia', () => {
   approx(c.fp, 20);
 });
 
+test('calcOrderCosts: presupuesto aceptado usa el precio aceptado (precioPublico)', () => {
+  const c = ctx.calcOrderCosts({ peso: 100, tiempoImpresion: 10, gananciaManual: 5, aceptado: true, precioPublico: 45 }, CFG);
+  approx(c.fp, 45);
+  // precioFinal manual sigue mandando
+  approx(ctx.calcOrderCosts({ peso: 100, tiempoImpresion: 10, precioFinal: 50, aceptado: true, precioPublico: 45 }, CFG).fp, 50);
+  // sin aceptar, precioPublico no influye
+  const libre = ctx.calcOrderCosts({ peso: 100, tiempoImpresion: 10, gananciaManual: 5 }, CFG).fp;
+  approx(ctx.calcOrderCosts({ peso: 100, tiempoImpresion: 10, gananciaManual: 5, precioPublico: 45 }, CFG).fp, libre);
+});
+
 test('calcOrderCosts: gananciaManual = coste total + ganancia', () => {
   const c = ctx.calcOrderCosts({ peso: 100, tiempoImpresion: 10, gananciaManual: 5 }, CFG);
   approx(c.fp, 10.4);         // tc 5.4 + 5

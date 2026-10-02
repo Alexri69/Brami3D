@@ -1,4 +1,4 @@
-const CACHE_NAME = 'b3d-cdn-v8';
+const CACHE_NAME = 'b3d-cdn-v9';
 
 // Recursos CDN externos, con versión exacta (deben coincidir con los <script>
 // de la app, que llevan SRI).
@@ -119,12 +119,26 @@ self.addEventListener('push', e => {
 
 self.addEventListener('notificationclick', e => {
   e.notification.close();
+  // Abre la URL que trae la notificación (solo de nuestro dominio; si no, la app).
+  let destino = '/brami3d_supabase.html';
+  try {
+    const u = new URL((e.notification.data && e.notification.data.url) || destino, self.location.origin);
+    if (u.origin === self.location.origin) destino = u.href;
+  } catch (_) {}
   e.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
       for (const c of list) {
-        if (c.url.includes('brami3d') && 'focus' in c) return c.focus();
+        if (c.url.includes('brami3d') && 'focus' in c) {
+          // Ya hay una ventana abierta: solo navegamos si la notificación apunta a
+          // otra página (o a una sección concreta); si no, enfocar sin recargar
+          // para no perder lo que el usuario tuviera a medias.
+          const d = new URL(destino), a = new URL(c.url);
+          const otra = d.pathname !== a.pathname || !!d.search || !!d.hash;
+          if (otra && 'navigate' in c) return c.navigate(destino).then(w => (w || c).focus()).catch(() => c.focus());
+          return c.focus();
+        }
       }
-      return clients.openWindow('/brami3d_supabase.html');
+      return clients.openWindow(destino);
     })
   );
 });
