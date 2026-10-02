@@ -8,7 +8,12 @@
       "https://brami3d.app/m/oct-01-trimestre.png"
     ],
     "caption": "📅 Hasta el 20 de octubre se presenta el IVA del tercer trimestre. Si vendes tus impresiones 3D como autónomo, tu gestor te va a pedir facturas, rectificativas y gastos del trimestre. Con Brami3D lo sacas en un clic: Registro fiscal → Export trimestral (CSV listo para mandar). #impresion3d #autonomo #iva #3dprinting #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/DeAbAY5kh2P/",
+      "fb": "1153412231189064_122138218227360682"
+    },
+    "publicado_at": "2026-10-02T21:12:54.389962Z"
   },
   {
     "id": 2,
