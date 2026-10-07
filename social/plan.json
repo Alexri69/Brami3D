@@ -44,7 +44,12 @@
       "https://brami3d.app/m/oct-03-seguimiento.png"
     ],
     "caption": "🔔 Un presupuesto sin respuesta no es un no. Casi siempre es un cliente que se ha despistado. En Brami3D tienes los presupuestos sin aceptar a la vista y les mandas un recordatorio con el PDF y el enlace para aceptarlo desde el móvil. #impresion3d #presupuesto #ventas #3dprinting #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/DeNXEp1DN2K/",
+      "fb": "1153412231189064_122139585885360682"
+    },
+    "publicado_at": "2026-10-07T21:48:35.710060Z"
   },
   {
     "id": 4,
