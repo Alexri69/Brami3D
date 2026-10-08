@@ -4,7 +4,8 @@ Brami3D — gestión para negocio de impresión 3D. Static site **sin build**, e
 
 ## Archivos
 - `brami3d_supabase.html` — SPA completa, la app de verdad. Módulos propios en `js/` (scripts clásicos, **sin build**, cargan antes del script principal y están en el APP_SHELL de `sw.js`): `js/i18n.js` (LANG/I18N/`t()`), `js/verifactu.js` (registro fiscal) y `js/slicer.js` (lector de G-code/3MF). `scripts/test.js` concatena HTML+módulos para extraer funciones.
-- `landing.html` — marketing (precios, modal de pago) · `index.html` — redirige a landing
+- `index.html` — **web del taller** (portada de brami3d.app: catálogo sin precios con pedido por WhatsApp/email, personalizados, encargos y enlace a la app). Fotos en `taller/` (WebP <64 KB, fondo quitado con Higgsfield). **Sin personajes con marca** (Nintendo, Disney, Pokémon, One Piece): decisión del owner por riesgo legal.
+- `landing.html` — marketing de la app (precios, modal de pago), enlazada desde el taller como "La app para makers"
 - `p.html` — aceptación pública de presupuestos (sin login) · `gracias.html` — post-pago PayPal
 - `cookies.html` · `privacidad.html` · `promo_instagram.html`
 - `supabase/functions/*` — Edge Functions (Deno) · `sql/*.sql` — migraciones (a mano en SQL Editor)
