@@ -537,6 +537,7 @@ let _lastSyncAt = 0;     // timestamp del último loadAll OK (throttle de resume
 let _hasAnticipo = false; // ¿existe la columna pedidos.anticipo? (migración sql/009)
 let _hasShare = false;    // ¿existen las columnas de aceptación pública? (migración sql/010)
 let _hasMant = false;     // ¿existen las columnas de mantenimiento de impresoras? (migración sql/018)
+let _hasWeb = false;      // ¿existe config.web (web del taller en el enlace público)? (migración sql/028)
 let _hasStockDesc = false; // ¿existe pedidos.stock_descontado? (migración sql/021)
 const MANT_DEFAULT = 250; // horas por defecto entre mantenimientos
 
@@ -1377,7 +1378,8 @@ function _unmapCfgForDb(c){
     user_id:CU.id, coste_por_gramo:c.costePorGramo??c.coste_por_gramo, coste_por_hora:c.costePorHora??c.coste_por_hora, margen:c.margen,
     moneda:c.moneda, empresa:c.empresa, telefono:c.telefono, email:c.email, nif:c.nif, direccion:c.direccion, logo:c.logo,
     tipo_iva:c.tipoIva??c.tipo_iva, nombre_impuesto:c.nombreImpuesto??c.nombre_impuesto, tipo_iva2:c.tipoIva2??c.tipo_iva2, nombre_impuesto2:c.nombreImpuesto2??c.nombre_impuesto2,
-    formato_fecha:c.formatoFecha??c.formato_fecha, separador_decimal:c.separadorDecimal??c.separador_decimal, prefijo_presupuesto:c.prefijoPres??c.prefijo_presupuesto, prefijo_factura:c.prefijoFact??c.prefijo_factura
+    formato_fecha:c.formatoFecha??c.formato_fecha, separador_decimal:c.separadorDecimal??c.separador_decimal, prefijo_presupuesto:c.prefijoPres??c.prefijo_presupuesto, prefijo_factura:c.prefijoFact??c.prefijo_factura,
+    ...(_hasWeb && c.web!==undefined ? {web:c.web||''} : {})
   };
 }
 
@@ -1725,6 +1727,8 @@ async function loadAll(silent=false){
   _cache.archivos   = ar.data||[];
   _cache.gastos     = gs.data||[];
   _cache.cfg        = cfg.data ? mapCfg(cfg.data) : {costePorGramo:0.03,costePorHora:0.15,margen:30,moneda:'€',empresa:'',telefono:'',email:'',tipoIva:0,nombreImpuesto:'IVA'};
+  if(cfg.data){ _hasWeb = ('web' in cfg.data); }
+  else { try { const {error}=await sb.from('config').select('web').limit(1); _hasWeb=!error; } catch(_){ _hasWeb=false; } }
 
   // Resolver plan: whitelist admin > row de user_plans > default free.
   // Si la tabla aún no existe (SQL no aplicado) cae a default gracias al catch de arriba.
@@ -1802,7 +1806,7 @@ function mapPiezas(rows){ return rows.map(r=>({
 function mapCfg(r){ return {
   costePorGramo:r.coste_por_gramo,costePorHora:r.coste_por_hora,
   margen:r.margen,moneda:r.moneda,empresa:r.empresa,telefono:r.telefono,email:r.email,
-  nif:r.nif||'', direccion:r.direccion||'', logo:r.logo||'',
+  nif:r.nif||'', direccion:r.direccion||'', logo:r.logo||'', web:r.web||'',
   tipoIva:Number(r.tipo_iva||0), nombreImpuesto:r.nombre_impuesto||'IVA',
   tipoIva2:Number(r.tipo_iva2||0), nombreImpuesto2:r.nombre_impuesto2||'',
   formatoFecha:r.formato_fecha||'DD/MM/YYYY',
@@ -6640,6 +6644,7 @@ ${fld(t('cfg.bizNif'),'biz_nif',cfg.nif||'')}
 ${fld(t('cfg.bizAddress'),'biz_direccion',cfg.direccion||'')}
 ${fld(t('cfg.bizPhone'),'biz_telefono',cfg.telefono||'')}
 ${fld(t('cfg.bizEmail'),'biz_email',cfg.email||'')}
+${fld(t('cfg.bizWeb'),'biz_web',cfg.web||'','url')}
 <div style="margin:14px 0">
   <label style="display:block;font-size:12px;color:var(--text4);margin-bottom:6px;font-weight:600">${t('cfg.logoLabel')}</label>
   <div id="logo-preview-wrap" style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
@@ -6777,13 +6782,18 @@ async function saveConfigIntl(){
 }
 
 async function saveBiz(){
-  const d=gfd(['biz_empresa','biz_nif','biz_direccion','biz_telefono','biz_email']);
+  const d=gfd(['biz_empresa','biz_nif','biz_direccion','biz_telefono','biz_email','biz_web']);
   // Logo: mantiene el pendiente cargado en _pendingLogo si hay uno, si no el actual de cfg
   const logoFinal = (_pendingLogo!==undefined) ? _pendingLogo : (_cache.cfg.logo||'');
   const row={user_id:CU.id,empresa:d.biz_empresa||'',nif:d.biz_nif||'',direccion:d.biz_direccion||'',telefono:d.biz_telefono||'',email:d.biz_email||'',coste_por_gramo:_cache.cfg.costePorGramo,coste_por_hora:_cache.cfg.costePorHora,margen:_cache.cfg.margen,moneda:_cache.cfg.moneda,logo:logoFinal,tipo_iva:_cache.cfg.tipoIva||0,nombre_impuesto:_cache.cfg.nombreImpuesto||'IVA'};
+  // Web: se normaliza a https:// y solo se guarda si la columna existe (sql/028)
+  let web=String(d.biz_web||'').trim();
+  if(web && !/^https?:\/\//i.test(web)) web='https://'+web;
+  if(_hasWeb) row.web=web;
+  else if(web) showToast(t('cfg.bizWebNoCol'),'err');
   const {error}=await sb.from('config').upsert(row,{onConflict:'user_id'});
   if(error){showToast('Error: '+error.message,'err');return;}
-  _cache.cfg={..._cache.cfg,empresa:d.biz_empresa,nif:d.biz_nif,direccion:d.biz_direccion,telefono:d.biz_telefono,email:d.biz_email,logo:logoFinal};
+  _cache.cfg={..._cache.cfg,empresa:d.biz_empresa,nif:d.biz_nif,direccion:d.biz_direccion,telefono:d.biz_telefono,email:d.biz_email,logo:logoFinal,...(_hasWeb?{web}:{})};
   _pendingLogo=undefined;
   refreshBizHeader();
   const b=$('scb2');if(b){b.textContent='✅ '+t('common.saved');setTimeout(()=>{b.textContent=t('cfg.saveBiz');},2000);}

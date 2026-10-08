@@ -50,6 +50,14 @@ td{padding:9px 6px;font-size:13px;border-bottom:1px solid #0f1d33}
 .spinner{width:34px;height:34px;border:3px solid #1d3a6e;border-top-color:#60a5fa;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
 @keyframes spin{to{transform:rotate(360deg)}}
 a.contact{color:#60a5fa;text-decoration:none}
+.thanks{background:rgba(34,197,94,.08);border:1.5px solid rgba(34,197,94,.35);border-radius:14px;padding:22px 18px;text-align:center;margin-top:6px}
+.thanks-t{font-size:20px;font-weight:900;color:#4ade80;letter-spacing:-.3px}
+.thanks-p{font-size:14px;color:#cbd9ee;margin-top:8px}
+.links{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.lnk{flex:1 1 200px;display:flex;align-items:center;justify-content:center;gap:8px;padding:13px 14px;border-radius:12px;font-size:14px;font-weight:800;text-decoration:none;touch-action:manipulation}
+.lnk-web{background:#1d4ed8;color:#fff}
+.lnk-wa{background:#0f2a1c;color:#4ade80;border:1.5px solid rgba(34,197,94,.4)}
+.lnk:focus-visible{outline:2px solid #60a5fa;outline-offset:2px}
 </style>
 </head>
 <body>
@@ -82,9 +90,11 @@ async function load(){
     return;
   }
   if(!data){ err('Presupuesto no encontrado o enlace caducado.'); return; }
+  _p=data;
   render(data);
 }
 
+let _p=null;
 function render(p){
   const mon=p.moneda||'€';
   const t1=Number(p.tipo_iva||0);
@@ -106,8 +116,20 @@ function render(p){
   if(t2>0) taxes.push(`${esc(p.nombre_impuesto2||'Impuesto')} (${t2}%)`);
   const taxLine = taxes.length ? taxes.join(' + ')+' incluido' : 'Impuestos no incluidos';
 
-  const aceptadoHtml = p.aceptado
-    ? `<div class="accepted">✅ Presupuesto aceptado${p.aceptado_fecha?' el '+new Date(p.aceptado_fecha).toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'}):''}</div>`
+  // Enlaces del taller: web (config.web, sql/028) y WhatsApp (teléfono del taller)
+  const web=/^https?:\/\/[^\s]+$/i.test(String(p.web||'').trim()) ? String(p.web).trim() : '';
+  let wa=String(p.telefono||'').replace(/[^\d+]/g,'');
+  if(wa && !wa.startsWith('+')) wa=(wa.length===9?'34':'')+wa;
+  wa=wa.replace(/\D/g,'');
+  const waMsg=`Hola, he aceptado el presupuesto${p.pres_num?' '+p.pres_num:''}${p.proyecto?' ('+p.proyecto+')':''}.`;
+  const linksHtml=(web||wa.length>=8)
+    ? `<div class="links">${web?`<a class="lnk lnk-web" href="${esc(web)}" target="_blank" rel="noopener">🌐 Visita nuestra web</a>`:''}${wa.length>=8?`<a class="lnk lnk-wa" href="https://wa.me/${esc(wa)}?text=${encodeURIComponent(waMsg)}" target="_blank" rel="noopener">💬 Escríbenos por WhatsApp</a>`:''}</div>`
+    : '';
+
+  const aceptadoHtml = p._recien
+    ? `<div class="thanks" role="status"><div class="thanks-t">🎉 ¡Gracias${p.cliente_nombre?', '+esc(String(p.cliente_nombre).trim().split(/\s+/)[0]):''}!</div><div class="thanks-p">Hemos recibido tu aceptación. Nos ponemos con tu pedido y te avisaremos en cuanto esté listo. Puedes volver a este mismo enlace para ver en qué punto está.</div>${linksHtml}</div>`
+    : p.aceptado
+    ? `<div class="accepted">✅ Presupuesto aceptado${p.aceptado_fecha?' el '+new Date(p.aceptado_fecha).toLocaleDateString('es-ES',{day:'2-digit',month:'long',year:'numeric'}):''}</div>${linksHtml}`
     : `<button class="btn btn-accept" id="accept-btn" onclick="aceptar()">✅ Aceptar presupuesto</button>`;
 
   // "Sigue tu pedido": tracker de estado cuando el presupuesto ya está aceptado.
@@ -156,8 +178,9 @@ async function aceptar(){
   try { ({error}=await sb.rpc('aceptar_presupuesto',{tok:token})); }
   catch(e){ error=e; }
   if(error){ if(btn){ btn.disabled=false; btn.textContent='✅ Aceptar presupuesto'; } alert('No se pudo aceptar. Inténtalo de nuevo.'); return; }
-  const box=document.querySelector('.btn-accept');
-  if(box) box.outerHTML=`<div class="accepted">✅ ¡Presupuesto aceptado! Gracias. Nos pondremos en contacto contigo.</div>`;
+  // Re-pinta con el agradecimiento (y el tracker "En cola")
+  _p={..._p,aceptado:true,aceptado_fecha:_p.aceptado_fecha||new Date().toISOString(),_recien:true};
+  render(_p);
 }
 
 load();
