@@ -259,6 +259,9 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
 .btn-secondary:hover{background:var(--bg2);border-color:var(--border);color:var(--text2);transform:translateY(-1px)}
 .btn-danger{background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;border:none;border-radius:10px;padding:10px 20px;font-weight:700;font-size:14px;box-shadow:0 4px 12px rgba(239,68,68,.25)}
 .btn-danger:hover{box-shadow:0 6px 18px rgba(239,68,68,.4);transform:translateY(-1px)}
+.sl-drop{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:12px;padding:10px 12px;border:1.5px dashed rgba(59,130,246,.45);border-radius:10px;background:rgba(59,130,246,.06);color:var(--text3);font-size:12px;cursor:pointer;transition:all .15s}
+.sl-drop b{color:#60a5fa}
+.sl-drop:hover,.sl-drop.over{background:rgba(59,130,246,.14);border-color:#60a5fa}
 .btn-icon{background:none;border:none;font-size:16px;opacity:.5;padding:6px 7px;border-radius:8px;transition:all .15s;line-height:1}
 .btn-icon:hover{opacity:1;background:rgba(128,128,128,.1);transform:none!important}
 .fact-btn{color:#4ade80!important;opacity:1!important}.fact-btn:hover{background:rgba(34,197,94,.1)!important}
@@ -506,6 +509,7 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
      También están en el APP_SHELL de sw.js para el arranque offline. -->
 <script src="/js/i18n.js"></script>
 <script src="/js/verifactu.js"></script>
+<script src="/js/slicer.js"></script>
 <script>
 // ═══════════════════════════════════════════════
 //  SUPABASE INIT
@@ -4870,6 +4874,9 @@ function renderLineas(){
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
 <span style="font-size:11px;font-weight:800;color:var(--text5);text-transform:uppercase;letter-spacing:1px">${t('ln.part')} ${i+1}</span>
 ${_lineas.length>1?`<button class="btn-icon" style="color:#f87171;font-size:12px;padding:3px 8px;border:1px solid rgba(239,68,68,.25);border-radius:6px" onclick="removeLinea('${l.id}')">${t('ln.remove')}</button>`:''}</div>
+<label class="sl-drop" ondragover="event.preventDefault();this.classList.add('over')" ondragleave="this.classList.remove('over')" ondrop="event.preventDefault();this.classList.remove('over');aplicarArchivoLaminador('${l.id}',event.dataTransfer.files[0])">
+<input type="file" accept=".gcode,.gco,.g,.bgcode,.3mf,.stl" hidden onchange="aplicarArchivoLaminador('${l.id}',this.files[0]);this.value=''">
+<span style="font-size:16px">📂</span><b>${t('sl.drop')}</b><span>${t('sl.hint')}</span></label>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 14px">
 <div class="field"><label>${t('ln.template')}</label><select onchange="applyPiezaPlantilla('${l.id}',this.value)" style="font-size:13px">${pOpts.map(o=>`<option value="${esc(o.value)}"${o.value===l.piezaId?' selected':''}>${esc(o.label)}</option>`).join('')}</select></div>
 <div class="field"><label>${t('ln.descRequired')}</label><input type="text" value="${esc(l.nombre)}" oninput="updateLinea('${l.id}','nombre',this.value)" placeholder="${t('ln.descPlaceholder')}"></div>
@@ -4928,6 +4935,41 @@ function syncLineaPeso(lid){
   if(l.filamentos[0]) l.filamentoId=l.filamentos[0].filamentoId;
 }
 function applyPiezaPlantilla(lid,pid){const l=_lineas.find(x=>x.id===lid);if(!l)return;l.piezaId=pid;if(pid){const p=_cache.piezas.find(x=>x.id===pid);if(p){l.nombre=p.nombre;l.material=p.material;l.peso=p.peso;l.tiempoImpresion=p.tiempoImpresion;if(l.filamentos)l.filamentos[0].peso=p.peso;}}renderLineas();}
+// Rollo del inventario que mejor encaja con un filamento del laminador:
+// mismo material y, si hay color, el más parecido; si no, el que más queda.
+function filamentoParecido(fil){
+  const cands=(_cache.filamentos||[]).filter(f=>normalizarMaterial(f.tipo)===fil.material);
+  if(!cands.length) return '__manual__';
+  const rgb=h=>{const m=hexColor(h);return m?[1,3,5].map(i=>parseInt(m.slice(i,i+2),16)):null;};
+  const c0=rgb(fil.color);
+  const dist=f=>{const c=rgb(f.color);return c0&&c?c.reduce((s,v,i)=>s+(v-c0[i])**2,0):Infinity;};
+  return cands.slice().sort((a,b)=>dist(a)-dist(b)||(b.pesoRestante||0)-(a.pesoRestante||0))[0].id;
+}
+// Archivo del laminador (G-code/3MF) → rellena tiempo, filamentos y nombre de la pieza.
+async function aplicarArchivoLaminador(lid,file){
+  const l=_lineas.find(x=>x.id===lid);
+  if(!l||!file) return;
+  let r;
+  try{ r=await leerArchivoLaminador(file); }
+  catch(e){ showToast(t('sl.err.'+(['model','unsliced','browser','nodata'].includes(e.code)?e.code:'nodata')),'err',7000); return; }
+  let fils=r.filamentos.slice();
+  if(fils.length>3){
+    showToast(t('sl.more3',{n:fils.length}),'warn',6000);
+    fils[2]={...fils[2],gramos:fils.slice(2).reduce((s,f)=>s+f.gramos,0)};
+    fils=fils.slice(0,3);
+  }
+  if(fils.length) l.filamentos=fils.map(f=>({filamentoId:filamentoParecido(f),peso:String(round2(f.gramos))}));
+  if(fils[0]?.material) l.material=fils[0].material;
+  if(r.segundos) l.tiempoImpresion=String(round2(r.segundos/3600));
+  if(!l.nombre) l.nombre=nombreDesdeArchivo(file.name);
+  l.piezaId='';
+  syncLineaPeso(lid);
+  renderLineas();
+  const g=round2(fils.reduce((s,f)=>s+f.gramos,0));
+  const h=Math.floor((r.segundos||0)/3600), m=Math.round(((r.segundos||0)%3600)/60);
+  showToast(t('sl.ok',{g,t:`${h} h ${m} min`})+(r.laminador?` · ${r.laminador}`:'')+(r.placas>1?' · '+t('sl.plates',{n:r.placas}):''),'ok',5000);
+  try{ window.b3dTrack&&b3dTrack('slicer_import',{laminador:r.laminador||'desconocido',filamentos:fils.length}); }catch(_){}
+}
 function applyFilamento(lid,fid){const l=_lineas.find(x=>x.id===lid);if(!l)return;l.filamentoId=fid;delete l.precioKg;if(fid&&fid!=='__manual__'){const f=_cache.filamentos.find(x=>x.id===fid);if(f)l.material=f.tipo;}renderLineas();}
 
 function refreshCostPreview(){

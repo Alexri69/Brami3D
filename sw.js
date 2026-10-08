@@ -1,4 +1,4 @@
-const CACHE_NAME = 'b3d-cdn-v9';
+const CACHE_NAME = 'b3d-cdn-v10';
 
 // Recursos CDN externos, con versión exacta (deben coincidir con los <script>
 // de la app, que llevan SRI).
@@ -16,6 +16,7 @@ const APP_SHELL = [
   '/brami3d_supabase.html',
   '/js/i18n.js',
   '/js/verifactu.js',
+  '/js/slicer.js',
   '/manifest.webmanifest',
   '/icon-192.png',
   '/icon-512.png'

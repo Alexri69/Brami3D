@@ -3,7 +3,7 @@
 Brami3D — gestión para negocio de impresión 3D. Static site **sin build**, en `brami3d.app` vía GitHub Pages (**push a `main` = producción**). Pensada como **SaaS multi-taller**. Tras cada cambio: **commit + push** (despliega solo). Responder siempre en español.
 
 ## Archivos
-- `brami3d_supabase.html` — SPA completa, la app de verdad. Módulos propios en `js/` (scripts clásicos, **sin build**, cargan antes del script principal y están en el APP_SHELL de `sw.js`): `js/i18n.js` (LANG/I18N/`t()`) y `js/verifactu.js` (registro fiscal). `scripts/test.js` concatena HTML+módulos para extraer funciones.
+- `brami3d_supabase.html` — SPA completa, la app de verdad. Módulos propios en `js/` (scripts clásicos, **sin build**, cargan antes del script principal y están en el APP_SHELL de `sw.js`): `js/i18n.js` (LANG/I18N/`t()`), `js/verifactu.js` (registro fiscal) y `js/slicer.js` (lector de G-code/3MF). `scripts/test.js` concatena HTML+módulos para extraer funciones.
 - `landing.html` — marketing (precios, modal de pago) · `index.html` — redirige a landing
 - `p.html` — aceptación pública de presupuestos (sin login) · `gracias.html` — post-pago PayPal
 - `cookies.html` · `privacidad.html` · `promo_instagram.html`
@@ -39,6 +39,7 @@ Desplegar: panel web (Edge Functions → *Via Editor*) **o** `npm run deploy:fun
 - **Rectificativas** (R1 por diferencias): botón "Rectificar" en Registro fiscal → `abrirRectificativa()`/`emitirRectificativa()` — importes en negativo, serie propia `rectnum` (`sql/023`), mismo hash-chain, PDF propio (`buildRectificativaPdf`), opción de liberar el pedido para refacturar.
 - **Precio congelado**: al cobrar/facturar, `precio_final` se rellena con `precioCongelado(o)` (si no, margen/kWh actuales movían pedidos cobrados); migración única `congelarPreciosPagados()`. **Pedido facturado bloqueado** (importe, piezas, cliente, cobro, borrado) → se corrige con rectificativa. El PDF de factura sale del **registro fiscal** (`registrarFactura` devuelve importes + snapshot); inserción encadenada con reintento `insertarRegistroEncadenado()`; numeración fiscal sin fallback offline. `desgloseImpuestos()` reparte IVA + 2º impuesto.
 - **CDN con versión exacta + SRI** (supabase-js 2.117.2, chart, jspdf, qrious): al actualizar, cambiar URL+hash en la app, `p.html` y `CDN_SHELL` de `sw.js` (y subir `CACHE_NAME`).
+- **Importar archivo del laminador**: en cada pieza del pedido, zona `.sl-drop` (arrastrar o pulsar) → `aplicarArchivoLaminador()` → `leerArchivoLaminador()` (`js/slicer.js`) rellena gramos por filamento, tiempo, material y nombre; `filamentoParecido()` asigna el rollo del inventario (material + color más cercano). Soporta G-code de PrusaSlicer/Orca/Bambu/Cura/Simplify3D, `.bgcode` y `.3mf` laminado (lector ZIP propio con `DecompressionStream`, `slice_info.config` o `plate_N.gcode`). Todo en local, no sube el archivo. Evento GA `slicer_import`.
 - **Recordatorio de presupuesto** (🔔 en Pedidos, presupuestos no aceptados): `recordarPresupuesto()` → modal de email con texto de seguimiento + PDF + enlace público si existe. **Export trimestral para el gestor** (botón en Registro fiscal): `abrirExportTrimestral()` → CSV de facturas del trimestre (rectificativas en negativo) + CSV de gastos, con fila TOTAL.
 
 ### i18n (ES / EN)
