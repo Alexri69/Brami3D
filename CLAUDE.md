@@ -5,9 +5,9 @@ Brami3D — gestión para negocio de impresión 3D. Static site **sin build**, e
 ## Archivos
 - `brami3d_supabase.html` — SPA completa, la app de verdad. Módulos propios en `js/` (scripts clásicos, **sin build**, cargan antes del script principal y están en el APP_SHELL de `sw.js`): `js/i18n.js` (LANG/I18N/`t()`), `js/verifactu.js` (registro fiscal) y `js/slicer.js` (lector de G-code/3MF). `scripts/test.js` concatena HTML+módulos para extraer funciones.
 - `index.html` — **web del taller** (portada de brami3d.app: catálogo sin precios con pedido por WhatsApp/email, personalizados, encargos y enlace a la app). Fotos en `taller/` (WebP <64 KB, fondo quitado con Higgsfield). **Sin personajes con marca** (Nintendo, Disney, Pokémon, One Piece): decisión del owner por riesgo legal.
-- `landing.html` — marketing de la app (precios, modal de pago), enlazada desde el taller como "La app para makers"
+- `landing.html` — marketing de la app (precios, modal de pago), enlazada desde el taller como "La app para makers" (y con enlace "El taller" de vuelta). Sección **"Arrastra el G-code"** (`#laminador`) con reel en bucle: el mp4 va **partido en `m/oct-reel-laminador/p00..p07.bin`** (36 KB c/u) y un script inline los junta con `Blob` al llegar a la sección (póster `m/oct-reel-laminador.jpg`). **Sin testimonios** (los ficticios se quitaron el 8-oct-2026: opiniones falsas = ilegal; poner solo reales).
 - `p.html` — aceptación pública de presupuestos (sin login) · `gracias.html` — post-pago PayPal
-- `cookies.html` · `privacidad.html` · `promo_instagram.html`
+- `aviso-legal.html` (LSSI: titular **Alesander Rivero Dorta**, NIF 43807041E, C/ Chineguas 181, 38107 S/C de Tenerife; condiciones de encargos) · `cookies.html` · `privacidad.html` (mismo titular y domicilio) · `promo_instagram.html`. Enlace "Aviso legal" en todos los pies.
 - `supabase/functions/*` — Edge Functions (Deno) · `sql/*.sql` — migraciones (a mano en SQL Editor)
 - `scripts/*` — utilidades (marketing, email, informes) · `m/` — imágenes públicas para redes
 
@@ -29,6 +29,14 @@ Desplegar: panel web (Edge Functions → *Via Editor*) **o** `npm run deploy:fun
 - `reenganche` — **cron ACTIVO** (`brami3d-reenganche-semanal`, lunes 09:00 UTC, `sql/019`). Service role: usuarios registrados ≥7d **sin pedidos**, no admins/demo, **no contactados** → email bienvenida con **guía PDF adjunta** (de `brami3d.app/guia-brami3d.pdf`); registra en `reenganche_enviado` para no repetir. `x-cron-secret` (`CRON_SECRET`). Manual: `scripts/reenganche.py --to … [--dry]`.
 
 > ⚠️ Nunca pegar en chat `sk_live_`/`whsec_`/tokens → van directos a Supabase secrets. La publishable sí puede ir embebida.
+
+## Web del taller (`index.html`)
+Portada de brami3d.app (oscuro, misma paleta/tipos que la landing: el owner **prefiere el estilo oscuro**). Secciones: hero · **Catálogo** · **Ideas** · Personalizados (vista previa del nombre) · Encargos (4 pasos) · La app · Contacto. Botones → WhatsApp `34648931530` / `brami3d@gmail.com` con mensaje prellenado (JS al final). Sin GA ni banner de cookies.
+- **Catálogo (piezas propias, foto real, sin precio)**: dispensador de cápsulas, Book Tracker, torre para cápsulas *tipo Dolce Gusto* (nota "marca de Nestlé, compatible no oficial"; la foto aún muestra una etiqueta "Kit-Kat" → sustituir por otra con etiquetas genéricas), monedero organizador (para conductores; foto principal **retocada**: tapa "Monedero 00000" en vez de TITSA + datos del cliente) y caja con bisagras personalizable (foto con el **logo de la ONCE borrado**). Las retocadas llevan nota "Foto retocada". **Se venden sin las marcas** (TITSA/ONCE).
+- **Ideas** (`#ideas`): 7 fotos de Flickr **CC BY 2.0** (verificada la licencia en cada página), con etiqueta "Foto ilustrativa", crédito autor + licencia + "recortada" y aviso de que la pieza real difiere. Nunca fotos de MakerWorld/Printables/tiendas ni Unsplash+ (de pago); Openverse con `license_type=commercial` sirve para buscar.
+- **Reglas de marca**: nada de personajes/logos (Nintendo, Disney, Pokémon, One Piece, TITSA, ONCE…). Decir "compatible con X" sí vale. Nombres reales de terceros (niños, clientes) fuera de las fotos.
+- **Fotos nuevas**: carpeta `fotos` del Escritorio (OneDrive) → reducir a 1600 px sin EXIF → subir a Supabase por TUS (trozos 40 KB) → `media_import_url` + `remove_background` de **Higgsfield** (1 crédito/foto, plan free, 1 trabajo a la vez; quedan 3 créditos el 8-oct) → componer 1000×1000 sobre degradado de estudio con sombra → WebP <64 KB en `taller/`. Logos/texto se borran con OpenCV (inpaint o clonar textura de la propia pieza). **Push: cada imagen en su propio commit/push** y la página al final.
+- Validar con la skill `web-design-guidelines` (Vercel) y captura a 390 px (iframe; Chrome headless no baja de ~500 px).
 
 ## App (`brami3d_supabase.html`)
 - `sb = createClient(SUPA_URL, SUPA_KEY)` (publishable). Estado: `CU`, `PAGE`, `_cache`, `_lineas`.
@@ -68,7 +76,7 @@ Precios: Gratis · Pro Mensual **9 €** · Pro Anual **79 €**. `irACheckout(p
   - Cada post en `plan-mes.json`: `{id, fecha, redes, tipo, archivos[], caption, estado}`; **reels/vídeo** llevan además `"video": "ruta/al.mp4"` (con `archivos: []`). `preparar.py` copia imágenes **y** el mp4 a `m/` (URL pública que IG exige) y vuelca a `plan.json`. `publicar_hoy.py` publica los de HOY: si el post tiene `video` → reel en IG (`publish_ig_video`) + vídeo de feed en FB (`publish_fb_video`); si no, imagen/carrusel. Marca `estado=publicado` + `publicado_en/at` (idempotente por red).
   - ⚠️ **`preparar.py` REESCRIBE `social/plan.json` entero** (no fusiona). Ejecutarlo **solo al cambiar de mes**, cuando el mes en curso ya se publicó: si se lanza antes, borra los posts pendientes del mes actual. Copia del mes anterior en `marketing/plan-<mes>.json`. Recuperar con `git restore social/plan.json` si se ejecuta por error.
 - **Imágenes/carruseles**: `marketing/<mes>/*.html` (1080×1350 por `.slide`, CSS de marca en `estilo.css` enlazado, nada de placeholders) → `python scripts/render_slides.py marketing/<mes>` (Chrome headless + corte PIL; **falla** si queda un `${...}` o si el contenido pisa el pie). Revisar los PNG a ojo antes de `preparar.py`. Octubre 2026 se hizo así (13 posts).
-- **Reels/vídeo propios (sin IA, gratis)**: cada pieza es una carpeta `marketing/<mes>/<pieza>/index.html` (1080×1920, GSAP + `window.__timelines["main"]`) que **HyperFrames** convierte en mp4 H.264 con los binarios de `ffmpeg-static`/`ffprobe-static`. Scripts: `scripts/render_reels.js` (agosto), `scripts/render_septiembre.js` (septiembre, acepta `node scripts/render_septiembre.js reel-03` para una sola). ⚠️ En la máquina del owner (8 GB RAM, gráficos integrados) el render **muere a mitad** con `Target closed` si no se pasa **`--no-browser-gpu`** (+ `--low-memory-mode`); ya va en el script, no quitarlo.
+- **Reels/vídeo propios (sin IA, gratis)**: cada pieza es una carpeta `marketing/<mes>/<pieza>/index.html` (1080×1920, GSAP + `window.__timelines["main"]`) que **HyperFrames** convierte en mp4 H.264 con los binarios de `ffmpeg-static`/`ffprobe-static`. Scripts: `scripts/render_reels.js` (agosto), `scripts/render_septiembre.js` (septiembre, acepta `node scripts/render_septiembre.js reel-03` para una sola), `scripts/render_octubre.js` (reel "arrastra el G-code", `marketing/octubre/reel-laminador/`; publicado en IG/FB el 8-oct-2026 desde URL firmada de Supabase). ⚠️ En la máquina del owner (8 GB RAM, gráficos integrados) el render **muere a mitad** con `Target closed` si no se pasa **`--no-browser-gpu`** (+ `--low-memory-mode`); ya va en el script, no quitarlo.
 - **Workflows**: `publicar-redes.yml` (cron 17:00 UTC + dispatch; secret `META_ACCESS_TOKEN`), `verificar-token.yml` (`scripts/verificar_token.py`, lunes 07:00; avisa si el token se invalida).
 
 ## Analítica (GA4)
@@ -76,6 +84,10 @@ Measurement ID **`G-C5P6F52QE3`**, propiedad **`531047655`**. `gtag` en `brami3d
 - **Informe**: `scripts/ga_informe.py [--dias 30] [--email destino]` (GA4 Data API, cuenta de servicio `brami3d-informes@mindful-accord-500814-t1.iam.gserviceaccount.com`, JSON en `secretos/ga-service-account.json` gitignored, `GA_PROPERTY_ID` en `.env`; debe ser Lector en GA4). Con `--email` → Resend.
 - **Email semanal**: `informe-ga.yml` (lunes 08:00 UTC). Secrets GitHub: `GA_SERVICE_ACCOUNT_JSON`, `RESEND_API_KEY`.
 
+## Skills instaladas (globales, `~/.claude/skills`)
+`find-skills` (buscar/instalar: `npx skills find …` / `npx skills add <owner/repo@skill> -g -y`), `frontend-design` (Anthropic), `web-design-guidelines` (Vercel), `higgsfield-art-director`.
+
 ## Pendiente / ideas
+- **Taller**: foto nueva de la torre Dolce Gusto sin "Kit-Kat"; sustituir ideas ilustrativas por fotos reales cuando se impriman; comprobar licencia comercial del modelo Book Tracker.
 - **Landing en inglés** (la app ya es bilingüe). i18n del botón "Gestionar suscripción" y limpiar políticas RLS duplicadas (cosmético). Si se añaden claves i18n o funciones fiscales, van en `js/i18n.js` / `js/verifactu.js` (no en el HTML).
 - ~~Rotar `CRON_SECRET`~~ **hecho el 2026-07-04** (estaba hardcodeado en `sql/016`, repo público). Si vuelve a rotarse: `secrets set` + actualizar los 3 crons (`recordatorios`, `reenganche`, `backup-mensual`) + el trigger `notificar_presupuesto_aceptado`. ⚠️ Nunca commitear el secreto en `sql/*`.
