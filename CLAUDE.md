@@ -62,7 +62,7 @@ Portada de brami3d.app (oscuro, misma paleta/tipos que la landing: el owner **pr
 Precios: Gratis · Pro Mensual **9 €** · Pro Anual **79 €**. `irACheckout(plan)` → `crear-checkout` → Stripe. `_checkPagoReturn()` (`?pago=ok`), `_checkSuscribirIntent()` (`?suscribir=mensual|anual` desde landing). Landing `openPayModal(plan)`: botón tarjeta (`?suscribir=`) + PayPal manual (`paypal.me/Brami3D/9EUR`, el owner marca Pro a mano).
 
 ### Presupuestos públicos
-`p.html` usa RPCs `get_presupuesto_publico` y `aceptar_presupuesto` (deben existir como FUNCTION). La app genera el enlace para aceptar sin cuenta. Tras aceptar, el mismo enlace muestra el **tracker "sigue tu pedido"** (En cola → Imprimiendo → Terminado → Entregado + entrega prevista; `estado`/`fecha_entrega` en la RPC, `sql/024`).
+`p.html` usa RPCs `get_presupuesto_publico` y `aceptar_presupuesto` (deben existir como FUNCTION). La app genera el enlace para aceptar sin cuenta. Tras aceptar, el mismo enlace muestra el **tracker "sigue tu pedido"** (En cola → Imprimiendo → Terminado → Entregado + entrega prevista; `estado`/`fecha_entrega` en la RPC, `sql/024`). Al aceptar sale un **agradecimiento** con botones "Visita nuestra web" (`config.web`, campo "Tu web" en Config → Datos de empresa; `sql/028`, detección `_hasWeb`) y WhatsApp al teléfono del taller.
 
 ## Validar y seguridad
 - **Validar antes de commit**: `node scripts/validate.js` (compila los `<script>` inline + JSON; ignora carpetas no desplegadas) **y `node scripts/test.js`** (tests de lógica de negocio: costes, hash VeriFactu, planes — extrae las funciones reales del HTML). CI: `.github/workflows/validate.yml` (corre ambos).
