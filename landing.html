@@ -454,6 +454,30 @@ h1 em {
   transform: scale(1.02);
 }
 
+/* ── NUEVO: archivo del laminador ── */
+.slicer-sec { padding-top: 40px; }
+.slicer-sec .experience-grid { grid-template-columns: 1.2fr 0.8fr; }
+.new-badge {
+  display: inline-block;
+  background: var(--accent);
+  color: #000;
+  border-radius: 999px;
+  padding: 3px 10px;
+  margin-right: 10px;
+  letter-spacing: 1.5px;
+}
+.reel-frame {
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 9 / 16;
+  border-radius: 28px;
+  overflow: hidden;
+  border: 1px solid var(--border2);
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+  background: var(--bg2);
+}
+.reel-frame video { display: block; width: 100%; height: 100%; object-fit: cover; }
+
 /* ── TESTIMONIOS (2 Columns Premium) ── */
 .testi-grid-2 {
   display: grid;
@@ -1042,6 +1066,12 @@ footer a:hover {
   .experience-right {
     justify-content: center;
   }
+  .slicer-sec .experience-grid {
+    grid-template-columns: 1fr;
+  }
+  .reel-frame {
+    max-width: 280px;
+  }
   .testi-grid-2 {
     grid-template-columns: 1fr;
     gap: 24px;
@@ -1115,6 +1145,49 @@ footer a:hover {
     </div>
   </div>
 </section>
+
+<!-- ── NUEVO: ARCHIVO DEL LAMINADOR ── -->
+<section id="laminador" class="sec slicer-sec reveal">
+  <div class="experience-grid">
+    <div class="experience-left">
+      <span class="sec-lbl"><span class="new-badge" data-i18n="sl.new">Nuevo</span><span data-i18n="sl.lbl">Presupuesto en 5 segundos</span></span>
+      <h2 class="sec-title" data-i18n-html="sl.title">Arrastra el G-code.<br>El presupuesto se hace solo.</h2>
+      <p class="sec-sub" data-i18n="sl.sub">Suelta en el pedido el archivo de tu laminador y Brami3D lee los gramos, el tiempo y el filamento. Sin teclear y sin errores de copia.</p>
+      <ul class="chk">
+        <li data-i18n="sl.c1">PrusaSlicer, OrcaSlicer, Bambu Studio y Cura — G-code, .bgcode o 3MF laminado</li>
+        <li data-i18n="sl.c2">Varias piezas y filamentos, con el rollo de tu inventario ya asignado</li>
+        <li data-i18n="sl.c3">Privado: el archivo se lee en tu navegador, no se sube a ningún sitio</li>
+      </ul>
+    </div>
+    <div class="experience-right">
+      <div class="reel-frame">
+        <video id="reel-laminador" data-parts="8" poster="m/oct-reel-laminador.jpg" muted loop playsinline aria-label="Demostración: arrastrar un G-code a un pedido de Brami3D"></video>
+      </div>
+    </div>
+  </div>
+</section>
+<script>
+/* El reel va partido en trozos de 36 KB (m/oct-reel-laminador/pNN.bin): la red
+   del owner no deja subir más de 64 KB por conexión. Se juntan aquí al llegar a
+   la sección; si algo falla se queda el póster. Cuando la línea vaya bien, se
+   puede volver a un único .mp4 con src normal y borrar este script. */
+(function(){
+  const v=document.getElementById('reel-laminador');
+  if(!v||!('IntersectionObserver' in window)) return;
+  const io=new IntersectionObserver(async es=>{
+    if(!es.some(e=>e.isIntersecting)) return;
+    io.disconnect();
+    try{
+      const n=+v.dataset.parts;
+      const partes=await Promise.all(Array.from({length:n},(_,i)=>
+        fetch('m/oct-reel-laminador/p'+String(i).padStart(2,'0')+'.bin').then(r=>{ if(!r.ok) throw new Error(r.status); return r.arrayBuffer(); })));
+      v.src=URL.createObjectURL(new Blob(partes,{type:'video/mp4'}));
+      v.play().catch(()=>{});
+    }catch(_){}
+  },{rootMargin:'300px'});
+  io.observe(v);
+})();
+</script>
 
 <!-- ── TESTIMONIOS ── -->
 <section class="sec reveal" style="padding-top:40px; padding-bottom:80px;">
@@ -1347,6 +1420,12 @@ const I18N = { es:{}, en:{
   'exp.c2':'Everything in its place — orders, customers, filament stock, and maintenance',
   'exp.c3':'Total mobility — designed for smartphones and native PWAs',
   'exp.c4':'Precision metrics — energy and material costs to the millimeter',
+  'sl.new':'New','sl.lbl':'Quote in 5 seconds',
+  'sl.title':'Drop the G-code.<br>The quote builds itself.',
+  'sl.sub':'Drop your slicer file into the order and Brami3D reads the grams, print time and filament. No typing, no copy errors.',
+  'sl.c1':'PrusaSlicer, OrcaSlicer, Bambu Studio and Cura — G-code, .bgcode or sliced 3MF',
+  'sl.c2':'Multiple parts and filaments, matched to the spools in your inventory',
+  'sl.c3':'Private: the file is read in your browser, never uploaded',
   'ts.lbl':'Testimonials','ts.title':'Precision in words',
   'ts.1':'Brami3D has transformed our aerospace component production line in Alicante. From quote to print in a seamless flow.','ts.1loc':'Director of Engineering at Valls Digital',
   'ts.2':'Low volume no longer means operational chaos. The precision we demand from our printers is the same Brami3D brings to our finances.','ts.2loc':'Co-founder of Additive Atelier',
