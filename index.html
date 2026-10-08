@@ -133,6 +133,24 @@ nav {
 .card-actions .btn { flex: 1; padding: 12px 16px; font-size: 14px; }
 .precio-nota { margin-top: 14px; font-size: 12.5px; color: var(--text3); }
 
+/* ── IDEAS (fotos ilustrativas de terceros) ── */
+.ideas { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 22px; margin-top: 44px; }
+.idea { background: var(--bg2); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; }
+.idea-img { position: relative; }
+.idea-img img { width: 100%; aspect-ratio: 1; object-fit: cover; }
+.idea-tag {
+  position: absolute; top: 10px; left: 10px; font-size: 11px; font-weight: 500;
+  background: rgba(7,7,9,.78); color: var(--text2); border-radius: 6px; padding: 3px 8px;
+}
+.idea-body { padding: 16px 18px 18px; display: flex; flex-direction: column; flex: 1; }
+.idea h3 { font-size: 17px; letter-spacing: -.3px; margin-bottom: 4px; }
+.idea p { font-size: 14px; color: var(--text2); margin-bottom: 12px; }
+.idea .pedir { margin-top: auto; font-size: 14px; font-weight: 600; color: var(--wa); }
+.idea .pedir:hover { text-decoration: underline; }
+.credito { font-size: 11px; color: var(--text3); margin-top: 10px; }
+.credito a { text-decoration: underline; }
+.ideas-nota { margin-top: 22px; font-size: 13px; color: var(--text3); max-width: 760px; }
+
 /* ── PERSONALIZADOS ── */
 .perso { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; margin-top: 48px; }
 .perso-item { background: var(--bg2); border: 1px solid var(--border); border-radius: 18px; padding: 28px 24px; }
@@ -229,6 +247,7 @@ footer a:hover { color: var(--text); }
   <a href="#" class="logo" translate="no"><span class="logo-mark" aria-hidden="true">B3D</span>Brami3D</a>
   <div class="nav-links">
     <a href="#catalogo">Catálogo</a>
+    <a href="#ideas">Ideas</a>
     <a href="#personalizados">Personalizados</a>
     <a href="#encargos">Encargos</a>
     <a href="#contacto">Contacto</a>
@@ -301,6 +320,79 @@ footer a:hover { color: var(--text); }
     </article>
   </div>
   <p class="precio-nota">¿Buscas algo que no está aquí? Mira los <a href="#personalizados" style="color:var(--accent)">personalizados</a> o <a href="#encargos" style="color:var(--accent)">pídelo a medida</a>.</p>
+</section>
+
+<!-- ── IDEAS ── -->
+<section id="ideas" class="sec" style="padding-top:40px">
+  <span class="lbl">Ideas</span>
+  <h2 class="title">Más cosas que puedo imprimirte</h2>
+  <p class="sub">Tipos de piezas que hago bajo pedido. Las fotos son de ejemplo, de otros makers: tu pieza se imprime para ti, en el color y tamaño que elijas.</p>
+  <div class="ideas">
+    <article class="idea" data-idea="Jarrones">
+      <div class="idea-img"><img src="taller/idea-jarron.webp" alt="Jarrones: ejemplo de pieza impresa en 3D" width="700" height="700" loading="lazy"><span class="idea-tag">Foto ilustrativa</span></div>
+      <div class="idea-body">
+        <h3>Jarrones</h3>
+        <p>Con formas imposibles de hacer con otros métodos: ondas, espirales, relieves.</p>
+        <a class="pedir" href="#">Pedir algo así</a>
+        <p class="credito">Foto: <a href="https://www.flickr.com/photos/33907867@N02/15158250220/" target="_blank" rel="noopener">Creative Tools</a> · <a href="https://creativecommons.org/licenses/by/2.0/deed.es" target="_blank" rel="noopener">CC BY 2.0</a> · recortada</p>
+      </div>
+    </article>
+    <article class="idea" data-idea="Maceteros">
+      <div class="idea-img"><img src="taller/idea-macetero.webp" alt="Maceteros: ejemplo de pieza impresa en 3D" width="700" height="700" loading="lazy"><span class="idea-tag">Foto ilustrativa</span></div>
+      <div class="idea-body">
+        <h3>Maceteros</h3>
+        <p>Para suculentas y plantas de interior, a juego con tu casa.</p>
+        <a class="pedir" href="#">Pedir algo así</a>
+        <p class="credito">Foto: <a href="https://www.flickr.com/photos/31697990@N00/8091368155/" target="_blank" rel="noopener">rileyporter</a> · <a href="https://creativecommons.org/licenses/by/2.0/deed.es" target="_blank" rel="noopener">CC BY 2.0</a> · recortada</p>
+      </div>
+    </article>
+    <article class="idea" data-idea="Lámparas y pantallas">
+      <div class="idea-img"><img src="taller/idea-lampara.webp" alt="Lámparas y pantallas: ejemplo de pieza impresa en 3D" width="700" height="700" loading="lazy"><span class="idea-tag">Foto ilustrativa</span></div>
+      <div class="idea-body">
+        <h3>Lámparas y pantallas</h3>
+        <p>Pantallas que proyectan la luz con dibujos. Para portalámparas estándar.</p>
+        <a class="pedir" href="#">Pedir algo así</a>
+        <p class="credito">Foto: <a href="https://www.flickr.com/photos/33907867@N02/30287514404/" target="_blank" rel="noopener">Creative Tools</a> · <a href="https://creativecommons.org/licenses/by/2.0/deed.es" target="_blank" rel="noopener">CC BY 2.0</a> · recortada</p>
+      </div>
+    </article>
+    <article class="idea" data-idea="Soportes para móvil">
+      <div class="idea-img"><img src="taller/idea-soporte-movil.webp" alt="Soportes para móvil: ejemplo de pieza impresa en 3D" width="700" height="700" loading="lazy"><span class="idea-tag">Foto ilustrativa</span></div>
+      <div class="idea-body">
+        <h3>Soportes para móvil</h3>
+        <p>Para la mesilla, el escritorio o la cocina, a la medida de tu teléfono.</p>
+        <a class="pedir" href="#">Pedir algo así</a>
+        <p class="credito">Foto: <a href="https://www.flickr.com/photos/33907867@N02/12120059584/" target="_blank" rel="noopener">Creative Tools</a> · <a href="https://creativecommons.org/licenses/by/2.0/deed.es" target="_blank" rel="noopener">CC BY 2.0</a> · recortada</p>
+      </div>
+    </article>
+    <article class="idea" data-idea="Llaveros con movimiento">
+      <div class="idea-img"><img src="taller/idea-llaveros.webp" alt="Llaveros con movimiento: ejemplo de pieza impresa en 3D" width="700" height="700" loading="lazy"><span class="idea-tag">Foto ilustrativa</span></div>
+      <div class="idea-body">
+        <h3>Llaveros con movimiento</h3>
+        <p>Con piezas que giran, impresas de una sola vez y sin montaje.</p>
+        <a class="pedir" href="#">Pedir algo así</a>
+        <p class="credito">Foto: <a href="https://www.flickr.com/photos/33907867@N02/15579667540/" target="_blank" rel="noopener">Creative Tools</a> · <a href="https://creativecommons.org/licenses/by/2.0/deed.es" target="_blank" rel="noopener">CC BY 2.0</a> · recortada</p>
+      </div>
+    </article>
+    <article class="idea" data-idea="Juguetes articulados">
+      <div class="idea-img"><img src="taller/idea-serpiente.webp" alt="Juguetes articulados: ejemplo de pieza impresa en 3D" width="700" height="700" loading="lazy"><span class="idea-tag">Foto ilustrativa</span></div>
+      <div class="idea-body">
+        <h3>Juguetes articulados</h3>
+        <p>Animales flexibles que se mueven sin piezas sueltas. Encantan a los peques.</p>
+        <a class="pedir" href="#">Pedir algo así</a>
+        <p class="credito">Foto: <a href="https://www.flickr.com/photos/33907867@N02/9367412289/" target="_blank" rel="noopener">Creative Tools</a> · <a href="https://creativecommons.org/licenses/by/2.0/deed.es" target="_blank" rel="noopener">CC BY 2.0</a> · recortada</p>
+      </div>
+    </article>
+    <article class="idea" data-idea="Figuras decorativas">
+      <div class="idea-img"><img src="taller/idea-dragon.webp" alt="Figuras decorativas: ejemplo de pieza impresa en 3D" width="700" height="700" loading="lazy"><span class="idea-tag">Foto ilustrativa</span></div>
+      <div class="idea-body">
+        <h3>Figuras decorativas</h3>
+        <p>Dragones, animales y figuras para estanterías, con o sin peana.</p>
+        <a class="pedir" href="#">Pedir algo así</a>
+        <p class="credito">Foto: <a href="https://www.flickr.com/photos/33907867@N02/4646486555/" target="_blank" rel="noopener">Creative Tools</a> · <a href="https://creativecommons.org/licenses/by/2.0/deed.es" target="_blank" rel="noopener">CC BY 2.0</a> · recortada</p>
+      </div>
+    </article>
+  </div>
+  <p class="ideas-nota">Las fotos de esta sección son ilustrativas y pertenecen a sus autores, que las comparten con licencia Creative Commons. Las piezas que recibes las fabrico yo y pueden diferir en diseño, tamaño y acabado.</p>
 </section>
 
 <!-- ── PERSONALIZADOS ── -->
@@ -403,6 +495,12 @@ footer a:hover { color: var(--text); }
       main.src = b.dataset.src;
       card.querySelectorAll('.thumbs button').forEach(x => { x.classList.toggle('on', x === b); x.setAttribute('aria-pressed', x === b); });
     }));
+  });
+
+  // Ideas: "Pedir algo así" con el tipo de pieza
+  document.querySelectorAll('.idea[data-idea]').forEach(c => {
+    const a = c.querySelector('.pedir');
+    a.href = wa('Hola, he visto la idea de "' + c.dataset.idea + '" en brami3d.app. Me gustaría algo así: '); ext(a);
   });
 
   // Vista previa del nombre personalizado
