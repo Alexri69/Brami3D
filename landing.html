@@ -478,87 +478,6 @@ h1 em {
 }
 .reel-frame video { display: block; width: 100%; height: 100%; object-fit: cover; }
 
-/* ── TESTIMONIOS (2 Columns Premium) ── */
-.testi-grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 32px;
-  margin-top: 56px;
-}
-
-.testi {
-  background: var(--bg2);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 48px;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  transition: all 0.3s ease;
-}
-
-.testi:hover {
-  border-color: var(--accent-border);
-  background: rgba(20, 20, 24, 0.6);
-  box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-}
-
-.testi-quote {
-  font-family: Georgia, serif;
-  font-size: 64px;
-  color: var(--accent);
-  line-height: 1;
-  opacity: 0.2;
-  position: absolute;
-  top: 24px;
-  left: 32px;
-}
-
-.testi p {
-  font-size: 16px;
-  color: var(--text);
-  line-height: 1.7;
-  position: relative;
-  z-index: 2;
-  margin-bottom: 36px;
-  font-weight: 300;
-}
-
-.testi-author {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.testi-init {
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
-  background: var(--accent-dim);
-  border: 1px solid var(--accent-border);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 13.5px;
-  color: var(--accent);
-  font-family: 'Space Grotesk', sans-serif;
-}
-
-.testi-name {
-  font-size: 14.5px;
-  font-weight: 600;
-  color: var(--text);
-}
-
-.testi-loc {
-  font-size: 12px;
-  color: var(--text3);
-  margin-top: 2px;
-  font-weight: 300;
-}
-
 /* ── PRECIOS Y PLANES ── */
 .pricing {
   padding: 120px 48px;
@@ -1072,10 +991,6 @@ footer a:hover {
   .reel-frame {
     max-width: 280px;
   }
-  .testi-grid-2 {
-    grid-template-columns: 1fr;
-    gap: 24px;
-  }
   .sec, .pricing, .faq, .cta {
     padding: 80px 24px;
   }
@@ -1188,36 +1103,6 @@ footer a:hover {
   io.observe(v);
 })();
 </script>
-
-<!-- ── TESTIMONIOS ── -->
-<section class="sec reveal" style="padding-top:40px; padding-bottom:80px;">
-  <span class="sec-lbl" data-i18n="ts.lbl" style="text-align: center;">Testimonios</span>
-  <h2 class="sec-title" data-i18n="ts.title" style="text-align: center; margin-bottom: 56px;">La precisión en palabras</h2>
-  <div class="testi-grid-2">
-    <div class="testi">
-      <div class="testi-quote">“</div>
-      <p data-i18n="ts.1">Brami3D ha transformado nuestra línea de producción de componentes aeroespaciales en Alicante. De la cotización a la impresión en un flujo impecable.</p>
-      <div class="testi-author">
-        <div class="testi-init">HV</div>
-        <div>
-          <div class="testi-name">Héctor Valls</div>
-          <div class="testi-loc" data-i18n="ts.1loc">Director de Ingeniería en Valls Digital</div>
-        </div>
-      </div>
-    </div>
-    <div class="testi">
-      <div class="testi-quote">“</div>
-      <p data-i18n="ts.2">Bajo volumen ya no significa caos operativo. La precisión que exigimos a nuestras impresoras es la misma que Brami3D aporta a nuestras finanzas.</p>
-      <div class="testi-author">
-        <div class="testi-init">SL</div>
-        <div>
-          <div class="testi-name">Sofía G. Lerma</div>
-          <div class="testi-loc" data-i18n="ts.2loc">Cofundadora de Additive Atelier</div>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
 
 <!-- ── PRICING ── -->
 <section id="precios" class="pricing reveal">
@@ -1426,9 +1311,6 @@ const I18N = { es:{}, en:{
   'sl.c1':'PrusaSlicer, OrcaSlicer, Bambu Studio and Cura — G-code, .bgcode or sliced 3MF',
   'sl.c2':'Multiple parts and filaments, matched to the spools in your inventory',
   'sl.c3':'Private: the file is read in your browser, never uploaded',
-  'ts.lbl':'Testimonials','ts.title':'Precision in words',
-  'ts.1':'Brami3D has transformed our aerospace component production line in Alicante. From quote to print in a seamless flow.','ts.1loc':'Director of Engineering at Valls Digital',
-  'ts.2':'Low volume no longer means operational chaos. The precision we demand from our printers is the same Brami3D brings to our finances.','ts.2loc':'Co-founder of Additive Atelier',
   'pr.lbl':'Control Plans','pr.title':'Clear investment, no surprises','pr.sub':'Free 30-day trial. No credit card. Cancel anytime.',
   'pr.basic':'Basic','pr.free':'Free','pr.basicDesc':'Essential control for small creators.',
   'pr.b1':'Up to 10 orders per month','pr.b2':'5 active customers','pr.b3':'PDF quotes','pr.b4':'Filament stock tracking','pr.startFree':'Start free',
