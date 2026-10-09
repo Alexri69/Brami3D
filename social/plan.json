@@ -64,7 +64,12 @@
       "https://brami3d.app/m/oct-04-precio-congelado-slide-5.png"
     ],
     "caption": "📉 ¿Has cambiado el precio de una bobina y te han cambiado los números de agosto? Si el coste de tus pedidos antiguos se recalcula con el precio de hoy, tus cuentas mienten. Cada pedido tiene que recordar a cuánto pagaste el filamento ese día 👉 Desliza. #impresion3d #filamento #costes #3dprinting #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/DeSen6TAcMm/",
+      "fb": "1153412231189064_122140160961360682"
+    },
+    "publicado_at": "2026-10-09T21:30:44.131477Z"
   },
   {
     "id": 5,
