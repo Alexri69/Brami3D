@@ -80,7 +80,12 @@
       "https://brami3d.app/m/oct-05-encuesta.png"
     ],
     "caption": "Encuesta rápida 👇 ¿Cuántos pedidos sacas al mes? A) Menos de 5 · B) Entre 5 y 20 · C) Entre 20 y 50 · D) Más de 50 (y no duermes). Responde con la letra en comentarios, que tengo curiosidad. #impresion3d #3dprinting #maker #emprender #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/DeXjkm0AY_1/",
+      "fb": "1153412231189064_122140714731360682"
+    },
+    "publicado_at": "2026-10-11T20:50:17.579350Z"
   },
   {
     "id": 6,
