@@ -117,7 +117,12 @@
       "https://brami3d.app/m/oct-07-anticipo.png"
     ],
     "caption": "💶 Pedido grande = anticipo. Siempre. Si el cliente se echa atrás a mitad, el filamento y las horas de máquina ya los has puesto tú. En Brami3D apuntas la señal en el pedido y ves en todo momento cuánto queda por cobrar. #impresion3d #cosplay #negocio #3dprinting #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/DekUpRDCb0Z/",
+      "fb": "1153412231189064_122141944425360682"
+    },
+    "publicado_at": "2026-10-16T19:49:47.351702Z"
   },
   {
     "id": 8,
