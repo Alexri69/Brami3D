@@ -133,7 +133,12 @@
       "https://brami3d.app/m/oct-08-quedan-2-dias.png"
     ],
     "caption": "⏰ Quedan 2 días: el 20 de octubre cierra el plazo del IVA del 3T. Facturas, rectificativas y gastos al gestor HOY, no el 20 a las 23:00. Si usas Brami3D: Registro fiscal → Export trimestral y listo. #autonomo #iva #impresion3d #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/DepajWCnbQo/",
+      "fb": "1153412231189064_122142414627360682"
+    },
+    "publicado_at": "2026-10-18T19:17:49.224014Z"
   },
   {
     "id": 9,
