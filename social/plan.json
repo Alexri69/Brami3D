@@ -153,7 +153,12 @@
       "https://brami3d.app/m/oct-09-navidad-slide-5.png"
     ],
     "caption": "🎄 La campaña de Navidad empieza ahora, no en diciembre. Cuenta tus horas de máquina, compra filamento antes del pico, revisa las impresoras y fija tus precios de temporada 👉 Desliza. ¿Ya te han llegado los primeros encargos navideños? #impresion3d #navidad #3dprinting #maker #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/DexRDJnl-8z/",
+      "fb": "1153412231189064_122143102941360682"
+    },
+    "publicado_at": "2026-10-21T20:28:48.896961Z"
   },
   {
     "id": 10,
