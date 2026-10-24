@@ -169,7 +169,12 @@
       "https://brami3d.app/m/oct-10-referidos.png"
     ],
     "caption": "🤝 ¿Conoces a otro maker que vende sus impresiones? Invítale a Brami3D con tu enlace (Configuración → Invita y gana). Cuando se registre, los dos tenéis 30 días de Pro gratis. #impresion3d #3dprinting #maker #comunidad #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/De43Xinlxfg/",
+      "fb": "1153412231189064_122143866255360682"
+    },
+    "publicado_at": "2026-10-24T19:18:00.471141Z"
   },
   {
     "id": 11,
