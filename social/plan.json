@@ -185,7 +185,12 @@
       "https://brami3d.app/m/oct-11-rectificativa.png"
     ],
     "caption": "🧾 ¿Te equivocaste en una factura? No la borres ni la edites. Con VeriFactu cada factura queda encadenada a la anterior: lo correcto es emitir una rectificativa que corrija la diferencia. En Brami3D es un botón: \"Rectificar\". #verifactu #autonomo #facturacion #impresion3d #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/DfAyZXqoOuT/",
+      "fb": "1153412231189064_122144572953360682"
+    },
+    "publicado_at": "2026-10-27T21:08:29.626463Z"
   },
   {
     "id": 12,
