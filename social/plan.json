@@ -205,7 +205,12 @@
       "https://brami3d.app/m/oct-12-miedo-slide-5.png"
     ],
     "caption": "👻 Lo que da miedo de verdad en un taller 3D no son las calabazas: pedidos sin cobrar, quedarte sin filamento a las 3 de la mañana y no saber si este mes has ganado dinero 👉 Desliza. ¿Cuál te asusta más? #impresion3d #halloween #3dprinting #maker #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/DfF_Y4rjycX/",
+      "fb": "1153412231189064_122145017559360682"
+    },
+    "publicado_at": "2026-10-29T21:38:22.393216Z"
   },
   {
     "id": 13,
