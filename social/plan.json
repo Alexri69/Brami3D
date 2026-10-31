@@ -221,6 +221,11 @@
       "https://brami3d.app/m/oct-13-cierre.png"
     ],
     "caption": "📊 Último día de octubre. ¿Sabes cuánto has ganado este mes? No facturado: ganado, después de material, luz y gastos. Brami3D te lo da por pedido y por mes. Prueba gratis 30 días en brami3d.app 🚀 #impresion3d #3dprinting #negocio #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/DfLAjrml1NE/",
+      "fb": "1153412231189064_122145415023360682"
+    },
+    "publicado_at": "2026-10-31T20:24:46.251192Z"
   }
 ]
