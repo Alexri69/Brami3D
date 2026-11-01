@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
     const body = JSON.stringify({
       title: payload.title || "Brami3D",
       body: payload.body || "",
-      url: payload.url || "https://brami3d.app/brami3d_supabase.html",
+      url: payload.url || "https://app.brami3d.app/brami3d_supabase.html",
     });
 
     let sent = 0;

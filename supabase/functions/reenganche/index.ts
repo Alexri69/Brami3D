@@ -18,7 +18,7 @@ const CRON_SECRET = Deno.env.get("CRON_SECRET") || "";
 
 const FROM = "Brami3D <hola@brami3d.app>";
 const REPLY_TO = "brami3d@gmail.com";
-const GUIA_URL = "https://brami3d.app/guia-brami3d.pdf";
+const GUIA_URL = "https://app.brami3d.app/guia-brami3d.pdf";
 const DIAS = 7;                 // antigüedad mínima de la cuenta para contactar
 const MAX_POR_EJECUCION = 200;  // tope de seguridad (rate limit de Resend)
 const EXCLUDE = ["alexri69@gmail.com", "brami3d@gmail.com", "demo@brami3d.app"];

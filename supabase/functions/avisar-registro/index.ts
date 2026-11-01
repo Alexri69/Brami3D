@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
         `ID:     ${user_id || "?"}\n` +
         `Fecha:  ${fecha}\n` +
         (total ? `\nYa sois ${total} usuarios.\n` : "") +
-        `\nPanel admin: https://brami3d.app/brami3d_supabase.html`;
+        `\nPanel admin: https://app.brami3d.app/brami3d_supabase.html`;
       const r = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { Authorization: `Bearer ${RESEND}`, "Content-Type": "application/json" },

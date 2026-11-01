@@ -1,12 +1,12 @@
 # Brami3D — Gestión para talleres de impresión 3D
 
-[![Web](https://img.shields.io/badge/web-brami3d.app-2563eb)](https://brami3d.app)
+[![Web](https://img.shields.io/badge/web-brami3d.app-2563eb)](https://app.brami3d.app)
 [![Licencia](https://img.shields.io/badge/licencia-propietaria-red)](./LICENSE)
 [![Verifactu](https://img.shields.io/badge/Verifactu-2026-22c55e)](https://sede.agenciatributaria.gob.es)
 
 **Brami3D** es una aplicación web para autónomos y talleres pequeños de impresión 3D en España. Gestiona pedidos, clientes, impresoras, filamentos, piezas y gastos, calcula costes por pieza incluyendo electricidad y desgaste de máquina, y emite **presupuestos y facturas con registro fiscal Verifactu** conforme al RD 1007/2023 y la Orden HAC/1177/2024.
 
-👉 **Pruébala en [brami3d.app](https://brami3d.app)** — registro gratis, plan Free con 10 pedidos/mes y 5 clientes.
+👉 **Pruébala en [app.brami3d.app](https://app.brami3d.app)** — registro gratis, plan Free con 10 pedidos/mes y 5 clientes.
 
 ---
 
@@ -36,7 +36,7 @@
 | Soporte prioritario | ❌ | ✅ | ✅ |
 | Prueba Pro gratis 30 días al registrarte | ✅ | — | — |
 
-Los precios y condiciones están en [brami3d.app/landing.html#precios](https://brami3d.app/landing.html#precios).
+Los precios y condiciones están en [brami3d.app/software/precios/](https://brami3d.app/software/precios/).
 
 ---
 

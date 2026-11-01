@@ -14,7 +14,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 PLAN_IN = os.path.join(ROOT, "marketing", "plan-mes.json")
 PLAN_OUT = os.path.join(ROOT, "social", "plan.json")
 MDIR = os.path.join(ROOT, "m")
-BASE = "https://brami3d.app/m/"
+BASE = "https://app.brami3d.app/m/"
 
 def main():
     plan = json.load(open(PLAN_IN, encoding="utf-8"))

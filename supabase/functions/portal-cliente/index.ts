@@ -15,7 +15,7 @@ const cors = {
 };
 
 const PUBLISHABLE = "sb_publishable_4gEjOV3kyfh8_I0f861iow__6b1ueIi";
-const APP_URL = "https://brami3d.app/brami3d_supabase.html";
+const APP_URL = "https://app.brami3d.app/brami3d_supabase.html";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });

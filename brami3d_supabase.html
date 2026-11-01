@@ -2531,7 +2531,7 @@ async function mostrarReferidos(){
   let code='', count=0;
   try{ const r=await sb.rpc('mi_ref_code'); code=r.data||''; }catch(_){}
   try{ const c=await sb.from('referidos').select('id',{count:'exact',head:true}).eq('referrer_user_id',CU.id); count=c.count||0; }catch(_){}
-  const link='https://brami3d.app/brami3d_supabase.html?ref='+encodeURIComponent(code);
+  const link='https://app.brami3d.app/brami3d_supabase.html?ref='+encodeURIComponent(code);
   const waMsg=t('ref.waMsg').replace('{url}',link);
   const wa='https://wa.me/?text='+encodeURIComponent(waMsg);
   const body=`

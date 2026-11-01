@@ -136,7 +136,7 @@ Deno.serve(async (req) => {
           `</tbody></table>`;
       }
 
-      html += `<p style="margin:22px 0 0"><a href="https://brami3d.app/brami3d_supabase.html"
+      html += `<p style="margin:22px 0 0"><a href="https://app.brami3d.app/brami3d_supabase.html"
         style="background:#F97316;color:#000;text-decoration:none;font-weight:700;padding:11px 22px;border-radius:8px;display:inline-block">Abrir Brami3D</a></p>
         <p style="color:#52525b;font-size:12px;margin-top:24px">Recibes este resumen porque tienes pendientes en Brami3D.</p></div>`;
 
