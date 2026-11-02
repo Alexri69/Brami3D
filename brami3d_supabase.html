@@ -313,11 +313,11 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
 }
 
 /* ─── PANTALLA DE REGISTRO ─── */
-#signup-screen{position:fixed;inset:0;z-index:998;overflow-y:auto;background:radial-gradient(ellipse at 20% 0%,#0f2547 0%,#070e1c 55%,#04090f 100%);color:#e2eaf4}
-#signup-screen .su-top{display:flex;align-items:center;justify-content:space-between;max-width:1040px;margin:0 auto;padding:20px 24px}
-#signup-screen .su-brand{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:900;color:#f1f5f9;letter-spacing:-1px}
-#signup-screen .su-link{background:none;border:none;color:#93c5fd;font-size:14px;font-weight:600;padding:10px 4px;min-height:44px;text-decoration:none}
-#signup-screen .su-link:hover{color:#fff;text-decoration:underline}
+.su-screen{position:fixed;inset:0;z-index:998;overflow-y:auto;background:radial-gradient(ellipse at 20% 0%,#0f2547 0%,#070e1c 55%,#04090f 100%);color:#e2eaf4}
+.su-screen .su-top{display:flex;align-items:center;justify-content:space-between;max-width:1040px;margin:0 auto;padding:20px 24px}
+.su-screen .su-brand{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:900;color:#f1f5f9;letter-spacing:-1px}
+.su-screen .su-link{background:none;border:none;color:#93c5fd;font-size:14px;font-weight:600;padding:10px 4px;min-height:44px;text-decoration:none}
+.su-screen .su-link:hover{color:#fff;text-decoration:underline}
 .su-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center;max-width:1040px;margin:0 auto;padding:24px 24px 56px}
 .su-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#4ade80;border-radius:99px;padding:6px 14px;font-size:12px;font-weight:700;letter-spacing:.4px;margin-bottom:18px}
 .su-eyebrow i{width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block}
@@ -349,12 +349,16 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
 .su-done .su-mail{width:64px;height:64px;border-radius:50%;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.35);display:flex;align-items:center;justify-content:center;margin:0 auto 18px}
 .su-done p{font-size:15px;line-height:1.6;color:#9db4cf;margin:0 0 12px}
 .su-done b{color:#fff;word-break:break-all}
+.su-forgot{display:flex;justify-content:flex-end;margin:-6px 0 14px}
+.su-forgot button{background:none;border:none;color:#93c5fd;font-size:13px;font-weight:600;padding:8px 0;min-height:40px;text-decoration:underline}
+.su-cta{display:inline-flex;align-items:center;justify-content:center;margin-top:18px;min-height:46px;padding:12px 20px;border-radius:10px;border:1.5px solid rgba(59,130,246,.45);background:rgba(37,99,235,.12);color:#93c5fd;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer}
+.su-cta:hover{background:rgba(37,99,235,.22);color:#fff}
 @media(max-width:860px){
   .su-grid{grid-template-columns:1fr;gap:32px;padding:8px 16px 40px}
   .su-form-col{order:-1}
   .su-card{padding:28px 20px}
   .su-h1{font-size:28px}
-  #signup-screen .su-top{padding:14px 16px}
+  .su-screen .su-top{padding:14px 16px}
 }
 </style>
 </head>
@@ -461,31 +465,55 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
   </div>
 </div>
 
-<!-- MODAL LOGIN -->
-<div id="login-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(4px);z-index:999;align-items:center;justify-content:center;padding:20px">
-  <div class="auth-card" style="position:relative;width:100%;max-width:380px">
-    <button onclick="closeLoginModal()" style="position:absolute;top:14px;right:14px;background:none;border:none;color:#7a9ab8;font-size:22px;cursor:pointer;line-height:1">✕</button>
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+<!-- PANTALLA DE INICIO DE SESIÓN -->
+<div id="login-modal" class="su-screen" style="display:none" role="dialog" aria-modal="true" aria-labelledby="li-title">
+  <div class="su-top">
+    <div class="su-brand">
       <svg width="30" height="33" viewBox="-7.35 10.6 110 120" fill="none" aria-hidden="true" style="flex-shrink:0"><path d="M47.6 15.6 L95.3 43.1 L47.6 70.6 L0 43.1 Z" fill="#1FA6C9"/><path d="M0 43.1 L47.6 70.6 L47.6 125.6 L0 98.1 Z" fill="#1F4FB8"/><path d="M47.6 70.6 L95.3 43.1 L95.3 98.1 L47.6 125.6 Z" fill="#173E92"/><path transform="matrix(1 0.5777 0 1 0 43.1)" fill="#FFFFFF" fill-rule="evenodd" d="M12 10 H27.5 C32.5 10 35.5 13 35.5 17.5 C35.5 20.6 34 23 31.5 24.2 C34.8 25.4 37 28.3 37 32.5 C37 39.5 33 45 27 45 H12 Z M18.5 16 H26.5 C28.4 16 29.5 17.2 29.5 19 C29.5 20.8 28.4 22 26.5 22 H18.5 Z M18.5 28 H27 C29.3 28 30.5 29.5 30.5 33.5 C30.5 37.5 29.3 39 27 39 H18.5 Z"/></svg>
-      <div style="font-size:20px;font-weight:900;color:#f1f5f9;letter-spacing:-1px">Brami3D</div>
+      Brami3D
     </div>
-    <div class="tabs">
-      <button class="tab active" id="tab-login" onclick="switchTab('login')">Iniciar sesión</button>
-      <button class="tab" id="tab-signup" onclick="openSignup()">Registrarse</button>
+    <button type="button" class="su-link" onclick="closeLoginModal()">← Volver a la calculadora</button>
+  </div>
+
+  <div class="su-grid">
+    <div class="su-info-col">
+      <div class="su-eyebrow"><i></i>¿Ya tienes cuenta? Accede</div>
+      <h1 class="su-h1">Hola de nuevo. <em>Tu taller te espera.</em></h1>
+      <p class="su-lead">Entra para seguir con tus pedidos, clientes, presupuestos y facturas, justo donde los dejaste.</p>
+      <ul class="su-list">
+        <li><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="rgba(59,130,246,.18)"/><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#60a5fa" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>La misma cuenta en el móvil y en el ordenador.</li>
+        <li><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="rgba(59,130,246,.18)"/><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#60a5fa" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Tus datos se guardan en la Unión Europea (Fráncfort).</li>
+      </ul>
+      <div class="su-note">¿Aún no tienes cuenta? Créala gratis y prueba <b>30 días el plan Pro, sin tarjeta</b>.
+        <div><button type="button" class="su-cta" onclick="openSignup()">Crear cuenta gratis</button></div>
+      </div>
     </div>
-    <div id="name-field" class="field hidden"><label>Nombre</label><input id="a-name" type="text" placeholder="Tu nombre"></div>
-    <div class="field"><label>Email</label><input id="a-email" type="email" placeholder="tu@email.com"></div>
-    <div class="field"><label>Contraseña</label><input id="a-pass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doAuth()"></div>
-    <div id="a-err" class="err-msg hidden"></div>
-    <button class="btn-primary" style="width:100%;margin-top:4px;justify-content:center" id="auth-btn" onclick="doAuth()">Entrar</button>
-    <div id="reset-wrap" style="text-align:center;margin-top:14px">
-      <button onclick="doReset()" style="background:none;border:none;color:var(--text4);font-size:12px;cursor:pointer;text-decoration:underline">¿Olvidaste tu contraseña?</button>
+
+    <div class="su-form-col">
+      <div class="su-card">
+        <form id="li-form" novalidate onsubmit="event.preventDefault();doAuth()">
+          <h2 id="li-title">Inicia sesión</h2>
+          <p class="su-sub">¿No tienes cuenta? <button type="button" onclick="openSignup()">Regístrate gratis</button></p>
+          <div class="field"><label for="a-email">Email</label><input id="a-email" type="email" autocomplete="email" inputmode="email" placeholder="tu@email.com"></div>
+          <div class="field">
+            <label for="a-pass">Contraseña</label>
+            <div class="su-pass">
+              <input id="a-pass" type="password" autocomplete="current-password" placeholder="Tu contraseña">
+              <button type="button" id="a-pass-btn" onclick="toggleLoginPass()" aria-controls="a-pass">Mostrar</button>
+            </div>
+          </div>
+          <div class="su-forgot"><button type="button" onclick="doReset()">¿Olvidaste tu contraseña?</button></div>
+          <div id="a-err" class="err-msg hidden" role="alert"></div>
+          <button type="submit" class="btn-primary su-btn" id="auth-btn">Entrar</button>
+          <div class="su-small"><svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true"><rect x="1" y="6" width="10" height="7.5" rx="1.5" fill="#5c7a9a"/><path d="M3.5 6V4.2a2.5 2.5 0 015 0V6" stroke="#5c7a9a" stroke-width="1.5" fill="none"/></svg>Conexión segura (HTTPS).</div>
+        </form>
+      </div>
     </div>
   </div>
 </div>
 
 <!-- PANTALLA DE REGISTRO -->
-<div id="signup-screen" style="display:none" role="dialog" aria-modal="true" aria-labelledby="su-title">
+<div id="signup-screen" class="su-screen" style="display:none" role="dialog" aria-modal="true" aria-labelledby="su-title">
   <div class="su-top">
     <div class="su-brand">
       <svg width="30" height="33" viewBox="-7.35 10.6 110 120" fill="none" aria-hidden="true" style="flex-shrink:0"><path d="M47.6 15.6 L95.3 43.1 L47.6 70.6 L0 43.1 Z" fill="#1FA6C9"/><path d="M0 43.1 L47.6 70.6 L47.6 125.6 L0 98.1 Z" fill="#1F4FB8"/><path d="M47.6 70.6 L95.3 43.1 L95.3 98.1 L47.6 125.6 Z" fill="#173E92"/><path transform="matrix(1 0.5777 0 1 0 43.1)" fill="#FFFFFF" fill-rule="evenodd" d="M12 10 H27.5 C32.5 10 35.5 13 35.5 17.5 C35.5 20.6 34 23 31.5 24.2 C34.8 25.4 37 28.3 37 32.5 C37 39.5 33 45 27 45 H12 Z M18.5 16 H26.5 C28.4 16 29.5 17.2 29.5 19 C29.5 20.8 28.4 22 26.5 22 H18.5 Z M18.5 28 H27 C29.3 28 30.5 29.5 30.5 33.5 C30.5 37.5 29.3 39 27 39 H18.5 Z"/></svg>
@@ -1129,8 +1157,21 @@ function calcCoste(){
 
 function openLoginModal(tab='login'){
   if(tab==='signup'){ openSignup(); return; }
-  const m=$('login-modal');
-  if(m){m.style.display='flex';switchTab(tab);}
+  closeSignup();
+  const m=$('login-modal'); if(!m) return;
+  // Si había email escrito en el registro, se lo pasamos
+  const se=$('su-email'), le=$('a-email');
+  if(se && le && se.value && !le.value) le.value=se.value;
+  switchTab('login');
+  m.style.display='block';
+  m.scrollTop=0;
+  setTimeout(()=>{ if(!matchMedia('(min-width:861px)').matches) return; const f=le&&le.value?$('a-pass'):le; if(f) f.focus(); },50);
+}
+function toggleLoginPass(){
+  const i=$('a-pass'), b=$('a-pass-btn');
+  const show=i.type==='password';
+  i.type=show?'text':'password';
+  b.textContent=show?'Ocultar':'Mostrar';
 }
 
 // ── Pantalla de registro (pantalla completa) ──
@@ -1213,17 +1254,15 @@ let authMode = 'login';
 
 function switchTab(m){
   authMode=m;
-  $('tab-login').className='tab'+(m==='login'?' active':'');
-  $('tab-signup').className='tab'+(m==='signup'?' active':'');
-  $('name-field').className='field'+(m==='signup'?'':' hidden');
-  $('auth-btn').textContent = m==='login'?'Entrar':'Crear cuenta';
+  // El registro tiene su propia pantalla; aquí solo queda el inicio de sesión.
+  $('auth-btn').textContent = 'Entrar';
   const e=$('a-err'); e.removeAttribute('style'); e.className='err-msg hidden';
 }
 
 async function doAuth(){
   const email=$('a-email').value.trim();
   const pass =$('a-pass').value;
-  const name =$('a-name').value.trim();
+  const name =$('a-name')?.value.trim()||'';
   const lbl  = authMode==='login'?'Entrar':'Crear cuenta';
   $('a-err').className='err-msg hidden';
 
