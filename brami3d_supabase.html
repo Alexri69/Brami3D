@@ -786,6 +786,14 @@ const uid  = () => crypto.randomUUID ? crypto.randomUUID() : Math.random().toStr
 const isoDate = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 const today= () => isoDate(new Date());
 
+// Importe con miles y decimales según Configuración › Separador decimal:
+// «,» → 1.620,45 € · «.» → 1620.45 € (sin miles: «1,620» se leería como 1,62)
+function fmtMon(val, cfg){
+  const coma=(cfg?.separadorDecimal||'.')===',';
+  const n=parseFloat(val||0);
+  const s=n.toLocaleString(coma?'de-DE':'en-US',{minimumFractionDigits:2,maximumFractionDigits:2,useGrouping:coma?'always':false});
+  return s+'\u00a0'+(cfg?.moneda||'\u20ac');
+}
 function fmtNum(val, cfg){
   const s=parseFloat(val||0).toFixed(2);
   return (cfg?.separadorDecimal||'.')===',' ? s.replace('.',',') : s;
@@ -3903,7 +3911,7 @@ function initDashboardCharts(){
     _charts['ingresos']=new Chart(c1,{type:'bar',data:{
       labels:mks.map(m=>m.slice(5)+'/'+m.slice(2,4)),
       datasets:[{data:mks.map(m=>parseFloat(months[m].toFixed(2))),backgroundColor:'rgba(59,130,246,.7)',borderColor:'#3b82f6',borderWidth:1,borderRadius:6}]
-    },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.parsed.y.toFixed(2)+mon}}},scales:{x:{ticks:{color:'#7a9ab8',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}},y:{ticks:{color:'#7a9ab8',font:{size:10},callback:v=>v+mon},grid:{color:'rgba(255,255,255,.06)'}}}}});
+    },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>fmtMon(ctx.parsed.y,cfg)}}},scales:{x:{ticks:{color:'#7a9ab8',font:{size:10}},grid:{color:'rgba(255,255,255,.04)'}},y:{beginAtZero:true,ticks:{color:'#7a9ab8',font:{size:10},maxTicksLimit:6,callback:v=>fmtMon(v,cfg).replace(/[.,]00(?=\u00a0)/,'')},grid:{color:'rgba(255,255,255,.06)'}}}}});
   }
   const byE={};orders.forEach(o=>{byE[o.estado]=(byE[o.estado]||0)+1;});
   const c2=$('ch-estados');
@@ -3935,11 +3943,12 @@ function initDashboardCharts(){
   const topMats=Object.entries(byMat).sort((a,b)=>b[1]-a[1]).slice(0,6);
   const c3=$('ch-materiales');
   if(c3&&topMats.length){
+    c3.parentNode.style.height=(topMats.length*30+40)+'px';
     destroyChart('materiales');
     _charts['materiales']=new Chart(c3,{type:'bar',data:{
       labels:topMats.map(([k])=>k),
       datasets:[{data:topMats.map(([,v])=>v),backgroundColor:CHART_COLORS.slice(0,topMats.length),borderWidth:0,borderRadius:6}]
-    },options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.parsed.x+' pedido'+(ctx.parsed.x!==1?'s':'')}}},scales:{x:{ticks:{color:'#7a9ab8',font:{size:10},stepSize:1},grid:{color:'rgba(255,255,255,.06)'}},y:{ticks:{color:'#7a9ab8',font:{size:11}},grid:{display:false}}}}});
+    },options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>ctx.parsed.x+' pedido'+(ctx.parsed.x!==1?'s':'')}}},scales:{x:{beginAtZero:true,ticks:{color:'#7a9ab8',font:{size:10},precision:0,maxTicksLimit:8},grid:{color:'rgba(255,255,255,.06)'}},y:{ticks:{color:'#7a9ab8',font:{size:11},autoSkip:false},grid:{display:false}}}}});
   }
 }
 
@@ -3987,14 +3996,14 @@ function pgDashboard(){
   const topCli=Object.entries(byCli).sort((a,b)=>b[1].ben-a[1].ben).slice(0,5);
   const topMat=Object.entries(byMat).sort((a,b)=>b[1].ben-a[1].ben).slice(0,6);
   const moneyCol=v=>v>=0?'#34d399':'#f87171';
-  const cliRows=topCli.length?topCli.map(([n,d])=>`<tr><td style="color:var(--text2);font-weight:600">${esc(n)}</td><td style="text-align:right;color:${moneyCol(d.ben)};font-weight:700">${d.ben.toFixed(2)}${mon}</td><td style="text-align:right;color:var(--text4)">${d.ing.toFixed(2)}${mon}</td><td style="text-align:center;color:var(--text5)">${d.n}</td></tr>`).join(''):`<tr><td colspan="4" style="text-align:center;color:var(--text5);padding:16px">${t('an.noData')}</td></tr>`;
-  const matRows=topMat.length?topMat.map(([m,d])=>{const mg=d.ing>0?(d.ben/d.ing*100):0;return`<tr><td style="color:var(--text2);font-weight:600">${esc(m)}</td><td style="text-align:right;color:${moneyCol(d.ben)};font-weight:700">${d.ben.toFixed(2)}${mon}</td><td style="text-align:right;color:var(--text4)">${d.ing.toFixed(2)}${mon}</td><td style="text-align:right;color:${moneyCol(mg)}">${mg.toFixed(0)}%</td></tr>`;}).join(''):`<tr><td colspan="4" style="text-align:center;color:var(--text5);padding:16px">${t('an.noData')}</td></tr>`;
+  const cliRows=topCli.length?topCli.map(([n,d])=>`<tr><td style="color:var(--text2);font-weight:600">${esc(n)}</td><td style="text-align:right;color:${moneyCol(d.ben)};font-weight:700">${fmtMon(d.ben,cfg)}</td><td style="text-align:right;color:var(--text4)">${fmtMon(d.ing,cfg)}</td><td style="text-align:center;color:var(--text5)">${d.n}</td></tr>`).join(''):`<tr><td colspan="4" style="text-align:center;color:var(--text5);padding:16px">${t('an.noData')}</td></tr>`;
+  const matRows=topMat.length?topMat.map(([m,d])=>{const mg=d.ing>0?(d.ben/d.ing*100):0;return`<tr><td style="color:var(--text2);font-weight:600">${esc(m)}</td><td style="text-align:right;color:${moneyCol(d.ben)};font-weight:700">${fmtMon(d.ben,cfg)}</td><td style="text-align:right;color:var(--text4)">${fmtMon(d.ing,cfg)}</td><td style="text-align:right;color:${moneyCol(mg)}">${mg.toFixed(0)}%</td></tr>`;}).join(''):`<tr><td colspan="4" style="text-align:center;color:var(--text5);padding:16px">${t('an.noData')}</td></tr>`;
   const analyticsHTML=`
 <div style="margin-top:18px;font-size:10px;font-weight:800;color:var(--text5);text-transform:uppercase;letter-spacing:1.4px">📈 ${t('an.title')}</div>
 <div class="flexwrap" style="margin-top:10px">
-  ${stC(t('an.avgTicket'),ticketMedio.toFixed(2)+mon,'🎟️','#60a5fa',t('an.avgTicketSub'))}
+  ${stC(t('an.avgTicket'),fmtMon(ticketMedio,cfg),'🎟️','#60a5fa',t('an.avgTicketSub'))}
   ${stC(t('an.conversion'),convRate.toFixed(0)+'%','🎯','#a78bfa',presCobrados+'/'+conPres.length+' '+t('an.conversionSub'))}
-  ${stC(t('an.grossProfit'),benBruto.toFixed(2)+mon,'📊',moneyCol(benBruto),t('an.grossMargin')+' '+margenGlobal.toFixed(0)+'%')}
+  ${stC(t('an.grossProfit'),fmtMon(benBruto,cfg),'📊',moneyCol(benBruto),t('an.grossMargin')+' '+margenGlobal.toFixed(0)+'%')}
 </div>
 <div class="flexwrap" style="margin-top:14px">
   <div class="card" style="flex:1;min-width:300px;padding:0;overflow:hidden">
@@ -4007,7 +4016,7 @@ function pgDashboard(){
   </div>
 </div>`;
 
-  const recent6=recent.map(o=>{const c=calcOrderCosts(o,cfg);return`<tr><td><span class="num-badge">${esc(o.presNum||'—')}</span></td><td><span style="color:var(--text2);font-weight:700">${esc(o.proyecto)}</span></td><td style="color:var(--text3)">${esc(o.material)}</td><td style="color:#34d399;font-weight:800">${c.fp.toFixed(2)}${cfg.moneda||'€'}</td><td>${mkBadge(o.estado)}</td><td style="color:var(--text5)">${esc(o.fecha)}</td></tr>`;}).join('');
+  const recent6=recent.map(o=>{const c=calcOrderCosts(o,cfg);return`<tr><td><span class="num-badge">${esc(o.presNum||'—')}</span></td><td><span style="color:var(--text2);font-weight:700">${esc(o.proyecto)}</span></td><td style="color:var(--text3)">${esc(o.material)}</td><td style="color:#34d399;font-weight:800">${fmtMon(c.fp,cfg)}</td><td>${mkBadge(o.estado)}</td><td style="color:var(--text5)">${esc(o.fecha)}</td></tr>`;}).join('');
 
   // Filament alerts — less than 200g remaining
   const lowFils=_cache.filamentos.filter(f=>parseFloat(f.pesoRestante)<250);
@@ -4055,7 +4064,7 @@ function pgDashboard(){
           </div>
         </div>
         <div style="display:flex;align-items:center;gap:10px">
-          <span style="font-size:22px;font-weight:900;color:#34d399;font-family:monospace;letter-spacing:-1px">${totalSinCobrar.toFixed(2)}${cfg.moneda||'€'}</span>
+          <span style="font-size:22px;font-weight:900;color:#34d399;font-family:monospace;letter-spacing:-1px">${fmtMon(totalSinCobrar,cfg)}</span>
           <span style="background:rgba(52,211,153,.2);color:#34d399;border:1px solid rgba(52,211,153,.4);border-radius:99px;padding:2px 10px;font-size:12px;font-weight:800">${sinCobrar.length}</span>
         </div>
       </div>
@@ -4074,7 +4083,7 @@ function pgDashboard(){
             </div>
           </div>
           <div style="text-align:right;flex-shrink:0">
-            <div style="font-size:14px;font-weight:900;color:#34d399">${c.fp.toFixed(2)}${cfg.moneda||'€'}</div>
+            <div style="font-size:14px;font-weight:900;color:#34d399">${fmtMon(c.fp,cfg)}</div>
             <button onclick="editO('${o.id}')" style="margin-top:4px;background:rgba(52,211,153,.15);border:1px solid rgba(52,211,153,.3);color:#34d399;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700">${t('dash.collect')}</button>
           </div>
         </div>`;}).join('')}
@@ -4114,7 +4123,7 @@ function pgDashboard(){
             </div>
           </div>
           <div style="text-align:right;flex-shrink:0">
-            <div style="font-size:13px;font-weight:800;color:#34d399">${c.fp.toFixed(2)}${cfg.moneda||'€'}</div>
+            <div style="font-size:13px;font-weight:800;color:#34d399">${fmtMon(c.fp,cfg)}</div>
             <button onclick="editO('${o.id}')" style="margin-top:4px;background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.3);color:#f87171;border-radius:7px;padding:4px 10px;font-size:11px;font-weight:700">${t('dash.update')}</button>
           </div>
         </div>`;}).join('')}
@@ -4128,19 +4137,19 @@ function pgDashboard(){
   </div>
 </div>
 <div class="flexwrap" style="margin-bottom:22px">
-  ${stC(t('dash.incomeCollected'),totI.toFixed(2)+(cfg.moneda||'€'),'💰','#34d399',`${paid.length} ${t('dash.paidOrders')}`)}
-  ${stC(t('dash.prodCosts'),totC.toFixed(2)+(cfg.moneda||'€'),'📦','#fbbf24','')}
-  ${stC(t('dash.totalExpenses'),totGastos.toFixed(2)+(cfg.moneda||'€'),'💸','#f87171',`${(_cache.gastos||[]).length} ${t('dash.expenses')}`)}
-  ${stC(t('dash.netProfit'),ben.toFixed(2)+(cfg.moneda||'€'),'📈',ben>=0?'#34d399':'#f87171',ben>=0?t('dash.marginOk'):t('dash.checkPrices'))}
+  ${stC(t('dash.incomeCollected'),fmtMon(totI,cfg),'💰','#34d399',`${paid.length} ${t('dash.paidOrders')}`)}
+  ${stC(t('dash.prodCosts'),fmtMon(totC,cfg),'📦','#fbbf24','')}
+  ${stC(t('dash.totalExpenses'),fmtMon(totGastos,cfg),'💸','#f87171',`${(_cache.gastos||[]).length} ${t('dash.expenses')}`)}
+  ${stC(t('dash.netProfit'),fmtMon(ben,cfg),'📈',ben>=0?'#34d399':'#f87171',ben>=0?t('dash.marginOk'):t('dash.checkPrices'))}
   ${stC(t('dash.totalOrders'),orders.length,'🖨️','#93c5fd',`${pendCount} ${t('dash.pending')} · ${impCount} ${t('dash.printing')}`)}
 </div>
 ${cobroAlert}
 ${pendAlert}
 ${filAlert}
 <div class="flexwrap" style="margin-top:18px">
-  <div class="card" style="flex:2;min-width:260px">
+  <div class="card" style="flex:2;min-width:260px;display:flex;flex-direction:column">
     <div class="card-title">${t('dash.incomeByMonth')} (${cfg.moneda||'\u20ac'})</div>
-    <div style="position:relative;height:160px"><canvas id="ch-ingresos"></canvas></div>
+    <div style="position:relative;flex:1;min-height:200px"><canvas id="ch-ingresos"></canvas></div>
   </div>
   <div class="card" style="flex:1;min-width:200px">
     <div class="card-title" style="margin-bottom:12px">${t('dash.byStatus')} <span style="font-size:9px;color:var(--text5);font-weight:600;text-transform:none;letter-spacing:0;margin-left:4px">${t('dash.tapToFilter')}</span></div>
