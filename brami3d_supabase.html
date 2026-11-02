@@ -1192,7 +1192,11 @@ sb.auth.onAuthStateChange(async (event, session)=>{
     _bootedFor=null;
     $('app').className='hidden';
     $('auth-screen').className='';
-    openLoginModal('login');
+    // ?registro (botones «Empezar gratis» de la web): abre la pestaña de registro solo la primera vez
+    let _tab='login';
+    try{ if(!window._registroUsado && new URLSearchParams(location.search).has('registro')) _tab='signup'; }catch(_){}
+    window._registroUsado=true;
+    openLoginModal(_tab);
     return;
   }
   CU=session.user;
