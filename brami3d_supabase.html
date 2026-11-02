@@ -311,6 +311,51 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
   .modal{max-width:100%!important;border-radius:18px 18px 0 0!important;position:fixed!important;bottom:0!important;left:0!important;right:0!important;max-height:90vh!important}
   .overlay{align-items:flex-end!important;padding:0!important}
 }
+
+/* ─── PANTALLA DE REGISTRO ─── */
+#signup-screen{position:fixed;inset:0;z-index:998;overflow-y:auto;background:radial-gradient(ellipse at 20% 0%,#0f2547 0%,#070e1c 55%,#04090f 100%);color:#e2eaf4}
+#signup-screen .su-top{display:flex;align-items:center;justify-content:space-between;max-width:1040px;margin:0 auto;padding:20px 24px}
+#signup-screen .su-brand{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:900;color:#f1f5f9;letter-spacing:-1px}
+#signup-screen .su-link{background:none;border:none;color:#93c5fd;font-size:14px;font-weight:600;padding:10px 4px;min-height:44px;text-decoration:none}
+#signup-screen .su-link:hover{color:#fff;text-decoration:underline}
+.su-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center;max-width:1040px;margin:0 auto;padding:24px 24px 56px}
+.su-eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);color:#4ade80;border-radius:99px;padding:6px 14px;font-size:12px;font-weight:700;letter-spacing:.4px;margin-bottom:18px}
+.su-eyebrow i{width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block}
+.su-h1{font-size:clamp(30px,4.2vw,44px);font-weight:900;line-height:1.08;letter-spacing:-1.5px;color:#fff;margin:0 0 16px}
+.su-h1 em{font-style:normal;background:linear-gradient(90deg,#60a5fa,#3b82f6);-webkit-background-clip:text;background-clip:text;color:transparent}
+.su-lead{font-size:16px;line-height:1.6;color:#9db4cf;margin:0 0 28px;max-width:470px}
+.su-list{list-style:none;margin:0 0 28px;padding:0;display:grid;gap:14px}
+.su-list li{display:flex;align-items:flex-start;gap:12px;font-size:15px;line-height:1.5;color:#cbd8e8}
+.su-list svg{flex-shrink:0;margin-top:2px}
+.su-note{border-left:3px solid #3b82f6;padding:4px 0 4px 16px;font-size:14px;line-height:1.6;color:#9db4cf;max-width:470px}
+.su-note b{color:#e2eaf4}
+.su-card{background:linear-gradient(160deg,rgba(15,30,55,.95),rgba(8,16,30,.95));border:1px solid rgba(59,130,246,.25);border-radius:22px;padding:36px 32px;box-shadow:0 30px 80px rgba(0,0,0,.55)}
+.su-card h2{font-size:24px;font-weight:900;letter-spacing:-.6px;color:#fff;margin:0 0 6px}
+.su-sub{font-size:14px;color:#7a9ab8;margin:0 0 24px}
+.su-sub button{background:none;border:none;color:#60a5fa;font-weight:700;font-size:14px;padding:0;text-decoration:underline}
+.su-card label{color:#7a9ab8}
+.su-card input[type=text],.su-card input[type=email],.su-card input[type=password]{background:#070e1c;border-color:#1a3050;color:#e2eaf4;padding:12px 14px;font-size:15px;min-height:46px}
+.su-pass{position:relative}
+.su-pass input{padding-right:84px!important}
+.su-pass button{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:#60a5fa;font-size:13px;font-weight:700;padding:8px 10px;min-height:40px}
+.su-pass button:active{transform:translateY(-50%) scale(.97)!important}
+.su-hint{font-size:12px;color:#5c7a9a;margin-top:6px}
+.su-terms{display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:1.5;color:#9db4cf;margin:4px 0 18px;cursor:pointer;text-transform:none;letter-spacing:0;font-weight:400}
+.su-terms input{width:20px!important;height:20px;min-height:0;margin:1px 0 0;padding:0;flex-shrink:0;accent-color:#3b82f6;cursor:pointer}
+.su-terms a{color:#93c5fd}
+.su-btn{width:100%;justify-content:center;padding:14px 22px;font-size:16px;min-height:50px}
+.su-small{display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;color:#5c7a9a;margin-top:14px;text-align:center}
+.su-done{text-align:center}
+.su-done .su-mail{width:64px;height:64px;border-radius:50%;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.35);display:flex;align-items:center;justify-content:center;margin:0 auto 18px}
+.su-done p{font-size:15px;line-height:1.6;color:#9db4cf;margin:0 0 12px}
+.su-done b{color:#fff;word-break:break-all}
+@media(max-width:860px){
+  .su-grid{grid-template-columns:1fr;gap:32px;padding:8px 16px 40px}
+  .su-form-col{order:-1}
+  .su-card{padding:28px 20px}
+  .su-h1{font-size:28px}
+  #signup-screen .su-top{padding:14px 16px}
+}
 </style>
 </head>
 <body>
@@ -426,7 +471,7 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
     </div>
     <div class="tabs">
       <button class="tab active" id="tab-login" onclick="switchTab('login')">Iniciar sesión</button>
-      <button class="tab" id="tab-signup" onclick="switchTab('signup')">Registrarse</button>
+      <button class="tab" id="tab-signup" onclick="openSignup()">Registrarse</button>
     </div>
     <div id="name-field" class="field hidden"><label>Nombre</label><input id="a-name" type="text" placeholder="Tu nombre"></div>
     <div class="field"><label>Email</label><input id="a-email" type="email" placeholder="tu@email.com"></div>
@@ -435,6 +480,64 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
     <button class="btn-primary" style="width:100%;margin-top:4px;justify-content:center" id="auth-btn" onclick="doAuth()">Entrar</button>
     <div id="reset-wrap" style="text-align:center;margin-top:14px">
       <button onclick="doReset()" style="background:none;border:none;color:var(--text4);font-size:12px;cursor:pointer;text-decoration:underline">¿Olvidaste tu contraseña?</button>
+    </div>
+  </div>
+</div>
+
+<!-- PANTALLA DE REGISTRO -->
+<div id="signup-screen" style="display:none" role="dialog" aria-modal="true" aria-labelledby="su-title">
+  <div class="su-top">
+    <div class="su-brand">
+      <svg width="32" height="32" viewBox="0 0 38 38" fill="none" aria-hidden="true"><rect width="38" height="38" rx="10" fill="#0b1426"/><path d="M8 8 L12 10 L12 30 L8 28 Z" fill="#1e3a8a"/><path d="M12 10 L15 8.5 L15 28.5 L12 30 Z" fill="#2563eb"/><path d="M8 8 L11 6.5 L15 8.5 L12 10 Z" fill="#93c5fd"/><path d="M15 10 L25 15 L25 18 L15 13 Z" fill="#3b82f6"/><path d="M15 10 L25 15 L23 16 L15 12 Z" fill="#93c5fd" opacity="0.9"/><path d="M15 17 L27 23 L27 26 L15 20 Z" fill="#3b82f6"/><path d="M15 17 L27 23 L25 24 L15 19 Z" fill="#93c5fd" opacity="0.9"/><path d="M25 15 L27 16 L27 25 L25 24 Z" fill="#1d4ed8" opacity="0.8"/></svg>
+      Brami3D
+    </div>
+    <button type="button" class="su-link" onclick="closeSignup()">← Volver a la calculadora</button>
+  </div>
+
+  <div class="su-grid">
+    <div class="su-info-col">
+      <div class="su-eyebrow"><i></i>30 días de Pro gratis · sin tarjeta</div>
+      <h1 class="su-h1">Tu taller de impresión 3D, <em>en un solo sitio</em></h1>
+      <p class="su-lead">Presupuestos, pedidos, clientes y facturas, con el coste de cada pieza calculado al momento.</p>
+      <ul class="su-list">
+        <li><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="rgba(59,130,246,.18)"/><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#60a5fa" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Precio de cada pieza con filamento, luz, horas de impresora y margen.</li>
+        <li><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="rgba(59,130,246,.18)"/><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#60a5fa" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Presupuestos que tu cliente acepta desde un enlace.</li>
+        <li><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="rgba(59,130,246,.18)"/><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#60a5fa" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Facturas y exportación del trimestre para tu gestor.</li>
+        <li><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="rgba(59,130,246,.18)"/><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#60a5fa" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>En el móvil y en el ordenador, sin pasar por la tienda de apps.</li>
+      </ul>
+      <div class="su-note">Al terminar la prueba sigues <b>gratis en el plan Básico</b> (10 pedidos al mes y 5 clientes), o pasas a <b>Pro por 9 €/mes o 79 €/año</b>. Tú decides.</div>
+    </div>
+
+    <div class="su-form-col">
+      <div class="su-card">
+        <form id="su-form" novalidate onsubmit="event.preventDefault();doSignup()">
+          <h2 id="su-title">Crea tu cuenta</h2>
+          <p class="su-sub">¿Ya tienes cuenta? <button type="button" onclick="closeSignup();openLoginModal('login')">Inicia sesión</button></p>
+          <div class="field"><label for="su-name">Tu nombre</label><input id="su-name" type="text" autocomplete="name" placeholder="Nombre y apellido"></div>
+          <div class="field"><label for="su-email">Email</label><input id="su-email" type="email" autocomplete="email" inputmode="email" placeholder="tu@email.com"></div>
+          <div class="field">
+            <label for="su-pass">Contraseña</label>
+            <div class="su-pass">
+              <input id="su-pass" type="password" autocomplete="new-password" placeholder="Mínimo 6 caracteres" aria-describedby="su-pass-hint">
+              <button type="button" id="su-pass-btn" onclick="toggleSignupPass()" aria-controls="su-pass">Mostrar</button>
+            </div>
+            <div class="su-hint" id="su-pass-hint">Mínimo 6 caracteres. Mejor si es larga y no la usas en otro sitio.</div>
+          </div>
+          <label class="su-terms"><input id="su-terms" type="checkbox"><span>He leído y acepto los <a href="https://brami3d.app/software/terminos/" target="_blank" rel="noopener">Términos del servicio</a> y la <a href="https://brami3d.app/privacidad/" target="_blank" rel="noopener">Política de privacidad</a>.</span></label>
+          <div id="su-err" class="err-msg hidden" role="alert"></div>
+          <button type="submit" class="btn-primary su-btn" id="su-btn">Crear cuenta gratis</button>
+          <div class="su-small"><svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true"><rect x="1" y="6" width="10" height="7.5" rx="1.5" fill="#5c7a9a"/><path d="M3.5 6V4.2a2.5 2.5 0 015 0V6" stroke="#5c7a9a" stroke-width="1.5" fill="none"/></svg>Tus datos se guardan en la Unión Europea (Fráncfort).</div>
+        </form>
+
+        <div id="su-done" class="su-done hidden" aria-live="polite">
+          <div class="su-mail"><svg width="30" height="30" viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2" stroke="#4ade80" stroke-width="1.8" fill="none"/><path d="M3 6.5l9 6.5 9-6.5" stroke="#4ade80" stroke-width="1.8" fill="none" stroke-linejoin="round"/></svg></div>
+          <h2>Revisa tu correo</h2>
+          <p>Te hemos enviado un enlace a <b id="su-done-email"></b>. Púlsalo para activar la cuenta y entrar.</p>
+          <p style="font-size:13px">Si no llega en unos minutos, mira en la carpeta de spam o promociones.</p>
+          <button type="button" id="su-resend" class="btn-secondary" style="min-height:44px;margin-top:6px" onclick="resendSignup()">Reenviar el email</button>
+          <div style="margin-top:14px"><button type="button" class="su-link" style="color:#93c5fd" onclick="closeSignup();openLoginModal('login')">Ya la he activado: iniciar sesión</button></div>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -1025,8 +1128,78 @@ function calcCoste(){
 }
 
 function openLoginModal(tab='login'){
+  if(tab==='signup'){ openSignup(); return; }
   const m=$('login-modal');
   if(m){m.style.display='flex';switchTab(tab);}
+}
+
+// ── Pantalla de registro (pantalla completa) ──
+function openSignup(){
+  closeLoginModal();
+  const s=$('signup-screen'); if(!s) return;
+  // Si había email escrito en el login, se lo pasamos
+  const le=$('a-email'), se=$('su-email');
+  if(le && se && le.value && !se.value) se.value=le.value;
+  s.style.display='block';
+  s.scrollTop=0;
+  setTimeout(()=>{ const n=$('su-name'); if(n && matchMedia('(min-width:861px)').matches) n.focus(); },50);
+}
+function closeSignup(){
+  const s=$('signup-screen'); if(s) s.style.display='none';
+}
+function toggleSignupPass(){
+  const i=$('su-pass'), b=$('su-pass-btn');
+  const show=i.type==='password';
+  i.type=show?'text':'password';
+  b.textContent=show?'Ocultar':'Mostrar';
+}
+function showSignupErr(msg){
+  const e=$('su-err'); e.textContent=msg; e.className='err-msg';
+}
+async function doSignup(){
+  const name =$('su-name').value.trim();
+  const email=$('su-email').value.trim();
+  const pass =$('su-pass').value;
+  $('su-err').className='err-msg hidden';
+  if(!name){ showSignupErr('Escribe tu nombre'); $('su-name').focus(); return; }
+  if(!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ showSignupErr('Escribe un email válido'); $('su-email').focus(); return; }
+  if(pass.length < 6){ showSignupErr('La contraseña debe tener al menos 6 caracteres'); $('su-pass').focus(); return; }
+  if(!$('su-terms').checked){ showSignupErr('Para crear la cuenta tienes que aceptar los Términos y la Política de privacidad'); return; }
+  setLoading('su-btn',true);
+  try {
+    const r=await sb.auth.signUp({
+      email, password:pass,
+      options:{ data:{name}, emailRedirectTo: location.origin + '/brami3d_supabase.html' }
+    });
+    if(r.error){ showSignupErr(r.error.message); return; }
+    // identities vacío = el email ya estaba registrado (Supabase no lo dice para no filtrar cuentas)
+    if((r.data?.user?.identities?.length ?? 1) === 0){
+      showSignupErr('Este email ya tiene cuenta. Inicia sesión o recupera tu contraseña.');
+      return;
+    }
+    _pendingConfirmEmail=email;
+    $('su-done-email').textContent=email;
+    $('su-form').classList.add('hidden');
+    $('su-done').classList.remove('hidden');
+  } catch(e){
+    showSignupErr(navigator.onLine ? ('No se pudo conectar: '+(e.message||e)) : 'Sin conexión. Revisa tu red e inténtalo de nuevo.');
+  } finally {
+    setLoading('su-btn',false,'Crear cuenta gratis');
+  }
+}
+async function resendSignup(){
+  const btn=$('su-resend'); const email=_pendingConfirmEmail;
+  if(!email) return;
+  btn.disabled=true; btn.textContent='Enviando…';
+  try {
+    const {error}=await sb.auth.resend({ type:'signup', email, options:{ emailRedirectTo: location.origin + '/brami3d_supabase.html' } });
+    if(error) throw error;
+    btn.textContent='✓ Enviado';
+    setTimeout(()=>{ btn.disabled=false; btn.textContent='Reenviar el email'; },5000);
+  } catch(e){
+    showToast('Error: '+(e.message||e),'err');
+    btn.disabled=false; btn.textContent='Reenviar el email';
+  }
 }
 function closeLoginModal(){
   const m=$('login-modal');
@@ -1584,6 +1757,7 @@ async function bootApp(){
   $('auth-screen').className='hidden';
   $('app').className='';
   closeLoginModal();   // cerrar el modal de login si quedó abierto tras entrar
+  closeSignup();       // y la pantalla de registro
   if(window.innerWidth<=768) $('mob-nav').className='';
   applyStaticI18n();
   buildNav();
