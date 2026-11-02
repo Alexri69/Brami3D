@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>B3D Print Studio</title>
+<title>Brami3D</title>
 <!-- Consent-gated GA4 (RGPD / LOPDGDD). Loads only after user accepts. -->
 <script>
 (function(){
@@ -56,8 +56,8 @@
   };
 })();
 </script>
-<meta name="application-name" content="B3D Print Studio">
-<meta name="apple-mobile-web-app-title" content="B3D">
+<meta name="application-name" content="Brami3D">
+<meta name="apple-mobile-web-app-title" content="Brami3D">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -374,106 +374,9 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
 </head>
 <body>
 <!-- AUTH SCREEN = CALCULADORA PANTALLA COMPLETA -->
-<div id="auth-screen">
-  <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;padding:20px;background:radial-gradient(ellipse at 50% 30%,#0d1926 0%,#04090f 70%);overflow-y:auto">
-
-    <!-- Topbar -->
-    <div style="display:flex;align-items:center;justify-content:space-between;width:100%;max-width:460px;margin-bottom:28px;padding-top:8px">
-      <div style="display:flex;align-items:center;gap:10px">
-        <svg width="30" height="33" viewBox="-7.35 10.6 110 120" fill="none" aria-hidden="true" style="flex-shrink:0"><path d="M47.6 15.6 L95.3 43.1 L47.6 70.6 L0 43.1 Z" fill="#1FA6C9"/><path d="M0 43.1 L47.6 70.6 L47.6 125.6 L0 98.1 Z" fill="#1F4FB8"/><path d="M47.6 70.6 L95.3 43.1 L95.3 98.1 L47.6 125.6 Z" fill="#173E92"/><path transform="matrix(1 0.5777 0 1 0 43.1)" fill="#FFFFFF" fill-rule="evenodd" d="M12 10 H27.5 C32.5 10 35.5 13 35.5 17.5 C35.5 20.6 34 23 31.5 24.2 C34.8 25.4 37 28.3 37 32.5 C37 39.5 33 45 27 45 H12 Z M18.5 16 H26.5 C28.4 16 29.5 17.2 29.5 19 C29.5 20.8 28.4 22 26.5 22 H18.5 Z M18.5 28 H27 C29.3 28 30.5 29.5 30.5 33.5 C30.5 37.5 29.3 39 27 39 H18.5 Z"/></svg>
-        <div style="font-size:18px;font-weight:900;color:#f1f5f9;letter-spacing:-1px">Brami3D</div>
-      </div>
-      <button onclick="openLoginModal()" style="background:rgba(37,99,235,.15);color:#60a5fa;border:1.5px solid rgba(37,99,235,.3);border-radius:10px;padding:9px 18px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer">
-        Iniciar sesión →
-      </button>
-    </div>
-
-    <!-- Botón instalar PWA -->
-    <div id="install-banner" style="display:none;width:100%;max-width:460px;margin-bottom:16px">
-      <button onclick="installPWA()" style="width:100%;background:linear-gradient(135deg,#059669,#047857);color:#fff;border:none;border-radius:12px;padding:13px 20px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:0 4px 20px rgba(5,150,105,.4)">
-        <span style="font-size:20px">📲</span>
-        Instalar app en tu móvil — Gratis
-      </button>
-      <div style="text-align:center;font-size:11px;color:#2e4a6a;margin-top:6px">Sin App Store · Se instala directamente</div>
-    </div>
-
-    <!-- Hero -->
-    <div style="text-align:center;margin-bottom:24px;width:100%;max-width:460px">
-      <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(37,99,235,.12);border:1px solid rgba(37,99,235,.3);border-radius:99px;padding:5px 14px;font-size:11px;font-weight:700;color:#60a5fa;letter-spacing:.5px;text-transform:uppercase;margin-bottom:14px">
-        <span style="width:6px;height:6px;border-radius:50%;background:#22c55e;display:inline-block;animation:pulse 2s infinite"></span>
-        Gratis · Sin registro
-      </div>
-      <div style="font-size:clamp(26px,6vw,36px);font-weight:900;color:#fff;letter-spacing:-1.5px;line-height:1.1;margin-bottom:10px">
-        ¿Cuánto cobrar<br>por tu pieza? 🤔
-      </div>
-      <div style="font-size:14px;color:#7a9ab8;line-height:1.6">
-        Calcula el precio justo en segundos.<br>Filamento, electricidad y margen incluidos.
-      </div>
-    </div>
-
-    <!-- Calculadora -->
-    <div style="width:100%;max-width:460px;background:linear-gradient(145deg,#0d1926,#080f1a);border:1px solid rgba(37,99,235,.25);border-radius:20px;padding:22px;margin-bottom:16px">
-
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-        <div>
-          <label for="calc-peso" style="display:block;font-size:11px;font-weight:700;color:#8aa4c0;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Peso (g)</label>
-          <input type="text" inputmode="decimal" autocomplete="off" id="calc-peso" value="85" oninput="calcCoste()"
-            style="width:100%;padding:10px 12px;background:#070e1c;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:16px">
-        </div>
-        <div>
-          <label for="calc-tiempo" style="display:block;font-size:11px;font-weight:700;color:#8aa4c0;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Tiempo (h)</label>
-          <input type="text" inputmode="decimal" autocomplete="off" id="calc-tiempo" value="4,5" oninput="calcCoste()"
-            style="width:100%;padding:10px 12px;background:#070e1c;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:16px">
-        </div>
-        <div>
-          <label for="calc-precio-fil" style="display:block;font-size:11px;font-weight:700;color:#8aa4c0;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Filamento (€/kg)</label>
-          <input type="text" inputmode="decimal" autocomplete="off" id="calc-precio-fil" value="20" oninput="calcCoste()"
-            style="width:100%;padding:10px 12px;background:#070e1c;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:16px">
-        </div>
-        <div>
-          <label for="calc-consumo" style="display:block;font-size:11px;font-weight:700;color:#8aa4c0;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Consumo (W)</label>
-          <input type="text" inputmode="decimal" autocomplete="off" id="calc-consumo" value="200" oninput="calcCoste()"
-            style="width:100%;padding:10px 12px;background:#070e1c;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:16px">
-        </div>
-        <div style="grid-column:1/-1">
-          <label for="calc-kwh" style="display:block;font-size:11px;font-weight:700;color:#8aa4c0;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Precio electricidad (€/kWh)</label>
-          <input type="text" inputmode="decimal" autocomplete="off" id="calc-kwh" value="0,15" oninput="calcCoste()"
-            style="width:100%;padding:10px 12px;background:#070e1c;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:16px">
-        </div>
-      </div>
-
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-        <label for="calc-margen" style="font-size:11px;font-weight:700;color:#8aa4c0;text-transform:uppercase;letter-spacing:.8px;white-space:nowrap">Margen</label>
-        <input type="range" id="calc-margen" min="10" max="200" value="30" aria-describedby="calc-margen-val" oninput="calcCoste();$('calc-margen-val').textContent=this.value+'%'"
-          style="flex:1;accent-color:#3b82f6">
-        <span id="calc-margen-val" style="font-size:13px;font-weight:700;color:#60a5fa;min-width:38px">30%</span>
-      </div>
-
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
-        <div style="background:#070e1c;border-radius:10px;padding:12px;text-align:center">
-          <div style="font-size:11px;color:#8aa4c0;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Material</div>
-          <div id="calc-r-mat" style="font-size:18px;font-weight:900;color:#7a9ab8;font-family:monospace">0,00 €</div>
-        </div>
-        <div style="background:#070e1c;border-radius:10px;padding:12px;text-align:center">
-          <div style="font-size:11px;color:#8aa4c0;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Electricidad</div>
-          <div id="calc-r-elec" style="font-size:18px;font-weight:900;color:#7a9ab8;font-family:monospace">0,00 €</div>
-        </div>
-        <div style="background:linear-gradient(145deg,#0d2545,#0a1e38);border:1.5px solid rgba(37,99,235,.4);border-radius:10px;padding:12px;text-align:center">
-          <div style="font-size:11px;color:#60a5fa;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Precio venta</div>
-          <div id="calc-r-total" style="font-size:20px;font-weight:900;color:#60a5fa;font-family:monospace">0,00 €</div>
-        </div>
-      </div>
-
-      <div style="background:rgba(37,99,235,.08);border:1px solid rgba(37,99,235,.2);border-radius:12px;padding:14px;text-align:center">
-        <div style="font-size:13px;color:#7a9ab8;margin-bottom:10px">¿Quieres guardar pedidos, clientes y facturas?</div>
-        <button onclick="openLoginModal('signup')" style="background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border:none;border-radius:10px;padding:12px 24px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;box-shadow:0 4px 16px rgba(37,99,235,.4);width:100%">
-          🚀 Crear cuenta gratis
-        </button>
-        <div style="font-size:11px;color:#2e4a6a;margin-top:8px">Sin tarjeta · 30 días gratis</div>
-      </div>
-    </div>
-  </div>
-</div>
+<!-- Sin sesión: la calculadora gratuita está en brami3d.app/software/; aquí solo
+     queda el fondo, y encima se abre la pantalla de inicio de sesión o de registro. -->
+<div id="auth-screen"></div>
 
 <!-- PANTALLA DE INICIO DE SESIÓN -->
 <div id="login-modal" class="su-screen" style="display:none" role="dialog" aria-modal="true" aria-labelledby="li-title">
@@ -482,7 +385,7 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
       <svg width="30" height="33" viewBox="-7.35 10.6 110 120" fill="none" aria-hidden="true" style="flex-shrink:0"><path d="M47.6 15.6 L95.3 43.1 L47.6 70.6 L0 43.1 Z" fill="#1FA6C9"/><path d="M0 43.1 L47.6 70.6 L47.6 125.6 L0 98.1 Z" fill="#1F4FB8"/><path d="M47.6 70.6 L95.3 43.1 L95.3 98.1 L47.6 125.6 Z" fill="#173E92"/><path transform="matrix(1 0.5777 0 1 0 43.1)" fill="#FFFFFF" fill-rule="evenodd" d="M12 10 H27.5 C32.5 10 35.5 13 35.5 17.5 C35.5 20.6 34 23 31.5 24.2 C34.8 25.4 37 28.3 37 32.5 C37 39.5 33 45 27 45 H12 Z M18.5 16 H26.5 C28.4 16 29.5 17.2 29.5 19 C29.5 20.8 28.4 22 26.5 22 H18.5 Z M18.5 28 H27 C29.3 28 30.5 29.5 30.5 33.5 C30.5 37.5 29.3 39 27 39 H18.5 Z"/></svg>
       Brami3D
     </div>
-    <button type="button" class="su-link" onclick="closeLoginModal()">← Volver a la calculadora</button>
+    <a class="su-link" href="https://brami3d.app/software/" style="display:inline-flex;align-items:center">← Volver a la web</a>
   </div>
 
   <div class="su-grid">
@@ -517,6 +420,10 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
           <button type="submit" class="btn-primary su-btn" id="auth-btn">Entrar</button>
           <div class="su-small"><svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true"><rect x="1" y="6" width="10" height="7.5" rx="1.5" fill="#5c7a9a"/><path d="M3.5 6V4.2a2.5 2.5 0 015 0V6" stroke="#5c7a9a" stroke-width="1.5" fill="none"/></svg>Conexión segura (HTTPS).</div>
         </form>
+        <div id="install-banner" style="display:none;margin-top:18px;padding-top:16px;border-top:1px solid #1a3050">
+          <button type="button" onclick="installPWA()" class="su-cta" style="width:100%;margin-top:0;background:rgba(5,150,105,.14);border-color:rgba(16,185,129,.45);color:#6ee7b7">📲 Instalar la app en este dispositivo</button>
+          <div class="su-small" style="margin-top:8px">Sin tienda de aplicaciones · gratis</div>
+        </div>
       </div>
     </div>
   </div>
@@ -529,7 +436,7 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
       <svg width="30" height="33" viewBox="-7.35 10.6 110 120" fill="none" aria-hidden="true" style="flex-shrink:0"><path d="M47.6 15.6 L95.3 43.1 L47.6 70.6 L0 43.1 Z" fill="#1FA6C9"/><path d="M0 43.1 L47.6 70.6 L47.6 125.6 L0 98.1 Z" fill="#1F4FB8"/><path d="M47.6 70.6 L95.3 43.1 L95.3 98.1 L47.6 125.6 Z" fill="#173E92"/><path transform="matrix(1 0.5777 0 1 0 43.1)" fill="#FFFFFF" fill-rule="evenodd" d="M12 10 H27.5 C32.5 10 35.5 13 35.5 17.5 C35.5 20.6 34 23 31.5 24.2 C34.8 25.4 37 28.3 37 32.5 C37 39.5 33 45 27 45 H12 Z M18.5 16 H26.5 C28.4 16 29.5 17.2 29.5 19 C29.5 20.8 28.4 22 26.5 22 H18.5 Z M18.5 28 H27 C29.3 28 30.5 29.5 30.5 33.5 C30.5 37.5 29.3 39 27 39 H18.5 Z"/></svg>
       Brami3D
     </div>
-    <button type="button" class="su-link" onclick="closeSignup()">← Volver a la calculadora</button>
+    <button type="button" class="su-link" onclick="openLoginModal('login')">← Iniciar sesión</button>
   </div>
 
   <div class="su-grid">
@@ -585,7 +492,7 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
   <div id="sidebar">
     <div id="sb-logo" onclick="toggleSb()">
       <svg width="28" height="31" viewBox="-7.35 10.6 110 120" fill="none" aria-hidden="true" style="flex-shrink:0"><path d="M47.6 15.6 L95.3 43.1 L47.6 70.6 L0 43.1 Z" fill="#1FA6C9"/><path d="M0 43.1 L47.6 70.6 L47.6 125.6 L0 98.1 Z" fill="#1F4FB8"/><path d="M47.6 70.6 L95.3 43.1 L95.3 98.1 L47.6 125.6 Z" fill="#173E92"/><path transform="matrix(1 0.5777 0 1 0 43.1)" fill="#FFFFFF" fill-rule="evenodd" d="M12 10 H27.5 C32.5 10 35.5 13 35.5 17.5 C35.5 20.6 34 23 31.5 24.2 C34.8 25.4 37 28.3 37 32.5 C37 39.5 33 45 27 45 H12 Z M18.5 16 H26.5 C28.4 16 29.5 17.2 29.5 19 C29.5 20.8 28.4 22 26.5 22 H18.5 Z M18.5 28 H27 C29.3 28 30.5 29.5 30.5 33.5 C30.5 37.5 29.3 39 27 39 H18.5 Z"/></svg>
-      <div id="brand-lbl" style="white-space:nowrap"><div style="font-size:16px;font-weight:900;color:#f1f5f9;letter-spacing:-.5px;line-height:1.1">Brami3D</div><div style="font-size:9px;color:#3b82f6;font-weight:600;letter-spacing:1.5px;text-transform:uppercase">Print Studio</div></div>
+      <div id="brand-lbl" style="white-space:nowrap"><div style="font-size:17px;font-weight:900;color:#f1f5f9;letter-spacing:-.5px;line-height:1.1">Brami3D</div></div>
     </div>
     <nav id="sb-nav" style="flex:1;overflow-y:auto;overflow-x:hidden"></nav>
     <div style="border-top:1px solid #0d1c30;padding:8px 0">
@@ -1146,31 +1053,6 @@ async function installPWA(){
 // ═══════════════════════════════════════════════
 //  CALCULADORA GRATUITA (LOGIN)
 // ═══════════════════════════════════════════════
-function calcCoste(){
-  // Acepta coma o punto decimal (teclado español del móvil)
-  const num = id => parseFloat(String($(id)?.value||'').replace(',','.'));
-  const peso    = num('calc-peso')||0;
-  const tiempo  = num('calc-tiempo')||0;
-  const precFil = num('calc-precio-fil')||20;
-  const consumo = num('calc-consumo')||200;
-  const kwh     = num('calc-kwh')||0.15;
-  const margen  = parseFloat($('calc-margen')?.value)||30;
-
-  const mat  = (peso/1000)*precFil;
-  const elec = (consumo/1000)*tiempo*kwh;
-  const tc   = mat+elec;
-  const venta= tc*(1+margen/100);
-
-  const fmt = v => v.toFixed(2).replace('.',',')+' €';
-  const r1=$('calc-r-mat');   if(r1) r1.textContent=fmt(mat);
-  const r2=$('calc-r-elec');  if(r2) r2.textContent=fmt(elec);
-  const r3=$('calc-r-total'); if(r3){
-    r3.textContent=fmt(venta);
-    r3.style.color=venta>0?'#60a5fa':'#7a9ab8';
-  }
-}
-
-try{ calcCoste(); }catch(_){}
 
 function openLoginModal(tab='login'){
   if(tab==='signup'){ openSignup(); return; }
@@ -2171,10 +2053,10 @@ function subscribeRealtime(){
 // ═══════════════════════════════════════════════
 //  BRANDING (marca blanca)
 // ═══════════════════════════════════════════════
-// Nombre para documentos (PDFs): prefiere cfg.empresa, si no 'B3D Print Studio'.
+// Nombre para documentos (PDFs): prefiere cfg.empresa, si no 'Brami3D'.
 // El logo se incrusta directamente en los PDF con doc.addImage(cfg.logo, …).
 function brandFooterName(cfg){
-  return (cfg && cfg.empresa && cfg.empresa.trim()) ? cfg.empresa.trim() : 'B3D Print Studio';
+  return (cfg && cfg.empresa && cfg.empresa.trim()) ? cfg.empresa.trim() : 'Brami3D';
 }
 
 // Columns that must never be negative. Clamped at the write boundary so any bad input
@@ -4001,8 +3883,16 @@ const CHART_COLORS=['#3b82f6','#34d399','#f59e0b','#a78bfa','#f472b6','#60a5fa',
 const ESTADO_COLORS={pendiente:'#fbbf24',imprimiendo:'#60a5fa',terminado:'#34d399',entregado:'#a78bfa',cobrado:'#4ade80',pagado:'#4ade80'};
 let _charts={};
 function destroyChart(id){if(_charts[id]){_charts[id].destroy();delete _charts[id];}}
+let _chartRetry=0;
 function initDashboardCharts(){
-  if(typeof Chart==='undefined') return;
+  // Chart.js va con «defer»: con la sesión ya abierta, el panel puede pintarse
+  // antes de que cargue. Antes se rendía y los gráficos quedaban vacíos; ahora
+  // reintenta unos segundos hasta que la librería esté lista.
+  if(typeof Chart==='undefined'){
+    if(_chartRetry++ < 40) setTimeout(()=>{ if(PAGE==='dashboard') initDashboardCharts(); },250);
+    return;
+  }
+  _chartRetry=0;
   const cfg=_cache.cfg; const orders=_cache.pedidos; const mon=cfg.moneda||'\u20ac';
   const months={};
   orders.forEach(o=>{const m=(o.fecha||'').slice(0,7);if(!m)return;if(!months[m])months[m]=0;if(o.cobrado===true)months[m]+=calcOrderCosts(o,cfg).fp;});

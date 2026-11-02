@@ -1,24 +1,28 @@
 # CLAUDE.md
 
-Brami3D — gestión para negocio de impresión 3D. Static site **sin build**, en `brami3d.app` vía GitHub Pages (**push a `main` = producción**). Pensada como **SaaS multi-taller**. Tras cada cambio: **commit + push** (despliega solo). Responder siempre en español.
+Brami3D — app de gestión para talleres de impresión 3D. Static site **sin build**, servida en **`https://app.brami3d.app`** vía GitHub Pages (Jekyll clásico, `CNAME`; **push a `main` = producción**). La web comercial y los textos legales están en WordPress en `https://brami3d.app` (otro proyecto: `D:\Proyectos\Web Brami3d`). Pensada como **SaaS multi-taller**. Tras cada cambio: **commit + push** (despliega solo; con permiso del owner). Responder siempre en español.
+
+> Nombre del producto: **Brami3D** (antes «B3D Print Studio»; renombrado el 2026-11-02 en título, manifiesto, barra lateral y PDFs).
 
 ## Archivos
 - `brami3d_supabase.html` — SPA completa, la app de verdad. Módulos propios en `js/` (scripts clásicos, **sin build**, cargan antes del script principal y están en el APP_SHELL de `sw.js`): `js/i18n.js` (LANG/I18N/`t()`), `js/verifactu.js` (registro fiscal) y `js/slicer.js` (lector de G-code/3MF). `scripts/test.js` concatena HTML+módulos para extraer funciones.
-- `index.html` — **web del taller** (portada de brami3d.app: catálogo sin precios con pedido por WhatsApp/email, personalizados, encargos y enlace a la app). Fotos en `taller/` (WebP <64 KB, fondo quitado con Higgsfield). **Sin personajes con marca** (Nintendo, Disney, Pokémon, One Piece): decisión del owner por riesgo legal.
-- `landing.html` — marketing de la app (precios, modal de pago), enlazada desde el taller como "La app para makers" (y con enlace "El taller" de vuelta). Sección **"Arrastra el G-code"** (`#laminador`) con reel en bucle: el mp4 va **partido en `m/oct-reel-laminador/p00..p07.bin`** (36 KB c/u) y un script inline los junta con `Blob` al llegar a la sección (póster `m/oct-reel-laminador.jpg`). **Sin testimonios** (los ficticios se quitaron el 8-oct-2026: opiniones falsas = ilegal; poner solo reales).
+- `index.html` — solo redirige a `/brami3d_supabase.html` (la antigua web del taller pasó a WordPress). `taller/` = fotos antiguas, se conservan.
+- `landing.html` — redirige a `https://brami3d.app/software/` (`#precios` → `/software/precios/`). El marketing del software vive en WordPress.
 - `p.html` — aceptación pública de presupuestos (sin login) · `gracias.html` — post-pago PayPal
-- `aviso-legal.html` (LSSI: titular **Alesander Rivero Dorta**, NIF 43807041E, C/ Chineguas 181, 38107 S/C de Tenerife; condiciones de encargos) · `cookies.html` · `privacidad.html` (mismo titular y domicilio) · `promo_instagram.html`. Enlace "Aviso legal" en todos los pies.
+- `aviso-legal.html`, `cookies.html`, `privacidad.html` — **solo redirigen** a los textos de `brami3d.app` (una única versión legal, decisión del 2026-11-02). Cualquier cambio legal se hace en WordPress.
+- `_config.yml` — lista `exclude` de Jekyll: `CLAUDE.md`, `README.md`, `scripts/`, `sql/`, `supabase/`, `social/`, `marketing/`, `package*.json` e imágenes viejas **no se publican** (siguen en el repo, que es público). Archivo nuevo que no deba servirse → añadirlo ahí.
 - `supabase/functions/*` — Edge Functions (Deno) · `sql/*.sql` — migraciones (a mano en SQL Editor)
 - `scripts/*` — utilidades (marketing, email, informes) · `m/` — imágenes públicas para redes
 
 ## Backend (Supabase)
+- Región **`eu-west-1` (Irlanda, UE)** — no Fráncfort. Los textos (app y web) dicen «Unión Europea (Irlanda)». Plan gratuito (sin copias diarias; el owner no lo cambiará hasta tener clientes).
 - Ref: **`uzgzfxizpoigzcnlunpr`**. Claves **nuevo formato** `sb_publishable_…` (la anon/JWT antigua ya no vale en el gateway).
 - Tablas (RLS por `user_id`): `clientes`, `pedidos`, `impresoras`, `filamentos`, `piezas`, `archivos`, `gastos`, `config`, `user_plans`, `push_subscriptions`, `error_logs`, `reenganche_enviado`, `referidos`, tablas VeriFactu. RPCs `SECURITY DEFINER` para lo público.
 
 ### Edge Functions
 Desplegar: panel web (Edge Functions → *Via Editor*) **o** `npm run deploy:functions` (todas) / `npx supabase functions deploy <n> --project-ref uzgzfxizpoigzcnlunpr --no-verify-jwt`. **"Verify JWT" = OFF en todas** (se valida a mano por eso el `--no-verify-jwt`). Secretos en *Settings → Edge Functions*. Operar Supabase desde aquí: ver memoria `project_supabase_ops`.
-- `enviar-doc` — email (PDF adjunto) vía **Resend**. Auth `x-user-token`. `from: hola@brami3d.app` (dominio verificado DKIM/SPF/DMARC en Namecheap). Valida destinatario/Reply-To, limita tamaños y **50 emails/día por usuario** (RPC `email_envio_check`, `sql/021`).
-- `crear-checkout` — **Stripe Checkout** (suscripción). Auth `x-user-token`. `STRIPE_SECRET_KEY`. Prices live: mensual `price_1TdvFePrM5C0gGgh2I0Gr6LC`, anual `price_1TdvFePrM5C0gGgh4liis6Os`. `success_url=?pago=ok`.
+- `enviar-doc` — email (PDF adjunto) vía **Resend** (dominio en región `eu-west-1`; Resend figura como subencargado en la web). Añade **siempre un pie** «Este correo lo envía [taller] con Brami3D…» (ES/EN según `lang`). Auth `x-user-token`. `from: hola@brami3d.app` (dominio verificado DKIM/SPF/DMARC en Namecheap). Valida destinatario/Reply-To, limita tamaños y **50 emails/día por usuario** (RPC `email_envio_check`, `sql/021`).
+- `crear-checkout` — **Stripe Checkout** (suscripción). **Antidoble pago**: si el usuario ya tiene una suscripción viva (por `stripe_customer_id` o email) responde 409 `{portal:true}` y la app abre el portal; cierra checkouts abiertos y reutiliza un único Customer por usuario. Auth `x-user-token`. `STRIPE_SECRET_KEY`. Prices live: mensual `price_1TdvFePrM5C0gGgh2I0Gr6LC`, anual `price_1TdvFePrM5C0gGgh4liis6Os`. `success_url=?pago=ok`.
 - `stripe-webhook` — verifica firma; en `checkout.session.completed`/`customer.subscription.*` hace upsert en `user_plans` (service role). `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`.
 - `portal-cliente` — Customer Portal de Stripe. Auth `x-user-token`. App: `irAPortal()` (botón en `showPlanInfo()` si `_plan.hasStripe`). Activar portal una vez en Stripe.
 - `borrar-cuenta` — **RGPD**. Auth `x-user-token`; service role borra filas del usuario en todas las tablas (lista `TABLES`, incluye `reenganche_enviado`) + ficheros de Storage (`archivos/{uid}/…`) + cuenta auth. **Si tiene facturas** no borra la cuenta (el registro fiscal es inmutable y de conservación obligatoria): la anonimiza + banea. App: `confirmarEliminarCuenta()`/`eliminarCuenta()` (Config → Zona de peligro).
@@ -30,13 +34,8 @@ Desplegar: panel web (Edge Functions → *Via Editor*) **o** `npm run deploy:fun
 
 > ⚠️ Nunca pegar en chat `sk_live_`/`whsec_`/tokens → van directos a Supabase secrets. La publishable sí puede ir embebida.
 
-## Web del taller (`index.html`)
-Portada de brami3d.app (oscuro, misma paleta/tipos que la landing: el owner **prefiere el estilo oscuro**). Secciones: hero · **Catálogo** · **Ideas** · Personalizados (vista previa del nombre) · Encargos (4 pasos) · La app · Contacto. Botones → WhatsApp `34648931530` / `brami3d@gmail.com` con mensaje prellenado (JS al final). Sin GA ni banner de cookies.
-- **Catálogo (piezas propias, foto real, sin precio)**: dispensador de cápsulas, Book Tracker, torre para cápsulas *tipo Dolce Gusto* (nota "marca de Nestlé, compatible no oficial"; la foto aún muestra una etiqueta "Kit-Kat" → sustituir por otra con etiquetas genéricas), monedero organizador (para conductores; foto principal **retocada**: tapa "Monedero 00000" en vez de TITSA + datos del cliente) y caja con bisagras personalizable (foto con el **logo de la ONCE borrado**). Las retocadas llevan nota "Foto retocada". **Se venden sin las marcas** (TITSA/ONCE).
-- **Ideas** (`#ideas`): 7 fotos de Flickr **CC BY 2.0** (verificada la licencia en cada página), con etiqueta "Foto ilustrativa", crédito autor + licencia + "recortada" y aviso de que la pieza real difiere. Nunca fotos de MakerWorld/Printables/tiendas ni Unsplash+ (de pago); Openverse con `license_type=commercial` sirve para buscar.
-- **Reglas de marca**: nada de personajes/logos (Nintendo, Disney, Pokémon, One Piece, TITSA, ONCE…). Decir "compatible con X" sí vale. Nombres reales de terceros (niños, clientes) fuera de las fotos.
-- **Fotos nuevas**: carpeta `fotos` del Escritorio (OneDrive) → reducir a 1600 px sin EXIF → subir a Supabase por TUS (trozos 40 KB) → `media_import_url` + `remove_background` de **Higgsfield** (1 crédito/foto, plan free, 1 trabajo a la vez; quedan 3 créditos el 8-oct) → componer 1000×1000 sobre degradado de estudio con sombra → WebP <64 KB en `taller/`. Logos/texto se borran con OpenCV (inpaint o clonar textura de la propia pieza). **Push: cada imagen en su propio commit/push** y la página al final.
-- Validar con la skill `web-design-guidelines` (Vercel) y captura a 390 px (iframe; Chrome headless no baja de ~500 px).
+## Web del taller
+Ya no está en este repo: la web (taller, servicios, software, legales) es WordPress en `brami3d.app`. Las reglas de marca (sin personajes ni logos de terceros, fotos con licencia) siguen valiendo allí.
 
 ## App (`brami3d_supabase.html`)
 - `sb = createClient(SUPA_URL, SUPA_KEY)` (publishable). Estado: `CU`, `PAGE`, `_cache`, `_lineas`.
@@ -51,12 +50,19 @@ Portada de brami3d.app (oscuro, misma paleta/tipos que la landing: el owner **pr
 - **Importar archivo del laminador**: en cada pieza del pedido, zona `.sl-drop` (arrastrar o pulsar) → `aplicarArchivoLaminador()` → `leerArchivoLaminador()` (`js/slicer.js`) rellena gramos por filamento, tiempo, material y nombre; `filamentoParecido()` asigna el rollo del inventario (material + color más cercano). Soporta G-code de PrusaSlicer/Orca/Bambu/Cura/Simplify3D, `.bgcode` y `.3mf` laminado (lector ZIP propio con `DecompressionStream`, `slice_info.config` o `plate_N.gcode`). Todo en local, no sube el archivo. Evento GA `slicer_import`.
 - **Recordatorio de presupuesto** (🔔 en Pedidos, presupuestos no aceptados): `recordarPresupuesto()` → modal de email con texto de seguimiento + PDF + enlace público si existe. **Export trimestral para el gestor** (botón en Registro fiscal): `abrirExportTrimestral()` → CSV de facturas del trimestre (rectificativas en negativo) + CSV de gastos, con fila TOTAL.
 
+### Acceso, cookies y caché (2026-11-02)
+- **Registro** e **inicio de sesión** son pantallas completas (`#signup-screen`, `#login-modal` con clase `.su-screen`); `?registro` abre el registro. Sin sesión se muestra directamente el inicio de sesión («← Volver a la web» lleva a `brami3d.app/software/`; el botón de instalar va dentro de su tarjeta). `#auth-screen` queda vacío.
+- **La calculadora gratuita ya no está en la app**: vive en la web, `brami3d.app/software/` (shortcode `[brami3d_calculadora]` del tema hijo de WordPress).
+- **Consentimiento** (`B3D_CONSENT`, `b3d_rgpd`): el aviso se crea siempre; `reject()`/`revoke()` desactivan GA y borran `_ga*`. Configuración › Privacidad y cookies tiene «Cambiar mi elección de cookies».
+- **Service worker**: HTML y JS propios con `cache:'no-cache'` (salta el `max-age=600` de GitHub Pages). Subir `CACHE_NAME` en cada cambio de la app.
+- **Gráficos del panel**: `initDashboardCharts()` reintenta si Chart.js (con `defer`) aún no ha cargado.
+
 ### i18n (ES / EN)
 `LANG` (localStorage `b3d_lang`, **default `es`**; EN opt-in). `I18N={es,en}`, helper `t(key,vars)`, `applyStaticI18n()`, `setLang()/toggleLang()`. Botón bandera `#lang-btn` (🇬🇧 en ES / 🇪🇸 en EN). En **EN se oculta el módulo fiscal** (solo España). PDFs traducidos. ⚠️ Cuidado con apóstrofes y `€` al editar strings.
 
 ### Planes y candado SaaS
 - `user_plans` (free/pro/admin) + columnas Stripe (`stripe_customer_id`, `stripe_subscription_id`, `expires_at`, `trial_until`), índice único `user_id`.
-- `resolvePlan()` → `_plan`; `FREE_LIMITS` = **10 pedidos/mes, 5 clientes**; `checkPlanLimit()` en cliente **y triggers en servidor** (`sql/020`: `check_limites_free`; bloqueo real con `banned_until`). `ADMIN_EMAILS` = `alexri69@gmail.com`, `brami3d@gmail.com`. Trial 30d. Panel **Admin** (`pgAdmin`). `showUpgradeModal()` → `landing.html#precios`. Numeración pres/factura: RPC atómica `siguiente_contador` (`sql/020`).
+- `resolvePlan()` → `_plan`; `FREE_LIMITS` = **10 pedidos/mes, 5 clientes**; `checkPlanLimit()` en cliente **y triggers en servidor** (`sql/020`: `check_limites_free`; bloqueo real con `banned_until`). `ADMIN_EMAILS` = `alexri69@gmail.com`, `brami3d@gmail.com`. Trial 30d. Panel **Admin** (`pgAdmin`). `showUpgradeModal()` (Stripe mensual/anual + PayPal 9 € o 79 €). Numeración pres/factura: RPC atómica `siguiente_contador` (`sql/020`).
 
 ### Pago (Stripe + PayPal)
 Precios: Gratis · Pro Mensual **9 €** · Pro Anual **79 €**. `irACheckout(plan)` → `crear-checkout` → Stripe. `_checkPagoReturn()` (`?pago=ok`), `_checkSuscribirIntent()` (`?suscribir=mensual|anual` desde landing). Landing `openPayModal(plan)`: botón tarjeta (`?suscribir=`) + PayPal manual (`paypal.me/Brami3D/9EUR`, el owner marca Pro a mano).

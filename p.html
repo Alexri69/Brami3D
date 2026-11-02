@@ -105,7 +105,7 @@ function render(p){
   const logoHtml=p.logo&&String(p.logo).startsWith('data:image')
     ? `<img src="${esc(p.logo)}" alt="logo">`
     : `<div class="logo-fallback">${esc((p.empresa||'B3D').trim().charAt(0).toUpperCase()||'B')}</div>`;
-  const empresa=(p.empresa&&p.empresa.trim())?p.empresa.trim():'B3D Print Studio';
+  const empresa=(p.empresa&&p.empresa.trim())?p.empresa.trim():'Brami3D';
 
   const filas=lineas.length
     ? lineas.map(l=>`<tr><td><b style="color:#cbd9ee">${esc(l.nombre||'—')}</b></td><td class="tc">${esc(String(l.qty||1))}</td><td class="tr">${l.peso?esc(String(l.peso))+'g':'—'}</td></tr>`).join('')

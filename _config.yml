@@ -1,0 +1,16 @@
+# GitHub Pages (Jekyll): archivos del repositorio que NO se publican en
+# app.brami3d.app. Siguen en el repositorio; solo dejan de servirse.
+exclude:
+  - CLAUDE.md
+  - README.md
+  - scripts
+  - sql
+  - supabase
+  - social
+  - marketing
+  - node_modules
+  - package.json
+  - package-lock.json
+  - skills-lock.json
+  - hero_cinematic.png
+  - experience_pwa.png
