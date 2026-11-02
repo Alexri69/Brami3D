@@ -1,231 +1,162 @@
 [
   {
     "id": 1,
-    "fecha": "2026-10-02",
+    "fecha": "2026-11-04",
     "redes": "both",
     "tipo": "imagen",
     "imagenes": [
-      "https://app.brami3d.app/m/oct-01-trimestre.png"
+      "https://app.brami3d.app/m/nov-01-nuevo-nombre.png"
     ],
-    "caption": "📅 Hasta el 20 de octubre se presenta el IVA del tercer trimestre. Si vendes tus impresiones 3D como autónomo, tu gestor te va a pedir facturas, rectificativas y gastos del trimestre. Con Brami3D lo sacas en un clic: Registro fiscal → Export trimestral (CSV listo para mandar). #impresion3d #autonomo #iva #3dprinting #brami3d",
-    "estado": "publicado",
-    "publicado_en": {
-      "ig": "https://www.instagram.com/p/DeAbAY5kh2P/",
-      "fb": "1153412231189064_122138218227360682"
-    },
-    "publicado_at": "2026-10-02T21:12:54.389962Z"
+    "caption": "🆕 B3D Print Studio ahora se llama Brami3D. Nuevo nombre, nuevo logo y nueva dirección: app.brami3d.app. Tus pedidos, clientes y facturas siguen igual y entras con la misma cuenta. Si tienes la app instalada, desinstálala y vuelve a instalarla desde app.brami3d.app para ver el icono nuevo. #impresion3d #3dprinting #maker #brami3d",
+    "estado": "pendiente"
   },
   {
     "id": 2,
-    "fecha": "2026-10-04",
+    "fecha": "2026-11-06",
     "redes": "both",
     "tipo": "carrusel",
     "imagenes": [
-      "https://app.brami3d.app/m/oct-02-halloween-slide-1.png",
-      "https://app.brami3d.app/m/oct-02-halloween-slide-2.png",
-      "https://app.brami3d.app/m/oct-02-halloween-slide-3.png",
-      "https://app.brami3d.app/m/oct-02-halloween-slide-4.png",
-      "https://app.brami3d.app/m/oct-02-halloween-slide-5.png"
+      "https://app.brami3d.app/m/nov-02-cuanto-cobrar-slide-1.png",
+      "https://app.brami3d.app/m/nov-02-cuanto-cobrar-slide-2.png",
+      "https://app.brami3d.app/m/nov-02-cuanto-cobrar-slide-3.png",
+      "https://app.brami3d.app/m/nov-02-cuanto-cobrar-slide-4.png",
+      "https://app.brami3d.app/m/nov-02-cuanto-cobrar-slide-5.png"
     ],
-    "caption": "🎃 Halloween se imprime en octubre. Máscaras, calabazas, accesorios de disfraz… y todos los encargos llegan la misma semana. 4 claves para que la temporada te deje dinero y no solo ojeras 👉 Desliza. ¿Cuál te ha pasado ya? #impresion3d #halloween #3dprinting #cosplay #maker #brami3d",
-    "estado": "publicado",
-    "publicado_en": {
-      "ig": "https://www.instagram.com/p/DeFbyjaGMHY/",
-      "fb": "1153412231189064_122138773371360682"
-    },
-    "publicado_at": "2026-10-04T19:56:01.974223Z"
+    "caption": "🧮 ¿Cuánto cobrar por una pieza impresa en 3D? Material, luz, máquina y tu tiempo, y encima tu margen. La cuenta completa en 4 pasos 👉 Desliza. Y si quieres hacerla en un momento, tienes la calculadora gratis en brami3d.app/software. #impresion3d #precio #3dprinting #maker #brami3d",
+    "estado": "pendiente"
   },
   {
     "id": 3,
-    "fecha": "2026-10-07",
+    "fecha": "2026-11-09",
     "redes": "both",
     "tipo": "imagen",
     "imagenes": [
-      "https://app.brami3d.app/m/oct-03-seguimiento.png"
+      "https://app.brami3d.app/m/nov-03-calculadora-web.png"
     ],
-    "caption": "🔔 Un presupuesto sin respuesta no es un no. Casi siempre es un cliente que se ha despistado. En Brami3D tienes los presupuestos sin aceptar a la vista y les mandas un recordatorio con el PDF y el enlace para aceptarlo desde el móvil. #impresion3d #presupuesto #ventas #3dprinting #brami3d",
-    "estado": "publicado",
-    "publicado_en": {
-      "ig": "https://www.instagram.com/p/DeNXEp1DN2K/",
-      "fb": "1153412231189064_122139585885360682"
-    },
-    "publicado_at": "2026-10-07T21:48:35.710060Z"
+    "caption": "✨ Nueva calculadora gratis, sin registro: pon peso, horas, precio del filamento, consumo y luz, elige tu margen y te da el precio de venta al momento. Está en brami3d.app/software. Pruébala con tu última pieza y cuéntame si cobrabas lo justo 👇 #impresion3d #3dprinting #calculadora #maker #brami3d",
+    "estado": "pendiente"
   },
   {
     "id": 4,
-    "fecha": "2026-10-09",
+    "fecha": "2026-11-11",
     "redes": "both",
     "tipo": "carrusel",
     "imagenes": [
-      "https://app.brami3d.app/m/oct-04-precio-congelado-slide-1.png",
-      "https://app.brami3d.app/m/oct-04-precio-congelado-slide-2.png",
-      "https://app.brami3d.app/m/oct-04-precio-congelado-slide-3.png",
-      "https://app.brami3d.app/m/oct-04-precio-congelado-slide-4.png",
-      "https://app.brami3d.app/m/oct-04-precio-congelado-slide-5.png"
+      "https://app.brami3d.app/m/nov-04-navidad-errores-slide-1.png",
+      "https://app.brami3d.app/m/nov-04-navidad-errores-slide-2.png",
+      "https://app.brami3d.app/m/nov-04-navidad-errores-slide-3.png",
+      "https://app.brami3d.app/m/nov-04-navidad-errores-slide-4.png",
+      "https://app.brami3d.app/m/nov-04-navidad-errores-slide-5.png",
+      "https://app.brami3d.app/m/nov-04-navidad-errores-slide-6.png"
     ],
-    "caption": "📉 ¿Has cambiado el precio de una bobina y te han cambiado los números de agosto? Si el coste de tus pedidos antiguos se recalcula con el precio de hoy, tus cuentas mienten. Cada pedido tiene que recordar a cuánto pagaste el filamento ese día 👉 Desliza. #impresion3d #filamento #costes #3dprinting #brami3d",
-    "estado": "publicado",
-    "publicado_en": {
-      "ig": "https://www.instagram.com/p/DeSen6TAcMm/",
-      "fb": "1153412231189064_122140160961360682"
-    },
-    "publicado_at": "2026-10-09T21:30:44.131477Z"
+    "caption": "🎄 5 errores al aceptar encargos de Navidad (y cómo evitar que diciembre te pase por encima) 👉 Desliza. ¿Cuál te ha pasado ya? #impresion3d #navidad #3dprinting #maker #emprender #brami3d",
+    "estado": "pendiente"
   },
   {
     "id": 5,
-    "fecha": "2026-10-11",
+    "fecha": "2026-11-13",
     "redes": "both",
     "tipo": "imagen",
     "imagenes": [
-      "https://app.brami3d.app/m/oct-05-encuesta.png"
+      "https://app.brami3d.app/m/nov-05-encuesta.png"
     ],
-    "caption": "Encuesta rápida 👇 ¿Cuántos pedidos sacas al mes? A) Menos de 5 · B) Entre 5 y 20 · C) Entre 20 y 50 · D) Más de 50 (y no duermes). Responde con la letra en comentarios, que tengo curiosidad. #impresion3d #3dprinting #maker #emprender #brami3d",
-    "estado": "publicado",
-    "publicado_en": {
-      "ig": "https://www.instagram.com/p/DeXjkm0AY_1/",
-      "fb": "1153412231189064_122140714731360682"
-    },
-    "publicado_at": "2026-10-11T20:50:17.579350Z"
+    "caption": "Encuesta navideña 👇 ¿Qué te piden más en Navidad? A) Regalos con nombre o texto · B) Figuras y decoración · C) Organizadores y piezas útiles · D) Repuestos y arreglos. Responde con la letra en comentarios. #impresion3d #navidad #3dprinting #maker #brami3d",
+    "estado": "pendiente"
   },
   {
     "id": 6,
-    "fecha": "2026-10-14",
+    "fecha": "2026-11-16",
     "redes": "both",
     "tipo": "carrusel",
     "imagenes": [
-      "https://app.brami3d.app/m/oct-06-gestor-slide-1.png",
-      "https://app.brami3d.app/m/oct-06-gestor-slide-2.png",
-      "https://app.brami3d.app/m/oct-06-gestor-slide-3.png",
-      "https://app.brami3d.app/m/oct-06-gestor-slide-4.png",
-      "https://app.brami3d.app/m/oct-06-gestor-slide-5.png",
-      "https://app.brami3d.app/m/oct-06-gestor-slide-6.png"
+      "https://app.brami3d.app/m/nov-06-tus-datos-slide-1.png",
+      "https://app.brami3d.app/m/nov-06-tus-datos-slide-2.png",
+      "https://app.brami3d.app/m/nov-06-tus-datos-slide-3.png",
+      "https://app.brami3d.app/m/nov-06-tus-datos-slide-4.png",
+      "https://app.brami3d.app/m/nov-06-tus-datos-slide-5.png"
     ],
-    "caption": "🗂️ Lo que tu gestor necesita cada trimestre (y que nadie te explica cuando empiezas a vender impresiones): facturas numeradas sin huecos, rectificativas, gastos con factura y una fila con el total 👉 Desliza. Guárdalo para enero. #impresion3d #autonomo #facturacion #verifactu #brami3d",
-    "estado": "publicado",
-    "publicado_en": {
-      "ig": "https://www.instagram.com/p/DefPt3IGA5H/",
-      "fb": "1153412231189064_122141463849360682"
-    },
-    "publicado_at": "2026-10-14T20:30:40.527784Z"
+    "caption": "🔒 ¿Dónde están los datos de tu taller? En la Unión Europea (Irlanda), con copia cada mes, exportables cuando quieras y borrados si te vas. Te lo contamos claro 👉 Desliza. #impresion3d #rgpd #privacidad #3dprinting #brami3d",
+    "estado": "pendiente"
   },
   {
     "id": 7,
-    "fecha": "2026-10-16",
+    "fecha": "2026-11-18",
     "redes": "both",
     "tipo": "imagen",
     "imagenes": [
-      "https://app.brami3d.app/m/oct-07-anticipo.png"
+      "https://app.brami3d.app/m/nov-07-gcode.png"
     ],
-    "caption": "💶 Pedido grande = anticipo. Siempre. Si el cliente se echa atrás a mitad, el filamento y las horas de máquina ya los has puesto tú. En Brami3D apuntas la señal en el pedido y ves en todo momento cuánto queda por cobrar. #impresion3d #cosplay #negocio #3dprinting #brami3d",
-    "estado": "publicado",
-    "publicado_en": {
-      "ig": "https://www.instagram.com/p/DekUpRDCb0Z/",
-      "fb": "1153412231189064_122141944425360682"
-    },
-    "publicado_at": "2026-10-16T19:49:47.351702Z"
+    "caption": "📂 Arrastra el G-code y el presupuesto se rellena solo: gramos por filamento, tiempo y material, leídos del archivo de PrusaSlicer, OrcaSlicer, Bambu Studio o Cura. Funciona con .gcode, .bgcode y .3mf laminado, y el archivo no sale de tu dispositivo. #impresion3d #gcode #bambulab #prusa #brami3d",
+    "estado": "pendiente"
   },
   {
     "id": 8,
-    "fecha": "2026-10-18",
+    "fecha": "2026-11-20",
     "redes": "both",
     "tipo": "imagen",
     "imagenes": [
-      "https://app.brami3d.app/m/oct-08-quedan-2-dias.png"
+      "https://app.brami3d.app/m/nov-08-fecha-limite.png"
     ],
-    "caption": "⏰ Quedan 2 días: el 20 de octubre cierra el plazo del IVA del 3T. Facturas, rectificativas y gastos al gestor HOY, no el 20 a las 23:00. Si usas Brami3D: Registro fiscal → Export trimestral y listo. #autonomo #iva #impresion3d #brami3d",
-    "estado": "publicado",
-    "publicado_en": {
-      "ig": "https://www.instagram.com/p/DepajWCnbQo/",
-      "fb": "1153412231189064_122142414627360682"
-    },
-    "publicado_at": "2026-10-18T19:17:49.224014Z"
+    "caption": "📅 ¿Hasta qué día aceptas encargos de Navidad? Cuenta hacia atrás: envío, impresión, acabado y un margen por si algo falla. Ponle fecha y anúnciala ya, antes de que te la pidan el 22 de diciembre. #impresion3d #navidad #3dprinting #maker #brami3d",
+    "estado": "pendiente"
   },
   {
     "id": 9,
-    "fecha": "2026-10-21",
+    "fecha": "2026-11-23",
     "redes": "both",
     "tipo": "carrusel",
     "imagenes": [
-      "https://app.brami3d.app/m/oct-09-navidad-slide-1.png",
-      "https://app.brami3d.app/m/oct-09-navidad-slide-2.png",
-      "https://app.brami3d.app/m/oct-09-navidad-slide-3.png",
-      "https://app.brami3d.app/m/oct-09-navidad-slide-4.png",
-      "https://app.brami3d.app/m/oct-09-navidad-slide-5.png"
+      "https://app.brami3d.app/m/nov-09-black-friday-margen-slide-1.png",
+      "https://app.brami3d.app/m/nov-09-black-friday-margen-slide-2.png",
+      "https://app.brami3d.app/m/nov-09-black-friday-margen-slide-3.png",
+      "https://app.brami3d.app/m/nov-09-black-friday-margen-slide-4.png",
+      "https://app.brami3d.app/m/nov-09-black-friday-margen-slide-5.png"
     ],
-    "caption": "🎄 La campaña de Navidad empieza ahora, no en diciembre. Cuenta tus horas de máquina, compra filamento antes del pico, revisa las impresoras y fija tus precios de temporada 👉 Desliza. ¿Ya te han llegado los primeros encargos navideños? #impresion3d #navidad #3dprinting #maker #brami3d",
-    "estado": "publicado",
-    "publicado_en": {
-      "ig": "https://www.instagram.com/p/DexRDJnl-8z/",
-      "fb": "1153412231189064_122143102941360682"
-    },
-    "publicado_at": "2026-10-21T20:28:48.896961Z"
+    "caption": "🏷️ Black Friday: no regales tu margen. Con un 30 % de margen, un 20 % de descuento te deja casi sin beneficio. Mejor un pack o un extra que te cueste poco 👉 Desliza (con la cuenta hecha). #blackfriday #impresion3d #3dprinting #negocio #brami3d",
+    "estado": "pendiente"
   },
   {
     "id": 10,
-    "fecha": "2026-10-24",
+    "fecha": "2026-11-25",
     "redes": "both",
     "tipo": "imagen",
     "imagenes": [
-      "https://app.brami3d.app/m/oct-10-referidos.png"
+      "https://app.brami3d.app/m/nov-10-presupuesto-movil.png"
     ],
-    "caption": "🤝 ¿Conoces a otro maker que vende sus impresiones? Invítale a Brami3D con tu enlace (Configuración → Invita y gana). Cuando se registre, los dos tenéis 30 días de Pro gratis. #impresion3d #3dprinting #maker #comunidad #brami3d",
-    "estado": "publicado",
-    "publicado_en": {
-      "ig": "https://www.instagram.com/p/De43Xinlxfg/",
-      "fb": "1153412231189064_122143866255360682"
-    },
-    "publicado_at": "2026-10-24T19:18:00.471141Z"
+    "caption": "📱 Tu cliente acepta el presupuesto desde el móvil, sin registrarse. Y después, en el mismo enlace, sigue su pedido: en cola, imprimiendo, terminado y entregado. Menos \"¿cómo va lo mío?\" por WhatsApp. #impresion3d #presupuesto #3dprinting #maker #brami3d",
+    "estado": "pendiente"
   },
   {
     "id": 11,
-    "fecha": "2026-10-27",
+    "fecha": "2026-11-27",
     "redes": "both",
     "tipo": "imagen",
     "imagenes": [
-      "https://app.brami3d.app/m/oct-11-rectificativa.png"
+      "https://app.brami3d.app/m/nov-11-nuestro-black-friday.png"
     ],
-    "caption": "🧾 ¿Te equivocaste en una factura? No la borres ni la edites. Con VeriFactu cada factura queda encadenada a la anterior: lo correcto es emitir una rectificativa que corrija la diferencia. En Brami3D es un botón: \"Rectificar\". #verifactu #autonomo #facturacion #impresion3d #brami3d",
-    "estado": "publicado",
-    "publicado_en": {
-      "ig": "https://www.instagram.com/p/DfAyZXqoOuT/",
-      "fb": "1153412231189064_122144572953360682"
-    },
-    "publicado_at": "2026-10-27T21:08:29.626463Z"
+    "caption": "🖤 Nuestro Black Friday dura todo el año: 30 días de Pro gratis, sin tarjeta, y después el plan Básico sigue siendo gratis. Pro: 9 €/mes o 79 €/año. Sin letra pequeña. Empieza en brami3d.app/software. #blackfriday #impresion3d #3dprinting #maker #brami3d",
+    "estado": "pendiente"
   },
   {
     "id": 12,
-    "fecha": "2026-10-29",
-    "redes": "both",
-    "tipo": "carrusel",
-    "imagenes": [
-      "https://app.brami3d.app/m/oct-12-miedo-slide-1.png",
-      "https://app.brami3d.app/m/oct-12-miedo-slide-2.png",
-      "https://app.brami3d.app/m/oct-12-miedo-slide-3.png",
-      "https://app.brami3d.app/m/oct-12-miedo-slide-4.png",
-      "https://app.brami3d.app/m/oct-12-miedo-slide-5.png"
-    ],
-    "caption": "👻 Lo que da miedo de verdad en un taller 3D no son las calabazas: pedidos sin cobrar, quedarte sin filamento a las 3 de la mañana y no saber si este mes has ganado dinero 👉 Desliza. ¿Cuál te asusta más? #impresion3d #halloween #3dprinting #maker #brami3d",
-    "estado": "publicado",
-    "publicado_en": {
-      "ig": "https://www.instagram.com/p/DfF_Y4rjycX/",
-      "fb": "1153412231189064_122145017559360682"
-    },
-    "publicado_at": "2026-10-29T21:38:22.393216Z"
-  },
-  {
-    "id": 13,
-    "fecha": "2026-10-31",
+    "fecha": "2026-11-28",
     "redes": "both",
     "tipo": "imagen",
     "imagenes": [
-      "https://app.brami3d.app/m/oct-13-cierre.png"
+      "https://app.brami3d.app/m/nov-12-mantenimiento.png"
     ],
-    "caption": "📊 Último día de octubre. ¿Sabes cuánto has ganado este mes? No facturado: ganado, después de material, luz y gastos. Brami3D te lo da por pedido y por mes. Prueba gratis 30 días en brami3d.app 🚀 #impresion3d #3dprinting #negocio #brami3d",
-    "estado": "publicado",
-    "publicado_en": {
-      "ig": "https://www.instagram.com/p/DfLAjrml1NE/",
-      "fb": "1153412231189064_122145415023360682"
-    },
-    "publicado_at": "2026-10-31T20:24:46.251192Z"
+    "caption": "🔧 Diciembre es el peor mes para que falle una impresora. Brami3D cuenta las horas de cada máquina y te avisa cuando toca revisarla, antes del pico de pedidos. ¿Cada cuántas horas haces tú el mantenimiento? #impresion3d #mantenimiento #3dprinting #maker #brami3d",
+    "estado": "pendiente"
+  },
+  {
+    "id": 13,
+    "fecha": "2026-11-30",
+    "redes": "both",
+    "tipo": "imagen",
+    "imagenes": [
+      "https://app.brami3d.app/m/nov-13-cierre.png"
+    ],
+    "caption": "📊 Llega diciembre, el mes con más trabajo. Pedidos con fecha de entrega, presupuestos que se aceptan con un enlace, facturas listas para tu gestor y el beneficio real de cada mes. Pruébalo gratis 30 días en brami3d.app/software 🚀 #impresion3d #3dprinting #negocio #brami3d",
+    "estado": "pendiente"
   }
 ]
