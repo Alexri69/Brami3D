@@ -37,6 +37,16 @@
     "estado": "pendiente"
   },
   {
+    "id": 14,
+    "fecha": "2026-11-10",
+    "redes": "both",
+    "tipo": "reel",
+    "imagenes": [],
+    "caption": "🧮 ¿Cuánto cobras por tu pieza, a ojo? Pon peso, horas, filamento y luz, elige tu margen y te da el precio de venta al momento. Gratis y sin registro en brami3d.app/software. #impresion3d #3dprinting #maker #calculadora #brami3d",
+    "estado": "pendiente",
+    "video": "https://app.brami3d.app/m/nov-reel-calculadora.mp4"
+  },
+  {
     "id": 4,
     "fecha": "2026-11-11",
     "redes": "both",
