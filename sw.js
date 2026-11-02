@@ -1,4 +1,4 @@
-const CACHE_NAME = 'b3d-cdn-v10';
+const CACHE_NAME = 'b3d-cdn-v11';
 
 // Recursos CDN externos, con versión exacta (deben coincidir con los <script>
 // de la app, que llevan SRI).
@@ -19,7 +19,9 @@ const APP_SHELL = [
   '/js/slicer.js',
   '/manifest.webmanifest',
   '/icon-192.png',
-  '/icon-512.png'
+  '/icon-512.png',
+  '/favicon-32.png',
+  '/apple-touch-icon.png'
 ];
 
 self.addEventListener('install', e => {
