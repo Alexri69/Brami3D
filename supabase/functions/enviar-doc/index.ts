@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
     }
 
     // ── Datos del email ──
-    const { to, subject, text, fromName, replyTo, filename, pdfBase64 } = await req.json();
+    const { to, subject, text, fromName, replyTo, filename, pdfBase64, lang } = await req.json();
     if (!to || !subject) return json({ error: "Faltan datos" }, 400);
 
     // ── Saneamiento de entrada (evita usar el dominio brami3d.app como relay de
@@ -80,7 +80,20 @@ Deno.serve(async (req) => {
 
     const nombre = String(fromName || "").replace(/[<>"\r\n]/g, "").trim().slice(0, 60) || "Brami3D";
     const from = `${nombre} <hola@brami3d.app>`;
-    const payload = { from, to: [toClean], subject, text: text || "" };
+    // Pie fijo con quién envía de verdad: el correo sale de hola@brami3d.app, así
+    // que el destinatario debe ver que lo manda un taller usuario de la app y no
+    // Brami3d. Frena también el uso del dominio para suplantar a terceros.
+    const en = lang === "en";
+    const pie = en
+      ? `
+
+--
+This email was sent by ${nombre} using Brami3D, a management app for 3D printing workshops (https://brami3d.app/software/).${replyTo ? " Replies go directly to " + nombre + "." : ""} If you were not expecting it, you can ignore it.`
+      : `
+
+--
+Este correo lo envía ${nombre} con Brami3D, la aplicación de gestión para talleres de impresión 3D (https://brami3d.app/software/).${replyTo ? " Las respuestas le llegan directamente a " + nombre + "." : ""} Si no lo esperaba, puede ignorarlo.`;
+    const payload = { from, to: [toClean], subject, text: (text || "") + pie };
     if (replyTo) payload.reply_to = String(replyTo).trim();
     if (pdfBase64) payload.attachments = [{ filename: filename || "documento.pdf", content: pdfBase64 }];
 

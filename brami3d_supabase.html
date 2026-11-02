@@ -10,10 +10,19 @@
   const KEY='b3d_rgpd';
   window.B3D_CONSENT={
     get state(){ return localStorage.getItem(KEY); },
-    accept(){ localStorage.setItem(KEY,'accepted'); loadGoogleTags(); hide(); },
-    reject(){ localStorage.setItem(KEY,'rejected'); hide(); },
-    revoke(){ localStorage.removeItem(KEY); show(); }
+    accept(){ localStorage.setItem(KEY,'accepted'); window['ga-disable-G-C5P6F52QE3']=false; loadGoogleTags(); hide(); },
+    reject(){ localStorage.setItem(KEY,'rejected'); stopGa(); hide(); },
+    // Retirar el consentimiento: para Google Analytics, borra sus cookies y vuelve a preguntar
+    revoke(){ localStorage.removeItem(KEY); stopGa(); show(); }
   };
+  function stopGa(){
+    window['ga-disable-G-C5P6F52QE3']=true;
+    const host=location.hostname, parts=host.split('.');
+    const doms=['', host, '.'+host]; if(parts.length>2) doms.push('.'+parts.slice(-2).join('.'));
+    document.cookie.split(';').map(c=>c.split('=')[0].trim()).filter(n=>/^_ga/.test(n)).forEach(n=>{
+      doms.forEach(d=>{ document.cookie=n+'=; Max-Age=0; path=/'+(d?'; domain='+d:''); });
+    });
+  }
   function loadGoogleTags(){
     if(window.__b3dTagsLoaded) return; window.__b3dTagsLoaded=true;
     const ga=document.createElement('script'); ga.async=true;
@@ -26,11 +35,12 @@
   function show(){ const el=document.getElementById('rgpd-banner'); if(el) el.style.display='flex'; }
   function hide(){ const el=document.getElementById('rgpd-banner'); if(el) el.style.display='none'; }
   document.addEventListener('DOMContentLoaded', function(){
-    if(B3D_CONSENT.state==='accepted'){ loadGoogleTags(); return; }
+    // El aviso se crea siempre (oculto si ya eligió) para poder reabrirlo desde Configuración
+    if(B3D_CONSENT.state==='accepted') loadGoogleTags();
     const b=document.createElement('div');
     b.id='rgpd-banner';
     b.style.cssText='position:fixed;bottom:0;left:0;right:0;z-index:9999;padding:14px 20px;background:rgba(8,15,26,.97);backdrop-filter:blur(12px);border-top:1px solid #0f2040;color:#e2eaf4;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;display:none;align-items:center;gap:16px;flex-wrap:wrap;box-shadow:0 -4px 24px rgba(0,0,0,.4);font-size:13px';
-    b.innerHTML='<div style="flex:1;min-width:240px;line-height:1.5">Usamos cookies analíticas (Google Analytics) para entender el uso del sitio. Puedes aceptarlas o rechazarlas; las cookies técnicas imprescindibles se aplican siempre. Más info en <a href="/cookies.html" style="color:#60a5fa">Política de cookies</a> y <a href="/privacidad.html" style="color:#60a5fa">Privacidad</a>.</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" id="rgpd-reject" style="background:transparent;border:1px solid #334155;color:#e2eaf4;padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit">Rechazar</button><button type="button" id="rgpd-accept" style="background:#2563eb;border:none;color:#fff;padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer;font-weight:600;font-family:inherit">Aceptar</button></div>';
+    b.innerHTML='<div style="flex:1;min-width:240px;line-height:1.5">Usamos cookies analíticas (Google Analytics) para entender el uso del sitio. Puedes aceptarlas o rechazarlas; las cookies técnicas imprescindibles se aplican siempre. Más info en <a href="https://brami3d.app/cookies/" target="_blank" rel="noopener" style="color:#60a5fa">Política de cookies</a> y <a href="https://brami3d.app/privacidad/" target="_blank" rel="noopener" style="color:#60a5fa">Privacidad</a>.</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button type="button" id="rgpd-reject" style="background:transparent;border:1px solid #334155;color:#e2eaf4;padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer;font-family:inherit">Rechazar</button><button type="button" id="rgpd-accept" style="background:#2563eb;border:none;color:#fff;padding:8px 16px;border-radius:6px;font-size:13px;cursor:pointer;font-weight:600;font-family:inherit">Aceptar</button></div>';
     document.body.appendChild(b);
     document.getElementById('rgpd-accept').addEventListener('click',function(){B3D_CONSENT.accept();});
     document.getElementById('rgpd-reject').addEventListener('click',function(){B3D_CONSENT.reject();});
@@ -3498,7 +3508,7 @@ async function _sendViaEdge(built,{to,subject,text}){
       method:'POST',
       headers:{ 'Content-Type':'application/json', 'apikey':SUPA_KEY, 'Authorization':'Bearer '+SUPA_KEY, 'x-user-token':userToken },
       body:JSON.stringify({
-        to, subject, text,
+        to, subject, text, lang:LANG,
         fromName:(cfg.empresa||'').trim()||'Brami3D',
         replyTo:(cfg.email||'').trim()||undefined,
         filename:built.filename, pdfBase64
@@ -6907,6 +6917,11 @@ ${fld(t('cfg.secondTaxRate'),'tipoIva2',cfg.tipoIva2||0,'number')}
 <div style="color:var(--text4);font-size:13px;margin-bottom:6px">${t('cfg.emailLabel')} <b style="color:var(--text2)">${esc(CU.email)}</b></div>
 <div style="background:var(--bg);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--text4);line-height:1.6;margin-bottom:16px">${t('cfg.cloudNote')}</div>
 <button class="btn-danger" onclick="logout()">🚪 ${t('common.logout')}</button>
+<div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border)">
+  <div style="font-size:11px;font-weight:700;color:var(--text4);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">${LANG==='en'?'Privacy and cookies':'Privacidad y cookies'}</div>
+  <p style="font-size:12px;color:var(--text4);line-height:1.6;margin-bottom:10px">${LANG==='en'?'Analytics cookies':'Cookies de análisis'}: <b style="color:var(--text2)">${(window.B3D_CONSENT&&B3D_CONSENT.state==='accepted')?(LANG==='en'?'accepted':'aceptadas'):(LANG==='en'?'not accepted':'no aceptadas')}</b> · <a href="https://brami3d.app/privacidad/" target="_blank" rel="noopener" style="color:#60a5fa">${LANG==='en'?'Privacy':'Privacidad'}</a> · <a href="https://brami3d.app/cookies/" target="_blank" rel="noopener" style="color:#60a5fa">Cookies</a></p>
+  <button class="btn-secondary" style="font-size:13px" onclick="B3D_CONSENT.revoke()">${LANG==='en'?'Change my cookie choice':'Cambiar mi elección de cookies'}</button>
+</div>
 <div style="margin-top:18px;padding-top:16px;border-top:1px solid var(--border)">
   <div style="font-size:11px;font-weight:700;color:#f87171;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">${t('cfg.dangerZone')}</div>
   <p style="font-size:12px;color:var(--text4);line-height:1.6;margin-bottom:10px">${t('cfg.deleteAccountHint')}</p>
