@@ -1,4 +1,4 @@
-const CACHE_NAME = 'b3d-cdn-v12';
+const CACHE_NAME = 'b3d-cdn-v13';
 
 // Recursos CDN externos, con versión exacta (deben coincidir con los <script>
 // de la app, que llevan SRI).
@@ -67,8 +67,14 @@ self.addEventListener('fetch', e => {
   // start_url con query ?source=pwa), caemos al shell precacheado.
   const esPropio = url.origin === location.origin;
   if (url.pathname.endsWith('.html') || url.pathname === '/' || (esPropio && url.pathname.endsWith('.js'))) {
+    // cache:'no-cache' → el navegador revalida con el servidor y no sirve su
+    // copia HTTP de 10 min (GitHub Pages manda max-age=600): tras publicar, la
+    // versión nueva llega al momento.
     e.respondWith(
-      fetch(e.request)
+      // (Una petición de navegación no admite opciones: se rehace desde su URL.
+      // Si el servidor redirige, se repite la original para no romper la carga.)
+      fetch(new Request(e.request.url, { cache: 'no-cache', credentials: 'same-origin' }))
+        .then(res => res.redirected ? fetch(e.request) : res)
         .then(res => {
           // Refrescamos la copia cacheada del shell para el próximo cold-start.
           if (res && res.status === 200) {

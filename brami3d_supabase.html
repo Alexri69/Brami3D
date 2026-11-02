@@ -406,51 +406,51 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
 
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
         <div>
-          <div style="font-size:10px;font-weight:700;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Peso (g)</div>
-          <input type="number" id="calc-peso" placeholder="85" min="0" oninput="calcCoste()"
+          <label for="calc-peso" style="display:block;font-size:11px;font-weight:700;color:#8aa4c0;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Peso (g)</label>
+          <input type="text" inputmode="decimal" autocomplete="off" id="calc-peso" value="85" oninput="calcCoste()"
             style="width:100%;padding:10px 12px;background:#070e1c;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:16px">
         </div>
         <div>
-          <div style="font-size:10px;font-weight:700;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Tiempo (h)</div>
-          <input type="number" id="calc-tiempo" placeholder="4.5" min="0" step="0.1" oninput="calcCoste()"
+          <label for="calc-tiempo" style="display:block;font-size:11px;font-weight:700;color:#8aa4c0;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Tiempo (h)</label>
+          <input type="text" inputmode="decimal" autocomplete="off" id="calc-tiempo" value="4,5" oninput="calcCoste()"
             style="width:100%;padding:10px 12px;background:#070e1c;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:16px">
         </div>
         <div>
-          <div style="font-size:10px;font-weight:700;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Filamento (€/kg)</div>
-          <input type="number" id="calc-precio-fil" placeholder="20" min="0" oninput="calcCoste()"
+          <label for="calc-precio-fil" style="display:block;font-size:11px;font-weight:700;color:#8aa4c0;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Filamento (€/kg)</label>
+          <input type="text" inputmode="decimal" autocomplete="off" id="calc-precio-fil" value="20" oninput="calcCoste()"
             style="width:100%;padding:10px 12px;background:#070e1c;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:16px">
         </div>
         <div>
-          <div style="font-size:10px;font-weight:700;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Consumo (W)</div>
-          <input type="number" id="calc-consumo" placeholder="200" min="0" oninput="calcCoste()"
+          <label for="calc-consumo" style="display:block;font-size:11px;font-weight:700;color:#8aa4c0;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Consumo (W)</label>
+          <input type="text" inputmode="decimal" autocomplete="off" id="calc-consumo" value="200" oninput="calcCoste()"
             style="width:100%;padding:10px 12px;background:#070e1c;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:16px">
         </div>
         <div style="grid-column:1/-1">
-          <div style="font-size:10px;font-weight:700;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Precio electricidad (€/kWh)</div>
-          <input type="number" id="calc-kwh" placeholder="0.15" min="0" step="0.01" value="0.15" oninput="calcCoste()"
+          <label for="calc-kwh" style="display:block;font-size:11px;font-weight:700;color:#8aa4c0;text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">Precio electricidad (€/kWh)</label>
+          <input type="text" inputmode="decimal" autocomplete="off" id="calc-kwh" value="0,15" oninput="calcCoste()"
             style="width:100%;padding:10px 12px;background:#070e1c;border:1.5px solid #132540;border-radius:9px;color:#e2eaf4;font-size:16px">
         </div>
       </div>
 
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px">
-        <div style="font-size:10px;font-weight:700;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;white-space:nowrap">Margen</div>
-        <input type="range" id="calc-margen" min="10" max="200" value="30" oninput="calcCoste();$('calc-margen-val').textContent=this.value+'%'"
+        <label for="calc-margen" style="font-size:11px;font-weight:700;color:#8aa4c0;text-transform:uppercase;letter-spacing:.8px;white-space:nowrap">Margen</label>
+        <input type="range" id="calc-margen" min="10" max="200" value="30" aria-describedby="calc-margen-val" oninput="calcCoste();$('calc-margen-val').textContent=this.value+'%'"
           style="flex:1;accent-color:#3b82f6">
         <span id="calc-margen-val" style="font-size:13px;font-weight:700;color:#60a5fa;min-width:38px">30%</span>
       </div>
 
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px">
         <div style="background:#070e1c;border-radius:10px;padding:12px;text-align:center">
-          <div style="font-size:9px;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Material</div>
-          <div id="calc-r-mat" style="font-size:18px;font-weight:900;color:#7a9ab8;font-family:monospace">0.00€</div>
+          <div style="font-size:11px;color:#8aa4c0;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Material</div>
+          <div id="calc-r-mat" style="font-size:18px;font-weight:900;color:#7a9ab8;font-family:monospace">0,00 €</div>
         </div>
         <div style="background:#070e1c;border-radius:10px;padding:12px;text-align:center">
-          <div style="font-size:9px;color:#3d5a7a;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Electricidad</div>
-          <div id="calc-r-elec" style="font-size:18px;font-weight:900;color:#7a9ab8;font-family:monospace">0.00€</div>
+          <div style="font-size:11px;color:#8aa4c0;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Electricidad</div>
+          <div id="calc-r-elec" style="font-size:18px;font-weight:900;color:#7a9ab8;font-family:monospace">0,00 €</div>
         </div>
         <div style="background:linear-gradient(145deg,#0d2545,#0a1e38);border:1.5px solid rgba(37,99,235,.4);border-radius:10px;padding:12px;text-align:center">
-          <div style="font-size:9px;color:#60a5fa;text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Precio venta</div>
-          <div id="calc-r-total" style="font-size:20px;font-weight:900;color:#60a5fa;font-family:monospace">0.00€</div>
+          <div style="font-size:11px;color:#60a5fa;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px">Precio venta</div>
+          <div id="calc-r-total" style="font-size:20px;font-weight:900;color:#60a5fa;font-family:monospace">0,00 €</div>
         </div>
       </div>
 
@@ -482,7 +482,7 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
       <p class="su-lead">Entra para seguir con tus pedidos, clientes, presupuestos y facturas, justo donde los dejaste.</p>
       <ul class="su-list">
         <li><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="rgba(59,130,246,.18)"/><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#60a5fa" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>La misma cuenta en el móvil y en el ordenador.</li>
-        <li><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="rgba(59,130,246,.18)"/><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#60a5fa" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Tus datos se guardan en la Unión Europea (Fráncfort).</li>
+        <li><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="10" fill="rgba(59,130,246,.18)"/><path d="M6 10.2l2.6 2.6L14 7.4" stroke="#60a5fa" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Tus datos se guardan en la Unión Europea (Irlanda).</li>
       </ul>
       <div class="su-note">¿Aún no tienes cuenta? Créala gratis y prueba <b>30 días el plan Pro, sin tarjeta</b>.
         <div><button type="button" class="su-cta" onclick="openSignup()">Crear cuenta gratis</button></div>
@@ -554,7 +554,7 @@ tr:hover td{background:rgba(59,130,246,.05)}tbody tr:last-child td{border-bottom
           <label class="su-terms"><input id="su-terms" type="checkbox"><span>He leído y acepto los <a href="https://brami3d.app/software/terminos/" target="_blank" rel="noopener">Términos del servicio</a> y la <a href="https://brami3d.app/privacidad/" target="_blank" rel="noopener">Política de privacidad</a>.</span></label>
           <div id="su-err" class="err-msg hidden" role="alert"></div>
           <button type="submit" class="btn-primary su-btn" id="su-btn">Crear cuenta gratis</button>
-          <div class="su-small"><svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true"><rect x="1" y="6" width="10" height="7.5" rx="1.5" fill="#5c7a9a"/><path d="M3.5 6V4.2a2.5 2.5 0 015 0V6" stroke="#5c7a9a" stroke-width="1.5" fill="none"/></svg>Tus datos se guardan en la Unión Europea (Fráncfort).</div>
+          <div class="su-small"><svg width="12" height="14" viewBox="0 0 12 14" aria-hidden="true"><rect x="1" y="6" width="10" height="7.5" rx="1.5" fill="#5c7a9a"/><path d="M3.5 6V4.2a2.5 2.5 0 015 0V6" stroke="#5c7a9a" stroke-width="1.5" fill="none"/></svg>Tus datos se guardan en la Unión Europea (Irlanda).</div>
         </form>
 
         <div id="su-done" class="su-done hidden" aria-live="polite">
@@ -760,14 +760,13 @@ function showUpgradeModal(reason){
         <div style="font-weight:700;color:var(--text2);margin-bottom:8px">Plan Pro incluye:</div>
         <div style="color:var(--text3);font-size:13px;line-height:1.7">
           ✓ Pedidos y clientes ilimitados<br>
-          ✓ Todo lo del plan gratis (facturas, registro fiscal, informes y exportaciones)<br>
-          ✓ Soporte prioritario
+          ✓ Todo lo del plan gratis (facturas, registro fiscal, informes y exportaciones)
         </div>
       </div>
       <div style="display:flex;flex-direction:column;gap:10px">
         <button class="btn-primary" style="justify-content:center" onclick="irACheckout('mensual')">${t('plan.proMonthly')}</button>
         <button class="btn-primary" style="justify-content:center;background:var(--bg4);color:var(--text2)" onclick="irACheckout('anual')">${t('plan.proAnnual')}</button>
-        <a href="https://www.paypal.me/Brami3D/9EUR" target="_blank" rel="noopener" class="btn-secondary" style="text-decoration:none;display:flex;align-items:center;justify-content:center">${t('plan.payPaypal')}</a>
+        <div style="display:flex;gap:8px"><a href="https://www.paypal.me/Brami3D/9EUR" target="_blank" rel="noopener" class="btn-secondary" style="flex:1;text-decoration:none;display:flex;align-items:center;justify-content:center;text-align:center">${t('plan.payPaypal')} · ${LANG==='en'?'€9/mo':'9 €/mes'}</a><a href="https://www.paypal.me/Brami3D/79EUR" target="_blank" rel="noopener" class="btn-secondary" style="flex:1;text-decoration:none;display:flex;align-items:center;justify-content:center;text-align:center">${t('plan.payPaypal')} · ${LANG==='en'?'€79/yr':'79 €/año'}</a></div>
         <button class="btn-secondary" onclick="closeModal()">${t('plan.notNow')}</button>
       </div>
     </div>`;
@@ -776,7 +775,11 @@ function showUpgradeModal(reason){
 }
 
 // Inicia el pago: pide a la Edge Function la URL de Stripe Checkout y redirige.
+let _checkoutEnCurso=false;
 async function irACheckout(plan){
+  // Evita abrir dos pagos con dos clics seguidos
+  if(_checkoutEnCurso) return;
+  _checkoutEnCurso=true; setTimeout(()=>{ _checkoutEnCurso=false; },15000);
   b3dTrack('begin_checkout',{ plan });
   showToast(t('plan.redirecting'),'ok',5000);
   let userToken='';
@@ -788,9 +791,9 @@ async function irACheckout(plan){
       body: JSON.stringify({ plan })
     });
     const j=await r.json().catch(()=>({}));
-    if(!r.ok || !j.url){ showToast(t('plan.checkoutErr')+': '+(j.error||('HTTP '+r.status)),'err',7000); return; }
+    if(!r.ok || !j.url){ _checkoutEnCurso=false; if(j.portal){ showToast(j.error,'ok',5000); setTimeout(()=>irAPortal(),1500); return; } showToast(t('plan.checkoutErr')+': '+(j.error||('HTTP '+r.status)),'err',7000); return; }
     location.href=j.url;
-  } catch(e){ showToast(t('plan.checkoutErr')+': '+(e.message||e),'err',7000); }
+  } catch(e){ _checkoutEnCurso=false; showToast(t('plan.checkoutErr')+': '+(e.message||e),'err',7000); }
 }
 
 // Abre el Portal de Cliente de Stripe (gestionar/cancelar suscripción, tarjeta, facturas).
@@ -1134,11 +1137,13 @@ async function installPWA(){
 //  CALCULADORA GRATUITA (LOGIN)
 // ═══════════════════════════════════════════════
 function calcCoste(){
-  const peso    = parseFloat($('calc-peso')?.value)||0;
-  const tiempo  = parseFloat($('calc-tiempo')?.value)||0;
-  const precFil = parseFloat($('calc-precio-fil')?.value)||20;
-  const consumo = parseFloat($('calc-consumo')?.value)||200;
-  const kwh     = parseFloat($('calc-kwh')?.value)||0.15;
+  // Acepta coma o punto decimal (teclado español del móvil)
+  const num = id => parseFloat(String($(id)?.value||'').replace(',','.'));
+  const peso    = num('calc-peso')||0;
+  const tiempo  = num('calc-tiempo')||0;
+  const precFil = num('calc-precio-fil')||20;
+  const consumo = num('calc-consumo')||200;
+  const kwh     = num('calc-kwh')||0.15;
   const margen  = parseFloat($('calc-margen')?.value)||30;
 
   const mat  = (peso/1000)*precFil;
@@ -1146,7 +1151,7 @@ function calcCoste(){
   const tc   = mat+elec;
   const venta= tc*(1+margen/100);
 
-  const fmt = v => v.toFixed(2)+'€';
+  const fmt = v => v.toFixed(2).replace('.',',')+' €';
   const r1=$('calc-r-mat');   if(r1) r1.textContent=fmt(mat);
   const r2=$('calc-r-elec');  if(r2) r2.textContent=fmt(elec);
   const r3=$('calc-r-total'); if(r3){
@@ -1154,6 +1159,8 @@ function calcCoste(){
     r3.style.color=venta>0?'#60a5fa':'#7a9ab8';
   }
 }
+
+try{ calcCoste(); }catch(_){}
 
 function openLoginModal(tab='login'){
   if(tab==='signup'){ openSignup(); return; }
@@ -4509,10 +4516,10 @@ function pgImpresoras(){
     const mDue=_hasMant&&mCada>0&&mHm>=mCada;
     const mPct=mCada>0?Math.min(mHm/mCada*100,100):0;
     const mCol=mDue?'#ef4444':mPct>75?'#f59e0b':'#22c55e';
-    return`<div class="card" style="min-width:240px;flex:1 1 240px">${mDue?`<div class="warn-box">🔧 ${t('imp.maintDue')}</div>`:''}${deg>80?`<div class="warn-box">⚠️ ${t('imp.wear')} ${p.desgaste}% — ${t('imp.needsReview')}</div>`:''}
+    return`<div class="card" style="min-width:240px;flex:1 1 240px">${mDue?`<div class="warn-box">🔧 ${t('imp.maintDue')}</div>`:''}${deg>80?`<div class="warn-box">⚠️ ${t('imp.wear')} ${round2(deg)}% — ${t('imp.needsReview')}</div>`:''}
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px"><div style="font-size:15px;font-weight:700;color:var(--text2)">🖨️ ${esc(p.nombre)}</div>${mkBadge(p.estado)}</div>
 <div style="font-size:13px;color:var(--text4);margin-bottom:10px">${esc(p.modelo)}</div>
-<div style="display:flex;gap:16px;font-size:13px;color:var(--text4);margin-bottom:6px"><span>⏱ ${p.horasUso}h</span><span>🔧 ${p.desgaste}%</span>${consumoW?`<span>⚡ ${consumoW}W</span>`:''}</div>
+<div style="display:flex;gap:16px;font-size:13px;color:var(--text4);margin-bottom:6px"><span>⏱ ${round2(parseFloat(p.horasUso)||0)}h</span><span>🔧 ${round2(deg)}%</span>${consumoW?`<span>⚡ ${consumoW}W</span>`:''}</div>
 ${costH?`<div style="font-size:12px;color:#60a5fa;margin-bottom:10px;font-weight:600">${t('imp.elecCost')}: ${costH.toFixed(4)}€/h</div>`:''}
 <div class="progress-track"><div class="progress-fill" style="width:${Math.min(deg,100)}%;background:${bc}"></div></div>
 ${_hasMant?`<div style="font-size:12px;color:${mDue?'#f87171':'var(--text4)'};margin:8px 0 4px;font-weight:600">🔧 ${t('imp.maint')}: ${round2(mHm)} / ${mCada}h</div><div class="progress-track"><div class="progress-fill" style="width:${mPct}%;background:${mCol}"></div></div>`:''}
@@ -4592,7 +4599,7 @@ function addPrintTime(id){
   const costH=consumoW>0?((consumoW/1000)*kwhPrice).toFixed(4):null;
   openModal(msh(`${t('imp.logUsage')} — ${esc(p.nombre)}`,`
     <p style="font-size:13px;color:var(--text4);margin-bottom:16px;line-height:1.5">
-      ${t('imp.accNow')} <b style="color:var(--text2)">${p.horasUso}h</b> · ${t('imp.wearWord')} <b style="color:var(--text2)">${p.desgaste}%</b>
+      ${t('imp.accNow')} <b style="color:var(--text2)">${round2(parseFloat(p.horasUso)||0)}h</b> · ${t('imp.wearWord')} <b style="color:var(--text2)">${round2(parseFloat(p.desgaste)||0)}%</b>
       ${costH?`<br>${t('imp.estElecCost')} <b style="color:#60a5fa">${costH}€/h</b>`:''}
     </p>
     ${fld(t('imp.sessHours'),'pt_horas','','number',{min:0,step:0.1,placeholder:'Ej: 3.5'})}

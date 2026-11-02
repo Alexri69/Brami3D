@@ -38,11 +38,47 @@ Deno.serve(async (req) => {
     if (!price) return json({ error: "Plan no válido" }, 400);
 
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY")!, { httpClient: Stripe.createFetchHttpClient() });
+
+    // ── Evitar suscripciones dobles ──
+    // Reunimos los clientes de Stripe de este usuario (el guardado en user_plans
+    // y los que tengan su email) y, si alguno tiene ya una suscripción viva,
+    // no abrimos otro pago: la app lo manda al portal para gestionarla.
+    const SB = Deno.env.get("SUPABASE_URL");
+    const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const ids = new Set<string>();
+    try {
+      const pr = await fetch(`${SB}/rest/v1/user_plans?user_id=eq.${user.id}&select=stripe_customer_id`, {
+        headers: { apikey: SERVICE, Authorization: `Bearer ${SERVICE}` },
+      });
+      const row = pr.ok ? (await pr.json())[0] : null;
+      if (row?.stripe_customer_id) ids.add(row.stripe_customer_id);
+    } catch (_) { /* seguimos con la búsqueda por email */ }
+    if (user.email) {
+      const found = await stripe.customers.list({ email: user.email, limit: 10 });
+      for (const c of found.data) ids.add(c.id);
+    }
+    for (const id of ids) {
+      const subs = await stripe.subscriptions.list({ customer: id, status: "all", limit: 20 });
+      if (subs.data.some((s) => ["active", "trialing", "past_due", "unpaid"].includes(s.status))) {
+        return json({ error: "Ya tienes una suscripción Pro activa. Te llevamos a gestionarla.", portal: true }, 409);
+      }
+      // Si quedó otro pago a medias (otra pestaña), lo cerramos: solo vale el nuevo.
+      const open = await stripe.checkout.sessions.list({ customer: id, status: "open", limit: 10 });
+      for (const ses of open.data) await stripe.checkout.sessions.expire(ses.id).catch(() => {});
+    }
+
+    // Un único cliente de Stripe por usuario (antes se creaba uno nuevo en cada pago).
+    let customerId = [...ids][0];
+    if (!customerId) {
+      const c = await stripe.customers.create({ email: user.email, metadata: { user_id: user.id } });
+      customerId = c.id;
+    }
+
     const session = await stripe.checkout.sessions.create({
       mode: "subscription",
       line_items: [{ price, quantity: 1 }],
       client_reference_id: user.id,
-      customer_email: user.email,
+      customer: customerId,
       subscription_data: { metadata: { user_id: user.id } },
       metadata: { user_id: user.id },
       success_url: `${APP_URL}?pago=ok`,
