@@ -28,7 +28,8 @@ process.env.PATH = `${path.dirname(ffmpegBin)}${delimiter}${path.dirname(ffprobe
 
 // H.264 + AAC es lo que exigen Instagram y Facebook.
 const PIEZAS = [
-  { dir: 'marketing/noviembre/reel-calculadora', out: 'marketing/noviembre/nov-reel-calculadora.mp4' }
+  { dir: 'marketing/noviembre/reel-calculadora', out: 'marketing/noviembre/nov-reel-calculadora.mp4' },
+  { dir: 'marketing/diciembre/reel-laminador', out: 'marketing/diciembre/reel-laminador-mudo.mp4' }
 ];
 
 const filtro = process.argv[2];

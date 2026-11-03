@@ -168,5 +168,15 @@
     ],
     "caption": "📊 Llega diciembre, el mes con más trabajo. Pedidos con fecha de entrega, presupuestos que se aceptan con un enlace, facturas listas para tu gestor y el beneficio real de cada mes. Pruébalo gratis 30 días en brami3d.app/software 🚀 #impresion3d #3dprinting #negocio #brami3d",
     "estado": "pendiente"
+  },
+  {
+    "id": 15,
+    "fecha": "2026-11-03",
+    "redes": "both",
+    "tipo": "reel",
+    "imagenes": [],
+    "caption": "📂 ¿Sigues copiando a mano los gramos y las horas del laminador? En Brami3D arrastras el archivo laminado (G-code o 3MF de Bambu Studio, OrcaSlicer, PrusaSlicer o Cura) y la pieza se rellena sola: peso, tiempo y color del filamento. El archivo se lee en tu navegador, no se sube. Pruébalo gratis en app.brami3d.app #impresion3d #3dprinting #bambulab #maker #brami3d",
+    "estado": "pendiente",
+    "video": "https://app.brami3d.app/m/reel-laminador.mp4"
   }
 ]
