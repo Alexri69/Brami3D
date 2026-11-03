@@ -176,7 +176,12 @@
     "tipo": "reel",
     "imagenes": [],
     "caption": "📂 ¿Sigues copiando a mano los gramos y las horas del laminador? En Brami3D arrastras el archivo laminado (G-code o 3MF de Bambu Studio, OrcaSlicer, PrusaSlicer o Cura) y la pieza se rellena sola: peso, tiempo y color del filamento. El archivo se lee en tu navegador, no se sube. Pruébalo gratis en app.brami3d.app #impresion3d #3dprinting #bambulab #maker #brami3d",
-    "estado": "pendiente",
-    "video": "https://app.brami3d.app/m/reel-laminador.mp4"
+    "estado": "publicado",
+    "video": "https://app.brami3d.app/m/reel-laminador.mp4",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/reel/DfSm2_YEyAo/",
+      "fb": "1044963065228524"
+    },
+    "publicado_at": "2026-11-03T19:14:26.958263Z"
   }
 ]
