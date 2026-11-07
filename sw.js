@@ -1,4 +1,4 @@
-const CACHE_NAME = 'b3d-cdn-v15';
+const CACHE_NAME = 'b3d-cdn-v16';
 
 // Recursos CDN externos, con versión exacta (deben coincidir con los <script>
 // de la app, que llevan SRI).

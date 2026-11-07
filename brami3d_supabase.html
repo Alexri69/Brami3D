@@ -5029,7 +5029,7 @@ ${_lineas.length>1?`<button class="btn-icon" style="color:#f87171;font-size:12px
 <div style="margin-top:10px">
 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
 <label style="margin:0;font-size:11px">${t('ln.filaments')}</label>
-${l.filamentos.length<3?`<button onclick="addFilLinea('${l.id}')" style="background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);color:#60a5fa;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700">${t('ln.addFilament')}</button>`:''}
+${l.filamentos.length<MAX_FIL_LINEA?`<button onclick="addFilLinea('${l.id}')" style="background:rgba(59,130,246,.15);border:1px solid rgba(59,130,246,.3);color:#60a5fa;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700">${t('ln.addFilament')}</button>`:''}
 </div>
 ${filRows}
 <div style="font-size:11px;color:var(--text4);margin-top:4px">${t('ln.partWeight')} <b style="color:#60a5fa">${round2(l.filamentos.reduce((s,f)=>s+(parseFloat(f.peso)||0),0))}g × ${l.qty||1} = ${round2(l.filamentos.reduce((s,f)=>s+(parseFloat(f.peso)||0),0)*(parseInt(l.qty)||1))}g</b></div>
@@ -5046,9 +5046,11 @@ function addLinea(){_lineas.push(lineaEmpty());renderLineas();}
 function removeLinea(id){_lineas=_lineas.filter(l=>l.id!==id);renderLineas();}
 function updateLinea(id,field,val){const l=_lineas.find(x=>x.id===id);if(l)l[field]=val;}
 
+// Máximo de filamentos por pieza (Bambu admite hasta 16 con 4 AMS).
+const MAX_FIL_LINEA=16;
 function addFilLinea(lid){
   const l=_lineas.find(x=>x.id===lid);
-  if(!l||l.filamentos.length>=3) return;
+  if(!l||l.filamentos.length>=MAX_FIL_LINEA) return;
   l.filamentos.push({filamentoId:'__manual__',peso:''});
   renderLineas();
 }
@@ -5096,10 +5098,11 @@ async function aplicarArchivoLaminador(lid,file){
   try{ r=await leerArchivoLaminador(file); }
   catch(e){ showToast(t('sl.err.'+(['model','unsliced','browser','nodata'].includes(e.code)?e.code:'nodata')),'err',7000); return; }
   let fils=r.filamentos.slice();
-  if(fils.length>3){
-    showToast(t('sl.more3',{n:fils.length}),'warn',6000);
-    fils[2]={...fils[2],gramos:fils.slice(2).reduce((s,f)=>s+f.gramos,0)};
-    fils=fils.slice(0,3);
+  if(fils.length>MAX_FIL_LINEA){
+    const u=MAX_FIL_LINEA-1;
+    showToast(t('sl.more3',{n:fils.length,max:MAX_FIL_LINEA}),'warn',6000);
+    fils[u]={...fils[u],gramos:fils.slice(u).reduce((s,f)=>s+f.gramos,0)};
+    fils=fils.slice(0,MAX_FIL_LINEA);
   }
   if(fils.length) l.filamentos=fils.map(f=>({filamentoId:filamentoParecido(f),peso:String(round2(f.gramos))}));
   if(fils[0]?.material) l.material=fils[0].material;
