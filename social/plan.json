@@ -44,7 +44,12 @@
       "https://app.brami3d.app/m/nov-03-calculadora-web.png"
     ],
     "caption": "✨ Nueva calculadora gratis, sin registro: pon peso, horas, precio del filamento, consumo y luz, elige tu margen y te da el precio de venta al momento. Está en brami3d.app/software. Pruébala con tu última pieza y cuéntame si cobrabas lo justo 👇 #impresion3d #3dprinting #calculadora #maker #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/DfioVAGlwSz/",
+      "fb": "1153412231189064_122147533755360682"
+    },
+    "publicado_at": "2026-11-10T00:34:45.139502Z"
   },
   {
     "id": 14,
@@ -53,8 +58,13 @@
     "tipo": "reel",
     "imagenes": [],
     "caption": "🧮 ¿Cuánto cobras por tu pieza, a ojo? Pon peso, horas, filamento y luz, elige tu margen y te da el precio de venta al momento. Gratis y sin registro en brami3d.app/software. #impresion3d #3dprinting #maker #calculadora #brami3d",
-    "estado": "pendiente",
-    "video": "https://app.brami3d.app/m/nov-reel-calculadora.mp4"
+    "estado": "publicado",
+    "video": "https://app.brami3d.app/m/nov-reel-calculadora.mp4",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/reel/DfioXXBjGSR/",
+      "fb": "2616268595503753"
+    },
+    "publicado_at": "2026-11-10T00:35:26.694300Z"
   },
   {
     "id": 4,
