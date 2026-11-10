@@ -80,7 +80,12 @@
       "https://app.brami3d.app/m/nov-04-navidad-errores-slide-6.png"
     ],
     "caption": "🎄 5 errores al aceptar encargos de Navidad (y cómo evitar que diciembre te pase por encima) 👉 Desliza. ¿Cuál te ha pasado ya? #impresion3d #navidad #3dprinting #maker #emprender #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/Dfk8swRlz-G/",
+      "fb": "1153412231189064_122147731917360682"
+    },
+    "publicado_at": "2026-11-10T22:11:29.377140Z"
   },
   {
     "id": 5,
