@@ -96,7 +96,12 @@
       "https://app.brami3d.app/m/nov-05-encuesta.png"
     ],
     "caption": "Encuesta navideña 👇 ¿Qué te piden más en Navidad? A) Regalos con nombre o texto · B) Figuras y decoración · C) Organizadores y piezas útiles · D) Repuestos y arreglos. Responde con la letra en comentarios. #impresion3d #navidad #3dprinting #maker #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/DfqJSriCTgB/",
+      "fb": "1153412231189064_122148181089360682"
+    },
+    "publicado_at": "2026-11-12T22:37:33.619055Z"
   },
   {
     "id": 6,
