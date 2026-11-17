@@ -116,7 +116,12 @@
       "https://app.brami3d.app/m/nov-06-tus-datos-slide-5.png"
     ],
     "caption": "🔒 ¿Dónde están los datos de tu taller? En la Unión Europea (Irlanda), con copia cada mes, exportables cuando quieras y borrados si te vas. Te lo contamos claro 👉 Desliza. #impresion3d #rgpd #privacidad #3dprinting #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/Df0qlgyoNvd/",
+      "fb": "1153412231189064_122148995445360682"
+    },
+    "publicado_at": "2026-11-17T00:40:55.332525Z"
   },
   {
     "id": 7,
