@@ -132,7 +132,12 @@
       "https://app.brami3d.app/m/nov-07-gcode.png"
     ],
     "caption": "📂 Arrastra el G-code y el presupuesto se rellena solo: gramos por filamento, tiempo y material, leídos del archivo de PrusaSlicer, OrcaSlicer, Bambu Studio o Cura. Funciona con .gcode, .bgcode y .3mf laminado, y el archivo no sale de tu dispositivo. #impresion3d #gcode #bambulab #prusa #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/Df3JLaQJRJl/",
+      "fb": "1153412231189064_122149178547360682"
+    },
+    "publicado_at": "2026-11-17T23:46:35.786841Z"
   },
   {
     "id": 8,
