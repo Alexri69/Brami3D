@@ -140,76 +140,6 @@
     "publicado_at": "2026-11-17T23:46:35.786841Z"
   },
   {
-    "id": 8,
-    "fecha": "2026-11-20",
-    "redes": "both",
-    "tipo": "imagen",
-    "imagenes": [
-      "https://app.brami3d.app/m/nov-08-fecha-limite.png"
-    ],
-    "caption": "📅 ¿Hasta qué día aceptas encargos de Navidad? Cuenta hacia atrás: envío, impresión, acabado y un margen por si algo falla. Ponle fecha y anúnciala ya, antes de que te la pidan el 22 de diciembre. #impresion3d #navidad #3dprinting #maker #brami3d",
-    "estado": "pendiente"
-  },
-  {
-    "id": 9,
-    "fecha": "2026-11-23",
-    "redes": "both",
-    "tipo": "carrusel",
-    "imagenes": [
-      "https://app.brami3d.app/m/nov-09-black-friday-margen-slide-1.png",
-      "https://app.brami3d.app/m/nov-09-black-friday-margen-slide-2.png",
-      "https://app.brami3d.app/m/nov-09-black-friday-margen-slide-3.png",
-      "https://app.brami3d.app/m/nov-09-black-friday-margen-slide-4.png",
-      "https://app.brami3d.app/m/nov-09-black-friday-margen-slide-5.png"
-    ],
-    "caption": "🏷️ Black Friday: no regales tu margen. Con un 30 % de margen, un 20 % de descuento te deja casi sin beneficio. Mejor un pack o un extra que te cueste poco 👉 Desliza (con la cuenta hecha). #blackfriday #impresion3d #3dprinting #negocio #brami3d",
-    "estado": "pendiente"
-  },
-  {
-    "id": 10,
-    "fecha": "2026-11-25",
-    "redes": "both",
-    "tipo": "imagen",
-    "imagenes": [
-      "https://app.brami3d.app/m/nov-10-presupuesto-movil.png"
-    ],
-    "caption": "📱 Tu cliente acepta el presupuesto desde el móvil, sin registrarse. Y después, en el mismo enlace, sigue su pedido: en cola, imprimiendo, terminado y entregado. Menos \"¿cómo va lo mío?\" por WhatsApp. #impresion3d #presupuesto #3dprinting #maker #brami3d",
-    "estado": "pendiente"
-  },
-  {
-    "id": 11,
-    "fecha": "2026-11-27",
-    "redes": "both",
-    "tipo": "imagen",
-    "imagenes": [
-      "https://app.brami3d.app/m/nov-11-nuestro-black-friday.png"
-    ],
-    "caption": "🖤 Nuestro Black Friday dura todo el año: 30 días de Pro gratis, sin tarjeta, y después el plan Básico sigue siendo gratis. Pro: 9 €/mes o 79 €/año. Sin letra pequeña. Empieza en brami3d.app/software. #blackfriday #impresion3d #3dprinting #maker #brami3d",
-    "estado": "pendiente"
-  },
-  {
-    "id": 12,
-    "fecha": "2026-11-28",
-    "redes": "both",
-    "tipo": "imagen",
-    "imagenes": [
-      "https://app.brami3d.app/m/nov-12-mantenimiento.png"
-    ],
-    "caption": "🔧 Diciembre es el peor mes para que falle una impresora. Brami3D cuenta las horas de cada máquina y te avisa cuando toca revisarla, antes del pico de pedidos. ¿Cada cuántas horas haces tú el mantenimiento? #impresion3d #mantenimiento #3dprinting #maker #brami3d",
-    "estado": "pendiente"
-  },
-  {
-    "id": 13,
-    "fecha": "2026-11-30",
-    "redes": "both",
-    "tipo": "imagen",
-    "imagenes": [
-      "https://app.brami3d.app/m/nov-13-cierre.png"
-    ],
-    "caption": "📊 Llega diciembre, el mes con más trabajo. Pedidos con fecha de entrega, presupuestos que se aceptan con un enlace, facturas listas para tu gestor y el beneficio real de cada mes. Pruébalo gratis 30 días en brami3d.app/software 🚀 #impresion3d #3dprinting #negocio #brami3d",
-    "estado": "pendiente"
-  },
-  {
     "id": 15,
     "fecha": "2026-11-03",
     "redes": "both",
@@ -223,5 +153,159 @@
       "fb": "1044963065228524"
     },
     "publicado_at": "2026-11-03T19:14:26.958263Z"
+  },
+  {
+    "id": 101,
+    "fecha": "2026-11-18",
+    "redes": "both",
+    "tipo": "reel",
+    "imagenes": [],
+    "video": "https://app.brami3d.app/m/camp-02-comedero.mp4",
+    "caption": "¿Tu perro sigue comiendo agachado? 🐶\n\nUn comedero elevado le permite comer a su altura, mejora su postura y este además lleva su propio nombre en relieve sobre el aro.\nLo imprimimos a medida en nuestro taller de Tenerife, con la combinación de colores que tú elijas.\n\n🎁 Un regalo de Navidad único para el de cuatro patas\n📏 Dinos su nombre y los colores que te gustan, y te damos presupuesto cerrado sin compromiso\n🥣 Se adapta a tu cuenco (el cuenco no va incluido)\n\n📲 WhatsApp: 648 93 15 30\n🌐 https://brami3d.app/presupuesto · Envíos a toda España\n\n🎵 Night Owl – Broke For Free (CC BY 3.0)\n\n#comederoelevado #perrosdetenerife #gatosdetenerife #mascotastenerife #regalospersonalizados #impresion3d #tenerife #canarias #navidad #brami3d",
+    "estado": "pendiente"
+  },
+  {
+    "id": 102,
+    "fecha": "2026-11-20",
+    "redes": "both",
+    "tipo": "reel",
+    "imagenes": [],
+    "video": "https://app.brami3d.app/m/camp-01-monedero.mp4",
+    "caption": "¿Cobras en efectivo y llevas el cambio suelto por el bolsillo, la mochila o el vehículo? 🪙\n\nEste monedero rígido lo diseñamos e imprimimos en nuestro taller de Tenerife:\n✅ Cada moneda en su columna exacta, de 5 céntimos a 2 €\n✅ Bandeja extraíble, con compartimento debajo para los billetes\n✅ Personalizado con tu nombre, código o número en la tapa\n\n💶 Pequeño 25 € · Grande 35 € (IGIC incluido, envío aparte)\n\n📲 Pídelo por WhatsApp: 648 93 15 30\n🌐 https://brami3d.app/presupuesto · Envíos a toda España\n\n🎵 Night Owl – Broke For Free (CC BY 3.0)\n\n#impresion3d #tenerife #canarias #hechoentenerife #santacruzdetenerife #monedero #conductores #taxitenerife #reparto #brami3d",
+    "estado": "pendiente"
+  },
+  {
+    "id": 103,
+    "fecha": "2026-11-22",
+    "redes": "both",
+    "tipo": "carrusel",
+    "imagenes": [
+      "https://app.brami3d.app/m/post-01-navidad-personalizados-slide-1.png",
+      "https://app.brami3d.app/m/post-01-navidad-personalizados-slide-2.png",
+      "https://app.brami3d.app/m/post-01-navidad-personalizados-slide-3.png",
+      "https://app.brami3d.app/m/post-01-navidad-personalizados-slide-4.png",
+      "https://app.brami3d.app/m/post-01-navidad-personalizados-slide-5.png"
+    ],
+    "caption": "🎁 ¿Busca un encargo útil y hecho a medida con su propio nombre?\n\nEn nuestro taller de Santa Cruz de Tenerife imprimimos bajo pedido piezas personalizadas en PLA con los colores y el texto en relieve que usted elija 👉 Deslice para ver trabajos reales:\n\n1️⃣ Comedero elevado personalizado con el nombre de su mascota en relieve sobre el aro (el cuenco lo pone el cliente).\n2️⃣ Juego de equilibrio personalizado con base rotulada con nombre y felicitación, piezas para apilar y dado.\n3️⃣ Book Tracker y torres organizadoras para cápsulas de café.\n\n✅ Presupuesto cerrado antes de fabricar (precios con IGIC).\n✅ Plazo de impresión: 3–7 días laborables + envío a Canarias y toda España.\n\n📐 Pida su presupuesto sin compromiso en https://brami3d.app/presupuesto o por WhatsApp al +34 648 931 530\n\n#impresion3d #impresion3dtenerife #impresion3dcanarias #tenerife #regalospersonalizados #mascotastenerife #diseno3d #brami3d",
+    "estado": "pendiente"
+  },
+  {
+    "id": 104,
+    "fecha": "2026-11-24",
+    "redes": "both",
+    "tipo": "reel",
+    "imagenes": [],
+    "video": "https://app.brami3d.app/m/camp-03-juego-equilibrio.mp4",
+    "caption": "Un juego de mesa que lleva SU propio nombre grabado en la base 🎲\n\nTira el dado, coloca la pieza… ¡y que no se derrumbe la torre!\nLo personalizamos en relieve con el nombre y la felicitación que quieras en la base del balancín.\n\n🎄 Perfecto para Navidad, Reyes o un cumpleaños\n👨‍👩‍👧 Para jugar en familia, por turnos\n\n📲 WhatsApp: 648 93 15 30\n🌐 https://brami3d.app/presupuesto · Hecho en Tenerife, envíos a toda España\n\n🎵 Night Owl – Broke For Free (CC BY 3.0)\n\n#regalospersonalizados #juegosdemesa #regalonavidad #reyesmagos #impresion3d #tenerife #canarias #hechoentenerife #brami3d",
+    "estado": "pendiente"
+  },
+  {
+    "id": 105,
+    "fecha": "2026-11-26",
+    "redes": "both",
+    "tipo": "carrusel",
+    "imagenes": [
+      "https://app.brami3d.app/m/post-02-monedero-conductores-slide-1.png",
+      "https://app.brami3d.app/m/post-02-monedero-conductores-slide-2.png",
+      "https://app.brami3d.app/m/post-02-monedero-conductores-slide-3.png",
+      "https://app.brami3d.app/m/post-02-monedero-conductores-slide-4.png"
+    ],
+    "caption": "🪙 El cambio siempre ordenado y listo al segundo.\n\nNuestro monedero organizador impreso en 3D (PLA resistente) está pensado para quienes trabajan al volante, en reparto o de cara al público 👉 Deslice para ver el interior con monedas y billetes:\n\n• Pequeño: 25 € (IGIC incluido)\n• Grande: 35 € (IGIC incluido)\n(Coste de envío indicado en el presupuesto).\n\n👉 Encárguelo en https://brami3d.app/presupuesto o por WhatsApp en el +34 648 931 530\n\n#impresion3d #tenerife #canarias #conductores #guaguas #taxitenerife #reparto #monedero #brami3d",
+    "estado": "pendiente"
+  },
+  {
+    "id": 106,
+    "fecha": "2026-11-28",
+    "redes": "both",
+    "tipo": "reel",
+    "imagenes": [],
+    "video": "https://app.brami3d.app/m/camp-05-software.mp4",
+    "caption": "¿Vendes impresiones 3D y sigues calculando los precios a ojo o en una hoja de cálculo? 🤔\n\nBrami3D es la app que creamos y usamos a diario en nuestro propio taller de Tenerife para:\n📂 Arrastrar el archivo .gcode o .3mf del laminador y leer gramos, horas y filamento sin teclear\n🧮 Calcular el coste y margen real al céntimo\n📱 Enviar un enlace por WhatsApp para que tu cliente acepte desde el móvil y siga el estado de su pedido\n🧾 Emitir facturas encadenadas (VeriFactu) y controlar el stock de bobinas\n\n✅ Plan Básico GRATIS hasta 10 pedidos al mes · 30 días Pro sin tarjeta\n👉 https://brami3d.app/software\n\n🎵 Night Owl – Broke For Free (CC BY 3.0)\n\n#impresion3d #impresora3d #makers #bambulab #orcaslicer #prusaslicer #tallerdeimpresion3d #verifactu #brami3d",
+    "estado": "pendiente"
+  },
+  {
+    "id": 107,
+    "fecha": "2026-11-30",
+    "redes": "both",
+    "tipo": "reel",
+    "imagenes": [],
+    "video": "https://app.brami3d.app/m/camp-04-pieza-rota.mp4",
+    "caption": "¿Se te ha roto una pieza de plástico y ya no venden el recambio suelto? 🛠️\n\nNo tires el aparato entero. Mándanos una foto con una regla al lado por WhatsApp:\n1️⃣ La medimos\n2️⃣ La diseñamos en 3D (añadiendo nervios de refuerzo donde partió la original)\n3️⃣ La imprimimos en el material adecuado: PETG, ASA, TPU flexible o PLA\n\n💬 Te damos precio cerrado antes de fabricar, con IGIC incluido.\n\n📲 WhatsApp: 648 93 15 30 · 🌐 https://brami3d.app/diseno-3d\n\n(Imágenes ilustrativas)\n🎵 Night Owl – Broke For Free (CC BY 3.0)\n\n#recambios #piezasrotas #reparacion #diseno3d #impresion3d #tenerife #canarias #petg #brami3d",
+    "estado": "pendiente"
+  },
+  {
+    "id": 108,
+    "fecha": "2026-12-02",
+    "redes": "both",
+    "tipo": "carrusel",
+    "imagenes": [
+      "https://app.brami3d.app/m/post-04-puente-hibrido-taller-y-app-slide-1.png",
+      "https://app.brami3d.app/m/post-04-puente-hibrido-taller-y-app-slide-2.png",
+      "https://app.brami3d.app/m/post-04-puente-hibrido-taller-y-app-slide-3.png",
+      "https://app.brami3d.app/m/post-04-puente-hibrido-taller-y-app-slide-4.png",
+      "https://app.brami3d.app/m/post-04-puente-hibrido-taller-y-app-slide-5.png"
+    ],
+    "caption": "🖨️➡️💻 De gestionar nuestros propios encargos de impresión 3D nació Brami3D.\n\nCuando imprimimos piezas reales en nuestro taller de Tenerife, necesitamos saber al instante cuánto filamento, horas de máquina y luz consume cada pieza antes de dar un presupuesto cerrado 👉 Deslice para ver cómo lo hacemos:\n\n🔹 ¿Quiere encargar una pieza? 👉 https://brami3d.app/presupuesto\n🔹 ¿Tiene un taller 3D? Pruébelo gratis (10 pedidos/mes + 30 días Pro sin tarjeta) 👉 https://brami3d.app/software\n\n#impresion3d #3dprinting #maker #bambulab #orcaslicer #prusaslicer #taller3d #tenerife #brami3d",
+    "estado": "pendiente"
+  },
+  {
+    "id": 109,
+    "fecha": "2026-12-04",
+    "redes": "both",
+    "tipo": "reel",
+    "imagenes": [],
+    "video": "https://app.brami3d.app/m/reel-laminador.mp4",
+    "caption": "📂 ¿Sigues copiando a mano los gramos y las horas desde el laminador?\n\nEn Brami3D arrastras el archivo laminado (.gcode, .bgcode o .3mf de Bambu Studio, OrcaSlicer, PrusaSlicer o Cura) y la pieza se rellena sola: peso, tiempo y color del filamento. El archivo se lee en tu navegador, no se sube.\n\n👉 Pruébalo gratis en https://app.brami3d.app/?registro\n\n#impresion3d #3dprinting #bambulab #orcaslicer #prusaslicer #cura #gcode #maker #brami3d",
+    "estado": "pendiente"
+  },
+  {
+    "id": 110,
+    "fecha": "2026-12-07",
+    "redes": "both",
+    "tipo": "carrusel",
+    "imagenes": [
+      "https://app.brami3d.app/m/post-03-repuestos-a-medida-slide-1.png",
+      "https://app.brami3d.app/m/post-03-repuestos-a-medida-slide-2.png",
+      "https://app.brami3d.app/m/post-03-repuestos-a-medida-slide-3.png",
+      "https://app.brami3d.app/m/post-03-repuestos-a-medida-slide-4.png",
+      "https://app.brami3d.app/m/post-03-repuestos-a-medida-slide-5.png"
+    ],
+    "caption": "🛠️ ¿Se rompió una pieza de plástico y ya no venden el recambio suelto?\n\nEn Brami3D partimos de su pieza rota, la diseñamos en 3D reforzando por donde partió y se la enviamos impresa en PLA, PETG, ABS/ASA o TPU flexible 👉 Deslice para ver cómo trabajamos en 3 pasos.\n\n👉 Solicite presupuesto cerrado en https://brami3d.app/presupuesto o por WhatsApp al +34 648 931 530\n\n#impresion3d #diseno3d #repuestos3d #reparacion #tenerife #canarias #petg #asa #tpu #brami3d",
+    "estado": "pendiente"
+  },
+  {
+    "id": 111,
+    "fecha": "2026-12-09",
+    "redes": "both",
+    "tipo": "reel",
+    "imagenes": [],
+    "video": "https://app.brami3d.app/m/camp-06-catalogo-taller.mp4",
+    "caption": "🛠️ Del problema a la pieza: diseño e impresión 3D bajo pedido desde Santa Cruz de Tenerife.\n\nTrabajamos con PLA, PETG, ABS/ASA y TPU con precios cerrados en IGIC y envíos a toda España.\n\n👉 Suba su archivo o una foto en https://brami3d.app/presupuesto o escríbanos por WhatsApp al +34 648 931 530\n\n#impresion3d #diseno3d #repuestos3d #tenerife #canarias #piezas3d #petg #pla #brami3d",
+    "estado": "pendiente"
+  },
+  {
+    "id": 112,
+    "fecha": "2026-12-11",
+    "redes": "both",
+    "tipo": "imagen",
+    "imagenes": [
+      "https://app.brami3d.app/m/post-06-guia-materiales-fdm.png"
+    ],
+    "caption": "🔖 Guarde esta guía rápida: ¿PLA, PETG, ABS/ASA o TPU?\n\nEn nuestro taller trabajamos con estos 4 materiales FDM según dónde vaya a trabajar su pieza:\n🔹 PLA: detalle visual e interior.\n🔹 PETG: fuerza mecánica y humedad.\n🔹 ABS / ASA: sol directo de Canarias, calor e intemperie.\n🔹 TPU: flexible y elástico para topes y juntas.\n\n👉 Más detalles en https://brami3d.app/materiales · Presupuestos en https://brami3d.app/presupuesto\n\n#impresion3d #materiales3d #pla #petg #asa #tpu #diseno3d #tenerife #españa #brami3d",
+    "estado": "pendiente"
+  },
+  {
+    "id": 113,
+    "fecha": "2026-12-14",
+    "redes": "both",
+    "tipo": "carrusel",
+    "imagenes": [
+      "https://app.brami3d.app/m/post-05-software-presupuesto-movil-slide-1.png",
+      "https://app.brami3d.app/m/post-05-software-presupuesto-movil-slide-2.png",
+      "https://app.brami3d.app/m/post-05-software-presupuesto-movil-slide-3.png",
+      "https://app.brami3d.app/m/post-05-software-presupuesto-movil-slide-4.png"
+    ],
+    "caption": "📱 ¿Cuántos presupuestos se quedan enfriándose en un PDF por WhatsApp?\n\nCon Brami3D mandas un enlace público a tu cliente: acepta el presupuesto desde su móvil sin registrarse y en ese mismo enlace consulta en directo si su pieza está En cola, Imprimiendo, Terminada o Entregada 👉 Desliza.\n\n🆓 Plan Básico GRATIS para siempre (10 pedidos/mes) + 30 días de prueba del plan Pro sin tarjeta.\n👉 Pruébalo hoy en https://brami3d.app/software\n\n#impresion3d #3dprinting #maker #autonomos #verifactu #granja3d #bambulab #prusa #negocio3d #brami3d",
+    "estado": "pendiente"
   }
 ]
