@@ -1,4 +1,4 @@
-const CACHE_NAME = 'b3d-cdn-v16';
+const CACHE_NAME = 'b3d-cdn-v17';
 
 // Recursos CDN externos, con versión exacta (deben coincidir con los <script>
 // de la app, que llevan SRI).
@@ -53,6 +53,10 @@ self.addEventListener('message', e => {
 
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
+
+  // Archivos multimedia públicos de redes (/m/*) → directo a red sin Service Worker
+  // (permite peticiones HTTP Range 206 Partial Content para reproducir vídeos MP4).
+  if (url.pathname.startsWith('/m/')) return;
 
   // Supabase API → siempre red
   if (url.hostname.includes('supabase.co')) {
