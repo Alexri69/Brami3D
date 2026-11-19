@@ -23,6 +23,7 @@ const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 // registro fiscal NO están: son inmutables y de conservación obligatoria.
 const TABLES = [
   "error_logs", "push_subscriptions", "reenganche_enviado", "email_envios",
+  "telegram_pendientes", "telegram_vinculos", "telegram_codigos",
   "gastos", "archivos", "piezas", "pedidos", "filamentos",
   "impresoras", "clientes", "contadores", "config", "user_plans",
 ];

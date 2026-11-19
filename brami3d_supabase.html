@@ -2924,6 +2924,7 @@ function render(){
   a11yIcons();
   if(PAGE==='archivos') initDZ();
   if(PAGE==='dashboard') setTimeout(initDashboardCharts,0);
+  if(PAGE==='configuracion') setTimeout(cargarEstadoTelegram,0);
   if(PAGE==='registro') setTimeout(cargarRegistroFiscal,0);
   if(PAGE==='admin') setTimeout(adminLoadUsers,0);
 }
@@ -6476,7 +6477,7 @@ function pgGastos(){
 <span class="gs-ico" aria-hidden="true">${CAT_GASTO_ICO[g.categoria]||'📎'}</span>
 <div class="gs-main"><div class="gs-t">${esc(g.descripcion)}</div><div class="gs-m">${etq(esc(g.categoria||'—'),col)}<span>📅 ${esc(g.fecha||'')}</span>${g.proveedor?`<span>🏪 ${esc(g.proveedor)}</span>`:''}</div>${g.notas?`<div class="gs-n">${esc(g.notas)}</div>`:''}</div>
 <b class="gs-imp">-${imp(g).toFixed(2)}${mon}</b>
-<div class="gs-acts"><button class="btn-icon" onclick="editGasto('${g.id}')">✏️</button><button class="btn-icon" onclick="delGasto('${g.id}')">🗑️</button></div>
+<div class="gs-acts">${g.foto_path?`<button class="btn-icon" title="${t('tg.receipt')}" onclick="verTique('${esc(g.foto_path)}')">📎</button>`:''}<button class="btn-icon" onclick="editGasto('${g.id}')">✏️</button><button class="btn-icon" onclick="delGasto('${g.id}')">🗑️</button></div>
 </div>`;
   };
   const lista=gastos.length
@@ -6492,6 +6493,53 @@ ${kpiHTML(t('gas.thisMonth'),'-'+gastoMes.toFixed(2)+mon,esc(hoy.toLocaleString(
 ${kpiHTML(t('gas.kTop'),top?esc(top[0]):'—',top?'-'+top[1].toFixed(2)+mon:'',top?(CAT_GASTO_COL[top[0]]||'#94a3b8'):'#94a3b8',top?(CAT_GASTO_ICO[top[0]]||'📎'):'📎')}
 </div>
 <div class="pg-split"><div>${lista}</div><aside class="pg-side">${lado}</aside></div>`;
+}
+
+// ── Gastos por Telegram (sql/029, Edge Function telegram-gastos) ──
+const TG_BOT='brami3d_app_bot';
+async function _tokenSesion(){ try{ const { data:{ session } } = await sb.auth.getSession(); return session?.access_token||''; }catch(_){ return ''; } }
+async function cargarEstadoTelegram(){
+  const el=$('tg-estado'); if(!el||!CU) return;
+  try{
+    const {data,error}=await sb.from('telegram_vinculos').select('creado').eq('user_id',CU.id).maybeSingle();
+    if(error) throw error;
+    el.innerHTML=data
+      ?`<span style="color:#34d399;font-weight:700">✅ ${t('tg.linked')}</span> <button class="btn-secondary sm" style="margin-left:6px" onclick="desconectarTelegram()">${t('tg.unlink')}</button>`
+      :`<span>${t('tg.notLinked')}</span>`;
+  }catch(_){ el.innerHTML=`<span style="color:#fbbf24">${t('tg.notReady')}</span>`; }
+}
+async function conectarTelegram(){
+  const {data,error}=await sb.rpc('telegram_codigo');
+  if(error||!data){ showToast((error&&error.message)||t('tg.notReady'),'err',6000); return; }
+  const link=`https://t.me/${TG_BOT}?start=${encodeURIComponent(data)}`;
+  openModal(msh('📲 '+t('tg.title'),`
+    <p style="color:var(--text3);font-size:13.5px;line-height:1.6;margin-bottom:16px">${t('tg.step')}</p>
+    <a class="btn-primary" href="${esc(link)}" target="_blank" rel="noopener" style="display:flex;justify-content:center;text-decoration:none;margin-bottom:14px">✈️ ${t('tg.open')}</a>
+    <p style="color:var(--text4);font-size:12.5px;line-height:1.6;margin-bottom:16px">${t('tg.orCode',{b:'@'+TG_BOT})} <b class="num-badge" style="font-size:13px">/start ${esc(data)}</b><br>${t('tg.expires')}</p>
+    <button class="btn-secondary" style="width:100%" onclick="closeModal();cargarEstadoTelegram()">${t('common.close')}</button>`));
+}
+async function desconectarTelegram(){
+  const {error}=await sb.from('telegram_vinculos').delete().eq('user_id',CU.id);
+  if(error){ showToast(error.message,'err'); return; }
+  showToast(t('tg.unlinked'),'ok'); cargarEstadoTelegram();
+}
+async function configurarBotTelegram(){
+  try{
+    const r=await fetch(SUPA_URL+'/functions/v1/telegram-gastos?accion=configurar',{
+      method:'POST',
+      headers:{ 'Content-Type':'application/json','apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'x-user-token':await _tokenSesion() },
+      body:'{}'
+    });
+    const j=await r.json().catch(()=>({}));
+    if(r.ok&&j.ok) showToast(t('tg.botReady',{b:'@'+(j.bot||TG_BOT)}),'ok',6000);
+    else showToast(j.error||('Error '+r.status),'err',8000);
+  }catch(e){ showToast(String(e.message||e),'err',6000); }
+}
+async function verTique(path){
+  const {data,error}=await sb.storage.from('archivos').createSignedUrl(path,600);
+  if(error||!data?.signedUrl){ showToast(t('tg.noReceipt'),'err'); return; }
+  if(/\.pdf$/i.test(path)){ window.open(data.signedUrl,'_blank','noopener'); return; }
+  openModal(msh('🧾 '+t('tg.receipt'),`<img src="${esc(data.signedUrl)}" alt="${esc(t('tg.receipt'))}" style="max-width:100%;border-radius:10px;display:block;margin:0 auto">`),true);
 }
 
 const CAT_GASTO_ICO={Filamento:'🧵',Repuestos:'🔩',Herramientas:'🛠️',Electricidad:'⚡','Envíos':'📦',Publicidad:'📣',Software:'💻',Otros:'📎'};
@@ -7511,6 +7559,12 @@ ${LANG==='es'?`<div class="card" style="flex:1;min-width:240px">
 <p style="font-size:12px;color:var(--text4);margin-bottom:10px;line-height:1.6">Exporta el registro inmutable de facturas y eventos conforme al esquema oficial AEAT (SIF v1.0, modo <b style="color:var(--text3)">No-Verifactu</b>). XML firmado con huella SHA-256 encadenada — es el archivo que presentarías ante inspección.</p>
 <div style="background:var(--bg);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--text4);line-height:1.5;margin-bottom:12px">Cumple RD 1007/2023 + Orden HAC/1177/2024. La exportación queda registrada como evento.</div>
 <button class="btn-primary" onclick="exportarRegistrosXML()">📄 Descargar registro (XML AEAT)</button>
+</div>`:''}
+${_plan&&_plan.isAdmin?`<div class="card" style="flex:1;min-width:240px">
+<div class="card-title">📲 ${t('tg.title')}</div>
+<p style="font-size:12px;color:var(--text4);margin-bottom:12px;line-height:1.6">${t('tg.hint')}</p>
+<div id="tg-estado" style="margin-bottom:12px;font-size:12.5px;color:var(--text3)">…</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn-primary" onclick="conectarTelegram()">🔗 ${t('tg.connect')}</button><button class="btn-secondary" onclick="configurarBotTelegram()">⚙️ ${t('tg.setup')}</button></div>
 </div>`:''}
 <div class="card" style="flex:1;min-width:240px">
 <div class="card-title">${t('cfg.notifs')}</div>
