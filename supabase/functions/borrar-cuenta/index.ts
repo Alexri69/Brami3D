@@ -107,7 +107,14 @@ Deno.serve(async (req) => {
       return json({ ok: true, conservadoRegistroFiscal: true });
     }
 
-    // 3b) Sin facturas: borrar la cuenta de autenticación (admin API).
+    // 3b) Sin facturas: borrar antes los eventos del SIF («inicio»…), que son
+    //     inmutables y bloquean el ON DELETE CASCADE (sql/030), y luego la cuenta.
+    const ev = await fetch(`${SUPABASE_URL}/rest/v1/rpc/borrar_eventos_sin_facturas`, {
+      method: "POST",
+      headers: { ...H, "Content-Type": "application/json" },
+      body: JSON.stringify({ p_uid: uid }),
+    });
+    if (!ev.ok) return json({ error: "No se pudo limpiar el registro de eventos (" + ev.status + ")" }, 500);
     const del = await fetch(`${SUPABASE_URL}/auth/v1/admin/users/${uid}`, { method: "DELETE", headers: H });
     if (!del.ok && del.status !== 404) {
       return json({ error: "No se pudo eliminar la cuenta (" + del.status + ")" }, 500);
