@@ -4469,6 +4469,16 @@ ${kpiHTML(t('dash.totalOrders'),orders.length,'','#6366f1','🧾',"goTo('pedidos
   if(lowFils.length) alertas.push(panel('#f59e0b','🧵',t('dash.lowFilament'),t('dash.lowSub'),lowFils.length,
     lowFils.slice(0,MAXA).map(f=>{ const g=parseFloat(f.pesoRestante)||0, pct=Math.max(2,Math.min(g/10,100)), col=g<50?'#ef4444':'#f59e0b';
       return `<div class="al-row"><span class="al-dot" style="background:${esc(f.color||'#888')}"></span><div class="al-main"><div class="al-t">${esc(f.tipo)} · ${esc(f.marca)}</div><div class="fx-track" style="height:6px;margin-top:7px"><i style="width:${pct}%;background:${col}"></i></div></div><div class="al-end"><b style="color:${col}">${g.toFixed(0)} g</b><button class="al-btn" style="--c:#f59e0b" onclick="goTo('filamentos')">${t('dash.restock')}</button></div></div>`; }).join('')+mas(lowFils.length,'filamentos')));
+  // Mantenimiento de impresoras: mismo cálculo que la página Impresoras.
+  // Sale cuando ya toca o cuando falta menos del 10 % del intervalo.
+  const mantImp=_hasMant?(_cache.impresoras||[]).map(p=>{
+    const h=parseFloat(p.horasUso)||0, hechas=Math.max(0,h-(parseFloat(p.ultimoMantH)||0));
+    const cada=parseFloat(p.mantenimientoCada)||MANT_DEFAULT;
+    return {p,hechas,cada,faltan:cada-hechas,pct:cada>0?Math.min(hechas/cada*100,100):0};
+  }).filter(m=>m.cada>0&&m.hechas>=m.cada*0.9).sort((a,b)=>a.faltan-b.faltan):[];
+  if(mantImp.length) alertas.push(panel('#f97316','🔧',t('dash.maintTitle'),t('dash.maintSub'),mantImp.length,
+    mantImp.slice(0,MAXA).map(m=>{ const ya=m.faltan<=0, col=ya?'#ef4444':'#f59e0b';
+      return `<div class="al-row"><span class="ped-th sm" style="--c:${col}" aria-hidden="true">🖨️</span><div class="al-main"><div class="al-t">${esc(m.p.nombre||'—')}</div><div class="fx-track" style="height:6px;margin-top:7px"><i style="width:${Math.max(2,m.pct)}%;background:${col}"></i></div><div class="al-m"><span style="color:${col};font-weight:700">${ya?t('dash.maintDue',{n:Math.round(-m.faltan)}):t('fx.inH',{n:Math.round(m.faltan)})}</span><span>${Math.round(m.hechas)} / ${m.cada} h</span></div></div><div class="al-end">${ya?`<button class="al-btn" style="--c:#f97316" onclick="marcarMantenimiento('${m.p.id}')">${t('dash.maintDone')}</button>`:''}<button class="al-btn" style="--c:#64748b" onclick="goTo('impresoras')">${t('dash.maintView')}</button></div></div>`; }).join('')+mas(mantImp.length,'impresoras')));
   const atencion=alertas.length
     ?`<div class="dash-sec-t">⚡ ${t('dash.attention')}</div><div class="dash-alerts">${alertas.join('')}</div>`
     :(orders.length?`<div class="dash-ok">✅ ${t('dash.allGood')}</div>`:'');
