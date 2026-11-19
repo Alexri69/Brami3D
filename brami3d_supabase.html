@@ -3195,6 +3195,10 @@ function congelarPreciosLineas(lineas,cfg){
   return lineas;
 }
 
+// Coste de producción para el beneficio: sin el filamento, porque las compras
+// de rollos ya se restan desde Gastos (si no, el filamento contaría dos veces).
+// El precio de cada pedido sí incluye el filamento (calcOrderCosts().tc).
+function costeProdBeneficio(c){ return Math.max(0,(c.tc||0)-(c.mc||0)); }
 function calcOrderCosts(order,cfg){
   let mc=0;
   if(order.lineas&&order.lineas.length>0){
@@ -4090,12 +4094,11 @@ function generarInforme(){
   const imprimiendo = ordenes.filter(o=>o.estado==='imprimiendo');
 
   const totIngresos = pagados.reduce((s,o)=>s+calcOrderCosts(o,cfg).fp,0);
-  const totCostes   = pagados.reduce((s,o)=>s+calcOrderCosts(o,cfg).tc,0);
+  const totCostes   = pagados.reduce((s,o)=>s+costeProdBeneficio(calcOrderCosts(o,cfg)),0);
   const beneficio   = totIngresos - totCostes;
   const margenMedio = totIngresos>0?((beneficio/totIngresos)*100):0;
 
   // Desglose costes producción
-  const costeMat  = pagados.reduce((s,o)=>s+(calcOrderCosts(o,cfg).mc||0),0);
   const costeElec = pagados.reduce((s,o)=>s+(calcOrderCosts(o,cfg).ec||0),0);
   const costeDis  = pagados.reduce((s,o)=>s+(parseFloat(o.costeDiseno)||0),0);
   const costePost = pagados.reduce((s,o)=>s+(parseFloat(o.costePostprocesado)||0),0);
@@ -4167,7 +4170,7 @@ function generarInforme(){
 
   _pdfSection(ctx, t('rpt.costBreakdown'));
   const cC=[{title:t('rpt.cConcept'),width:100},{title:t('rpt.cCost'),width:45,align:"right"},{title:t('rpt.cPctTotal'),width:35,align:"right"}];
-  const cbk=[[t('rpt.bMaterial'),costeMat],[t('rpt.bElectricity'),costeElec],[t('rpt.bDesign'),costeDis],[t('rpt.bPostproc'),costePost]].filter(([,v])=>v>0);
+  const cbk=[[t('rpt.bElectricity'),costeElec],[t('rpt.bDesign'),costeDis],[t('rpt.bPostproc'),costePost]].filter(([,v])=>v>0);
   const rC = cbk.length===0 ? [[{text:t('rpt.noPaidOrders'),color:_PDF.LGREY}]] :
     cbk.map(([lbl,v])=>[ {text:lbl,bold:true}, {text:"-"+fmt(v),color:_PDF.RED,bold:true}, {text:(totCostes>0?((v/totCostes)*100).toFixed(1):0)+"%",color:_PDF.GREY} ]);
   _pdfTable(ctx, cC, rC, totCostes>0?{foot:[t('rpt.totalProdCost'),{text:"-"+fmt(totCostes),color:_PDF.RED},""]}:{});
@@ -4215,7 +4218,7 @@ function generarInformeAnual(){
     const ordenes=_cache.pedidos.filter(o=>(o.fecha||'').startsWith(prefix));
     const cobrados=ordenes.filter(o=>o.cobrado===true);
     const ingresos=cobrados.reduce((s,o)=>s+calcOrderCosts(o,cfg).fp,0);
-    const costes=cobrados.reduce((s,o)=>s+calcOrderCosts(o,cfg).tc,0);
+    const costes=cobrados.reduce((s,o)=>s+costeProdBeneficio(calcOrderCosts(o,cfg)),0);
     const gastos=(_cache.gastos||[]).filter(g=>(g.fecha||'').startsWith(prefix)).reduce((s,g)=>s+parseFloat(g.importe||0),0);
     const beneficio=ingresos-costes-gastos;
     return{nombre,ingresos,costes,gastos,beneficio,pedidos:ordenes.length,cobrados:cobrados.length};
@@ -4400,7 +4403,7 @@ function pgDashboard(){
 
   const paid=orders.filter(o=>o.cobrado===true);
   const totI=paid.reduce((s,o)=>s+C(o).fp,0);
-  const totC=paid.reduce((s,o)=>s+C(o).tc,0);
+  const totC=paid.reduce((s,o)=>s+costeProdBeneficio(C(o)),0);
   const totGastos=gastos.reduce((s,g)=>s+parseFloat(g.importe||0),0);
   const ben=totI-totC-totGastos, benBruto=totI-totC;
   const margenGlobal=totI>0?benBruto/totI*100:0;
@@ -4442,7 +4445,7 @@ ${kpiHTML(t('dash.inProgress'),pendCount+impCount,`${pendCount} ${t('dash.pendin
 ${kpiHTML(t('dash.totalExpenses'),M(totGastos),`${gastos.length} ${t('dash.expenses')}`,'#ef4444','💸',"goTo('gastos')")}
 </div>
 <div class="kpis kpis-sm">
-${kpiHTML(t('dash.prodCosts'),M(totC),'','#eab308','📦')}
+${kpiHTML(t('dash.prodCosts'),M(totC),t('dash.prodCostsSub'),'#eab308','📦')}
 ${kpiHTML(t('an.avgTicket'),M(ticketMedio),t('an.avgTicketSub'),'#60a5fa','🎟️')}
 ${kpiHTML(t('an.conversion'),convRate.toFixed(0)+'%',presCobrados+'/'+conPres.length+' '+t('an.conversionSub'),'#a855f7','🎯')}
 ${kpiHTML(t('an.grossProfit'),M(benBruto),t('an.grossMargin')+' '+margenGlobal.toFixed(0)+'%',benBruto>=0?'#14b8a6':'#ef4444','📊')}
