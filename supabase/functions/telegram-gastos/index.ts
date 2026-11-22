@@ -26,6 +26,7 @@ const LIMITE_DIA = 30;               // fotos leídas por usuario y día (contro
 const MAX_BYTES = 10 * 1024 * 1024;  // tamaño máximo del archivo
 const IMG_TIPOS = ["image/jpeg", "image/png", "image/gif", "image/webp"];
 const MODELO = "claude-opus-5-5";
+const MATS = ["PLA", "PETG", "ABS", "ASA", "TPU", "Nylon", "Resina", "PLA+", "Otro"]; // los mismos que la app
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -74,8 +75,26 @@ const ESQUEMA = {
     fecha: { type: "string", description: "Fecha del documento en formato AAAA-MM-DD, o cadena vacía si no se ve" },
     proveedor: { type: "string", description: "Nombre comercial de la tienda o empresa, o cadena vacía" },
     categoria: { type: "string", enum: CATS },
+    rollos: {
+      type: "array",
+      description: "Solo si la categoría es Filamento: una entrada por cada línea de rollos del tique. Si no, lista vacía.",
+      items: {
+        type: "object",
+        properties: {
+          material: { type: "string", enum: MATS },
+          marca: { type: "string", description: "Marca, línea y nombre del color, como lo apunta un taller (por ejemplo «Sakata PLA-M Negro Mate»)" },
+          color_hex: { type: "string", description: "Color aproximado del nombre del color en formato #rrggbb" },
+          gramos: { type: "number", description: "Peso neto de UN rollo en gramos (1 kg = 1000). 1000 si no se indica" },
+          unidades: { type: "integer", description: "Número de rollos de esa línea" },
+          precio_total: { type: "number", description: "Importe de la línea (todas sus unidades) con impuestos, o 0 si no se ve" },
+          existente_id: { type: "string", description: "id del filamento de la lista del taller que sea el mismo (misma marca, material y color), o cadena vacía si es nuevo" },
+        },
+        required: ["material", "marca", "color_hex", "gramos", "unidades", "precio_total", "existente_id"],
+        additionalProperties: false,
+      },
+    },
   },
-  required: ["es_gasto", "descripcion", "importe", "fecha", "proveedor", "categoria"],
+  required: ["es_gasto", "descripcion", "importe", "fecha", "proveedor", "categoria", "rollos"],
   additionalProperties: false,
 };
 
@@ -89,11 +108,39 @@ Extrae los datos del gasto:
   Filamento (rollos de filamento o resina), Repuestos (boquillas, camas, correas y piezas de impresora),
   Herramientas, Electricidad (facturas de luz), Envíos (correos, mensajería, embalaje),
   Publicidad, Software (suscripciones y programas), Otros (cualquier otra cosa).
-Si la imagen no es un tique ni una factura, pon es_gasto=false, importe 0 y el resto vacío con categoria «Otros».`;
+- rollos: si la categoría es Filamento, una entrada por cada línea de rollos (material, marca con línea y color, color aproximado en #rrggbb, gramos de un rollo, unidades y el importe de la línea con impuestos). Si el usuario lo aclara en su nota, manda la nota.
+  Te paso la lista de filamentos que ya tiene el taller: si un rollo es el mismo (misma marca, material y color), pon su id en existente_id; si no, cadena vacía. No inventes ids.
+  Si la categoría no es Filamento, rollos es una lista vacía.
+Si la imagen no es un tique ni una factura, pon es_gasto=false, importe 0, rollos vacío y el resto vacío con categoria «Otros».`;
 
-type Datos = { descripcion: string; importe: number; fecha: string; proveedor: string; categoria: string };
+type Rollo = { material: string; marca: string; color: string; gramos: number; unidades: number; precioKg: number; existenteId: string };
+type Datos = { descripcion: string; importe: number; fecha: string; proveedor: string; categoria: string; rollos?: Rollo[] };
+type Fil = { id: string; tipo: string; marca: string; color: string };
 
-async function leerTique(bytes: Uint8Array, tipo: string, nota: string): Promise<{ ok: boolean; datos?: Datos; motivo?: string }> {
+const r2 = (n: number) => Math.round(n * 100) / 100;
+// deno-lint-ignore no-explicit-any
+function limpiarRollos(lista: any[], fils: Fil[], importe: number): Rollo[] {
+  const ids = new Set(fils.map((f) => f.id));
+  const out: Rollo[] = [];
+  for (const x of Array.isArray(lista) ? lista.slice(0, 10) : []) {
+    const unidades = Math.max(1, Math.min(50, Math.round(Number(x.unidades) || 1)));
+    const gramos = Number(x.gramos) > 0 && Number(x.gramos) <= 20000 ? Math.round(Number(x.gramos)) : 1000;
+    let total = Number(x.precio_total) || 0;
+    if (!(total > 0) && Array.isArray(lista) && lista.length === 1) total = importe;
+    const precioKg = total > 0 ? r2(total / unidades / (gramos / 1000)) : 20;
+    const material = MATS.includes(x.material) ? x.material : "Otro";
+    out.push({
+      material,
+      marca: String(x.marca || "").trim().slice(0, 80) || material,
+      color: /^#[0-9a-f]{6}$/i.test(String(x.color_hex || "")) ? String(x.color_hex).toLowerCase() : "#888888",
+      gramos, unidades, precioKg,
+      existenteId: ids.has(String(x.existente_id || "")) ? String(x.existente_id) : "",
+    });
+  }
+  return out;
+}
+
+async function leerTique(bytes: Uint8Array, tipo: string, nota: string, fils: Fil[]): Promise<{ ok: boolean; datos?: Datos; motivo?: string }> {
   const client = new Anthropic(); // ANTHROPIC_API_KEY
   let b64 = "";
   for (let i = 0; i < bytes.length; i += 0x8000) b64 += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
@@ -101,7 +148,10 @@ async function leerTique(bytes: Uint8Array, tipo: string, nota: string): Promise
   const bloque = tipo === "application/pdf"
     ? { type: "document", source: { type: "base64", media_type: "application/pdf", data: b64 } }
     : { type: "image", source: { type: "base64", media_type: tipo, data: b64 } };
-  const texto = `Hoy es ${hoyISO()}.${nota ? ` Nota del usuario: «${nota.slice(0, 300)}».` : ""} Extrae los datos del gasto.`;
+  const lista = fils.length
+    ? `Filamentos que ya tiene el taller (JSON): ${JSON.stringify(fils.slice(0, 200))}`
+    : "El taller aún no tiene filamentos apuntados.";
+  const texto = `Hoy es ${hoyISO()}.${nota ? ` Nota del usuario: «${nota.slice(0, 300)}».` : ""}\n${lista}\nExtrae los datos del gasto.`;
 
   // deno-lint-ignore no-explicit-any
   const resp: any = await client.beta.messages.create({
@@ -122,9 +172,11 @@ async function leerTique(bytes: Uint8Array, tipo: string, nota: string): Promise
   try { d = JSON.parse(txt); } catch { return { ok: false, motivo: "json" }; }
   const importe = Math.round((Number(d.importe) || 0) * 100) / 100;
   if (!d.es_gasto || !(importe > 0)) return { ok: false, motivo: "no_gasto" };
+  const categoria = CATS.includes(d.categoria) ? d.categoria : "Otros";
   return {
     ok: true,
     datos: {
+      rollos: categoria === "Filamento" ? limpiarRollos(d.rollos, fils, importe) : [],
       descripcion: String(d.descripcion || "Gasto").trim().slice(0, 120) || "Gasto",
       importe,
       fecha: /^\d{4}-\d{2}-\d{2}$/.test(d.fecha) && d.fecha <= hoyISO() ? d.fecha : hoyISO(),
@@ -138,13 +190,52 @@ async function leerTique(bytes: Uint8Array, tipo: string, nota: string): Promise
 const resumen = (d: Datos) =>
   `🧾 <b>Gasto leído</b>\n\n<b>Concepto:</b> ${h(d.descripcion)}\n<b>Importe:</b> ${fmtEur(d.importe)}\n<b>Fecha:</b> ${fmtFecha(d.fecha)}` +
   (d.proveedor ? `\n<b>Proveedor:</b> ${h(d.proveedor)}` : "") +
-  `\n<b>Categoría:</b> ${ICO[d.categoria] || "📎"} ${h(d.categoria)}\n\n¿Lo guardo en Gastos?`;
-const tecladoPrincipal = (id: string) => ({
-  inline_keyboard: [
-    [{ text: "✅ Guardar", callback_data: `ok:${id}` }],
-    [{ text: "✏️ Categoría", callback_data: `c:${id}` }, { text: "❌ Descartar", callback_data: `x:${id}` }],
-  ],
+  `\n<b>Categoría:</b> ${ICO[d.categoria] || "📎"} ${h(d.categoria)}` +
+  (conRollos(d)
+    ? `\n\n🧵 <b>Rollos</b>\n` + d.rollos!.map((r) =>
+      `• ${r.unidades} × ${h(r.marca)} (${h(r.material)}, ${fmtPeso(r.gramos)}) · ${fmtEur(r.precioKg)}/kg\n   ${r.existenteId ? "➕ se suma a su stock" : "🆕 filamento nuevo"}`).join("\n") +
+      `\n\n¿Lo guardo en Gastos y en Filamentos?`
+    : `\n\n¿Lo guardo en Gastos?`);
+const conRollos = (d: Datos) => d.categoria === "Filamento" && Array.isArray(d.rollos) && d.rollos.length > 0;
+const fmtPeso = (g: number) => (g % 1000 === 0 ? `${g / 1000} kg` : `${g} g`);
+const tecladoPrincipal = (id: string, d: Datos) => ({
+  inline_keyboard: conRollos(d)
+    ? [
+      [{ text: "✅ Guardar y añadir a Filamentos", callback_data: `ok:${id}` }],
+      [{ text: "💾 Solo el gasto", callback_data: `g:${id}` }],
+      [{ text: "✏️ Categoría", callback_data: `c:${id}` }, { text: "❌ Descartar", callback_data: `x:${id}` }],
+    ]
+    : [
+      [{ text: "✅ Guardar", callback_data: `ok:${id}` }],
+      [{ text: "✏️ Categoría", callback_data: `c:${id}` }, { text: "❌ Descartar", callback_data: `x:${id}` }],
+    ],
 });
+
+// Suma los rollos al stock (si ya existe ese filamento) o los crea.
+async function anadirRollos(uid: string, rollos: Rollo[]): Promise<string[]> {
+  const lineas: string[] = [];
+  for (const r of rollos) {
+    const total = r.gramos * r.unidades;
+    if (r.existenteId) {
+      const f = (await rest(`filamentos?id=eq.${r.existenteId}&user_id=eq.${uid}&select=id,peso_restante,marca`))?.[0];
+      if (f) {
+        const nuevo = Math.round(Math.max(0, Number(f.peso_restante) || 0) + total);
+        await rest(`filamentos?id=eq.${f.id}&user_id=eq.${uid}`, { method: "PATCH", body: JSON.stringify({ peso_restante: nuevo }) });
+        lineas.push(`➕ ${h(f.marca)}: +${fmtPeso(total)} (ahora ${nuevo} g)`);
+        continue;
+      }
+    }
+    await rest("filamentos", {
+      method: "POST",
+      body: JSON.stringify({
+        id: crypto.randomUUID(), user_id: uid, tipo: r.material, marca: r.marca, color: r.color,
+        peso_restante: total, precio_por_kg: r.precioKg,
+      }),
+    });
+    lineas.push(`🆕 ${h(r.marca)}: ${total} g a ${fmtEur(r.precioKg)}/kg`);
+  }
+  return lineas;
+}
 const tecladoCategorias = (id: string) => {
   const filas = [];
   for (let i = 0; i < CATS.length; i += 2) {
@@ -154,7 +245,7 @@ const tecladoCategorias = (id: string) => {
   return { inline_keyboard: filas };
 };
 const AYUDA_SIN_VINCULO = "Hola 👋 Este bot apunta sus gastos en <b>Brami3D</b>.\n\nPara empezar, conecte su cuenta: en la app, vaya a <b>Configuración → Gastos por Telegram → Conectar</b> y pulse el enlace que le aparece.";
-const AYUDA = "📸 Mándeme la <b>foto de un tique o factura</b> (o el PDF) y le preparo el gasto.\nSi quiere, escriba una nota en el pie de la foto, por ejemplo «2 rollos para el pedido de medallas».";
+const AYUDA = "📸 Mándeme la <b>foto de un tique o factura</b> (o el PDF) y le preparo el gasto.\nSi es de filamento, además le apunto los rollos en <b>Filamentos</b> (los suma al stock si ya los tiene).\nSi quiere, escriba una nota en el pie de la foto, por ejemplo «2 rollos para el pedido de medallas».";
 
 // ── vincular el chat con la cuenta ──────────────────────────────────────────
 async function vincular(chat: number, codigo: string) {
@@ -213,7 +304,8 @@ async function tique(chat: number, uid: string, msg: any) {
     const bytes = new Uint8Array(await dr.arrayBuffer());
     if (bytes.length > MAX_BYTES) { await editar("El archivo es demasiado grande (máximo 10 MB)."); return; }
 
-    const r = await leerTique(bytes, tipo, String(msg.caption || ""));
+    const fils: Fil[] = (await rest(`filamentos?user_id=eq.${uid}&select=id,tipo,marca,color&order=created_at.desc&limit=200`)) || [];
+    const r = await leerTique(bytes, tipo, String(msg.caption || ""), fils);
     if (!r.ok || !r.datos) {
       await rest("telegram_pendientes", { method: "POST", body: JSON.stringify({ id, user_id: uid, chat_id: chat, estado: "descartado", datos: { motivo: r.motivo } }) });
       await editar(r.motivo === "no_gasto"
@@ -232,7 +324,7 @@ async function tique(chat: number, uid: string, msg: any) {
       method: "POST",
       body: JSON.stringify({ id, user_id: uid, chat_id: chat, datos: r.datos, foto_path: up.ok ? fotoPath : null }),
     });
-    await editar(resumen(r.datos), { reply_markup: tecladoPrincipal(id) });
+    await editar(resumen(r.datos), { reply_markup: tecladoPrincipal(id, r.datos) });
   } catch (e) {
     console.error("tique", e);
     await editar("⚠️ No he podido leer el tique ahora mismo. Pruebe otra vez en un momento o apúntelo a mano en la app.");
@@ -254,16 +346,35 @@ async function boton(cq: any) {
   if (!p || p.estado !== "pendiente") { await editar("Este tique ya no está pendiente."); return; }
   const d: Datos = p.datos;
 
-  if (accion === "ok") {
-    await rest("gastos", {
-      method: "POST",
-      body: JSON.stringify({
-        id: crypto.randomUUID(), user_id: p.user_id, descripcion: d.descripcion, categoria: d.categoria,
-        importe: d.importe, fecha: d.fecha, proveedor: d.proveedor || "", notas: "Desde Telegram", foto_path: p.foto_path,
-      }),
+  if (accion === "ok" || accion === "g") {
+    // Se marca como guardado antes de escribir: un doble toque no duplica el gasto ni el stock.
+    const mio = await rest(`telegram_pendientes?id=eq.${id}&estado=eq.pendiente`, {
+      method: "PATCH", headers: { Prefer: "return=representation" }, body: JSON.stringify({ estado: "guardado" }),
     });
-    await rest(`telegram_pendientes?id=eq.${id}`, { method: "PATCH", body: JSON.stringify({ estado: "guardado" }) });
-    await editar(`✅ <b>Guardado en Gastos</b>\n${ICO[d.categoria] || "📎"} ${h(d.descripcion)} · <b>${fmtEur(d.importe)}</b> · ${fmtFecha(d.fecha)}`);
+    if (!mio?.length) return;
+    try {
+      await rest("gastos", {
+        method: "POST",
+        body: JSON.stringify({
+          id: crypto.randomUUID(), user_id: p.user_id, descripcion: d.descripcion, categoria: d.categoria,
+          importe: d.importe, fecha: d.fecha, proveedor: d.proveedor || "", notas: "Desde Telegram", foto_path: p.foto_path,
+        }),
+      });
+    } catch (e) {
+      await rest(`telegram_pendientes?id=eq.${id}`, { method: "PATCH", body: JSON.stringify({ estado: "pendiente" }) });
+      throw e;
+    }
+    let extra = "";
+    if (accion === "ok" && conRollos(d)) {
+      try {
+        const l = await anadirRollos(p.user_id, d.rollos!);
+        extra = `\n\n🧵 <b>Filamentos</b>\n${l.join("\n")}\n<i>Recargue la app para verlos.</i>`;
+      } catch (e) {
+        console.error("rollos", e);
+        extra = "\n\n⚠️ El gasto está guardado, pero no he podido apuntar los rollos. Añádalos a mano en Filamentos.";
+      }
+    }
+    await editar(`✅ <b>Guardado en Gastos</b>\n${ICO[d.categoria] || "📎"} ${h(d.descripcion)} · <b>${fmtEur(d.importe)}</b> · ${fmtFecha(d.fecha)}${extra}`);
   } else if (accion === "x") {
     await rest(`telegram_pendientes?id=eq.${id}`, { method: "PATCH", body: JSON.stringify({ estado: "descartado" }) });
     if (p.foto_path) {
@@ -281,9 +392,9 @@ async function boton(cq: any) {
       d.categoria = cat;
       await rest(`telegram_pendientes?id=eq.${id}`, { method: "PATCH", body: JSON.stringify({ datos: d }) });
     }
-    await editar(resumen(d), tecladoPrincipal(id));
+    await editar(resumen(d), tecladoPrincipal(id, d));
   } else if (accion === "v") {
-    await editar(resumen(d), tecladoPrincipal(id));
+    await editar(resumen(d), tecladoPrincipal(id, d));
   }
 }
 
