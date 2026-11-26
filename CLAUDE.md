@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Brami3D — app de gestión para talleres de impresión 3D. Static site **sin build**, servida en **`https://app.brami3d.app`** vía GitHub Pages (Jekyll clásico, `CNAME`; **push a `main` = producción**). La web comercial y los textos legales están en WordPress en `https://brami3d.app` (otro proyecto: `D:\Proyectos\Web Brami3d`). Pensada como **SaaS multi-taller**. Tras cada cambio: **commit + push** (despliega solo; con permiso del owner). Responder siempre en español.
+Brami3D — app de gestión para talleres de impresión 3D. Static site **sin build**, servida en **`https://app.brami3d.app`** vía GitHub Pages (Jekyll clásico, `CNAME`; **push a `main` = producción**). La web comercial y los textos legales están en WordPress en `https://brami3d.app` (otro proyecto: `D:\Proyectos\Brami3D\Web`). Pensada como **SaaS multi-taller**. Tras cada cambio: **commit + push** (despliega solo; con permiso del owner). Responder siempre en español.
 
 > Nombre del producto: **Brami3D** (antes «B3D Print Studio»; renombrado el 2026-11-02 en título, manifiesto, barra lateral y PDFs).
 

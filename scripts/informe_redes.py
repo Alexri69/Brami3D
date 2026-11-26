@@ -12,7 +12,7 @@ Extrae en vivo de la Graph API de Meta:
   - Visitas web/PWA en los ultimos 7 dias (Google Analytics 4, si hay credenciales)
 
 Uso:
-  python scripts/informe_redes.py [--n 15] [--email alexri69@gmail.com] [--guardar-local]
+  python scripts/informe_redes.py [--n 15] [--email alexri69@gmail.com] [--no-guardar-local]
 """
 import os, sys, json, argparse, datetime, urllib.parse, urllib.request, urllib.error
 
@@ -20,7 +20,7 @@ API = "https://graph.facebook.com/v25.0"
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO_ROOT = os.path.abspath(os.path.join(HERE, ".."))
 PLAN_PATH = os.path.join(REPO_ROOT, "social", "plan.json")
-LOCAL_PUB_DIR = r"d:\Proyectos\Publicidad Brami3D"
+LOCAL_PUB_DIR = r"d:\Proyectos\Brami3D\Publicidad"
 
 
 def env(k, default=None):
@@ -213,7 +213,8 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--n", type=int, default=15, help="numero de publicaciones recientes a auditar")
     ap.add_argument("--email", help="enviar resumen semanal por email via Resend")
-    ap.add_argument("--guardar-local", action="store_true", default=True, help="guardar informe en Publicidad Brami3D")
+    ap.add_argument("--guardar-local", action=argparse.BooleanOptionalAction, default=True,
+                    help=r"guardar informe en D:\Proyectos\Brami3D\Publicidad (o BRAMI3D_PUB_DIR); --no-guardar-local para no hacerlo")
     a = ap.parse_args()
 
     tok = env("META_ACCESS_TOKEN")
@@ -269,9 +270,10 @@ def main():
     lines.append("")
 
     # Estado del calendario social/plan.json
-    plan_file = PLAN_PATH if os.path.exists(PLAN_PATH) else r"C:\Users\alexr\Brami3D\social\plan.json"
-    if os.path.exists(plan_file):
-        plan = json.load(open(plan_file, encoding="utf-8"))
+    pend = None
+    if os.path.exists(PLAN_PATH):
+        with open(PLAN_PATH, encoding="utf-8") as f:
+            plan = json.load(f)
         pend = [p for p in plan if p.get("estado") == "pendiente"]
         pub_rec = [p for p in plan if p.get("estado") == "publicado"][-5:]
         lines.append("## 4. Control de la Cola de Publicación (`social/plan.json`)")
@@ -280,7 +282,7 @@ def main():
             lines.append("- **Próximas 4 publicaciones programadas (salen solas en Reel/Feed + Stories):**")
             for p in pend[:4]:
                 extracto = (p.get("caption") or "").split("\n")[0][:65]
-                lines.append(f"  - `{p['fecha']}` · **{p['tipo'].upper()}** (ID {p['id']}): {extracto}")
+                lines.append(f"  - `{p.get('fecha', '?')}` · **{(p.get('tipo') or '?').upper()}** (ID {p.get('id', '?')}): {extracto}")
         if pub_rec:
             lines.append("- **Últimas publicaciones lanzadas por el sistema:**")
             for p in reversed(pub_rec):
@@ -288,7 +290,7 @@ def main():
                 ig_st = " + Story" if en.get("ig_story") else ""
                 fb_st = " + Story" if en.get("fb_story") else ""
                 lines.append(
-                    f"  - `{p['fecha']}` · **{p['tipo'].upper()}** (ID {p['id']}) -> "
+                    f"  - `{p.get('fecha', '?')}` · **{(p.get('tipo') or '?').upper()}** (ID {p.get('id', '?')}) -> "
                     f"IG: {en.get('ig', '-')}{ig_st} | FB: {en.get('fb', '-')}{fb_st}"
                 )
         lines.append("")
@@ -306,7 +308,9 @@ def main():
             "- **Conclusión de formato:** Los Reels están consiguiendo mucho más alcance que las imágenes estáticas. "
             "Mantener la prioridad de Reels con música y fotos reales en uso."
         )
-    if len([p for p in (json.load(open(plan_file, encoding="utf-8")) if os.path.exists(plan_file) else []) if p.get("estado") == "pendiente"]) <= 3:
+    if pend is None:
+        lines.append("- ⚠️ **Cola sin leer:** No se encontró `social/plan.json`; no se pudo comprobar la cola.")
+    elif len(pend) <= 3:
         lines.append("- ⚠️ **Alerta de cola:** Quedan 3 o menos publicaciones pendientes en `social/plan.json`. Conviene preparar la siguiente tanda.")
     else:
         lines.append("- ✅ **Estado de cola saludable:** El calendario automático tiene publicaciones listas para las próximas semanas.")
@@ -314,16 +318,20 @@ def main():
     report_md = "\n".join(lines)
     print(report_md)
 
-    if a.guardar_local and os.path.exists(LOCAL_PUB_DIR):
-        inf_dir = os.path.join(LOCAL_PUB_DIR, "informes")
+    pub_dir = env("BRAMI3D_PUB_DIR", LOCAL_PUB_DIR)
+    if a.guardar_local and os.path.exists(pub_dir):
+        inf_dir = os.path.join(pub_dir, "informes")
         os.makedirs(inf_dir, exist_ok=True)
         out_path = os.path.join(inf_dir, f"informe-semanal-{hoy}.md")
         with open(out_path, "w", encoding="utf-8") as f:
             f.write(report_md + "\n")
-        ultimo_path = os.path.join(LOCAL_PUB_DIR, "ULTIMO-INFORME-SEMANAL.md")
+        ultimo_path = os.path.join(pub_dir, "ULTIMO-INFORME-SEMANAL.md")
         with open(ultimo_path, "w", encoding="utf-8") as f:
             f.write(report_md + "\n")
         print(f"\n[Guardado en {out_path} y {ultimo_path}]")
+    elif a.guardar_local and not os.environ.get("GITHUB_ACTIONS"):
+        print(f"\n[AVISO] No existe {pub_dir}: el informe no se ha guardado en local "
+              "(cambia LOCAL_PUB_DIR o define BRAMI3D_PUB_DIR en .env).", file=sys.stderr)
 
     if a.email:
         enviar_email(a.email, f"Brami3D · Control Semanal de Publicidad ({hoy})", report_md)
