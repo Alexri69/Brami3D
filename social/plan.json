@@ -342,5 +342,27 @@
     ],
     "caption": "📱 ¿Cuántos presupuestos se quedan enfriándose en un PDF por WhatsApp?\n\nCon Brami3D mandas un enlace público a tu cliente: acepta el presupuesto desde su móvil sin registrarse y en ese mismo enlace consulta en directo si su pieza está En cola, Imprimiendo, Terminada o Entregada 👉 Desliza.\n\n🆓 Plan Básico GRATIS para siempre (10 pedidos/mes) + 30 días de prueba del plan Pro sin tarjeta.\n👉 Pruébalo hoy en https://brami3d.app/software\n\n#impresion3d #3dprinting #maker #autonomos #verifactu #granja3d #bambulab #prusa #negocio3d #brami3d",
     "estado": "pendiente"
+  },
+  {
+    "id": "seguir-27nov",
+    "fecha": "2026-11-27",
+    "tipo": "carrusel",
+    "redes": "both",
+    "imagenes": [
+      "https://app.brami3d.app/m/seguir-01.png",
+      "https://app.brami3d.app/m/seguir-02.png",
+      "https://app.brami3d.app/m/seguir-03.png",
+      "https://app.brami3d.app/m/seguir-04.png",
+      "https://app.brami3d.app/m/seguir-05.png"
+    ],
+    "caption": "Hecho en Tenerife, con su nombre 🇮🇨\n\nEstos son trabajos reales que han salido de nuestro taller en Santa Cruz: los comederos elevados de Raiser y Jade, el juego de equilibrio de Enzo y nuestro monedero con bandeja.\n\n👇 ¿A quién se lo haría? Etiquete en los comentarios a esa persona que tiene perro, que juega a todo o que siempre va con el cambio suelto.\n\n✅ Síganos en @brami3d.app para ver cada pieza nueva que sale del taller.\n\n📩 Presupuesto sin compromiso por WhatsApp (648 931 530) o en brami3d.app/presupuesto\n\n#Tenerife #Canarias #SantaCruzDeTenerife #impresion3d #hechoencanarias #personalizado #conNombre #comederoelevado #Navidad",
+    "estado": "publicado",
+    "publicado_at": "2026-11-27T17:30:00Z",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/p/DgQiMlum7y6/",
+      "ig_story": "17869160991696207",
+      "fb": "1153412231189064_122151273141360682",
+      "fb_story": "1693044885557189"
+    }
   }
 ]
