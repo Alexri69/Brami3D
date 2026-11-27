@@ -202,7 +202,9 @@ def enviar_email(to_addr, subject, md_text):
     req = urllib.request.Request(
         "https://api.resend.com/emails",
         data=payload,
-        headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+        # Resend (Cloudflare) da 403 al User-Agent por defecto de urllib.
+        headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json",
+                 "User-Agent": "brami3d-informe/1.0"},
         method="POST",
     )
     with urllib.request.urlopen(req, timeout=30) as r:
