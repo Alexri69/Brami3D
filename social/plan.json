@@ -256,7 +256,14 @@
     "imagenes": [],
     "video": "https://app.brami3d.app/m/camp-05-software.mp4",
     "caption": "¿Vendes impresiones 3D y sigues calculando los precios a ojo o en una hoja de cálculo? 🤔\n\nBrami3D es la app que creamos y usamos a diario en nuestro propio taller de Tenerife para:\n📂 Arrastrar el archivo .gcode o .3mf del laminador y leer gramos, horas y filamento sin teclear\n🧮 Calcular el coste y margen real al céntimo\n📱 Enviar un enlace por WhatsApp para que tu cliente acepte desde el móvil y siga el estado de su pedido\n🧾 Emitir facturas encadenadas (VeriFactu) y controlar el stock de bobinas\n\n✅ Plan Básico GRATIS hasta 10 pedidos al mes · 30 días Pro sin tarjeta\n👉 https://brami3d.app/software\n\n🎵 Night Owl – Broke For Free (CC BY 3.0)\n\n#impresion3d #impresora3d #makers #bambulab #orcaslicer #prusaslicer #tallerdeimpresion3d #verifactu #brami3d",
-    "estado": "pendiente"
+    "estado": "publicado",
+    "publicado_en": {
+      "ig": "https://www.instagram.com/reel/DgQ9WikPFiq/",
+      "ig_story": "17976794535171081",
+      "fb": "122151301731360682",
+      "fb_story": "1679142790336881"
+    },
+    "publicado_at": "2026-11-28T00:33:06.905652Z"
   },
   {
     "id": 107,
